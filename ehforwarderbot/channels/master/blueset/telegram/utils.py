@@ -102,6 +102,6 @@ def chat_id_str_to_id(s: str) -> Tuple[str, str]:
     """
     Reverse of chat_id_to_str.
     Returns:
-        chat_id, message_id
+        channel_id, chat_uid
     """
     return tuple(s.split(" ", 1))[:2]

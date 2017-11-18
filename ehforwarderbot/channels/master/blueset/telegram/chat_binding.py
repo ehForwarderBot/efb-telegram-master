@@ -8,6 +8,7 @@ import telegram
 from telegram.ext import ConversationHandler, CommandHandler, CallbackQueryHandler
 
 from ehforwarderbot import coordinator, EFBChat, EFBChannel
+from ehforwarderbot.exceptions import EFBChatNotFound, EFBOperationNotSupported
 from . import utils
 from .constants import Emoji, Flags
 
@@ -99,6 +100,11 @@ class ETMChat(EFBChat):
     def display_name(self):
         return self.chat_name if not self.chat_alias \
             else "%s (%s)" % (self.chat_alias, self.chat_name)
+
+    def chat_title(self):
+        return "%s%s %s" % (self.channel_emoji,
+                            Emoji.get_source_emoji(self.chat_type),
+                            self.chat_alias or self.chat_name)
 
 
 class ChatListStorage:
@@ -193,6 +199,9 @@ class ChatBindingManager:
         )
 
         self.bot.dispatcher.add_handler(self.suggestion_handler)
+
+        # Update group title and profile picture
+        self.bot.dispatcher.add_handler(CommandHandler('update_info', self.update_group_info))
 
     def link_chat_show_list(self, bot, update, args=None):
         """
@@ -427,7 +436,7 @@ class ChatBindingManager:
         txt += "\nWhat would you like to do?"
 
         link_url = "https://telegram.me/%s?startgroup=%s" % (
-            self.bot.me.username, urllib.parse.quote(utils.b64en(utils.chat_id_to_str(tg_chat_id, tg_msg_id))))
+            self.bot.me.username, urllib.parse.quote(utils.b64en(utils.message_id_to_str(tg_chat_id, tg_msg_id))))
         self.logger.debug("Telegram start trigger for linking chat: %s", link_url)
         if chat.linked and not chat.muted:
             btn_list = [telegram.InlineKeyboardButton("Relink", url=link_url),
@@ -721,3 +730,38 @@ class ChatBindingManager:
                                   chat_id=chat_id,
                                   message_id=msg_id)
         return ConversationHandler.END
+
+    def update_group_info(self, bot: telegram.Bot, update: telegram.Update):
+        if update.effective_chat.id == bot.get_me().id:
+            return self.bot.reply_error(update, 'Send /update_info in a group where this bot is a group admin '
+                                                'to update group title and profile picture')
+        chats = self.db.get_chat_assoc(master_uid=utils.chat_id_to_str(channel=self.channel,
+                                                                       chat_uid=update.effective_chat.id))
+        if len(chats) != 1:
+            return self.bot.reply_error(update, 'This only works in a group linked with one chat. '
+                                                'Currently %d chat(s) linked to this group.' % len(chats))
+        picture = None
+        try:
+            channel_id, chat_uid = utils.chat_id_str_to_id(chats[0])
+            channel = coordinator.slaves[channel_id]
+            chat = ETMChat(chat=channel.get_chat(chat_uid), db=self.db)
+            bot.set_chat_title(update.effective_chat.id, chat.chat_title())
+            picture = channel.get_chat_picture(chat)
+            bot.set_chat_photo(update.effective_chat.id, picture)
+            update.message.reply_text('Chat information updated.')
+        except KeyError:
+            return self.bot.reply_error(update, 'Channel linked is not found.')
+        except EFBChatNotFound:
+            return self.bot.reply_error(update, 'Chat linked is not found in channel.')
+        except telegram.TelegramError as e:
+            return self.bot.reply_error(update, 'Error occurred while update chat information. '
+                                                'The bot needs to be group admin to perform this action.\n'
+                                                '%s' % e.message)
+        except Exception as e:
+            return self.bot.reply_error(update, 'Error occurred while update chat information. '
+                                                '%s' % e)
+        except EFBOperationNotSupported:
+            return self.bot.reply_error(update, 'No profile picture provided from this chat.')
+        finally:
+            if getattr(picture, 'close', None):
+                picture.close()
