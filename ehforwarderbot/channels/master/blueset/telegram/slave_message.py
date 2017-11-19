@@ -84,7 +84,7 @@ class SlaveMessageProcessor:
             old_msg_id: Tuple[str, str] = None
             if msg.edit:
                 old_msg = self.db.get_msg_log(slave_msg_id=msg.uid,
-                                         slave_origin_uid=utils.chat_id_to_str(chat=msg.chat))
+                                              slave_origin_uid=utils.chat_id_to_str(chat=msg.chat))
                 if old_msg:
                     old_msg_id: Tuple[str, str] = utils.message_id_str_to_id(old_msg.master_msg_id)
                 else:
@@ -352,8 +352,8 @@ class SlaveMessageProcessor:
             msg_template += '[edited]'
             target_msg_id = target_msg_id or old_msg_id[1]
         return self.bot.send_venue(tg_dest, latitude=attributes.latitude,
-                                          longitude=attributes.longitude, title=msg.text,
-                                          address=msg_template, reply_to_message_id=target_msg_id)
+                                   longitude=attributes.longitude, title=msg.text,
+                                   address=msg_template, reply_to_message_id=target_msg_id)
 
     def slave_message_video(self, msg: EFBMsg, tg_dest: str, msg_template: str,
                             old_msg_id: Optional[Tuple[str, str]] = None,
@@ -390,30 +390,42 @@ class SlaveMessageProcessor:
 
     def send_status(self, status: EFBStatus):
         if isinstance(status, EFBChatUpdates):
+            self.logger.debug("Received chat updates from channel %s", status.channel)
             for i in status.removed_chats:
                 self.db.delete_slave_chat_info(status.channel_id, i)
             for i in status.new_chats + status.modified_chats:
                 chat = status.channel.get_chat(i)
                 self.db.set_slave_chat_info(slave_channel_name=status.channel.channel_name,
-                                       slave_channel_emoji=status.channel.channel_emoji,
-                                       slave_channel_id=status.channel_id,
-                                       slave_chat_name=chat.chat_name,
-                                       slave_chat_alias=chat.chat_alias,
-                                       slave_chat_type=chat.chat_type,
-                                       slave_chat_uid=chat.chat_uid)
+                                            slave_channel_emoji=status.channel.channel_emoji,
+                                            slave_channel_id=status.channel_id,
+                                            slave_chat_name=chat.chat_name,
+                                            slave_chat_alias=chat.chat_alias,
+                                            slave_chat_type=chat.chat_type,
+                                            slave_chat_uid=chat.chat_uid)
         elif isinstance(status, EFBMemberUpdates):
+            self.logger.debug("Received member updates from channel %s about group %s",
+                              status.channel, status.chat_id)
             self.logger.info('Currently group member info update is ignored.')
         elif isinstance(status, EFBMessageRemoval):
-            if not self.channel.flag('prevent_message_removal'):
-                old_msg = self.db.get_msg_log(
-                    slave_msg_id=status.message_id,
-                    slave_origin_uid=utils.chat_id_to_str(status.channel_id, status.chat_id))
-                if old_msg:
-                    old_msg_id: Tuple[str, str] = utils.message_id_str_to_id(old_msg.master_msg_id)
-                    self.bot.delete_message(*old_msg_id)
-                else:
-                    self.logger.info('[%s] Was supposed to delete a message, '
-                                     'but it does not exist in database: %s', status)
+            self.logger.debug("Received message removal request from channel %s on message %s",
+                              status.source_channel, status.message)
+            old_msg = self.db.get_msg_log(
+                slave_msg_id=status.message.uid,
+                slave_origin_uid=utils.chat_id_to_str(chat=status.message.chat))
+            if old_msg:
+                old_msg_id: Tuple[str, str] = utils.message_id_str_to_id(old_msg.master_msg_id)
+                try:
+                    if not self.channel.flag('prevent_message_removal'):
+                        self.bot.delete_message(*old_msg_id)
+                        return
+                except telegram.TelegramError:
+                    pass
+                self.bot.send_message(chat_id=old_msg_id[0],
+                                      text="Message removed in remote chat.",
+                                      reply_to_message_id=old_msg_id[1])
+            else:
+                self.logger.info('[%s] Was supposed to delete a message, '
+                                 'but it does not exist in database: %s', status)
 
         else:
             self.logger.error('Received an unknown type of update: %s', status)
@@ -428,7 +440,10 @@ class SlaveMessageProcessor:
             if msg_prefix:  # if group message
                 msg_template = "%s:" % msg_prefix
             else:
-                msg_template = ""
+                if msg.chat != msg.author:
+                    msg_template = "%s:" % ETMChat(chat=msg.author, db=self.db).display_name()
+                else:
+                    msg_template = ""
         elif msg.chat.chat_type == ChatType.User:
             emoji_prefix = msg.chat.channel_emoji + Emoji.get_source_emoji(msg.chat.chat_type)
             name_prefix = ETMChat(chat=msg.chat, db=self.db).display_name()

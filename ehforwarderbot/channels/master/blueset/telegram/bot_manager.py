@@ -52,7 +52,7 @@ class TelegramBotManager:
         prefix = (prefix and (prefix + "\n")) or prefix
         suffix = (suffix and ("\n" + suffix)) or suffix
         text = (args[1:] and args[1]) or kwargs.pop('text', '')
-        args = (args[0],)
+        args = args[:1]
         if len(prefix + text + suffix) >= telegram.constants.MAX_MESSAGE_LENGTH:
             full_message = io.StringIO(prefix + text + suffix)
             truncated = prefix + text[:100] + "\n...\n" + text[:-100] + suffix

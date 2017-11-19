@@ -200,14 +200,14 @@ class DatabaseManager:
         update = kwargs.get('update', False)
         if update:
             msg_log = self.MsgLog.get(self.MsgLog.master_msg_id == master_msg_id)
-            msg_log.text = text
-            msg_log.msg_type = msg_type
-            msg_log.sent_to = sent_to
-            msg_log.slave_origin_uid = slave_origin_uid
-            msg_log.slave_origin_display_name = slave_origin_display_name
-            msg_log.slave_member_uid = slave_member_uid
-            msg_log.slave_member_display_name = slave_member_display_name
-            msg_log.slave_message_id = slave_message_id
+            msg_log.text = text or msg_log.text
+            msg_log.msg_type = msg_type or msg_log.msg_type
+            msg_log.sent_to = sent_to or msg_log.sent_to
+            msg_log.slave_origin_uid = slave_origin_uid or msg_log.slave_origin_uid
+            msg_log.slave_origin_display_name = slave_origin_display_name or msg_log.slave_origin_display_name
+            msg_log.slave_member_uid = slave_member_uid or msg_log.slave_member_uid
+            msg_log.slave_member_display_name = slave_member_display_name or msg_log.slave_member_display_name
+            msg_log.slave_message_id = slave_message_id or msg_log.slave_message_id
             msg_log.save()
             return msg_log
         else:
@@ -270,11 +270,11 @@ class DatabaseManager:
             raise ValueError('slave_msg_id and slave_origin_uid must exists together.')
         try:
             if master_msg_id:
-                self.MsgLog.delete().where(self.MsgLog.master_msg_id == master_msg_id).order_by(self.MsgLog.time.desc())
+                self.MsgLog.delete().where(self.MsgLog.master_msg_id == master_msg_id).execute()
             else:
                 self.MsgLog.delete().where(self.MsgLog.slave_message_id == slave_msg_id and
                                            self.MsgLog.slave_origin_uid == slave_origin_uid
-                                           ).order_by(self.MsgLog.time.desc())
+                                           ).execute()
         except DoesNotExist:
             return
 

@@ -11,7 +11,8 @@ from telegram.ext import MessageHandler, Filters
 
 from ehforwarderbot import EFBChat, EFBMsg, coordinator
 from ehforwarderbot.constants import MsgType
-from ehforwarderbot.exceptions import EFBMessageTypeNotSupported, EFBChatNotFound, EFBMessageError, EFBMessageNotFound
+from ehforwarderbot.exceptions import EFBMessageTypeNotSupported, EFBChatNotFound, \
+    EFBMessageError, EFBMessageNotFound, EFBOperationNotSupported
 from ehforwarderbot.message import EFBMsgTargetMessage, EFBMsgLocationAttribute
 from ehforwarderbot.status import EFBMessageRemoval
 from . import db
@@ -30,6 +31,7 @@ class MasterMessageProcessor:
     """
 
     DELETE_FLAG = 'rm`'
+    FAIL_FLAG = '__fail__'
 
     # Constants
     TYPE_DICT = {
@@ -57,7 +59,7 @@ class MasterMessageProcessor:
 
         self.channel_id: str = self.channel.channel_id
 
-    def msg(self, bot, update):
+    def msg(self, bot, update: telegram.Update):
         """
         Process, wrap and dispatch messages from user.
 
@@ -65,28 +67,32 @@ class MasterMessageProcessor:
             bot: Telegram Bot instance
             update: Message update
         """
-        self.logger.debug("Received message from Telegram: %s", update.message.to_dict())
+
+        message: telegram.Message = update.message or update.edited_message or \
+                                    update.channel_post or update.edited_channel_post
+
+        self.logger.debug("Received message from Telegram: %s", message.to_dict())
         multi_slaves = False
 
-        if update.message.chat.id != update.message.from_user.id:  # from group
-            assocs = self.db.get_chat_assoc(master_uid=utils.chat_id_to_str(self.channel_id, update.message.chat.id))
+        if message.chat.id != message.from_user.id:  # from group
+            assocs = self.db.get_chat_assoc(master_uid=utils.chat_id_to_str(self.channel_id, message.chat.id))
             if len(assocs) > 1:
                 multi_slaves = True
 
-        reply_to = bool(getattr(update.message, "reply_to_message", None))
-        private_chat = update.message.chat.id == update.message.from_user.id
+        reply_to = bool(getattr(message, "reply_to_message", None))
+        private_chat = message.chat.id == message.from_user.id
 
         if (private_chat or multi_slaves) and not reply_to:
-            candidates = self.db.get_recent_slave_chats(update.message.chat.id) or \
-                         self.db.get_chat_assoc(master_uid=utils.chat_id_to_str(self.channel_id, update.message.chat.id))[:5]
+            candidates = self.db.get_recent_slave_chats(message.chat.id) or \
+                         self.db.get_chat_assoc(master_uid=utils.chat_id_to_str(self.channel_id, message.chat.id))[:5]
             if candidates:
-                tg_err_msg = update.message.reply_text("Error: No recipient specified.\n"
+                tg_err_msg = message.reply_text("Error: No recipient specified.\n"
                                                        "Please reply to a previous message.", quote=True)
                 self.channel.chat_binding.register_suggestions(update, candidates,
-                                                               update.message.chat.id, tg_err_msg.message_id)
+                                                               update.effective_chat.id, tg_err_msg.message_id)
 
             else:
-                update.message.reply_text("Error: No recipient specified.\n"
+                message.reply_text("Error: No recipient specified.\n"
                                           "Please reply to a previous message.", quote=True)
         else:
             return self.process_telegram_message(bot, update)
@@ -100,6 +106,7 @@ class MasterMessageProcessor:
         Process messages came from Telegram.
 
         Args:
+            bot: Telegram bot
             update: Telegram message update
             channel_id: Slave channel ID if specified
             chat_id: Slave chat ID if specified
@@ -118,8 +125,11 @@ class MasterMessageProcessor:
         destination: str = None
         slave_msg: EFBMsg = None
 
-        message: telegram.Message = update.message or update.edited_message or \
-                                    update.channel_post or update.edited_channel_post
+        message: telegram.Message = update.effective_message
+
+        edited = bool(update.edited_message or update.edited_channel_post)
+        self.logger.debug('[%s] Message is edited: %s, %s',
+                          message_id, edited, message.edit_date)
 
         private_chat = update.effective_chat.type == telegram.Chat.PRIVATE
 
@@ -249,10 +259,12 @@ class MasterMessageProcessor:
                 ))
 
             # Flag for edited message
-            if message.edit_date:
-                if message.text.beginswith(self.DELETE_FLAG):
+            if edited:
+                m.edit = True
+                text = message.text or message.caption
+                if text.startswith(self.DELETE_FLAG):
                     msg_log = self.db.get_msg_log(master_msg_id=utils.message_id_to_str(update=update))
-                    if not msg_log:
+                    if not msg_log or msg_log == self.FAIL_FLAG:
                         raise EFBMessageNotFound()
                     m.uid = msg_log.slave_message_id
                     coordinator.send_status(EFBMessageRemoval(
@@ -263,7 +275,7 @@ class MasterMessageProcessor:
                     self.db.delete_msg_log(master_msg_id=utils.message_id_to_str(update=update))
                     m = None
                     return
-                m.edit = True
+                self.logger.debug('[%s] Message is edited (%s)', m.uid, m.edit)
 
             # Enclose message as an EFBMsg object by message type.
             if mtype == TGMsgType.Text:
@@ -329,6 +341,8 @@ class MasterMessageProcessor:
             self.bot.reply_error(update, e.args[0] or "Chat is not found.")
         except EFBMessageTypeNotSupported as e:
             self.bot.reply_error(update, e.args[0] or "Message type is not supported.")
+        except EFBOperationNotSupported as e:
+            self.bot.reply_error(update, "Message editing is not supported.\n\n%s" % str(e))
         except EFBMessageError as e:
             self.bot.reply_error(update, "Message is not sent.\n\n%s" % str(e))
         finally:
@@ -340,7 +354,8 @@ class MasterMessageProcessor:
                     "slave_origin_display_name": "__chat__",
                     "msg_type": m.type,
                     "sent_to": "slave",
-                    "slave_message_id": "__fail__"
+                    "slave_message_id": None if m.edit else self.FAIL_FLAG,
+                    "update": m.edit
                 }
                 if slave_msg:
                     msg_log_d['slave_message_id'] = slave_msg.uid

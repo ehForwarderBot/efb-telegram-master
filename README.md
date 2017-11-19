@@ -95,6 +95,7 @@ info - Display information of the current Telegram chat.
 chat - Generate a chat head.
 recog - Recognize a speech by replying to it.
 extra - Access extra functionalities.
+update_info - Update the group name and profile picture
 ```
 
 **Note**    
@@ -142,6 +143,22 @@ Those messages should appear only in the bot conversation.
 In a non-linked chat, direct reply will not be delivered to the 
 remote channel, everything else is supported as it does in a 
 linked chat.
+
+#### Edit and delete message.
+
+In EFB v2, the framework added support to message editing and 
+removal, and so does ETM. However, due to the limitation of
+Telegram Bot API, although you may have selected "Delete from 
+the bot", or "Delete from everyone" while deleting messages,
+the bot would not know anything about it. Therefore, if you want
+your message to be removed from a remote chat, edit your message
+and prepend it with <code>rm\`</code> (it's <kbd>R</kbd>, 
+<kbd>M</kbd>, and <kbd>~\`</kbd>, not single quote), so that the bot knows that
+you want to remote the message.
+
+Please also notice that some channels may not support editing
+and/or deleting messages depends on their implementations.
+
 
 #### `/chat`: Chat head
 If you want to send a message to a non-linked chat which has 
@@ -246,6 +263,19 @@ nb-NO | - | Norwegian
 it-IT | - | Italian
 sv-SE | - | Swedish
 
+### `/update_info`: Update name and profile picture of linked group
+EFB can help you to update the name and profile picture
+of a group to match with appearance in the remote chat.
+
+This functionality is available when:
+* This command is sent to a group
+* The bot is an admin of the group ("Everyone is admin" 
+  will not work in this case)
+* The group is linked to **exactly** one remote chat
+* The remote chat is accessible
+
+Profile picture will not be set if it's not available 
+from the slave channel. 
 
 ## Experimental flags
 The following flags are experimental features, may change, 
