@@ -447,6 +447,8 @@ class SlaveMessageProcessor:
         elif msg.chat.chat_type == ChatType.User:
             emoji_prefix = msg.chat.channel_emoji + Emoji.get_source_emoji(msg.chat.chat_type)
             name_prefix = ETMChat(chat=msg.chat, db=self.db).display_name()
+            if msg.chat != msg.author:
+                name_prefix += ", %s" % ETMChat(chat=msg.author, db=self.db).display_name()
             msg_template = "%s %s:" % (emoji_prefix, name_prefix)
         elif msg.chat.chat_type == ChatType.Group:
             emoji_prefix = msg.chat.channel_emoji + Emoji.get_source_emoji(msg.chat.chat_type)
