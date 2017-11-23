@@ -19,9 +19,11 @@ change at any time.
 ## Configuration
 Configuration file is stored at 
 `<profile storage diretory>/ehforwarderbot.channels.master.blueset.telegram/config.yaml`. 
-The path of your profile storage directory depends on your configuration.
+The path of your profile storage directory depends on 
+your configuration.
 
-__(As of EFB 2.0.0a1: Default profile storage directory is located at `~/.ehforwarderbot/defualt`)__
+__(As of EFB 2.0.0a1: Default profile storage directory 
+is located at `~/.ehforwarderbot/profiles/defualt`)__
 
 A sample config file can be as follows:
 
