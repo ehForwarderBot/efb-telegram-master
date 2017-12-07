@@ -13,9 +13,8 @@ from ehforwarderbot import EFBChat, EFBMsg, coordinator
 from ehforwarderbot.constants import MsgType
 from ehforwarderbot.exceptions import EFBMessageTypeNotSupported, EFBChatNotFound, \
     EFBMessageError, EFBMessageNotFound, EFBOperationNotSupported
-from ehforwarderbot.message import EFBMsgTargetMessage, EFBMsgLocationAttribute
+from ehforwarderbot.message import EFBMsgLocationAttribute
 from ehforwarderbot.status import EFBMessageRemoval
-from . import db
 from . import utils
 from .msg_type import get_msg_type, TGMsgType
 
@@ -238,7 +237,7 @@ class MasterMessageProcessor:
                     trgt_msg.author = trgt_msg.chat
                 else:
                     trgt_msg.author = EFBChat(self).self()
-                m.target = EFBMsgTargetMessage(trgt_msg)
+                m.target = trgt_msg
 
                 self.logger.debug("[%s] This message replies to another message of the same channel.\n"
                                   "Chat ID: %s; Message ID: %s.", message_id, trgt_msg.chat.chat_uid, trgt_msg.uid)

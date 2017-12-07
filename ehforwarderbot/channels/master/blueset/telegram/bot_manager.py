@@ -1,4 +1,4 @@
-from typing import Optional, List, TYPE_CHECKING
+from typing import Optional, List, TYPE_CHECKING, Callable
 
 import telegram
 import telegram.ext
@@ -138,7 +138,7 @@ class TelegramBotManager:
             return self.updater.bot.edit_message_text(*args, **kwargs)
 
     # @Decorator
-    def caption_affix_decorator(fn):
+    def caption_affix_decorator(fn: Callable):
         def caption_affix(self, *args, **kwargs):
             prefix = kwargs.pop('prefix', '')
             suffix = kwargs.pop('suffix', '')
@@ -156,7 +156,7 @@ class TelegramBotManager:
                 full_message = io.StringIO(prefix + text + suffix)
                 truncated = prefix + text[:100] + "\n...\n" + text[:-100] + suffix
                 kwargs['caption'] = truncated
-                msg = fn(*args, **kwargs)
+                msg = fn(self, *args, **kwargs)
                 filename = "%s_%s.txt" % (args[0], msg.message_id)
                 self.updater.bot.send_document(args[0], full_message, filename,
                                                reply_to_message_id=msg.message_id,
@@ -165,7 +165,7 @@ class TelegramBotManager:
                 return msg
             else:
                 kwargs['caption'] = prefix + text + suffix
-                return fn(*args, **kwargs)
+                return fn(self, *args, **kwargs)
         return caption_affix
 
     @caption_affix_decorator

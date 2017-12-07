@@ -1,18 +1,18 @@
-from typing import Tuple, Dict, TYPE_CHECKING
+from typing import Tuple, Dict, TYPE_CHECKING, List
 
 from telegram import Message, Update
 from telegram.ext import CommandHandler, ConversationHandler, RegexHandler, CallbackQueryHandler
 
 from ehforwarderbot import coordinator, EFBChannel
-from ehforwarderbot.message import EFBMsgCommandAttribute
+from ehforwarderbot.message import EFBMsgCommands, EFBMsgCommand
 from .constants import Flags
 if TYPE_CHECKING:
     from . import TelegramChannel
 
 
-class ETMCommandMsgStorage(EFBMsgCommandAttribute):
-    def __init__(self, command: EFBMsgCommandAttribute, channel: EFBChannel, prefix: str, body: str):
-        self.commands = command.commands.copy()
+class ETMCommandMsgStorage:
+    def __init__(self, command: EFBMsgCommand, channel: EFBChannel, prefix: str, body: str):
+        self.command = command
         self.channel = channel
         self.prefix = prefix
         self.body = body

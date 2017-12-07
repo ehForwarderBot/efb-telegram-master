@@ -63,7 +63,7 @@ class TelegramChannel(EFBChannel):
     channel_id = __name__
     channel_type = ChannelType.Master
     supported_message_types = {MsgType.Text, MsgType.File, MsgType.Audio,
-                               MsgType.Command, MsgType.Image, MsgType.Link, MsgType.Location,
+                               MsgType.Image, MsgType.Link, MsgType.Location,
                                MsgType.Sticker, MsgType.Video}
     __version__ = version.__version__
 
@@ -75,6 +75,11 @@ class TelegramChannel(EFBChannel):
 
     # Constants
     config = None
+
+    # Slave-only channels
+    get_chat = None
+    get_chats = None
+    get_chat_picture = None
 
     def __init__(self):
         """
@@ -296,23 +301,7 @@ class TelegramChannel(EFBChannel):
     def send_status(self, status: EFBStatus):
         return self.slave_messages.send_status(status)
 
-    @property
-    def stop_polling(self) -> bool:
-        return self._stop_polling
-
-    @stop_polling.setter
-    def stop_polling(self, val: bool):
-        if val:
-            self.logger.debug("Gracefully stopping %s (%s).", self.channel_name, self.channel_id)
-            self.bot_manager.graceful_stop()
-            self.logger.debug("%s (%s) gracefully stopped.", self.channel_name, self.channel_id)
-        self._stop_polling = val
-
-    def get_chat_picture(self, chat: EFBChat):
-        raise Exception("Called \"get_chat_picture\" on a master channel.")
-
-    def get_chat(self, chat_uid: str, member_uid: Optional[str]=None):
-        raise Exception("Called \"get_chat\" on a master channel.")
-
-    def get_chats(self):
-        raise Exception("Called \"get_chats\" on a master channel.")
+    def stop_polling(self):
+        self.logger.debug("Gracefully stopping %s (%s).", self.channel_name, self.channel_id)
+        self.bot_manager.graceful_stop()
+        self.logger.debug("%s (%s) gracefully stopped.", self.channel_name, self.channel_id)
