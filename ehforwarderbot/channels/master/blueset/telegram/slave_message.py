@@ -13,7 +13,7 @@ import telegram.constants
 import telegram.error
 import telegram.ext
 
-from ehforwarderbot import EFBMsg, EFBStatus
+from ehforwarderbot import EFBMsg, EFBStatus, coordinator
 from ehforwarderbot.constants import MsgType, ChatType
 from ehforwarderbot.exceptions import EFBMessageError
 from ehforwarderbot.message import EFBMsgLinkAttribute, EFBMsgLocationAttribute, EFBMsgCommand
@@ -114,7 +114,7 @@ class SlaveMessageProcessor:
                 buttons = []
                 for i, ival in enumerate(commands):
                     buttons.append([telegram.InlineKeyboardButton(ival.name, callback_data=str(i))])
-                reply_markup = telegram.InlineKeyboardMarkup([buttons])
+                reply_markup = telegram.InlineKeyboardMarkup(buttons)
 
             # Type dispatching
             if msg.type == MsgType.Text:
