@@ -1,7 +1,7 @@
 # EFB Telegram Master Channel (ETM)
 <!-- badges -->
 
-**Channel ID**: `ehforwarderbot.channels.master.blueset.telegram`
+**Channel ID**: `ehforwarderbot.channels.master.blueset.telegram.TelegramChannel`
 
 ETM is a Telegram Master Channel for EH Forwarder Bot, based 
 on Telegram Bot API, `python-telegram-bot`.
@@ -18,7 +18,7 @@ change at any time.
 
 ## Configuration
 Configuration file is stored at 
-`<profile storage diretory>/ehforwarderbot.channels.master.blueset.telegram/config.yaml`. 
+`<profile storage diretory>/ehforwarderbot.channels.master.blueset.telegram.TelegramChannel/config.yaml`. 
 The path of your profile storage directory depends on 
 your configuration.
 
@@ -71,7 +71,7 @@ speech_api:
 # Experimental Flags
 # This section can be used to enable experimental functionality.
 # However, those features may be changed or removed at any time.
-# Options for this section is explained afterward.
+# Options in this section is explained afterward.
 flags:
     option_one: 10
     option_two: false
@@ -87,7 +87,7 @@ messages from a specific sender to an empty group for a more
 organized conversation.
 
 In a nutshell, ETM offers the following commands, you can also 
-send it to BotFather for the command list.
+send it to BotFather for a command list.
 
 ```
 help - Show commands list.
@@ -116,8 +116,8 @@ receive direct message from the bot.
 **Note**  
 You may introduce other non-ETM admins to the group, however, they:
 
-    * Can read all messages send from the related remote chat;
-    * May NOT send message on your behalf.
+* Can read all messages send from the related remote chat;
+* May NOT send message on your behalf.
 
 Also, you can send `/unlink_all` to a group to unlink all remote chats from it.
 
@@ -291,7 +291,7 @@ flags:
     flag_name: flag_value
 ```
 
-* `no_conversion` _(bool)_  [Default: `False`]
+* `no_conversion` _(bool)_  [Default: `false`]
   Disable audio conversion, send all audio file as is, and 
   let Telegram to handle it.  
   _Only works in linked chats._
@@ -302,14 +302,14 @@ flags:
 * `network_error_prompt_interval` _(int)_ [Default: `100`]  
   Notify the user about network error every `n` errors 
   received. Set to 0 to disable it.
-* `text_as_html` _(bool)_ [Default: `False`]  
+* `text_as_html` _(bool)_ [Default: `false`]  
   Parse all text messages as Telegram HTML. Tags 
   supported: `a`, `b`, `strong`, `i`, `em`, `code`, `pre`.
-* `multiple_slave_chats` _(bool)_  [Default: `True`]  
+* `multiple_slave_chats` _(bool)_  [Default: `true`]  
   Link more than one remote chat to one Telegram group. 
   Send and reply as you do with an unlinked chat. 
   Disable to link remote chats and Telegram 
   group one-to-one.
-* `prevent_message_removal` _(bool)_ [Default: `True`]  
+* `prevent_message_removal` _(bool)_ [Default: `true`]  
   When a slave channel requires to remove a message, EFB will
-  ignore the request if this value is `True`.
+  ignore the request if this value is `true`.

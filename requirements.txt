@@ -1,3 +1,4 @@
+fbchat
 PyYAML
 ehforwarderbot
 python-telegram-bot

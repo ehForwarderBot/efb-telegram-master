@@ -60,7 +60,6 @@ class TelegramChannel(EFBChannel):
     # Meta Info
     channel_name = "Telegram Master"
     channel_emoji = "✈"
-    channel_id = __name__
     channel_type = ChannelType.Master
     supported_message_types = {MsgType.Text, MsgType.File, MsgType.Audio,
                                MsgType.Image, MsgType.Link, MsgType.Location,
