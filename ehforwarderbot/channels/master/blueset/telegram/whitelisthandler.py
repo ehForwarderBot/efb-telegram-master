@@ -25,7 +25,11 @@ class WhitelistHandler(Handler):
         super(WhitelistHandler, self).__init__(void_function, pass_update_queue)
 
     def check_update(self, update):
-        return isinstance(update, Update) and not int(update.effective_user.id) in self.whitelist
+        if not isinstance(update, Update):
+            return False
+        if not update.effective_user:
+            return True
+        return not int(update.effective_user.id) in self.whitelist
 
     def handle_update(self, update, dispatcher):
         pass

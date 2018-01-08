@@ -8,6 +8,7 @@ import magic
 import telegram
 from moviepy.video.io.VideoFileClip import VideoFileClip
 from telegram.ext import MessageHandler, Filters
+from PIL import Image
 
 from ehforwarderbot import EFBChat, EFBMsg, coordinator
 from ehforwarderbot.constants import MsgType
@@ -188,8 +189,8 @@ class MasterMessageProcessor:
                                                 "To unlink all remote chats, please send /unlink_all . (UC06)")
             elif destination:
                 if reply_to:
-                    target_log: self.db.MsgLog = self.db.get_msg_log(master_msg_id=
-                                                           utils.message_id_to_str(
+                    target_log: self.db.MsgLog = \
+                        self.db.get_msg_log(master_msg_id=utils.message_id_to_str(
                                                                message.reply_to_message.chat.id,
                                                                message.reply_to_message.message_id))
                     if target_log:
@@ -215,7 +216,7 @@ class MasterMessageProcessor:
             m.uid = message_id
             mtype = get_msg_type(message)
             # Chat and author related stuff
-            m.author = EFBChat(self).self()
+            m.author = EFBChat(self.channel).self()
             m.chat = EFBChat(coordinator.slaves[channel])
             m.chat.chat_uid = uid
             m.deliver_to = coordinator.slaves[channel]
@@ -281,12 +282,17 @@ class MasterMessageProcessor:
                 m.text = message.text
             elif mtype == TGMsgType.Photo:
                 m.text = message.caption
-                m.file, m.mime, m.filename, m.path = self._download_file(message.photo[-1],
-                                                                         message.photo[-1].mime_type)
+                m.file, m.mime, m.filename, m.path = self._download_file(message.photo[-1], None)
             elif mtype == TGMsgType.Sticker:
+                # Convert WebP to the more common PNG
                 m.text = ""
-                m.file, m.mime, m.filename, m.path = self._download_file(message.sticker,
-                                                                         message.sticker.mime_type)
+                m.file, m.mime, m.filename, m.path = self._download_file(message.sticker, 'image/webp')
+                self.logger.debug("[%s] Trying to convert WebP sticker (%s) to PNG.", message_id, m.path)
+                f = tempfile.NamedTemporaryFile(suffix=".png")
+                Image.open(m.file).save(f, 'png')
+                m.file.close()
+                m.file, m.mime, m.filename, m.path = f, 'image/png', os.path.basename(f.name), f.name
+                self.logger.debug("[%s] WebP sticker is converted to PNG (%s).", message_id, f.name)
             elif mtype == TGMsgType.Document:
                 m.text = message.caption
                 self.logger.debug("[%s] Telegram message type is document.", message_id)
@@ -372,7 +378,7 @@ class MasterMessageProcessor:
 
         Returns:
             Tuple[IO[bytes], str, str, str]:
-                ``tempfile`` file-like object, MIME type, proposed file name
+                ``tempfile`` file-like object, MIME type, proposed file name, file path
 
         Raises:
             EFBMessageError: When file exceeds the maximum download size.
@@ -382,28 +388,32 @@ class MasterMessageProcessor:
         if size and size > telegram.constants.MAX_FILESIZE_DOWNLOAD:
             raise EFBMessageError("Attachment is too large. Maximum is 20 MB. (AT01)")
         f = self.bot.get_file(file_id)
-        ext = mimetypes.guess_extension(mime, strict=False)
+        if not mime:
+            ext = os.path.splitext(f.file_path)[1]
+            mime = mimetypes.guess_type(f.file_path, strict=False)[0]
+        else:
+            ext = mimetypes.guess_extension(mime, strict=False)
         file = tempfile.NamedTemporaryFile(suffix=ext)
-        full_path = file.name()
+        full_path = file.name
         f.download(out=file)
-        mime = getattr(file_obj, "mime_type", magic.from_file(full_path, mime=True))
+        file.seek(0)
+        mime = getattr(file_obj, "mime_type", mime or magic.from_file(full_path, mime=True))
         if type(mime) is bytes:
             mime = mime.decode()
-        file.seek(0)
-        return file, mime, os.path.basename(f.file_path), f.file_path
+        return file, mime, os.path.basename(full_path), full_path
 
-    def _download_gif(self, file_id: str) -> Tuple[IO[bytes], str, str, str]:
+    def _download_gif(self, file: telegram.File) -> Tuple[IO[bytes], str, str, str]:
         """
         Download and convert GIF image.
 
         Args:
-            file_id: File ID
+            file: Telegram File object
 
         Returns:
             Tuple[IO[bytes], str, str, str]:
                 ``tempfile`` file-like object, MIME type, proposed file name
         """
-        file, _, filename, path = self._download_file(file_id, '.mpg')
+        file, _, filename, path = self._download_file(file, 'video/mpeg')
         gif_file = tempfile.NamedTemporaryFile(suffix='.gif')
         VideoFileClip(path).write_gif(gif_file(), program="ffmpeg")
         file.close()

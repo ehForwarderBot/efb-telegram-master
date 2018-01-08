@@ -134,7 +134,8 @@ class TelegramBotManager:
         try:
             return self.updater.bot.edit_message_text(*args, **kwargs)
         except telegram.error.BadRequest:
-            kwargs.pop("parse_mode")
+            if 'parse_mode' in kwargs:
+                kwargs.pop("parse_mode")
             return self.updater.bot.edit_message_text(*args, **kwargs)
 
     # @Decorator

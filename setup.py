@@ -38,6 +38,7 @@ setup(
         "peewee",
         "requests",
         "pydub",
-        "PyYaml"
+        "PyYaml",
+        "pillow"
     ]
 )

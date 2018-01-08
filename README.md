@@ -15,15 +15,30 @@ change at any time.
 * EH Forwarder Bot >= 2.0.0
 * ffmpeg
 * libmagic
+* libwebp
+
+## Getting Started
+
+1. Install all required binary dependencies
+2. Install ETM
+
+    ```shell
+    pip3 install efb-telegram-master
+    ```
+
+2. Enable ETM in the profile's `config.yaml`
+
+    The path of your profile storage directory depends on 
+    your configuration.
+    
+    __(As of EFB 2.0.0a1: Default profile storage directory 
+    is located at `~/.ehforwarderbot/profiles/defualt`)__
+
+3. Config the channel (described as follows)
 
 ## Configuration
 Configuration file is stored at 
 `<profile storage diretory>/ehforwarderbot.channels.master.blueset.telegram.TelegramChannel/config.yaml`. 
-The path of your profile storage directory depends on 
-your configuration.
-
-__(As of EFB 2.0.0a1: Default profile storage directory 
-is located at `~/.ehforwarderbot/profiles/defualt`)__
 
 A sample config file can be as follows:
 
@@ -114,10 +129,18 @@ receive direct message from the bot.
    message: "Chat associated."
 
 **Note**  
-You may introduce other non-ETM admins to the group, however, they:
+You may introduce non-ETM admin users to the group, however, they:
 
 * Can read all messages send from the related remote chat;
 * May NOT send message on your behalf.
+
+If the "Link" button doesn't work for you, you may try the 
+"Manual Link/Relink" button. To manually link a remote chat:
+
+1. Add the bot to the group you want to link to
+2. Copy the code provided by the bot, and send it to the group.
+3. If the group is linked successfully, you would receive a
+  confirmation from the bot.
 
 Also, you can send `/unlink_all` to a group to unlink all remote chats from it.
 
@@ -279,6 +302,36 @@ This functionality is available when:
 Profile picture will not be set if it's not available 
 from the slave channel. 
 
+### Telegram Channel support
+
+ETM supports linking remote chats to Telegram Channels with
+partial support.
+
+The bot can:
+
+* Link one or more remote chats to a Telegram Channel
+* Check and manage link status of the channel
+* Let the bot to update channel title and profile pictures 
+  accordingly  
+  
+It cannot:
+
+* Process messages sent by you or others to the channel
+* Accept commands in the channel
+
+Currently the following commands are supported in channels:
+
+* `/start` for manual chat linking
+* `/link` to manage groups linked to the channel
+* `/info` to show information of the channel
+* `/update_info` to update the channel title and picture
+
+How to use:
+
+1. Add the bot as an administrator of the channel
+2. Send commands to the channel
+3. Forward the command message to the bot privately
+
 ## Experimental flags
 The following flags are experimental features, may change, 
 break, or disappear at any time. Use at your own risk.
@@ -291,7 +344,7 @@ flags:
     flag_name: flag_value
 ```
 
-* `no_conversion` _(bool)_  [Default: `false`]
+* `no_conversion` _(bool)_  [Default: `false`]  
   Disable audio conversion, send all audio file as is, and 
   let Telegram to handle it.  
   _Only works in linked chats._
@@ -300,7 +353,7 @@ flags:
   command. An overly large value may lead to malfunction of 
   such commands.
 * `network_error_prompt_interval` _(int)_ [Default: `100`]  
-  Notify the user about network error every `n` errors 
+  Notify the user about network error every `n` errors
   received. Set to 0 to disable it.
 * `text_as_html` _(bool)_ [Default: `false`]  
   Parse all text messages as Telegram HTML. Tags 

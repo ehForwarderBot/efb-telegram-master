@@ -119,7 +119,7 @@ class CommandsManager:
                     msg += "\n\n%s <b>(%s)</b>\n%s" % (
                         fn_name, extra_fns[j].name, extra_fns[j].desc.format(function_name=fn_name))
             else:
-                msg += "No command found."
+                msg += "\nNo command found."
         self.bot.send_message(update.effective_chat.id, msg, parse_mode="HTML")
 
     def extra_call(self, bot, update, groupdict: Dict[str, str]=None):

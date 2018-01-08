@@ -322,7 +322,7 @@ class DatabaseManager:
             chat_info.slave_channel_emoji = slave_channel_emoji
             chat_info.slave_chat_name = slave_chat_name
             chat_info.slave_chat_alias = slave_chat_alias
-            chat_info.slave_chat_type = slave_chat_type
+            chat_info.slave_chat_type = slave_chat_type.value
             chat_info.save()
             return chat_info
         else:

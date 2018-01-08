@@ -4,17 +4,18 @@ import html
 import logging
 import mimetypes
 import os
-from typing import Optional
 
 import telegram
 import telegram.constants
 import telegram.error
 import telegram.ext
 import yaml
+from PIL import Image
 
-from ehforwarderbot import EFBChannel, EFBMsg, EFBStatus, EFBChat, coordinator
+from ehforwarderbot import EFBChannel, EFBMsg, EFBStatus, coordinator
 from ehforwarderbot import utils as efb_utils
 from ehforwarderbot.constants import MsgType, ChannelType
+from ehforwarderbot.exceptions import EFBException
 from . import __version__ as version
 from . import utils as etm_utils
 from .db import DatabaseManager
@@ -25,6 +26,7 @@ from .master_message import MasterMessageProcessor
 from .slave_message import SlaveMessageProcessor
 from .utils import ExperimentalFlagsManager
 from .voice_recognition import VoiceRecognitionManager
+from .global_command_handler import GlobalCommandHandler
 
 
 class TelegramChannel(EFBChannel):
@@ -86,6 +88,13 @@ class TelegramChannel(EFBChannel):
         """
         super().__init__()
 
+        # Check PIL support for WebP
+        Image.init()
+        if 'WEBP' not in Image.ID:
+            raise EFBException("WebP support of Pillow is required.\n"
+                               "Please refer to Pillow Documentation for instructions.\n"
+                               "https://pillow.readthedocs.io/")
+
         # Suppress debug logs from dependencies
         logging.getLogger('requests').setLevel(logging.CRITICAL)
         logging.getLogger('urllib3').setLevel(logging.CRITICAL)
@@ -113,11 +122,13 @@ class TelegramChannel(EFBChannel):
 
         # Basic message handlers
         self.bot_manager.dispatcher.add_handler(
-            telegram.ext.CommandHandler("start", self.start, pass_args=True))
+            GlobalCommandHandler("start", self.start, pass_args=True))
         self.bot_manager.dispatcher.add_handler(
             telegram.ext.CommandHandler("help", self.help))
         self.bot_manager.dispatcher.add_handler(
-            telegram.ext.CommandHandler("info", self.info))
+            GlobalCommandHandler("info", self.info))
+        self.bot_manager.dispatcher.add_handler(
+            telegram.ext.CallbackQueryHandler(self.bot_manager.session_expired))
 
         self.bot_manager.dispatcher.add_error_handler(self.error)
 
@@ -159,14 +170,7 @@ class TelegramChannel(EFBChannel):
             bot: Telegram Bot instance
             update: Message update
         """
-        if update.message.chat_id == update.message.from_user.id:  # Talking to the bot.
-            msg = "This is EFB Telegram Master Channel %s, " \
-                  "you currently have %s slave channels activated:" % (self.__version__, len(coordinator.slaves))
-            for i in coordinator.slaves:
-                msg += "\n- %s %s (%s, %s)" % (coordinator.slaves[i].channel_emoji,
-                                               coordinator.slaves[i].channel_name,
-                                               i, coordinator.slaves[i].__version__)
-        else:
+        if update.message.chat.type != telegram.Chat.PRIVATE:  # Group message
             links = self.db.get_chat_assoc(master_uid=etm_utils.chat_id_to_str(self.channel_id, update.message.chat_id))
             if links:  # Linked chat
                 msg = "The group {group_name} ({group_id}) is " \
@@ -176,7 +180,7 @@ class TelegramChannel(EFBChannel):
                     channel_id, chat_id = etm_utils.chat_id_str_to_id(i)
                     d = self.chat_binding.get_chat_from_db(channel_id, chat_id)
                     if d:
-                        msg += "\n- %s" % ETMChat(chat=d, db=self.db).full_name()
+                        msg += "\n- %s" % ETMChat(chat=d, db=self.db).full_name
                     else:
                         msg += "\n- {channel_emoji} {channel_name}: Unknown chat ({chat_id})".format(
                             channel_emoji=coordinator.slaves[channel_id].channel_emoji,
@@ -187,6 +191,40 @@ class TelegramChannel(EFBChannel):
                 msg = "The group {group_name} ({group_id}) is not linked to any remote chat. " \
                       "To link one, use /link.".format(group_name=update.message.chat.title,
                                                        group_id=update.message.chat_id)
+        elif update.effective_message.forward_from_chat and \
+                        update.effective_message.forward_from_chat.type == 'channel':  # Forwarded channel command.
+            chat = update.effective_message.forward_from_chat
+            links = self.db.get_chat_assoc(master_uid=etm_utils.chat_id_to_str(self.channel_id, chat.id))
+            if links:  # Linked chat
+                msg = "The channel {group_name} ({group_id}) is " \
+                      "linked to the following chat(s):".format(group_name=chat.title,
+                                                                group_id=chat.id)
+                for i in links:
+                    channel_id, chat_id = etm_utils.chat_id_str_to_id(i)
+                    d = self.chat_binding.get_chat_from_db(channel_id, chat_id)
+                    if d:
+                        msg += "\n- %s" % ETMChat(chat=d, db=self.db).full_name
+                    else:
+                        msg += "\n- {channel_emoji} {channel_name}: Unknown chat ({chat_id})".format(
+                            channel_emoji=coordinator.slaves[channel_id].channel_emoji,
+                            channel_name=coordinator.slaves[channel_id].channel_name,
+                            chat_id=chat_id
+                        )
+            else:
+                msg = "The channel {group_name} ({group_id}) is " \
+                      "not linked to any remote chat. ".format(group_name=chat.title,
+                                                               group_id=chat.id)
+        else:  # Talking to the bot.
+            msg = "This is EFB Telegram Master Channel %s.\n" \
+                  "%s slave channel(s) activated:" % (self.__version__, len(coordinator.slaves))
+            for i in coordinator.slaves:
+                msg += "\n- %s %s (%s, %s)" % (coordinator.slaves[i].channel_emoji,
+                                               coordinator.slaves[i].channel_name,
+                                               i, coordinator.slaves[i].__version__)
+            if coordinator.middlewares:
+                msg += "\n\n%s middleware(s) activated:" % len(coordinator.middlewares)
+                for i in coordinator.middlewares:
+                    msg += "\n- %s (%s, %s)" % (i.middleware_name, i.middleware_id, i.__version__)
 
         update.message.reply_text(msg)
 
@@ -199,12 +237,18 @@ class TelegramChannel(EFBChannel):
             update (telegram.Update): Message update
             args: Arguments from message
         """
-        if update.message.chat.type != telegram.Chat.PRIVATE and args:  # from group
-            self.chat_binding.link_chat(update, args)
+        if args:  # Group binding command
+            if update.effective_message.chat.type != telegram.Chat.PRIVATE or \
+                    (update.effective_message.forward_from_chat and
+                     update.effective_message.forward_from_chat.type == telegram.Chat.CHANNEL):
+                self.chat_binding.link_chat(update, args)
+            else:
+                self.bot_manager.send_message(update.effective_chat.id,
+                                              'You cannot link remote chats to here. Please try again.')
         else:
-            txt = "Welcome to EH Forwarder Bot: EFB Telegram Master Channel.\n\n" \
-                  "To learn more, please visit https://github.com/blueset/ehForwarderBot ."
-            bot.send_message(update.message.from_user.id, txt)
+            txt = "This is EFB Telegram Master Channel.\n\n" \
+                  "To learn more, please visit https://github.com/blueset/efb-telegram-master ."
+            self.bot_manager.send_message(update.effective_chat.id, txt)
 
     def help(self, bot, update):
         txt = "EFB Telegram Master Channel\n" \
@@ -218,6 +262,11 @@ class TelegramChannel(EFBChannel):
               "    List all extra function from slave channels.\n" \
               "/unlink_all\n" \
               "    Unlink all remote chats in this chat.\n" \
+              "/info\n" \
+              "    Show information of the current Telegram chat.\n" \
+              "/update_info\n" \
+              "    Update name and profile picture a linked Telegram group.\n" \
+              "    Only works in singly linked group where the bot is an admin.\n" \
               "/recog\n" \
               "    Reply to a voice message to convert it to text.\n" \
               "    Followed by a language code to choose a specific language.\n" \
