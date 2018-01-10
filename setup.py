@@ -11,17 +11,20 @@ version_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),
 __version__ = ""
 exec(open(version_path).read())
 
+long_description = open('README.rst').read()
+
 setup(
     name='efb-telegram-master',
     namespace_package=['efb_telegram_master'],
     version=__version__,
     description='Telegram Master Channel for EH Forwarder Bot, based on Telegram Bot API.',
+    long_description=long_description,
     author='Eana Hufwe',
     author_email='ilove@1a23.com',
     url='https://github.com/blueset/efb-telegram-master',
-    license='GPL v3',
-    download_url='',
-    keywords=['', ' '],
+    license='GPLv3',
+    keywords=['ehforwarderbot', 'EH Forwarder Bot', 'EH Forwarder Bot Master Channel', 'Telegram',
+              'Telegram Bot', 'chatbot'],
     classifiers=[
         "Development Status :: 3 - Alpha",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
