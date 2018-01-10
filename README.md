@@ -1,7 +1,7 @@
 # EFB Telegram Master Channel (ETM)
 <!-- badges -->
 
-**Channel ID**: `ehforwarderbot.channels.master.blueset.telegram.TelegramChannel`
+**Channel ID**: `blueset.telegram`
 
 ETM is a Telegram Master Channel for EH Forwarder Bot, based 
 on Telegram Bot API, `python-telegram-bot`.

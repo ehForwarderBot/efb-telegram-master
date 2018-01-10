@@ -6,14 +6,14 @@ if sys.version_info < (3, 5):
     raise Exception("Python 3.5 or higher is required. Your version is %s." % sys.version)
 
 version_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                            'ehforwarderbot/channels/master/blueset/telegram/__version__.py')
+                            'efb_telegram_master/__version__.py')
 
 __version__ = ""
 exec(open(version_path).read())
 
 setup(
     name='efb-telegram-master',
-    namespace_package=['ehforwarderbot'],
+    namespace_package=['efb_telegram_master'],
     version=__version__,
     description='Telegram Master Channel for EH Forwarder Bot, based on Telegram Bot API.',
     author='Eana Hufwe',
@@ -23,7 +23,7 @@ setup(
     download_url='',
     keywords=['', ' '],
     classifiers=[
-        "Development Status :: 1 - Planning",
+        "Development Status :: 3 - Alpha",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Intended Audience :: Developers",
         "Intended Audience :: End Users/Desktop",
@@ -44,5 +44,8 @@ setup(
         "pydub",
         "PyYaml",
         "pillow"
-    ]
+    ],
+    entry_points={
+        "ehforwarderbot.master": "blueset.telegram = efb_telegram_master:TelegramChannel"
+    }
 )
