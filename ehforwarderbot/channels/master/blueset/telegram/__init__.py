@@ -318,7 +318,7 @@ class TelegramChannel(EFBChannel):
                                               "<b>EFB Telegram Master channel</b>\n"
                                               "You may have a poor internet connection on your server. "
                                               "Currently %s network errors are detected.\n"
-                                              "For more details, please refer to the log." % (self.timeout_count),
+                                              "For more details, please refer to the log." % self.timeout_count,
                                               parse_mode="HTML")
         except telegram.error.ChatMigrated as e:
             new_id = e.new_chat_id

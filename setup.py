@@ -1,14 +1,18 @@
 import sys
+import os
 from setuptools import setup
 
 if sys.version_info < (3, 5):
     raise Exception("Python 3.5 or higher is required. Your version is %s." % sys.version)
 
+version_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                            'ehforwarderbot/channels/master/blueset/telegram/__version__.py')
+
 __version__ = ""
-exec(open('ehforwarderbot/channel/master/blueset/telegram/__version__.py').read())
+exec(open(version_path).read())
 
 setup(
-    name='ehforwarderbot-master-telegram',
+    name='efb-telegram-master',
     namespace_package=['ehforwarderbot'],
     version=__version__,
     description='Telegram Master Channel for EH Forwarder Bot, based on Telegram Bot API.',

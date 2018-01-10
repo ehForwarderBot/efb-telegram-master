@@ -185,8 +185,6 @@ class SlaveMessageProcessor:
         self.logger.debug("[%s] Sending as a text message.", msg.uid)
         self.bot.send_chat_action(tg_dest, telegram.ChatAction.TYPING)
 
-        parse_mode = "HTML" if self.flag("text_as_html") else None
-
         # Join message is Deprecated from ETM v2.0.0a1
         #
         # join_msg_threshold_secs = self._flag('join_msg_threshold_secs', 15)
@@ -237,6 +235,26 @@ class SlaveMessageProcessor:
         #
         # self.logger.debug("[%s] Message is successfully processed as text message", msg.uid)
         # return tg_msg, append_last_msg
+
+        parse_mode = "HTML"
+
+        if msg.substitutions:
+            ranges = sorted(msg.substitutions.keys())
+            text = ""
+            prev = 0
+            for i in ranges:
+                text += html.escape(msg.text[prev:i[0]])
+                if msg.substitutions[i].is_self:
+                    text += '<a href="tg://user?id=%s">' % self.channel.config['admins'][0]
+                    text += html.escape(msg.text[i[0]:i[1]])
+                    text += "</a>"
+                else:
+                    text += html.escape(msg.text[i[0]:i[1]])
+                prev = i[1]
+            text += html.escape(msg.text[prev:ranges[-1][1]])
+            msg.text = text
+        else:
+            msg.text = html.escape(msg.text)
 
         if not old_msg_id:
             tg_msg = self.bot.send_message(tg_dest,

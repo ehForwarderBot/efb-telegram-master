@@ -14,7 +14,6 @@ class ExperimentalFlagsManager:
     DEFAULT_VALUES = {
         "no_conversion": False,
         "chats_per_page": 10,
-        "text_as_html": False,
         "multiple_slave_chats": True,
         "network_error_prompt_interval": 100,
         "prevent_message_removal": True
