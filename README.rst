@@ -41,10 +41,28 @@ Getting Started
    **(As of EFB 2.0.0a1: Default profile storage directory is located at**
    ``~/.ehforwarderbot/profiles/default`` **)**
 
-4. Configure the channel (described as follows)
+3. Configure the channel (described as follows)
 
 Configuration
 -------------
+
+Set up a bot
+~~~~~~~~~~~~
+
+Create a bot with `@BotFather`_, give it a name and a username.
+Then you'll get a token, which will be used later. Keep this
+token secure, as it gives who owns it the full access to the
+bot.
+
+.. _@BotFather: https://t.me/botfather
+
+Use ``/setjoingroups`` to allow your bot to join groups.
+Use ``/setprivacy`` to disable the privacy restriction
+of the bot, so that it can receive all messages in the
+group.
+
+Complete configuration file
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Configuration file is stored at
 ``<profile directory>/blueset.telegram/config.yaml``.
