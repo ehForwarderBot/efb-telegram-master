@@ -61,7 +61,7 @@ class ETMChat(EFBChat):
             Alias: <Chat Alias>
             ID: <Chat Unique ID>
             Type: (User|Group)
-            Mode: [Muted][[, ]Linked]
+            Mode: [[Muted, ]Linked]
             Other: <Python Dictionary String>
 
         Args:
@@ -555,7 +555,7 @@ class ChatBindingManager:
             tg_chat_to_link = update.effective_message.forward_from_chat and \
                            update.effective_message.forward_from_chat.type == telegram.Chat.CHANNEL and \
                            update.effective_message.forward_from_chat.id
-            tg_chat_to_link = tg_chat_to_link or update.effective_message.id
+            tg_chat_to_link = tg_chat_to_link or update.effective_chat.id
 
             txt = "Trying to link chat %s..." % chat_display_name
             msg = self.bot.send_message(tg_chat_to_link, text=txt)

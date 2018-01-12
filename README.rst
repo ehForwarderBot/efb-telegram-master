@@ -39,7 +39,7 @@ Getting Started
    configuration.
 
    **(As of EFB 2.0.0a1: Default profile storage directory is located at**
-   ``~/.ehforwarderbot/profiles/defualt`` **)**
+   ``~/.ehforwarderbot/profiles/default`` **)**
 
 4. Configure the channel (described as follows)
 
@@ -47,7 +47,7 @@ Configuration
 -------------
 
 Configuration file is stored at
-``<profile storage diretory>/ehforwarderbot.channels.master.blueset.telegram.TelegramChannel/config.yaml``.
+``<profile directory>/blueset.telegram/config.yaml``.
 
 A sample config file can be as follows:
 
@@ -233,22 +233,26 @@ E.g.: ``/chat Eana`` will give you all chats has the word “Eana”.
     the query is NOT case-sensitive. Each comparison is done against a
     specially crafted string which allows you to filter multiple criteria.
 
-.. TODO: Update this string format
-
 ::
 
-    Channel: Dummy Channel
-    Name: John Doe
-    Alias: Jonny
-    ID: john_doe
-    Type: User
-    Status: Linked
+    Channel: <Channel name>
+    Name: <Chat name>
+    Alias: <Chat Alias>
+    ID: <Chat Unique ID>
+    Type: (User|Group)
+    Mode: [[Muted, ]Linked]
+    Other: <Python Dictionary String>
 
 
 .. note::
 
     Type can be either “User” or “Group”
-    Status can be empty or either “Linked” or “Muted”
+
+    Other is the vendor specific information provided by slave channels.
+    Format of such information is specified in their documentations
+    respectively.
+
+
 
 Examples:
 
