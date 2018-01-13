@@ -146,19 +146,18 @@ class SlaveMessageProcessor:
                 ))
 
             self.logger.debug("[%s] Message is sent to the user.", xid)
-            if msg.chat.chat_type in (ChatType.User, ChatType.Group):
-                msg_log = {"master_msg_id": utils.message_id_to_str(tg_msg.chat.id, tg_msg.message_id),
-                           "text": msg.text or "Sent a %s." % msg.type,
-                           "msg_type": msg.type,
-                           "sent_to": "master" if msg.author.is_self else 'slave',
-                           "slave_origin_uid": utils.chat_id_to_str(chat=msg.chat),
-                           "slave_origin_display_name": msg.chat.chat_alias,
-                           "slave_member_uid": msg.author.chat_uid if not msg.author.is_self else None,
-                           "slave_member_display_name": msg.author.chat_alias if not msg.author.is_self else None,
-                           "slave_message_id": msg.uid,
-                           "update": msg.edit
-                           }
-                self.db.add_msg_log(**msg_log)
+            msg_log = {"master_msg_id": utils.message_id_to_str(tg_msg.chat.id, tg_msg.message_id),
+                       "text": msg.text or "Sent a %s." % msg.type,
+                       "msg_type": msg.type,
+                       "sent_to": "master" if msg.author.is_self else 'slave',
+                       "slave_origin_uid": utils.chat_id_to_str(chat=msg.chat),
+                       "slave_origin_display_name": msg.chat.chat_alias,
+                       "slave_member_uid": msg.author.chat_uid if not msg.author.is_self else None,
+                       "slave_member_display_name": msg.author.chat_alias if not msg.author.is_self else None,
+                       "slave_message_id": msg.uid,
+                       "update": msg.edit
+                       }
+            self.db.add_msg_log(**msg_log)
             self.logger.debug("[%s] Message inserted/updated to the database.", xid)
         except Exception as e:
             self.logger.error("[%s] Error occurred while processing message from slave channel.\nMessage: %s\n%s\n%s",
