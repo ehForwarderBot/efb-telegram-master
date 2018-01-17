@@ -92,13 +92,13 @@ class TelegramBotManager:
         suffix = (suffix and ("\n" + suffix)) or suffix
         text = kwargs.pop('text', '')
         if len(prefix + text + suffix) >= telegram.constants.MAX_MESSAGE_LENGTH:
-            full_message = io.StringIO(prefix + text + suffix)
-            truncated = prefix + text[:100] + "\n...\n" + text[:-100] + suffix
-            msg = self._bot_edit_message_text_fallback(kwargs['chat_id'], truncated, **kwargs)
+            full_message = io.BytesIO((prefix + text + suffix).encode())
+            truncated = prefix + text[:100] + "\n...\n" + text[-100:] + suffix
+            msg = self._bot_edit_message_text_fallback(truncated, **kwargs)
             filename = "%s_%s" % (kwargs['chat_id'], msg.message_id)
-            if kwargs.get('parse_mode').lower() == 'markdown':
+            if kwargs.get('parse_mode', '').lower() == 'markdown':
                 filename += ".md"
-            elif kwargs.get('parse_mode').lower() == 'html':
+            elif kwargs.get('parse_mode', '').lower() == 'html':
                 filename += ".html"
             else:
                 filename += ".txt"

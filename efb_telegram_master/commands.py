@@ -11,9 +11,9 @@ if TYPE_CHECKING:
 
 
 class ETMCommandMsgStorage:
-    def __init__(self, command: EFBMsgCommand, channel: EFBChannel, prefix: str, body: str):
-        self.command = command
-        self.channel = channel
+    def __init__(self, command: List[EFBMsgCommand], channel: EFBChannel, prefix: str, body: str):
+        self.commands = command
+        self.channels = channel
         self.prefix = prefix
         self.body = body
 
@@ -85,11 +85,11 @@ class CommandsManager:
 
         callback = int(callback)
         command_storage = self.msg_storage[index]
-        channel_id = command_storage.channel.channel_id
+        channel_id = command_storage.channels.channel_id
         command = command_storage.commands[callback]
         prefix = "%s\n%s\n--------" % (command_storage.prefix, command_storage.body)
 
-        fn = getattr(coordinator.slaves[channel_id], command.callable, None)
+        fn = getattr(coordinator.slaves[channel_id], command.callable_name, None)
         if fn is not None:
             msg = fn(*command.args, **command.kwargs)
         else:

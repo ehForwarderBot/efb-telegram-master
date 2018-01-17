@@ -151,10 +151,8 @@ class BingSpeech(SpeechEngine):
     keys = None
     access_token = None
     engine_name = "Bing"
-    lang_list = ['de-DE', 'zh-CN', 'zh-TW', 'zh-HK', 'ru-RU', 'es-ES', 'ja-JP',
-                 'da-DK', 'en-US', 'en-GB', 'en-IN', 'fi-FI', 'nl-NL', 'pt-BR',
-                 'pt-PT', 'ca-ES', 'fr-FR', 'ko-KR', 'en-NZ', 'nb-NO', 'it-IT',
-                 'fr-CA', 'pl-PL', 'es-MX', 'en-AU', 'en-CA', 'sv-SE', 'ar-EG']
+    lang_list = ['ar-EG', 'de-DE', 'en-US', 'es-ES', 'fr-FR',
+                 'it-IT', 'ja-JP', 'pt-BR', 'ru-RU', 'zh-CN']
 
     @staticmethod
     def first(data, key):
@@ -176,14 +174,8 @@ class BingSpeech(SpeechEngine):
 
     def __init__(self, keys):
         self.keys = keys
-        h = {
-            "Ocp-Apim-Subscription-Key": keys[0]
-        }
-        r = requests.post("https://api.cognitive.microsoft.com/sts/v1.0/issueToken", headers=h)
-        self.access_token = r.text
 
     def recognize(self, path, lang):
-        # TODO: Update API call methods
         if isinstance(path, str):
             file = open(path, 'rb')
         else:
@@ -198,22 +190,16 @@ class BingSpeech(SpeechEngine):
             audio = audio.set_frame_rate(16000)
             audio.export(f.name, format="wav")
             header = {
-                "Authorization": "Bearer %s" % self.access_token,
+                "Ocp-Apim-Subscription-Key": self.keys[0],
                 "Content-Type": "audio/wav; samplerate=16000"
             }
             d = {
-                "version": "3.0",
-                "requestid": str(uuid.uuid1()),
-                "appID": "D4D52672-91D7-4C74-8AD8-42B1D98141A5",
-                "format": "json",
-                "locale": lang,
-                "device.os": "Telegram",
-                "scenarios": "ulm",
-                "instanceid": uuid.uuid3(uuid.NAMESPACE_DNS, 'ehforwarderbot.channels.master.blueset.telegram'),
-                "maxnbest": 5
+                "language": lang,
+                "format": "detailed",
             }
             f.seek(0)
-            r = requests.post("https://speech.platform.bing.com/recognize", params=d, data=f.read(), headers=header)
+            r = requests.post("https://speech.platform.bing.com/speech/recognition/conversation/cognitiveservices/v1",
+                              params=d, data=f.read(), headers=header)
 
             try:
                 rjson = r.json()
@@ -221,6 +207,6 @@ class BingSpeech(SpeechEngine):
                 return ["ERROR!", r.text]
 
             if r.status_code == 200:
-                return [i['name'] for i in rjson['results']]
+                return [i['Display'] for i in rjson['NBest']]
             else:
                 return ["ERROR!", r.text]

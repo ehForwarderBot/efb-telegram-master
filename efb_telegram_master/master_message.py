@@ -6,6 +6,7 @@ from typing import Tuple, IO, Optional, TYPE_CHECKING
 
 import magic
 import telegram
+import time
 from moviepy.video.io.VideoFileClip import VideoFileClip
 from telegram.ext import MessageHandler, Filters
 from PIL import Image
@@ -253,7 +254,8 @@ class MasterMessageProcessor:
                 raise EFBMessageTypeNotSupported("Message type %s is not supported by ETM" % mtype)
 
             if m.type not in coordinator.slaves[channel].supported_message_types:
-                self.logger.info("[%s] Message type %s is not supported by channel %s", message_id, m.type, channel)
+                self.logger.info("[%s] Message type %s is not supported by channel %s",
+                                 message_id, m.type.name, channel)
                 raise EFBMessageTypeNotSupported("Message type %s is not supported by channel %s" % (
                     m.type, coordinator.slaves[channel].channel_name
                 ))
@@ -359,7 +361,7 @@ class MasterMessageProcessor:
                     "slave_origin_display_name": "__chat__",
                     "msg_type": m.type,
                     "sent_to": "slave",
-                    "slave_message_id": None if m.edit else self.FAIL_FLAG,
+                    "slave_message_id": None if m.edit else "%s.%s" % (self.FAIL_FLAG, int(time.time())),
                     "update": m.edit
                 }
                 if slave_msg:

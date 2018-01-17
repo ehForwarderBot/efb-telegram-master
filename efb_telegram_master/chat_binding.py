@@ -288,6 +288,8 @@ class ChatBindingManager:
             if source_chats:
                 for i in source_chats:
                     channel_id, chat_uid = utils.chat_id_str_to_id(i)
+                    if channel_id not in coordinator.slaves:
+                        continue
                     channel = coordinator.slaves[channel_id]
                     try:
                         chat = ETMChat(chat=self.get_chat_from_db(channel_id, chat_uid) or channel.get_chat(chat_uid),
@@ -768,13 +770,14 @@ class ChatBindingManager:
 
     def register_suggestions(self, update: telegram.Update, candidates: List[str], chat_id: int, message_id: int):
         storage_id = (chat_id, message_id)
-        self.msg_storage[(chat_id, message_id)].set_chat_suggestion(update, candidates)
+        self.msg_storage[storage_id] = ChatListStorage([])
+        self.msg_storage[storage_id].set_chat_suggestion(update, candidates)
         legends, buttons = self.channel.chat_binding.slave_chats_pagination(
             storage_id, 0, source_chats=candidates)
-        self.bot.edit_message_text(chat_id, message_id,
-                                   "Error: No recipient specified.\n"
+        self.bot.edit_message_text("Error: No recipient specified.\n"
                                    "Please reply to a previous message, "
                                    "or choose a recipient:\n\nLegend:\n" + "\n".join(legends),
+                                   chat_id, message_id,
                                    reply_markup=telegram.InlineKeyboardMarkup(buttons))
         self.suggestion_handler.conversations[storage_id] = Flags.SUGGEST_RECIPIENT
 
