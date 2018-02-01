@@ -24,7 +24,7 @@ class TelegramBotManager:
         dispatcher (telegram.ext.Dispatcher): Dispatcher of the updater
     """
 
-    def __init__(self, channel: 'TelegramChannel '):
+    def __init__(self, channel: 'TelegramChannel'):
         self.channel: 'TelegramChannel' = channel
         try:
             self.updater: telegram.ext.Updater = telegram.ext.Updater(self.channel.config['token'])
@@ -55,12 +55,14 @@ class TelegramBotManager:
         args = args[:1]
         if len(prefix + text + suffix) >= telegram.constants.MAX_MESSAGE_LENGTH:
             full_message = io.StringIO(prefix + text + suffix)
-            truncated = prefix + text[:100] + "\n...\n" + text[:-100] + suffix
-            msg = self._bot_send_message_fallback(args[0], truncated, **kwargs)
+            truncated = prefix + text[:100] + "\n...\n" + text[-100:] + suffix
+            msg = self._bot_send_message_fallback(args[0], text=truncated, **kwargs)
             filename = "%s_%s" % (args[0], msg.message_id)
-            if kwargs.get('parse_mode').lower() == 'markdown':
+            if not kwargs.get('parse_mode'):
+                filename += ".txt"
+            elif kwargs.get('parse_mode', '').lower() == 'markdown':
                 filename += ".md"
-            elif kwargs.get('parse_mode').lower() == 'html':
+            elif kwargs.get('parse_mode', '').lower() == 'html':
                 filename += ".html"
             else:
                 filename += ".txt"
@@ -296,6 +298,9 @@ class TelegramBotManager:
 
     def send_venue(self, *args, **kwargs):
         return self.updater.bot.send_venue(*args, **kwargs)
+
+    def get_me(self, *args, **kwargs):
+        return self.updater.bot.get_me(*args, **kwargs)
 
     def session_expired(self, bot, update):
         self.edit_message_text(text="Session expired. Please try again. (SE01)",

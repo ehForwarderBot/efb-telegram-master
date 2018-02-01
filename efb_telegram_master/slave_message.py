@@ -95,15 +95,22 @@ class SlaveMessageProcessor:
             # When targeting a message (reply to)
             target_msg_id: Tuple[str, str] = None
             if isinstance(msg.target, EFBMsg):
-                target_msg_id = utils.message_id_str_to_id(self.db.get_msg_log(
+                self.logger.debug("[%s] Message is replying to %s.", msg.uid, msg.target)
+                log = self.db.get_msg_log(
                     slave_msg_id=msg.target.uid,
                     slave_origin_uid=utils.chat_id_to_str(chat=msg.target.chat)
-                ).master_msg_id)
-                if target_msg_id and target_msg_id[0] != tg_dest:
-                    self.logger.error('[%s] Trying to reply to a message not from this chat.', msg.uid)
-                    target_msg_id = None
+                )
+                if not log:
+                    self.logger.debug("[%s] Target message %s is not found in database.", msg.uid, msg.target)
                 else:
-                    target_msg_id = target_msg_id[1]
+                    self.logger.debug("[%s] Target message has database entry: %s.", msg.uid, log)
+                    target_msg_id = utils.message_id_str_to_id(log.master_msg_id)
+                    if not target_msg_id or target_msg_id[0] != str(tg_dest):
+                        self.logger.error('[%s] Trying to reply to a message not from this chat. '
+                                          'Message destination: %s. Target message: %s.',
+                                          msg.uid, tg_dest, target_msg_id)
+                    else:
+                        target_msg_id = target_msg_id[1]
 
             commands: Optional[List[EFBMsgCommand]] = None
             reply_markup: Optional[telegram.InlineKeyboardMarkup] = None

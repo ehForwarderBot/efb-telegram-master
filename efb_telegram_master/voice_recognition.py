@@ -190,7 +190,7 @@ class BingSpeech(SpeechEngine):
             audio = audio.set_frame_rate(16000)
             audio.export(f.name, format="wav")
             header = {
-                "Ocp-Apim-Subscription-Key": self.keys[0],
+                "Ocp-Apim-Subscription-Key": self.keys,
                 "Content-Type": "audio/wav; samplerate=16000"
             }
             d = {

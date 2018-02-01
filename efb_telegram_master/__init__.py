@@ -49,7 +49,7 @@ class TelegramChannel(EFBChannel):
             - 102938475
             - 91827364
             speech_api:
-                bing: ["token1", "token2"]
+                bing: "VOICE_RECOGNITION_TOKEN"
                 baidu:
                     app_id: 123456
                     api_key: "API_KEY_GOES_HERE"

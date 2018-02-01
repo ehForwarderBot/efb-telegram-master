@@ -6,6 +6,8 @@ import urllib.parse
 from typing import Tuple, Dict, Optional, List, Pattern, TYPE_CHECKING
 
 import io
+
+import peewee
 import telegram
 from PIL import Image
 from telegram.ext import ConversationHandler, CommandHandler, CallbackQueryHandler
@@ -131,9 +133,12 @@ class ChatListStorage:
         self.channels: Dict[str, EFBChannel] = None
         self.chats: List[ETMChat] = chats.copy()
         self.offset: int = offset
-        self.length: int = len(chats)
         self.update: Optional[telegram.Update] = None
         self.candidates: Optional[List[str]] = None
+
+    @property
+    def length(self) -> int:
+        return len(self.chats)
 
     @property
     def chats(self) -> List[ETMChat]:
@@ -206,7 +211,8 @@ class ChatBindingManager:
         self.suggestion_handler: ConversationHandler = ConversationHandler(
             entry_points=[],
             states={Flags.SUGGEST_RECIPIENT: [CallbackQueryHandler(self.suggested_recipient)]},
-            fallbacks=[CallbackQueryHandler(self.bot.session_expired)]
+            fallbacks=[CallbackQueryHandler(self.bot.session_expired)],
+            per_message=True,
         )
 
         self.bot.dispatcher.add_handler(self.suggestion_handler)
@@ -230,20 +236,21 @@ class ChatBindingManager:
             args: Regex filter
         """
         args = args or []
-        if update.message.chat.type != telegram.Chat.PRIVATE:
+        message = update.effective_message
+        if message.chat.type != telegram.Chat.PRIVATE:
             links = self.db.get_chat_assoc(
-                master_uid=utils.chat_id_to_str(self.channel.channel_id, update.message.chat_id))
+                master_uid=utils.chat_id_to_str(self.channel.channel_id, message.chat.id))
             if links:
-                return self.link_chat_gen_list(bot, update.message.chat_id, pattern=" ".join(args), chats=links)
-        elif update.effective_message.forward_from_chat and \
-             update.effective_message.forward_from_chat.type == telegram.Chat.CHANNEL:
-            chat_id = update.effective_message.forward_from_chat.id
+                return self.link_chat_gen_list(message.chat.id, pattern=" ".join(args), chats=links)
+        elif message.forward_from_chat and \
+             message.forward_from_chat.type == telegram.Chat.CHANNEL:
+            chat_id = message.forward_from_chat.id
             links = self.db.get_chat_assoc(
-                master_uid=utils.chat_id_to_str(self.channel.channel_id,chat_id))
+                master_uid=utils.chat_id_to_str(self.channel.channel_id, chat_id))
             if links:
-                return self.link_chat_gen_list(bot, update.message.chat_id, pattern=" ".join(args), chats=links)
+                return self.link_chat_gen_list(message.chat.id, pattern=" ".join(args), chats=links)
 
-        return self.link_chat_gen_list(bot, update.message.from_user.id, pattern=" ".join(args))
+        return self.link_chat_gen_list(message.from_user.id, pattern=" ".join(args))
 
     def slave_chats_pagination(self, storage_id: Tuple[int, int],
                                offset: int = 0,
@@ -354,22 +361,25 @@ class ChatBindingManager:
         Args:
             chats: List of chats generated
         """
-        for i in chats:
-            self.db.set_slave_chat_info(slave_channel_id=i.channel_id,
-                                        slave_channel_name=i.channel_name,
-                                        slave_channel_emoji=i.channel_emoji,
-                                        slave_chat_uid=i.chat_uid,
-                                        slave_chat_name=i.chat_name,
-                                        slave_chat_alias=i.chat_alias,
-                                        slave_chat_type=i.chat_type)
+        try:
+            for i in chats:
+                self.db.set_slave_chat_info(slave_channel_id=i.channel_id,
+                                            slave_channel_name=i.channel_name,
+                                            slave_channel_emoji=i.channel_emoji,
+                                            slave_chat_uid=i.chat_uid,
+                                            slave_chat_name=i.chat_name,
+                                            slave_chat_alias=i.chat_alias,
+                                            slave_chat_type=i.chat_type)
+        except peewee.OperationalError:
+            # Suppress exception of background database update
+            pass
 
-    def link_chat_gen_list(self, bot, chat_id, message_id: int = None, offset=0, pattern: str = "",
-                           chats: List[str] = None):
+    def link_chat_gen_list(self, chat_id, message_id: int = None, offset=0,
+                           pattern: str = "", chats: List[str] = None):
         """
         Generate the list for chat linking, and update it to a message.
 
         Args:
-            bot: Telegram Bot instance
             chat_id: Chat ID
             message_id: ID of message to be updated, None to send a new message.
             offset: Offset for pagination.
@@ -379,9 +389,10 @@ class ChatBindingManager:
         Returns:
             int: The next state
         """
+
         if not message_id:
             message_id = self.bot.send_message(chat_id, "Processing...").message_id
-        bot.send_chat_action(chat_id, telegram.ChatAction.TYPING)
+        self.bot.send_chat_action(chat_id, telegram.ChatAction.TYPING)
         if chats:
             msg_text = "This Telegram group is currently linked with the following remote groups."
         else:
@@ -418,11 +429,10 @@ class ChatBindingManager:
 
         tg_chat_id = update.effective_chat.id
         tg_msg_id = update.effective_message.message_id
-        callback_uid = update.callback_query.data
+        callback_uid: str = update.callback_query.data
         if callback_uid.split()[0] == "offset":
             # Offer a new page of chats
-            return self.link_chat_gen_list(bot, tg_chat_id, message_id=tg_msg_id,
-                                           offset=int(callback_uid.split()[1]))
+            return self.link_chat_gen_list(tg_chat_id, message_id=tg_msg_id, offset=int(callback_uid.split()[1]))
 
         if callback_uid == Flags.CANCEL_PROCESS:
             # Terminate the process
@@ -472,8 +482,9 @@ class ChatBindingManager:
             btn_list = [telegram.InlineKeyboardButton("Link", url=link_url),
                         telegram.InlineKeyboardButton("Mute", callback_data="mute 0")]
 
+        btn_list.append(telegram.InlineKeyboardButton("Manual " + btn_list[0].text, callback_data="manual_link 0"))
+
         btns = [btn_list,
-                [telegram.InlineKeyboardButton("Manual " + btn_list[0].text, callback_data="manual_link 0")],
                 [telegram.InlineKeyboardButton("Cancel", callback_data=Flags.CANCEL_PROCESS)]]
 
         self.bot.edit_message_text(text=txt,
@@ -520,8 +531,8 @@ class ChatBindingManager:
         elif cmd == "manual_link":
             txt = "To link %s manually, please:\n\n" \
                   "1. Add me to the Telegram Group you want to link to.\n" \
-                  "2. Send the following code.\n" \
-                  "<code>/start %s</code>\n" \
+                  "2. Send the following code.\n\n" \
+                  "<code>/start %s</code>\n\n" \
                   "3. Then I would notify you if the chat is linked successfully.\n" \
                   "\n" \
                   "<i>* To link a channel, send the code above to your channel, " \
@@ -655,7 +666,7 @@ class ChatBindingManager:
         """
         if not message_id:
             message_id = self.bot.send_message(chat_id, text="Processing...").message_id
-        bot.send_chat_action(chat_id, telegram.ChatAction.TYPING)
+        self.bot.send_chat_action(chat_id, telegram.ChatAction.TYPING)
 
         if chats and len(chats):
             if len(chats) == 1:
@@ -792,16 +803,16 @@ class ChatBindingManager:
             chat = ETMChat(chat=self.get_chat_from_db(*utils.chat_id_str_to_id(chat)), db=self.db)
             self.channel.master_messages.process_telegram_message(bot, update, channel_id=chat.channel_id,
                                                                   chat_id=chat.chat_uid)
-            bot.edit_message_text(text="Delivering the message to %s" % chat.full_name,
+            self.bot.edit_message_text(text="Delivering the message to %s" % chat.full_name,
                                   chat_id=chat_id,
                                   message_id=msg_id)
         elif param == Flags.CANCEL_PROCESS:
-            bot.edit_message_text("Error: No recipient specified.\n"
+            self.bot.edit_message_text("Error: No recipient specified.\n"
                                   "Please reply to a previous message.",
                                   chat_id=chat_id,
                                   message_id=msg_id)
         else:
-            bot.edit_message_text("Error: No recipient specified.\n"
+            self.bot.edit_message_text("Error: No recipient specified.\n"
                                   "Please reply to a previous message.\n\n"
                                   "Invalid parameter (%s)." % param,
                                   chat_id=chat_id,
@@ -813,7 +824,7 @@ class ChatBindingManager:
         Update the title and profile picture of singly-linked Telegram group
         according to the linked remote chat.
         """
-        if update.effective_chat.id == bot.get_me().id:
+        if update.effective_chat.id == self.bot.get_me().id:
             return self.bot.reply_error(update, 'Send /update_info in a group where this bot is a group admin '
                                                 'to update group title and profile picture')
         if update.effective_message.forward_from_chat and \

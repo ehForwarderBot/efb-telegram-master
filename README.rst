@@ -8,10 +8,10 @@ EFB Telegram Master Channel (ETM)
 ETM is a Telegram Master Channel for EH Forwarder Bot, based on Telegram
 Bot API, ``python-telegram-bot``.
 
-Alpha version
+Beta version
 -------------
 
-This is an unstable alpha version, and functionality may change at any
+This is an unstable beta version, and its functionality may change at any
 time.
 
 Requirements
@@ -101,7 +101,7 @@ A sample config file can be as follows:
         # Microsoft (Bing) speech recognition token
         # API key can be obtained from
         # https://azure.microsoft.com/en-us/try/cognitive-services/
-        bing: ["token1", "token2"]
+        bing: "VOICE_RECOGNITION_TOKEN"
         # Baidu speech recognition token
         # API key can be obtained from
         # http://yuyin.baidu.com/

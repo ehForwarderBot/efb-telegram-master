@@ -59,6 +59,7 @@ class DatabaseManager:
         """
         Initializing tables.
         """
+        self.db.execute_sql("PRAGMA journal_mode = OFF")
         self.db.create_tables([self.ChatAssoc, self.MsgLog, self.SlaveChatInfo])
 
     def _migrate(self, i):
@@ -303,6 +304,7 @@ class DatabaseManager:
                             slave_chat_type=None):
         """
         Insert or update slave chat info entry
+
         Args:
             slave_channel_id (str): Slave channel ID
             slave_channel_name (str): Slave channel name
@@ -332,7 +334,7 @@ class DatabaseManager:
                                              slave_chat_uid=slave_chat_uid,
                                              slave_chat_name=slave_chat_name,
                                              slave_chat_alias=slave_chat_alias,
-                                             slave_chat_type=slave_chat_type)
+                                             slave_chat_type=slave_chat_type.value)
 
     def delete_slave_chat_info(self, slave_channel_id, slave_chat_uid):
         return self.SlaveChatInfo.delete().where(self.SlaveChatInfo.slave_channel_id == slave_channel_id and
