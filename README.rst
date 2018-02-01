@@ -17,7 +17,7 @@ time.
 Requirements
 ------------
 
--  Python >= 3.5
+-  Python >= 3.6
 -  EH Forwarder Bot >= 2.0.0
 -  ffmpeg
 -  libmagic

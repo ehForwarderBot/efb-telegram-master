@@ -2,8 +2,8 @@ import sys
 import os
 from setuptools import setup
 
-if sys.version_info < (3, 5):
-    raise Exception("Python 3.5 or higher is required. Your version is %s." % sys.version)
+if sys.version_info < (3, 6):
+    raise Exception("Python 3.6 or higher is required. Your version is %s." % sys.version)
 
 version_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                             'efb_telegram_master/__version__.py')
@@ -23,6 +23,7 @@ setup(
     author_email='ilove@1a23.com',
     url='https://github.com/blueset/efb-telegram-master',
     license='GPLv3',
+    python_requires='>=3.6',
     keywords=['ehforwarderbot', 'EH Forwarder Bot', 'EH Forwarder Bot Master Channel', 'Telegram',
               'Telegram Bot', 'chatbot'],
     classifiers=[
@@ -31,7 +32,6 @@ setup(
         "Intended Audience :: Developers",
         "Intended Audience :: End Users/Desktop",
         "Programming Language :: Python :: 3 :: Only",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Topic :: Communications :: Chat",
