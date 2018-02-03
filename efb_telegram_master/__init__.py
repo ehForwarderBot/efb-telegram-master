@@ -53,7 +53,7 @@ class TelegramChannel(EFBChannel):
                 baidu:
                     app_id: 123456
                     api_key: "API_KEY_GOES_HERE"
-                    secret: "SECRET_KEY_GOES_HERE"
+                    secret_key: "SECRET_KEY_GOES_HERE"
             flags:
                 join_msg_threshold_secs: 10
                 multiple_slave_chats: false
