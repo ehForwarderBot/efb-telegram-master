@@ -108,7 +108,7 @@ A sample config file can be as follows:
         baidu:
             app_id: 123456
             api_key: "API_KEY_GOES_HERE"
-            secret: "SECRET_KEY_GOES_HERE"
+            secret_key: "SECRET_KEY_GOES_HERE"
             
 
     # Experimental Flags
