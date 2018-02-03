@@ -87,12 +87,13 @@ class ETMChat(EFBChat):
 
     def unlink(self):
         """ Unlink this chat from any Telegram group."""
-        self.db.remove_chat_assoc(slave_uid=self.chat_uid)
+        self.db.remove_chat_assoc(slave_uid=utils.chat_id_to_str(self.channel_id, self.chat_uid))
 
     def mute(self):
         """Mute this chat completely."""
         self.unlink()
-        self.db.add_chat_assoc(slave_uid=self.chat_uid, master_uid=ETMChat.MUTE_CHAT_ID, multiple_slave=True)
+        self.db.add_chat_assoc(slave_uid=utils.chat_id_to_str(self.channel_id, self.chat_uid),
+                               master_uid=ETMChat.MUTE_CHAT_ID, multiple_slave=False)
 
     def link(self, channel_id: str, chat_id: str, multiple_slave: bool):
         self.db.add_chat_assoc(master_uid=utils.chat_id_to_str(channel_id, chat_id),
@@ -857,6 +858,8 @@ class ChatBindingManager:
                 pic_img.resize(tuple(map(lambda a: int(scale * a), pic_img.size)), Image.BICUBIC)\
                        .save(pic_resized, 'PNG')
                 pic_resized.seek(0)
+
+            picture.seek(0)
 
             bot.set_chat_photo(tg_chat, pic_resized or picture)
             update.message.reply_text('Chat information updated.')
