@@ -291,7 +291,7 @@ class MasterMessageProcessor:
                 m.file, m.mime, m.filename, m.path = self._download_file(message.sticker, 'image/webp')
                 self.logger.debug("[%s] Trying to convert WebP sticker (%s) to PNG.", message_id, m.path)
                 f = tempfile.NamedTemporaryFile(suffix=".png")
-                Image.open(m.file).save(f, 'png')
+                Image.open(m.file).convert("RGBA").save(f, 'png')
                 m.file.close()
                 m.file, m.mime, m.filename, m.path = f, 'image/png', os.path.basename(f.name), f.name
                 self.logger.debug("[%s] WebP sticker is converted to PNG (%s).", message_id, f.name)
