@@ -258,7 +258,7 @@ class SlaveMessageProcessor:
                 else:
                     text += html.escape(msg.text[i[0]:i[1]])
                 prev = i[1]
-            text += html.escape(msg.text[prev:ranges[-1][1]])
+            text += html.escape(msg.text[prev:])
             msg.text = text
         else:
             msg.text = html.escape(msg.text)
