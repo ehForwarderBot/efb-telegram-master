@@ -264,11 +264,11 @@ class MasterMessageProcessor:
             if edited:
                 m.edit = True
                 text = message.text or message.caption
+                msg_log = self.db.get_msg_log(master_msg_id=utils.message_id_to_str(update=update))
+                if not msg_log or msg_log == self.FAIL_FLAG:
+                    raise EFBMessageNotFound()
+                m.uid = msg_log.slave_message_id
                 if text.startswith(self.DELETE_FLAG):
-                    msg_log = self.db.get_msg_log(master_msg_id=utils.message_id_to_str(update=update))
-                    if not msg_log or msg_log == self.FAIL_FLAG:
-                        raise EFBMessageNotFound()
-                    m.uid = msg_log.slave_message_id
                     coordinator.send_status(EFBMessageRemoval(
                         source_channel=self.channel,
                         destination_channel=coordinator.slaves[channel],
