@@ -325,12 +325,15 @@ class TelegramChannel(EFBChannel):
             raise error
         except telegram.error.Unauthorized:
             self.logger.error("The bot is not authorised to send update:\n%s\n%s", str(update), str(error))
-        except telegram.error.BadRequest:
-            self.logger.error("Message request is invalid.\n%s\n%s", str(update), str(error))
-            self.bot_manager.send_message(self.config['admins'][0],
-                                          self._("Message request is invalid.\n{error}\n<code>{update}</code>").format(
-                                              error=html.escape(str(error)), update=html.escape(str(update))),
-                                          parse_mode="HTML")
+        except telegram.error.BadRequest as e:
+            if e.message == "Message is not modified" and update.callback_query:
+                self.logger.error("Chill bro, don't click that fast.")
+            else:
+                self.logger.error("Message request is invalid.\n%s\n%s", str(update), str(error))
+                self.bot_manager.send_message(self.config['admins'][0],
+                                              self._("Message request is invalid.\n{error}\n<code>{update}</code>").format(
+                                                  error=html.escape(str(error)), update=html.escape(str(update))),
+                                              parse_mode="HTML")
         except (telegram.error.TimedOut, telegram.error.NetworkError):
             self.timeout_count += 1
             self.logger.error("Poor internet connection detected.\n"
