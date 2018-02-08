@@ -129,12 +129,10 @@ class TelegramChannel(EFBChannel):
         self.master_messages: MasterMessageProcessor = MasterMessageProcessor(self)
         self.slave_messages: SlaveMessageProcessor = SlaveMessageProcessor(self)
 
-        if self.flag('force_locale'):
+        if not self.flag('auto_locale'):
             self.translator = translation("efb_telegram_master",
                                           resource_filename('efb_telegram_master', 'locale'),
-                                          languages=[self.flag('force_locale'), 'C'],
                                           fallback=True)
-            self.locale = self.flag('force_locale')
 
         # Basic message handlers
         self.bot_manager.dispatcher.add_handler(

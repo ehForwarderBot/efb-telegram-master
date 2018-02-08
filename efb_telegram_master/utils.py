@@ -20,7 +20,7 @@ class ExperimentalFlagsManager(LocaleMixin):
         "multiple_slave_chats": True,
         "network_error_prompt_interval": 100,
         "prevent_message_removal": True,
-        "force_locale": "",
+        "auto_locale": True,
     }
 
     def __init__(self, channel: 'TelegramChannel'):

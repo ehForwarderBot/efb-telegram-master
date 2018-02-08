@@ -29,7 +29,7 @@ class LocaleHandler(Handler):
         self.logger = logging.getLogger(__name__)
 
         self.channel = channel
-        if self.channel.flag('force_locale'):
+        if not self.channel.flag('auto_locale'):
             self.check_update = lambda update: False
 
     def check_update(self, update: Update):

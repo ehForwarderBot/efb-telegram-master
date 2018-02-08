@@ -421,7 +421,8 @@ e.g.:
    When a slave channel requires to remove a message, EFB will ignore
    the request if this value is ``true``.
 
-- ``force_locale`` *(str)* [Default: ``""``]
+- ``auto_locale`` *(str)* [Default: ``True``]
 
-   Force the locale to use for prompts. English is used by default until
-   an update with a supported locale is received.
+   Detect the locale from admin's messages automatically. Locale
+   defined in environment variables (``LANGUAGE``, ``LC_ALL``, ``LC_MESSAGES``
+   or ``LANG``) will be used otherwise.
