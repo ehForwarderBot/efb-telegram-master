@@ -4,6 +4,8 @@ import html
 import logging
 import mimetypes
 import os
+from gettext import NullTranslations, translation
+from pkg_resources import resource_filename
 
 import telegram
 import telegram.constants
@@ -83,6 +85,12 @@ class TelegramChannel(EFBChannel):
     get_chats = None
     get_chat_picture = None
 
+    # Translator
+    translator: NullTranslations = translation("efb_telegram_master",
+                                               resource_filename('efb_telegram_master', 'locale'),
+                                               fallback=True)
+    locale: str = None
+
     def __init__(self):
         """
         Initialization.
@@ -92,9 +100,9 @@ class TelegramChannel(EFBChannel):
         # Check PIL support for WebP
         Image.init()
         if 'WEBP' not in Image.ID:
-            raise EFBException("WebP support of Pillow is required.\n"
-                               "Please refer to Pillow Documentation for instructions.\n"
-                               "https://pillow.readthedocs.io/")
+            raise EFBException(self._("WebP support of Pillow is required.\n"
+                                      "Please refer to Pillow Documentation for instructions.\n"
+                                      "https://pillow.readthedocs.io/"))
 
         # Suppress debug logs from dependencies
         logging.getLogger('requests').setLevel(logging.CRITICAL)
@@ -112,14 +120,21 @@ class TelegramChannel(EFBChannel):
         mimetypes.init(files=["mimetypes"])
 
         # Initialize managers
+        self.flag: ExperimentalFlagsManager = ExperimentalFlagsManager(self)
         self.db: DatabaseManager = DatabaseManager(self)
         self.bot_manager: TelegramBotManager = TelegramBotManager(self)
         self.voice_recognition: VoiceRecognitionManager = VoiceRecognitionManager(self)
         self.chat_binding: ChatBindingManager = ChatBindingManager(self)
-        self.flag: ExperimentalFlagsManager = ExperimentalFlagsManager(self)
         self.commands: CommandsManager = CommandsManager(self)
         self.master_messages: MasterMessageProcessor = MasterMessageProcessor(self)
         self.slave_messages: SlaveMessageProcessor = SlaveMessageProcessor(self)
+
+        if self.flag('force_locale'):
+            self.translator = translation("efb_telegram_master",
+                                          resource_filename('efb_telegram_master', 'locale'),
+                                          languages=[self.flag('force_locale'), 'C'],
+                                          fallback=True)
+            self.locale = self.flag('force_locale')
 
         # Basic message handlers
         self.bot_manager.dispatcher.add_handler(
@@ -133,6 +148,14 @@ class TelegramChannel(EFBChannel):
 
         self.bot_manager.dispatcher.add_error_handler(self.error)
 
+    @property
+    def _(self):
+        return self.translator.gettext
+
+    @property
+    def ngettext(self):
+        return self.translator.ngettext
+
     def load_config(self):
         """
         Load configuration from path specified by the framework.
@@ -141,24 +164,25 @@ class TelegramChannel(EFBChannel):
         """
         config_path = efb_utils.get_config_path(self.channel_id)
         if not os.path.exists(config_path):
-            raise FileNotFoundError("Config File does not exist. (%s)" % config_path)
+            raise FileNotFoundError(self._("Config File does not exist. ({path})").format(path=config_path))
         with open(config_path) as f:
             data = yaml.load(f)
 
             # Verify configuration
             if not isinstance(data.get('token', None), str):
-                raise ValueError('Telegram bot token must be a string')
+                raise ValueError(self._('Telegram bot token must be a string'))
             if isinstance(data.get('admins', None), int):
                 data['admins'] = [data['admins']]
             if isinstance(data.get('admins', None), str) and data['admins'].isdigit():
                 data['admins'] = [int(data['admins'])]
             if not isinstance(data.get('admins', None), list) or len(data['admins']) < 1:
-                raise ValueError('Admins\' user IDs must be a list of one number or more.')
+                raise ValueError(self._("Admins' user IDs must be a list of one number or more."))
             for i in range(len(data['admins'])):
                 if isinstance(data['admins'][i], str) and data['admins'][i].isdigit():
                     data['admins'][i] = int(data['admins'][i])
                 if not isinstance(data['admins'][i], int):
-                    raise ValueError('Admin ID is expected to be a string, but %r is found.' % data['admins'][i])
+                    raise ValueError(self._('Admin ID is expected to be an int, but {data} is found.')
+                                     .format(data=data['admins'][i]))
 
             self.config = data.copy()
 
@@ -174,56 +198,61 @@ class TelegramChannel(EFBChannel):
         if update.message.chat.type != telegram.Chat.PRIVATE:  # Group message
             links = self.db.get_chat_assoc(master_uid=etm_utils.chat_id_to_str(self.channel_id, update.message.chat_id))
             if links:  # Linked chat
-                msg = "The group {group_name} ({group_id}) is " \
-                      "linked to the following chat(s):".format(group_name=update.message.chat.title,
-                                                                group_id=update.message.chat_id)
+                msg = self._("The group {group_name} ({group_id}) is linked to:").format(
+                    group_name=update.message.chat.title,
+                    group_id=update.message.chat_id)
                 for i in links:
                     channel_id, chat_id = etm_utils.chat_id_str_to_id(i)
                     d = self.chat_binding.get_chat_from_db(channel_id, chat_id)
                     if d:
                         msg += "\n- %s" % ETMChat(chat=d, db=self.db).full_name
                     else:
-                        msg += "\n- {channel_emoji} {channel_name}: Unknown chat ({chat_id})".format(
+                        msg += self._("\n- {channel_emoji} {channel_name}: Unknown chat ({chat_id})").format(
                             channel_emoji=coordinator.slaves[channel_id].channel_emoji,
                             channel_name=coordinator.slaves[channel_id].channel_name,
                             chat_id=chat_id
                         )
             else:
-                msg = "The group {group_name} ({group_id}) is not linked to any remote chat. " \
-                      "To link one, use /link.".format(group_name=update.message.chat.title,
-                                                       group_id=update.message.chat_id)
+                msg = self._("The group {group_name} ({group_id}) is not linked to any remote chat. " \
+                             "To link one, use /link.").format(group_name=update.message.chat.title,
+                                                               group_id=update.message.chat_id)
         elif update.effective_message.forward_from_chat and \
-                        update.effective_message.forward_from_chat.type == 'channel':  # Forwarded channel command.
+                update.effective_message.forward_from_chat.type == 'channel':  # Forwarded channel command.
             chat = update.effective_message.forward_from_chat
             links = self.db.get_chat_assoc(master_uid=etm_utils.chat_id_to_str(self.channel_id, chat.id))
             if links:  # Linked chat
-                msg = "The channel {group_name} ({group_id}) is " \
-                      "linked to the following chat(s):".format(group_name=chat.title,
-                                                                group_id=chat.id)
+                msg = self._("The channel {group_name} ({group_id}) is linked to:") \
+                    .format(group_name=chat.title,
+                            group_id=chat.id)
                 for i in links:
                     channel_id, chat_id = etm_utils.chat_id_str_to_id(i)
                     d = self.chat_binding.get_chat_from_db(channel_id, chat_id)
                     if d:
                         msg += "\n- %s" % ETMChat(chat=d, db=self.db).full_name
                     else:
-                        msg += "\n- {channel_emoji} {channel_name}: Unknown chat ({chat_id})".format(
+                        msg += self._("\n- {channel_emoji} {channel_name}: Unknown chat ({chat_id})").format(
                             channel_emoji=coordinator.slaves[channel_id].channel_emoji,
                             channel_name=coordinator.slaves[channel_id].channel_name,
                             chat_id=chat_id
                         )
             else:
-                msg = "The channel {group_name} ({group_id}) is " \
-                      "not linked to any remote chat. ".format(group_name=chat.title,
-                                                               group_id=chat.id)
+                msg = self._("The channel {group_name} ({group_id}) is "
+                             "not linked to any remote chat. ").format(group_name=chat.title,
+                                                                       group_id=chat.id)
         else:  # Talking to the bot.
-            msg = "This is EFB Telegram Master Channel %s.\n" \
-                  "%s slave channel(s) activated:" % (self.__version__, len(coordinator.slaves))
+            msg = self.ngettext("This is EFB Telegram Master Channel {version}.\n"
+                                "{count} slave channel activated:",
+                                "This is EFB Telegram Master Channel {version}.\n"
+                                "{count} slave channels activated:",
+                                len(coordinator.slaves)).format(
+                version=self.__version__, count=len(coordinator.slaves))
             for i in coordinator.slaves:
                 msg += "\n- %s %s (%s, %s)" % (coordinator.slaves[i].channel_emoji,
                                                coordinator.slaves[i].channel_name,
                                                i, coordinator.slaves[i].__version__)
             if coordinator.middlewares:
-                msg += "\n\n%s middleware(s) activated:" % len(coordinator.middlewares)
+                msg += self.ngettext("\n\n{count} middleware activated:", "\n\n{count} middlewares activated:",
+                                     len(coordinator.middlewares)).format(count=len(coordinator.middlewares))
                 for i in coordinator.middlewares:
                     msg += "\n- %s (%s, %s)" % (i.middleware_name, i.middleware_id, i.__version__)
 
@@ -245,35 +274,35 @@ class TelegramChannel(EFBChannel):
                 self.chat_binding.link_chat(update, args)
             else:
                 self.bot_manager.send_message(update.effective_chat.id,
-                                              'You cannot link remote chats to here. Please try again.')
+                                              self._('You cannot link remote chats to here. Please try again.'))
         else:
-            txt = "This is EFB Telegram Master Channel.\n\n" \
-                  "To learn more, please visit https://github.com/blueset/efb-telegram-master ."
+            txt = self._("This is EFB Telegram Master Channel.\n\n"
+                         "To learn more, please visit https://github.com/blueset/efb-telegram-master .")
             self.bot_manager.send_message(update.effective_chat.id, txt)
 
     def help(self, bot, update):
-        txt = "EFB Telegram Master Channel\n" \
-              "/link\n" \
-              "    Link a remote chat to an empty Telegram group.\n" \
-              "    Followed by a regular expression to filter results.\n" \
-              "/chat\n" \
-              "    Generate a chat head to start a conversation.\n" \
-              "    Followed by a regular expression to filter results.\n" \
-              "/extra\n" \
-              "    List all extra function from slave channels.\n" \
-              "/unlink_all\n" \
-              "    Unlink all remote chats in this chat.\n" \
-              "/info\n" \
-              "    Show information of the current Telegram chat.\n" \
-              "/update_info\n" \
-              "    Update name and profile picture a linked Telegram group.\n" \
-              "    Only works in singly linked group where the bot is an admin.\n" \
-              "/recog\n" \
-              "    Reply to a voice message to convert it to text.\n" \
-              "    Followed by a language code to choose a specific language.\n" \
-              "    You have to enable speech to text in the config file first.\n" \
-              "/help\n" \
-              "    Print this command list."
+        txt = self._("EFB Telegram Master Channel\n"
+                     "/link\n"
+                     "    Link a remote chat to an empty Telegram group.\n"
+                     "    Followed by a regular expression to filter results.\n"
+                     "/chat\n"
+                     "    Generate a chat head to start a conversation.\n"
+                     "    Followed by a regular expression to filter results.\n"
+                     "/extra\n"
+                     "    List all extra function from slave channels.\n"
+                     "/unlink_all\n"
+                     "    Unlink all remote chats in this chat.\n"
+                     "/info\n"
+                     "    Show information of the current Telegram chat.\n"
+                     "/update_info\n"
+                     "    Update name and profile picture a linked Telegram group.\n"
+                     "    Only works in singly linked group where the bot is an admin.\n"
+                     "/recog\n"
+                     "    Reply to a voice message to convert it to text.\n"
+                     "    Followed by a language code to choose a specific language.\n"
+                     "    You have to enable speech to text in the config file first.\n"
+                     "/help\n"
+                     "    Print this command list.")
         bot.send_message(update.message.from_user.id, txt)
 
     def poll(self):
@@ -289,8 +318,8 @@ class TelegramChannel(EFBChannel):
         Triggered by python-telegram-bot error callback.
         """
         if "Conflict: terminated by other long poll or webhook (409)" in str(error):
-            msg = 'Conflicted polling detected. If this error persists, ' \
-                  'please ensure you are running only one instance of this Telegram bot.'
+            msg = self._('Conflicted polling detected. If this error persists, '
+                         'please ensure you are running only one instance of this Telegram bot.')
             self.logger.critical(msg)
             self.bot_manager.send_message(self.config['admins'][0], msg)
             return
@@ -301,25 +330,34 @@ class TelegramChannel(EFBChannel):
         except telegram.error.BadRequest:
             self.logger.error("Message request is invalid.\n%s\n%s", str(update), str(error))
             self.bot_manager.send_message(self.config['admins'][0],
-                                          "Message request is invalid.\n%s\n<code>%s</code>)" %
-                                          (html.escape(str(error)), html.escape(str(update))), parse_mode="HTML")
+                                          self._("Message request is invalid.\n{error}\n<code>{update}</code>").format(
+                                              error=html.escape(str(error)), update=html.escape(str(update))),
+                                          parse_mode="HTML")
         except (telegram.error.TimedOut, telegram.error.NetworkError):
             self.timeout_count += 1
             self.logger.error("Poor internet connection detected.\n"
                               "Number of network error occurred since last startup: %s\n\%s\nUpdate: %s",
                               self.timeout_count, str(error), str(update))
             if update is not None and isinstance(getattr(update, "message", None), telegram.Message):
-                update.message.reply_text("This message is not processed due to poor internet environment "
-                                          "of the server.\n"
-                                          "<code>%s</code>" % html.escape(str(error)), quote=True, parse_mode="HTML")
+                update.message.reply_text(self._("This message is not processed due to poor internet environment "
+                                                 "of the server.\n"
+                                                 "<code>{code}</code>").format(code=html.escape(str(error))),
+                                          quote=True,
+                                          parse_mode="HTML")
 
             timeout_interval = self.flag('network_error_prompt_interval')
             if timeout_interval > 0 and self.timeout_count % timeout_interval == 0:
                 self.bot_manager.send_message(self.config['admins'][0],
-                                              "<b>EFB Telegram Master channel</b>\n"
-                                              "You may have a poor internet connection on your server. "
-                                              "Currently %s network errors are detected.\n"
-                                              "For more details, please refer to the log." % self.timeout_count,
+                                              self.ngettext("<b>EFB Telegram Master channel</b>\n"
+                                                            "You may have a poor internet connection on your server. "
+                                                            "Currently {count} network error is detected.\n"
+                                                            "For more details, please refer to the log.",
+                                                            "<b>EFB Telegram Master channel</b>\n"
+                                                            "You may have a poor internet connection on your server. "
+                                                            "Currently {count} network errors are detected.\n"
+                                                            "For more details, please refer to the log.",
+                                                            self.timeout_count).format(
+                                                  count=self.timeout_count),
                                               parse_mode="HTML")
         except telegram.error.ChatMigrated as e:
             new_id = e.new_chat_id
@@ -330,14 +368,18 @@ class TelegramChannel(EFBChannel):
                 self.db.remove_chat_assoc(slave_uid=i)
                 self.db.add_chat_assoc(master_uid=etm_utils.chat_id_to_str(self.channel_id, new_id), slave_uid=i)
                 count += 1
-            bot.send_message(new_id, "Chat migration detected."
-                                     "All remote chats (%s) are now linked to this new group." % count)
+            bot.send_message(new_id, self.ngettext("Chat migration detected.\n"
+                                                   "All {count} remote chat are now linked to this new group.",
+                                                   "Chat migration detected.\n"
+                                                   "All {count} remote chats are now linked to this new group.",
+                                                   count).format(count=count))
         except:
             try:
                 bot.send_message(self.config['admins'][0],
-                                 "EFB Telegram Master channel encountered error <code>%s</code> "
-                                 "caused by update <code>%s</code>." %
-                                 (html.escape(str(error)), html.escape(str(update))), parse_mode="HTML")
+                                 self._("EFB Telegram Master channel encountered error <code>{error}</code> "
+                                 "caused by update <code>{update}</code>.").format(error=html.escape(str(error)),
+                                                                                   update=html.escape(str(update))),
+                                 parse_mode="HTML")
             except:
                 self.logger.error("Failed to send error message through Telegram.")
             finally:

@@ -1,12 +1,12 @@
-import os
-import inspect
-import logging
+# coding=utf-8
+
 import datetime
+import logging
 from typing import List, Optional
-from ehforwarderbot import utils, EFBChannel
 
 from peewee import Model, TextField, DateTimeField, CharField, SqliteDatabase, DoesNotExist
-from playhouse.migrate import SqliteMigrator, migrate
+
+from ehforwarderbot import utils, EFBChannel
 
 
 class DatabaseManager:

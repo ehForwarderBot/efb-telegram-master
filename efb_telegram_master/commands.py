@@ -1,11 +1,15 @@
+# coding=utf-8
+
 from typing import Tuple, Dict, TYPE_CHECKING, List
 
 from telegram import Message, Update
 from telegram.ext import CommandHandler, ConversationHandler, RegexHandler, CallbackQueryHandler
 
 from ehforwarderbot import coordinator, EFBChannel
-from ehforwarderbot.message import EFBMsgCommands, EFBMsgCommand
+from ehforwarderbot.message import EFBMsgCommand
 from .constants import Flags
+from .locale_mixin import LocaleMixin
+
 if TYPE_CHECKING:
     from . import TelegramChannel
 
@@ -18,7 +22,7 @@ class ETMCommandMsgStorage:
         self.body = body
 
 
-class CommandsManager:
+class CommandsManager(LocaleMixin):
     """
     Functions related to Command messages and
     Extra functions of slave channels.
@@ -73,12 +77,12 @@ class CommandsManager:
         index = (chat_id, message_id)
 
         if not callback.isdecimal():
-            msg = "Invalid parameter: %s. (CE01)" % callback
+            msg = self._("Invalid parameter: {0}. (CE01)").format(callback)
             self.msg_storage.pop(index, None)
             self.bot.edit_message_text(text=msg, chat_id=chat_id, message_id=message_id)
             return ConversationHandler.END
         elif not (0 <= int(callback) < len(self.msg_storage[index].commands)):
-            msg = "Index out of bound: %s. (CE02)" % callback
+            msg = self._("Index out of bound: {0}. (CE02)").format(callback)
             self.msg_storage.pop(index, None)
             self.bot.edit_message_text(text=msg, chat_id=chat_id, message_id=message_id)
             return ConversationHandler.END
@@ -93,7 +97,8 @@ class CommandsManager:
         if fn is not None:
             msg = fn(*command.args, **command.kwargs)
         else:
-            msg = self._command_fallback(*command.args, __channel_id=channel_id, __callable=command.callable, **command.kwargs)
+            msg = self._command_fallback(*command.args, __channel_id=channel_id, __callable=command.callable,
+                                         **command.kwargs)
         self.msg_storage.pop(index, None)
         self.bot.edit_message_text(prefix=prefix, text=msg,
                                    chat_id=chat_id, message_id=message_id)
@@ -108,7 +113,7 @@ class CommandsManager:
             bot: Telegram Bot instance
             update: Message update
         """
-        msg = "List of slave channel features:"
+        msg = self._("List of slave channel features:")
         for n, i in enumerate(sorted(coordinator.slaves)):
             i = coordinator.slaves[i]
             msg += "\n\n<b>%s %s</b>" % (i.channel_emoji, i.channel_name)
@@ -119,10 +124,10 @@ class CommandsManager:
                     msg += "\n\n%s <b>(%s)</b>\n%s" % (
                         fn_name, extra_fns[j].name, extra_fns[j].desc.format(function_name=fn_name))
             else:
-                msg += "\nNo command found."
+                msg += self._("\nNo command found.")
         self.bot.send_message(update.effective_chat.id, msg, parse_mode="HTML")
 
-    def extra_call(self, bot, update, groupdict: Dict[str, str]=None):
+    def extra_call(self, bot, update, groupdict: Dict[str, str] = None):
         """
         Call an extra function from slave channel.
 
@@ -134,7 +139,7 @@ class CommandsManager:
                 'command': Name of the command.
         """
         if int(groupdict['id']) >= len(coordinator.slaves):
-            return self.bot.reply_error(update, "Invalid slave channel ID. (XC01)")
+            return self.bot.reply_error(update, self._("Invalid slave channel ID. (XC01)"))
 
         slaves = coordinator.slaves
 
@@ -142,20 +147,22 @@ class CommandsManager:
         functions = channel.get_extra_functions()
 
         if groupdict['command'] not in functions:
-            return self.bot.reply_error(update, "Command not found in selected channel. (XC02)")
+            return self.bot.reply_error(update, self._("Command not found in selected channel. (XC02)"))
 
         header = "%s %s: %s\n-------\n" % (
             channel.channel_emoji, channel.channel_name, functions[groupdict['command']].name)
         msg = self.bot.send_message(update.message.chat.id,
-                                    prefix=header, text="Please wait...")
+                                    prefix=header, text=self._("Please wait..."))
 
         result = functions[groupdict['command']](" ".join(update.message.text.split(' ', 1)[1:]))
 
         self.bot.edit_message_text(prefix=header, text=result,
                                    chat_id=update.message.chat.id, message_id=msg.message_id)
 
-    @staticmethod
-    def _command_fallback(*args, __channel_id: str, __callable: str, **kwargs) -> str:
-        return "Error: Command is not found in the channel.\n" \
-               "Function: %s.%s\n" \
-               "Arguments: %r\nKeyword Arguments: %r" % (__channel_id, __callable, args, kwargs)
+    def _command_fallback(self, *args, __channel_id: str, __callable: str, **kwargs) -> str:
+        return self._("Error: Command is not found in the channel.\n"
+                      "Function: {channel_id}.{callable}\n"
+                      "Arguments: {args!r}\nKeyword Arguments: {kwargs!r}").format(channel_id=__channel_id,
+                                                                                   callable=__callable,
+                                                                                   args=args,
+                                                                                   kwargs=kwargs)

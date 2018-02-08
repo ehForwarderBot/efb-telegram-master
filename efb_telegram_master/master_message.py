@@ -1,3 +1,5 @@
+# coding=utf-8
+
 import logging
 import mimetypes
 import os
@@ -19,6 +21,7 @@ from ehforwarderbot.message import EFBMsgLocationAttribute
 from ehforwarderbot.status import EFBMessageRemoval
 from . import utils
 from .msg_type import get_msg_type, TGMsgType
+from .locale_mixin import LocaleMixin
 
 if TYPE_CHECKING:
     from . import TelegramChannel
@@ -26,7 +29,7 @@ if TYPE_CHECKING:
     from .db import DatabaseManager
 
 
-class MasterMessageProcessor:
+class MasterMessageProcessor(LocaleMixin):
     """
     Processes messages from Telegram user and delivers to the slave channels
     """
@@ -87,14 +90,14 @@ class MasterMessageProcessor:
             candidates = self.db.get_recent_slave_chats(message.chat.id) or \
                          self.db.get_chat_assoc(master_uid=utils.chat_id_to_str(self.channel_id, message.chat.id))[:5]
             if candidates:
-                tg_err_msg = message.reply_text("Error: No recipient specified.\n"
-                                                       "Please reply to a previous message.", quote=True)
+                tg_err_msg = message.reply_text(self._("Error: No recipient specified.\n"
+                                                       "Please reply to a previous message. (MS01)"), quote=True)
                 self.channel.chat_binding.register_suggestions(update, candidates,
                                                                update.effective_chat.id, tg_err_msg.message_id)
 
             else:
-                message.reply_text("Error: No recipient specified.\n"
-                                          "Please reply to a previous message.", quote=True)
+                message.reply_text(self._("Error: No recipient specified.\n"
+                                          "Please reply to a previous message. (MS02)"), quote=True)
         else:
             return self.process_telegram_message(bot, update)
 
@@ -155,8 +158,8 @@ class MasterMessageProcessor:
                 else:
                     self.logger.info("[%s], Predefined chat %d.%d with target msg")
                     return self.bot.reply_error(update,
-                                                "Message is not found in database. "
-                                                "Please try with another message. (UC07)")
+                                                self._("Message is not found in database. "
+                                                "Please try with another message. (UC07)"))
         elif private_chat:
             if reply_to:
                 destination = self.db.get_msg_log(master_msg_id=utils.message_id_to_str(
@@ -166,11 +169,11 @@ class MasterMessageProcessor:
                     destination = destination.slave_origin_uid
                 else:
                     return self.bot.reply_error(update,
-                                                "Message is not found in database. "
-                                                "Please try with another one. (UC03)")
+                                                self._("Message is not found in database. "
+                                                "Please try with another one. (UC03)"))
             else:
                 return self.bot.reply_error(update,
-                                            "Please reply to an incoming message. (UC04)")
+                                            self._("Please reply to an incoming message. (UC04)"))
         else:  # group chat
             if multi_slaves:
                 if reply_to:
@@ -181,13 +184,13 @@ class MasterMessageProcessor:
                         destination = destination.slave_origin_uid
                     else:
                         return self.bot.reply_error(update,
-                                                    "Message is not found in database. "
-                                                    "Please try with another one. (UC05)")
+                                                    self._("Message is not found in database. "
+                                                    "Please try with another one. (UC05)"))
                 else:
                     return self.bot.reply_error(update,
-                                                "This group is linked to multiple remote chats. "
+                                                self._("This group is linked to multiple remote chats. "
                                                 "Please reply to an incoming message. "
-                                                "To unlink all remote chats, please send /unlink_all . (UC06)")
+                                                "To unlink all remote chats, please send /unlink_all . (UC06)"))
             elif destination:
                 if reply_to:
                     target_log: self.db.MsgLog = \
@@ -199,18 +202,18 @@ class MasterMessageProcessor:
                         target_channel, target_uid = utils.chat_id_str_to_id(target)
                     else:
                         return self.bot.reply_error(update,
-                                                    "Message is not found in database. "
-                                                    "Please try with another message. (UC07)")
+                                                    self._("Message is not found in database. "
+                                                    "Please try with another message. (UC07)"))
             else:
                 return self.bot.reply_error(update,
-                                            "This group is not linked to any chat. (UC06)")
+                                            self._("This group is not linked to any chat. (UC06)"))
 
         self.logger.debug("[%s] Telegram received. From private chat: %s; Group has multiple linked chats: %s; "
                           "Message replied to another message: %s", message_id, private_chat, multi_slaves, reply_to)
         self.logger.debug("[%s] Destination chat = %s", message_id, destination)
         channel, uid = utils.chat_id_str_to_id(destination)
         if channel not in coordinator.slaves:
-            return self.bot.reply_error(update, "Internal error: Channel \"%s\" not found." % channel)
+            return self.bot.reply_error(update, self._("Internal error: Channel \"{0}\" not found.").format(channel))
 
         m = EFBMsg()
         try:
@@ -340,18 +343,18 @@ class MasterMessageProcessor:
                     message.venue.location.longitude
                 )
             else:
-                raise EFBMessageTypeNotSupported("Message type %s is not supported." % mtype)
+                raise EFBMessageTypeNotSupported(self._("Message type {0} is not supported.").format(mtype))
                 # return self.bot.reply_error(update, "Message type not supported. (MN02)")
 
             slave_msg = coordinator.send_message(m)
         except EFBChatNotFound as e:
-            self.bot.reply_error(update, e.args[0] or "Chat is not found.")
+            self.bot.reply_error(update, e.args[0] or self._("Chat is not found."))
         except EFBMessageTypeNotSupported as e:
-            self.bot.reply_error(update, e.args[0] or "Message type is not supported.")
+            self.bot.reply_error(update, e.args[0] or self._("Message type is not supported."))
         except EFBOperationNotSupported as e:
-            self.bot.reply_error(update, "Message editing is not supported.\n\n%s" % str(e))
+            self.bot.reply_error(update, self._("Message editing is not supported.\n\n{!r}".format(e)))
         except EFBMessageError as e:
-            self.bot.reply_error(update, "Message is not sent.\n\n%s" % str(e))
+            self.bot.reply_error(update, self._("Message is not sent.\n\n{!r}".format(e)))
         finally:
             if m:
                 msg_log_d = {
@@ -388,7 +391,7 @@ class MasterMessageProcessor:
         size = getattr(file_obj, "file_size", None)
         file_id = file_obj.file_id
         if size and size > telegram.constants.MAX_FILESIZE_DOWNLOAD:
-            raise EFBMessageError("Attachment is too large. Maximum is 20 MB. (AT01)")
+            raise EFBMessageError(self._("Attachment is too large. Maximum is 20 MB. (AT01)"))
         f = self.bot.get_file(file_id)
         if not mime:
             ext = os.path.splitext(f.file_path)[1]
