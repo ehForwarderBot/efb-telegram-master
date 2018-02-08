@@ -46,7 +46,8 @@ setup(
         "requests",
         "pydub",
         "PyYaml",
-        "pillow"
+        "pillow",
+        "language-tags",
     ],
     entry_points={
         "ehforwarderbot.master": "blueset.telegram = efb_telegram_master:TelegramChannel"

@@ -1,3 +1,5 @@
+# coding=utf-8
+
 from telegram import Update
 from telegram.ext import CommandHandler
 

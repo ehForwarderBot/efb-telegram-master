@@ -420,3 +420,8 @@ e.g.:
 
    When a slave channel requires to remove a message, EFB will ignore
    the request if this value is ``true``.
+
+- ``force_locale`` *(str)* [Default: ``""``]
+
+   Force the locale to use for prompts. English is used by default until
+   an update with a supported locale is received.

@@ -1,22 +1,26 @@
+# coding=utf-8
+
 import base64
 from typing import Any, Dict, Optional, Tuple, Union, TYPE_CHECKING
 
 import telegram
 
 from ehforwarderbot import EFBChat, EFBChannel
+from .locale_mixin import LocaleMixin
 
 if TYPE_CHECKING:
     from . import TelegramChannel
 
 
-class ExperimentalFlagsManager:
+class ExperimentalFlagsManager(LocaleMixin):
 
     DEFAULT_VALUES = {
         "no_conversion": False,
         "chats_per_page": 10,
         "multiple_slave_chats": True,
         "network_error_prompt_interval": 100,
-        "prevent_message_removal": True
+        "prevent_message_removal": True,
+        "force_locale": "",
     }
 
     def __init__(self, channel: 'TelegramChannel'):
@@ -25,7 +29,7 @@ class ExperimentalFlagsManager:
 
     def __call__(self, flag_key: str) -> Any:
         if flag_key not in self.config:
-            raise ValueError("%s is not a valid experimental flag" % flag_key)
+            raise ValueError(self._("{0} is not a valid experimental flag").format(flag_key))
         return self.config[flag_key]
 
 

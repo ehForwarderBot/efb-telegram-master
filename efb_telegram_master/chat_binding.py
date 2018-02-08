@@ -1,3 +1,5 @@
+# coding=utf-8
+
 import html
 import logging
 import re
@@ -18,6 +20,7 @@ from ehforwarderbot.exceptions import EFBChatNotFound, EFBOperationNotSupported
 from . import utils
 from .constants import Emoji, Flags
 from .global_command_handler import GlobalCommandHandler
+from .locale_mixin import LocaleMixin
 
 if TYPE_CHECKING:
     from . import TelegramChannel
@@ -103,7 +106,7 @@ class ETMChat(EFBChat):
     @property
     def full_name(self):
         chat_display_name = self.display_name
-        return "'%s' from '%s %s'" % (chat_display_name, self.channel_emoji, self.channel_name) \
+        return "'%s' @ '%s %s'" % (chat_display_name, self.channel_emoji, self.channel_name) \
             if self.channel_name else "'%s'" % chat_display_name
 
     @property
@@ -158,7 +161,7 @@ class ChatListStorage:
         self.candidates: List[str] = candidates
 
 
-class ChatBindingManager:
+class ChatBindingManager(LocaleMixin):
     """
     Manages chat bindings (links), generation of chat heads, and chat recipient suggestion.
     """
@@ -244,7 +247,7 @@ class ChatBindingManager:
             if links:
                 return self.link_chat_gen_list(message.chat.id, pattern=" ".join(args), chats=links)
         elif message.forward_from_chat and \
-             message.forward_from_chat.type == telegram.Chat.CHANNEL:
+                message.forward_from_chat.type == telegram.Chat.CHANNEL:
             chat_id = message.forward_from_chat.id
             links = self.db.get_chat_assoc(
                 master_uid=utils.chat_id_to_str(self.channel.channel_id, chat_id))
@@ -279,10 +282,10 @@ class ChatBindingManager:
         self.logger.debug("Generating pagination of chats.\nStorage ID: %s; Offset: %s; Filter: %s; Source chats: %s;",
                           storage_id, offset, pattern, source_chats)
         legend: List[str] = [
-            "%s: Linked" % Emoji.LINK,
-            "%s: Muted" % Emoji.MUTED,
-            "%s: User" % Emoji.USER,
-            "%s: Group" % Emoji.GROUP,
+            self._("{0}: Linked").format(Emoji.LINK),
+            self._("{0}: Muted").format(Emoji.MUTED),
+            self._("{0}: User").format(Emoji.USER),
+            self._("{0}: Group").format(Emoji.GROUP),
         ]
 
         chat_list: ChatListStorage = self.msg_storage.get(storage_id, None)
@@ -344,12 +347,12 @@ class ChatBindingManager:
         page_number_row: List[telegram.InlineKeyboardButton] = []
 
         if offset - chats_per_page >= 0:
-            page_number_row.append(telegram.InlineKeyboardButton("< Prev", callback_data="offset %s" % (
-                offset - chats_per_page)))
-        page_number_row.append(telegram.InlineKeyboardButton("Cancel", callback_data=Flags.CANCEL_PROCESS))
+            page_number_row.append(telegram.InlineKeyboardButton(self._("< Prev"), callback_data="offset %s" % (
+                    offset - chats_per_page)))
+        page_number_row.append(telegram.InlineKeyboardButton(self._("Cancel"), callback_data=Flags.CANCEL_PROCESS))
         if offset + chats_per_page < chat_list.length:
-            page_number_row.append(telegram.InlineKeyboardButton("Next >", callback_data="offset %s" % (
-                offset + chats_per_page)))
+            page_number_row.append(telegram.InlineKeyboardButton(self._("Next >"), callback_data="offset %s" % (
+                    offset + chats_per_page)))
         chat_btn_list.append(page_number_row)
 
         return legend, chat_btn_list
@@ -392,13 +395,13 @@ class ChatBindingManager:
         """
 
         if not message_id:
-            message_id = self.bot.send_message(chat_id, "Processing...").message_id
+            message_id = self.bot.send_message(chat_id, self._("Processing...")).message_id
         self.bot.send_chat_action(chat_id, telegram.ChatAction.TYPING)
         if chats:
-            msg_text = "This Telegram group is currently linked with the following remote groups."
+            msg_text = self._("This Telegram group is currently linked with...")
         else:
-            msg_text = "Please choose the chat you want to link with..."
-        msg_text += "\n\nLegend:\n"
+            msg_text = self._("Please choose the chat you want to link with...")
+        msg_text += self._("\n\nLegend:\n")
 
         legend, chat_btn_list = self.slave_chats_pagination((chat_id, message_id),
                                                             offset,
@@ -437,7 +440,7 @@ class ChatBindingManager:
 
         if callback_uid == Flags.CANCEL_PROCESS:
             # Terminate the process
-            txt = "Cancelled."
+            txt = self._("Cancelled.")
             self.bot.edit_message_text(text=txt,
                                        chat_id=tg_chat_id,
                                        message_id=tg_msg_id)
@@ -446,7 +449,7 @@ class ChatBindingManager:
 
         if callback_uid[:4] != "chat":
             # The only possible command now is "chat".
-            txt = "Invalid parameter (%s). (IP01)" % callback_uid
+            txt = self._("Invalid parameter ({0}). (IP01)").format(callback_uid)
             self.bot.edit_message_text(text=txt,
                                        chat_id=tg_chat_id,
                                        message_id=tg_msg_id)
@@ -455,35 +458,37 @@ class ChatBindingManager:
 
         callback_uid: int = int(callback_uid.split()[1])
         chat: ETMChat = self.msg_storage[(tg_chat_id, tg_msg_id)].chats[callback_uid]
-        chat_display_name = chat.chat_name if not chat.chat_alias else "%s (%s)" % (
-            chat.chat_alias, chat.chat_name)
-        chat_display_name = "'%s' from '%s %s'" % (chat_display_name, chat.channel_emoji, chat.channel_name)
+        chat_display_name = chat.chat_name if not chat.chat_alias else self._("{alias} ({name})") \
+            .format(alias=chat.chat_alias, name=chat.chat_name)
+        chat_display_name = chat.full_name
 
         self.msg_storage[(tg_chat_id, tg_msg_id)].chats = [chat]
 
-        txt = "You've selected chat %s." % html.escape(chat_display_name)
+        txt = self._("You've selected chat {0}.").format(html.escape(chat_display_name))
         if chat.muted:
-            txt += "\nThis chat is currently muted."
+            txt += self._("\nThis chat is currently muted.")
         elif chat.linked:
-            txt += "\nThis chat has already linked to Telegram."
-        txt += "\nWhat would you like to do?\n\n" \
-               "<i>* If the link button doesn't work for you, please try to link manually.</i>"
+            txt += self._("\nThis chat has already linked to Telegram.")
+        txt += self._("\nWhat would you like to do?\n\n"
+                      "<i>* If the link button doesn't work for you, please try to link manually.</i>")
 
         link_url = "https://telegram.me/%s?startgroup=%s" % (
             self.bot.me.username, urllib.parse.quote(utils.b64en(utils.message_id_to_str(tg_chat_id, tg_msg_id))))
         self.logger.debug("Telegram start trigger for linking chat: %s", link_url)
         if chat.linked and not chat.muted:
-            btn_list = [telegram.InlineKeyboardButton("Relink", url=link_url),
-                        telegram.InlineKeyboardButton("Mute", callback_data="mute 0"),
-                        telegram.InlineKeyboardButton("Restore", callback_data="unlink 0")]
+            btn_list = [telegram.InlineKeyboardButton(self._("Relink"), url=link_url),
+                        telegram.InlineKeyboardButton(self._("Mute"), callback_data="mute 0"),
+                        telegram.InlineKeyboardButton(self._("Restore"), callback_data="unlink 0")]
         elif chat.muted:
-            btn_list = [telegram.InlineKeyboardButton("Link", url=link_url),
-                        telegram.InlineKeyboardButton("Unmute", callback_data="unlink 0")]
+            btn_list = [telegram.InlineKeyboardButton(self._("Link"), url=link_url),
+                        telegram.InlineKeyboardButton(self._("Unmute"), callback_data="unlink 0")]
         else:
-            btn_list = [telegram.InlineKeyboardButton("Link", url=link_url),
-                        telegram.InlineKeyboardButton("Mute", callback_data="mute 0")]
+            btn_list = [telegram.InlineKeyboardButton(self._("Link"), url=link_url),
+                        telegram.InlineKeyboardButton(self._("Mute"), callback_data="mute 0")]
 
-        btn_list.append(telegram.InlineKeyboardButton("Manual " + btn_list[0].text, callback_data="manual_link 0"))
+        btn_list.append(telegram.InlineKeyboardButton(self._("Manual {link_or_relink}")
+                                                      .format(link_or_relink=btn_list[0].text),
+                                                      callback_data="manual_link 0"))
 
         btns = [btn_list,
                 [telegram.InlineKeyboardButton("Cancel", callback_data=Flags.CANCEL_PROCESS)]]
@@ -510,17 +515,14 @@ class ChatBindingManager:
         callback_uid = update.callback_query.data
 
         if callback_uid == Flags.CANCEL_PROCESS:
-            txt = "Cancelled."
+            txt = self._("Cancelled.")
             self.bot.edit_message_text(text=txt, chat_id=tg_chat_id, message_id=tg_msg_id)
             self.msg_storage.pop((tg_chat_id, tg_msg_id), None)
             return ConversationHandler.END
 
         cmd, chat_lid = callback_uid.split()
         chat: ETMChat = self.msg_storage[(tg_chat_id, tg_msg_id)].chats[int(chat_lid)]
-        chat_display_name = chat.chat_name if not chat.chat_alias else "%s (%s)" % (
-            chat.chat_alias, chat.chat_name)
-        chat_display_name = "'%s' from '%s %s'" % (chat_display_name, chat.channel_emoji, chat.channel_name) \
-            if chat.channel_name else "'%s'" % chat_display_name
+        chat_display_name = chat.full_name
         if cmd == "unlink":
             chat.unlink()
             txt = "Chat %s is restored." % chat_display_name
@@ -530,26 +532,27 @@ class ChatBindingManager:
             txt = "Chat %s is now muted." % chat_display_name
             self.bot.edit_message_text(text=txt, chat_id=tg_chat_id, message_id=tg_msg_id)
         elif cmd == "manual_link":
-            txt = "To link %s manually, please:\n\n" \
-                  "1. Add me to the Telegram Group you want to link to.\n" \
-                  "2. Send the following code.\n\n" \
-                  "<code>/start %s</code>\n\n" \
-                  "3. Then I would notify you if the chat is linked successfully.\n" \
-                  "\n" \
-                  "<i>* To link a channel, send the code above to your channel, " \
-                  "and forward it to the bot. Note that the bot will not process any " \
-                  "message others sent in channels.</i>" \
-                  % (html.escape(chat_display_name),
-                     html.escape(utils.b64en(utils.message_id_to_str(tg_chat_id, tg_msg_id))))
+            txt = self._("To link {chat_display_name} manually, please:\n\n"
+                         "1. Add me to the Telegram Group you want to link to.\n"
+                         "2. Send the following code.\n\n"
+                         "<code>/start {code}</code>\n\n"
+                         "3. Then I would notify you if the chat is linked successfully.\n"
+                         "\n"
+                         "<i>* To link a channel, send the code above to your channel, "
+                         "and forward it to the bot. Note that the bot will not process any "
+                         "message others sent in channels.</i>") \
+                .format(chat_display_name=html.escape(chat_display_name),
+                        code=html.escape(utils.b64en(utils.message_id_to_str(tg_chat_id, tg_msg_id))))
             self.bot.edit_message_text(text=txt, chat_id=tg_chat_id, message_id=tg_msg_id,
                                        reply_markup=
                                        telegram.InlineKeyboardMarkup(
-                                           [[telegram.InlineKeyboardButton("Cancel",
+                                           [[telegram.InlineKeyboardButton(self._("Cancel"),
                                                                            callback_data=Flags.CANCEL_PROCESS)]]),
                                        parse_mode='HTML')
             return Flags.LINK_EXEC
         else:
-            txt = "Command '%s' (%s) is not recognised, please try again" % (cmd, callback_uid)
+            txt = self._("Command '{command}' ({query}) is not recognised, please try again") \
+                .format(command=cmd, query=callback_uid)
             self.bot.edit_message_text(text=txt, chat_id=tg_chat_id, message_id=tg_msg_id)
         self.msg_storage.pop((tg_chat_id, tg_msg_id), None)
         return ConversationHandler.END
@@ -559,7 +562,7 @@ class ChatBindingManager:
             storage_key: Tuple[int, int] = tuple(map(int, utils.message_id_str_to_id(utils.b64de(args[0]))))
             data = self.msg_storage[storage_key]
         except KeyError:
-            return update.message.reply_text("Session expired or unknown parameter. (SE02)")
+            return update.message.reply_text(self._("Session expired or unknown parameter. (SE02)"))
         chat: ETMChat = data.chats[0]
         chat_display_name = chat.full_name
         slave_channel, slave_chat_uid = chat.channel_id, chat.chat_uid
@@ -567,11 +570,11 @@ class ChatBindingManager:
 
             # Use channel ID if command is forwarded from a channel.
             tg_chat_to_link = update.effective_message.forward_from_chat and \
-                           update.effective_message.forward_from_chat.type == telegram.Chat.CHANNEL and \
-                           update.effective_message.forward_from_chat.id
+                              update.effective_message.forward_from_chat.type == telegram.Chat.CHANNEL and \
+                              update.effective_message.forward_from_chat.id
             tg_chat_to_link = tg_chat_to_link or update.effective_chat.id
 
-            txt = "Trying to link chat %s..." % chat_display_name
+            txt = self._('Trying to link chat {0}...').format(chat_display_name)
             msg = self.bot.send_message(tg_chat_to_link, text=txt)
 
             if chat.muted:
@@ -579,7 +582,7 @@ class ChatBindingManager:
 
             chat.link(self.channel.channel_id, tg_chat_to_link, self.channel.flag("multiple_slave_chats"))
 
-            txt = "Chat '%s' is now linked." % chat_display_name
+            txt = self._("Chat {0} is now linked.").format(chat_display_name)
             self.bot.edit_message_text(text=txt, chat_id=msg.chat.id, message_id=msg.message_id)
 
             self.bot.edit_message_text(chat_id=storage_key[0],
@@ -600,13 +603,15 @@ class ChatBindingManager:
             links = self.db.get_chat_assoc(master_uid=utils.chat_id_to_str(self.channel.channel_id,
                                                                            update.message.chat.id))
             if len(links) < 1:
-                return self.bot.send_message(update.message.chat.id, "No chat is linked to the group.",
+                return self.bot.send_message(update.message.chat.id, self._("No chat is linked to the group."),
                                              reply_to_message_id=update.message.message_id)
             else:
                 self.db.remove_chat_assoc(master_uid=utils.chat_id_to_str(self.channel.channel_id,
                                                                           update.message.chat.id))
                 return self.bot.send_message(update.message.chat.id,
-                                             "All %s chat(s) has been unlinked from this group." % len(links),
+                                             self.ngettext("All {0} chat has been unlinked from this group.",
+                                                           "All {0} chats has been unlinked from this group.",
+                                                           len(links)).format(len(links)),
                                              reply_to_message_id=update.message.message_id)
         else:
             if update.effective_message.forward_from_chat and \
@@ -616,17 +621,19 @@ class ChatBindingManager:
                 links = self.db.get_chat_assoc(master_uid=utils.chat_id_to_str(self.channel.channel_id, chat.id))
 
                 if len(links) < 1:
-                    return self.bot.send_message(update.message.chat.id, "No chat is linked to the channel.",
+                    return self.bot.send_message(update.message.chat.id, self._("No chat is linked to the channel."),
                                                  reply_to_message_id=update.message.message_id)
                 else:
                     self.db.remove_chat_assoc(master_uid=utils.chat_id_to_str(self.channel.channel_id, chat.id))
                     return self.bot.send_message(update.message.chat.id,
-                                                 "All %s chat(s) has been unlinked from this channel." % len(links),
+                                                 self.ngettext("All {0} chat has been unlinked from this channel.",
+                                                               "All {0} chats has been unlinked from this channel.",
+                                                               len(links)).format(len(links)),
                                                  reply_to_message_id=update.message.message_id)
             else:
                 return self.bot.send_message(update.message.chat.id,
-                                             "Send `/unlink_all` to a group to unlink all remote chats "
-                                             "from it.",
+                                             self._("Send `/unlink_all` to a group to unlink all remote chats "
+                                                    "from it."),
                                              parse_mode=telegram.ParseMode.MARKDOWN,
                                              reply_to_message_id=update.message.message_id)
 
@@ -666,7 +673,7 @@ class ChatBindingManager:
             chats: Specified list of chats to start a chat head.
         """
         if not message_id:
-            message_id = self.bot.send_message(chat_id, text="Processing...").message_id
+            message_id = self.bot.send_message(chat_id, text=self._("Processing...")).message_id
         self.bot.send_chat_action(chat_id, telegram.ChatAction.TYPING)
 
         if chats and len(chats):
@@ -676,32 +683,32 @@ class ChatBindingManager:
                 try:
                     chat: ETMChat = ETMChat(chat=self.get_chat_from_db(slave_channel_id, slave_chat_id)
                                                  or channel.get_chat(slave_chat_id))
-                    msg_text = "This group is linked to %s" \
-                               "Send a message to this group to deliver it to the chat.\n" \
-                               "Do NOT reply to this system message." \
-                               % chat.full_name
+                    msg_text = self._('This group is linked to {0}'
+                                      'Send a message to this group to deliver it to the chat.\n'
+                                      'Do NOT reply to this system message.') \
+                        .format(chat.full_name)
 
                 except KeyError:
-                    msg_text = "This group is linked to an unknown chat ({chat_id}) " \
-                               "on channel {channel_emoji} {channel_name}. Possibly you can " \
-                               "no longer reach this chat. Send /unlink_all to unlink all chats " \
-                               "from this group.".format(channel_emoji=channel.channel_emoji,
-                                                         channel_name=channel.channel_name,
-                                                         chat_id=slave_chat_id)
+                    msg_text = self._("This group is linked to an unknown chat ({chat_id}) "
+                                      "on channel {channel_emoji} {channel_name}. Possibly you can "
+                                      "no longer reach this chat. Send /unlink_all to unlink all chats "
+                                      "from this group.").format(channel_emoji=channel.channel_emoji,
+                                                                 channel_name=channel.channel_name,
+                                                                 chat_id=slave_chat_id)
                 self.bot.edit_message_text(text=msg_text,
                                            chat_id=chat_id,
                                            message_id=message_id)
                 return ConversationHandler.END
             else:
-                msg_text = "This Telegram group is linked to the following chats, " \
-                           "choose one to start a conversation with."
+                msg_text = self._("This Telegram group is linked to the following chats, "
+                                  "choose one to start a conversation with.")
         else:
             msg_text = "Choose a chat you want to start a conversation with."
 
         legend, chat_btn_list = self.slave_chats_pagination((chat_id, message_id), offset, pattern=pattern,
                                                             source_chats=chats)
 
-        msg_text += "\n\nLegend:\n"
+        msg_text += self._("\n\nLegend:\n")
         for i in legend:
             msg_text += "%s\n" % i
         self.bot.edit_message_text(text=msg_text,
@@ -730,7 +737,7 @@ class ChatBindingManager:
             return self.chat_head_req_generate(bot, tg_chat_id, message_id=tg_msg_id,
                                                offset=int(callback_uid.split()[1]))
         if callback_uid == Flags.CANCEL_PROCESS:
-            txt = "Cancelled."
+            txt = self._("Cancelled.")
             self.msg_storage.pop((tg_chat_id, tg_msg_id), None)
             self.bot.edit_message_text(text=txt,
                                        chat_id=tg_chat_id,
@@ -739,7 +746,7 @@ class ChatBindingManager:
 
         if callback_uid[:4] != "chat":
             # Invalid command
-            txt = "Invalid command. (%s)" % callback_uid
+            txt = self._("Invalid command. ({0})").format(callback_uid)
             self.msg_storage.pop((tg_chat_id, tg_msg_id), None)
             self.bot.edit_message_text(text=txt,
                                        chat_id=tg_chat_id,
@@ -751,7 +758,7 @@ class ChatBindingManager:
         chat_uid = utils.chat_id_to_str(chat=chat)
         chat_display_name = chat.full_name
         self.msg_storage.pop((tg_chat_id, tg_msg_id), None)
-        txt = "Reply to this message to chat with %s." % chat_display_name
+        txt = self._("Reply to this message to chat with {0}.").format(chat_display_name)
         msg_log = {"master_msg_id": utils.message_id_to_str(tg_chat_id, tg_msg_id),
                    "text": txt,
                    "msg_type": "Text",
@@ -786,9 +793,9 @@ class ChatBindingManager:
         self.msg_storage[storage_id].set_chat_suggestion(update, candidates)
         legends, buttons = self.channel.chat_binding.slave_chats_pagination(
             storage_id, 0, source_chats=candidates)
-        self.bot.edit_message_text("Error: No recipient specified.\n"
-                                   "Please reply to a previous message, "
-                                   "or choose a recipient:\n\nLegend:\n" + "\n".join(legends),
+        self.bot.edit_message_text(self._("Error: No recipient specified.\n"
+                                          "Please reply to a previous message, "
+                                          "or choose a recipient:\n\nLegend:\n") + "\n".join(legends),
                                    chat_id, message_id,
                                    reply_markup=telegram.InlineKeyboardMarkup(buttons))
         self.suggestion_handler.conversations[storage_id] = Flags.SUGGEST_RECIPIENT
@@ -804,20 +811,20 @@ class ChatBindingManager:
             chat = ETMChat(chat=self.get_chat_from_db(*utils.chat_id_str_to_id(chat)), db=self.db)
             self.channel.master_messages.process_telegram_message(bot, update, channel_id=chat.channel_id,
                                                                   chat_id=chat.chat_uid)
-            self.bot.edit_message_text(text="Delivering the message to %s" % chat.full_name,
-                                  chat_id=chat_id,
-                                  message_id=msg_id)
+            self.bot.edit_message_text(text=self._("Delivering the message to {0}").format(chat.full_name),
+                                       chat_id=chat_id,
+                                       message_id=msg_id)
         elif param == Flags.CANCEL_PROCESS:
-            self.bot.edit_message_text("Error: No recipient specified.\n"
-                                  "Please reply to a previous message.",
-                                  chat_id=chat_id,
-                                  message_id=msg_id)
+            self.bot.edit_message_text(self._("Error: No recipient specified.\n"
+                                              "Please reply to a previous message."),
+                                       chat_id=chat_id,
+                                       message_id=msg_id)
         else:
-            self.bot.edit_message_text("Error: No recipient specified.\n"
-                                  "Please reply to a previous message.\n\n"
-                                  "Invalid parameter (%s)." % param,
-                                  chat_id=chat_id,
-                                  message_id=msg_id)
+            self.bot.edit_message_text(self._("Error: No recipient specified.\n"
+                                              "Please reply to a previous message.\n\n"
+                                              "Invalid parameter ({0}).").format(param),
+                                       chat_id=chat_id,
+                                       message_id=msg_id)
         return ConversationHandler.END
 
     def update_group_info(self, bot: telegram.Bot, update: telegram.Update):
@@ -826,8 +833,8 @@ class ChatBindingManager:
         according to the linked remote chat.
         """
         if update.effective_chat.id == self.bot.get_me().id:
-            return self.bot.reply_error(update, 'Send /update_info in a group where this bot is a group admin '
-                                                'to update group title and profile picture')
+            return self.bot.reply_error(update, self._('Send /update_info in a group where this bot is a group admin '
+                                                       'to update group title and profile picture'))
         if update.effective_message.forward_from_chat and \
                 update.effective_message.forward_from_chat.type == telegram.Chat.CHANNEL:
             tg_chat = update.effective_message.forward_from_chat.id
@@ -836,8 +843,11 @@ class ChatBindingManager:
         chats = self.db.get_chat_assoc(master_uid=utils.chat_id_to_str(channel=self.channel,
                                                                        chat_uid=tg_chat))
         if len(chats) != 1:
-            return self.bot.reply_error(update, 'This only works in a group linked with one chat. '
-                                                'Currently %d chat(s) linked to this group.' % len(chats))
+            return self.bot.reply_error(update, self.ngettext('This only works in a group linked with one chat. '
+                                                              'Currently {0} chat linked to this group.',
+                                                              'This only works in a group linked with one chat. '
+                                                              'Currently {0} chats linked to this group.',
+                                                              len(chats)).format(len(chats)))
         picture = None
         pic_resized = None
         try:
@@ -851,30 +861,30 @@ class ChatBindingManager:
             pic_img = Image.open(picture)
 
             if pic_img.size[0] < self.TELEGRAM_MIN_PROFILE_PICTURE_SIZE or \
-                            pic_img.size[1] < self.TELEGRAM_MIN_PROFILE_PICTURE_SIZE:
+                    pic_img.size[1] < self.TELEGRAM_MIN_PROFILE_PICTURE_SIZE:
                 # resize
                 scale = self.TELEGRAM_MIN_PROFILE_PICTURE_SIZE / min(pic_img.size)
                 pic_resized = io.BytesIO()
-                pic_img.resize(tuple(map(lambda a: int(scale * a), pic_img.size)), Image.BICUBIC)\
-                       .save(pic_resized, 'PNG')
+                pic_img.resize(tuple(map(lambda a: int(scale * a), pic_img.size)), Image.BICUBIC) \
+                    .save(pic_resized, 'PNG')
                 pic_resized.seek(0)
 
             picture.seek(0)
 
             bot.set_chat_photo(tg_chat, pic_resized or picture)
-            update.message.reply_text('Chat information updated.')
+            update.message.reply_text(self._('Chat information updated.'))
         except KeyError:
-            return self.bot.reply_error(update, 'Channel linked is not found.')
+            return self.bot.reply_error(update, self._('Channel linked is not found.'))
         except EFBChatNotFound:
-            return self.bot.reply_error(update, 'Chat linked is not found in channel.')
+            return self.bot.reply_error(update, self._('Chat linked is not found in channel.'))
         except telegram.TelegramError as e:
-            return self.bot.reply_error(update, 'Error occurred while update chat information.\n'
-                                                '%s' % e.message)
+            return self.bot.reply_error(update, self._('Error occurred while update chat information.\n'
+                                                       '{0}'.format(e.message)))
         except Exception as e:
-            return self.bot.reply_error(update, 'Error occurred while update chat information. '
-                                                '%s' % e)
+            return self.bot.reply_error(update, self._('Error occurred while update chat information. \n'
+                                                       '{0}'.format(e)))
         except EFBOperationNotSupported:
-            return self.bot.reply_error(update, 'No profile picture provided from this chat.')
+            return self.bot.reply_error(update, self._('No profile picture provided from this chat.'))
         finally:
             if getattr(picture, 'close', None):
                 picture.close()

@@ -1,4 +1,4 @@
-from typing import Optional, List, TYPE_CHECKING, Callable
+# coding=utf-8
 
 import telegram
 import telegram.ext
@@ -7,12 +7,15 @@ import telegram.constants
 import io
 import os
 
+from typing import Optional, List, TYPE_CHECKING, Callable
 from .whitelisthandler import WhitelistHandler
+from .locale_handler import LocaleHandler
+from .locale_mixin import LocaleMixin
 if TYPE_CHECKING:
     from . import TelegramChannel
 
 
-class TelegramBotManager:
+class TelegramBotManager(LocaleMixin):
     """
     This is a wrapper of Telegram's message sending and editing methods.
     Used to deal with text/caption length overflow, parse_mode, document fallback, etc.
@@ -29,11 +32,12 @@ class TelegramBotManager:
         try:
             self.updater: telegram.ext.Updater = telegram.ext.Updater(self.channel.config['token'])
         except (AttributeError, KeyError):
-            raise ValueError("Token is not properly defined.")
+            raise ValueError(self._("Token is not properly defined."))
         self.me: telegram.User = self.updater.bot.get_me()
         self.admins: List[int] = self.channel.config['admins']
         self.dispatcher: telegram.ext.Dispatcher = self.updater.dispatcher
         self.dispatcher.add_handler(WhitelistHandler(self.admins))
+        self.dispatcher.add_handler(LocaleHandler(channel))
 
     def send_message(self, *args, prefix: Optional[str]= '', suffix: Optional[str]= '', **kwargs):
         """
@@ -68,8 +72,8 @@ class TelegramBotManager:
                 filename += ".txt"
             self.updater.bot.send_document(args[0], full_message, filename,
                                            reply_to_message_id=msg.message_id,
-                                           caption="Message is truncated due to its length. "
-                                                   "Full message is sent as attachment.")
+                                           caption=self._("Message is truncated due to its length. "
+                                                   "Full message is sent as attachment."))
             return msg
         else:
             kwargs['text'] = prefix + text + suffix
@@ -106,8 +110,8 @@ class TelegramBotManager:
                 filename += ".txt"
             self.updater.bot.send_document(kwargs['chat_id'], full_message, filename,
                                            reply_to_message_id=msg.message_id,
-                                           caption="Message is truncated due to its length. "
-                                                   "Full message is sent as attachment.")
+                                           caption=self._("Message is truncated due to its length. "
+                                                   "Full message is sent as attachment."))
             return msg
         else:
             kwargs['text'] = prefix + text + suffix
@@ -163,8 +167,8 @@ class TelegramBotManager:
                 filename = "%s_%s.txt" % (args[0], msg.message_id)
                 self.updater.bot.send_document(args[0], full_message, filename,
                                                reply_to_message_id=msg.message_id,
-                                               caption="Message is truncated due to its length. "
-                                                       "Full message is sent as attachment.")
+                                               caption=self._("Caption is truncated due to its length. "
+                                                       "Full message is sent as attachment."))
                 return msg
             else:
                 kwargs['caption'] = prefix + text + suffix
@@ -303,7 +307,7 @@ class TelegramBotManager:
         return self.updater.bot.get_me(*args, **kwargs)
 
     def session_expired(self, bot, update):
-        self.edit_message_text(text="Session expired. Please try again. (SE01)",
+        self.edit_message_text(text=self._("Session expired. Please try again. (SE01)"),
                                    chat_id=update.effective_chat.id,
                                    message_id=update.effective_message.message_id)
 
@@ -348,5 +352,5 @@ class TelegramBotManager:
                 empty = file.tell() == 0
                 file.seek(0, 0)
         if empty:
-            return self.send_message(chat, prefix="Empty attachment detected." + prefix,
+            return self.send_message(chat, prefix=self._("Empty attachment detected.") + prefix,
                                      text=caption, suffix=suffix)

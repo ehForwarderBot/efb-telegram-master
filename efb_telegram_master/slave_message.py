@@ -1,4 +1,5 @@
-import html
+# coding=utf-8
+
 import html
 import logging
 import os
@@ -21,6 +22,7 @@ from ehforwarderbot.status import EFBChatUpdates, EFBMemberUpdates, EFBMessageRe
 from . import utils, ETMChat
 from .commands import ETMCommandMsgStorage
 from .constants import Emoji
+from .locale_mixin import LocaleMixin
 
 if TYPE_CHECKING:
     from . import TelegramChannel
@@ -28,7 +30,7 @@ if TYPE_CHECKING:
     from .db import DatabaseManager
 
 
-class SlaveMessageProcessor:
+class SlaveMessageProcessor(LocaleMixin):
     """Process messages as EFBMsg objects from slave channels."""
 
     def __init__(self, channel: 'TelegramChannel'):
@@ -117,7 +119,7 @@ class SlaveMessageProcessor:
             if msg.commands:
                 commands = msg.commands.commands
                 if old_msg_id:
-                    raise EFBMessageError('Command message cannot be edited')
+                    raise EFBMessageError(self._('Command message cannot be edited'))
                 buttons = []
                 for i, ival in enumerate(commands):
                     buttons.append([telegram.InlineKeyboardButton(ival.name, callback_data=str(i))])
@@ -145,7 +147,7 @@ class SlaveMessageProcessor:
             else:
                 self.bot.send_chat_action(tg_dest, telegram.ChatAction.TYPING)
                 tg_msg = self.bot.send_message(tg_dest, prefix=msg_template,
-                                               text="Unsupported type of message. (UT01)")
+                                               text=self._("Unsupported type of message. (UT01)"))
 
             if tg_msg and msg.commands:
                 self.channel.commands.register_command(tg_msg, ETMCommandMsgStorage(
@@ -408,7 +410,8 @@ class SlaveMessageProcessor:
                          attributes.latitude, attributes.longitude,
                          msg.text, msg_template)
         if old_msg_id and old_msg_id[0] == tg_dest:
-            msg_template += '[edited]'
+            # TRANSLATORS: Flag for edited message, but cannot be edited on Telegram.
+            msg_template += self._('[edited]')
             target_msg_id = target_msg_id or old_msg_id[1]
         return self.bot.send_venue(tg_dest, latitude=attributes.latitude,
                                    longitude=attributes.longitude, title=msg.text,
@@ -486,7 +489,7 @@ class SlaveMessageProcessor:
                 except telegram.TelegramError:
                     pass
                 self.bot.send_message(chat_id=old_msg_id[0],
-                                      text="Message removed in remote chat.",
+                                      text=self._("Message removed in remote chat."),
                                       reply_to_message_id=old_msg_id[1])
             else:
                 self.logger.info('[%s] Was supposed to delete a message, '
@@ -524,5 +527,5 @@ class SlaveMessageProcessor:
             name_prefix = ETMChat(chat=msg.chat, db=self.db).display_name
             msg_template = "%s %s:" % (emoji_prefix, name_prefix)
         else:
-            msg_template = "Unknown message source (%s):" % msg.chat.chat_type
+            msg_template = self._("Unknown message source ({0}):").format(msg.chat.chat_type)
         return msg_template

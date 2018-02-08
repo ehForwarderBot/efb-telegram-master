@@ -1,8 +1,9 @@
+# coding=utf-8
+
 from typing import List
 
-from telegram.ext.handler import Handler
 from telegram import Update
-from telegram.utils.deprecate import deprecate
+from telegram.ext.handler import Handler
 
 
 class WhitelistHandler(Handler):
@@ -33,8 +34,3 @@ class WhitelistHandler(Handler):
 
     def handle_update(self, update, dispatcher):
         pass
-
-    # old non-PEP8 Handler methods
-    m = "telegram.WhitelistHandler."
-    checkUpdate = deprecate(check_update, m + "checkUpdate", m + "check_update")
-    handleUpdate = deprecate(handle_update, m + "handleUpdate", m + "handle_update")

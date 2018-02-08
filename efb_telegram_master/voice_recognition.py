@@ -1,23 +1,25 @@
+# coding=utf-8
+
+import base64
 import html
+import tempfile
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from typing import Any, Dict, List, IO, TYPE_CHECKING
 
-import requests
 import pydub
-import base64
-import uuid
-import tempfile
+import requests
+import telegram.ext
 
 from ehforwarderbot import MsgType
-import telegram.ext
+from .locale_mixin import LocaleMixin
 
 if TYPE_CHECKING:
     from . import TelegramChannel
     from .bot_manager import TelegramBotManager
 
 
-class VoiceRecognitionManager:
+class VoiceRecognitionManager(LocaleMixin):
     """
     Methods related to voice recognition function of ETM.
     """
@@ -42,9 +44,9 @@ class VoiceRecognitionManager:
         tokens: Dict[str, Any] = self.channel.config.get("speech_api", dict())
         self.voice_engines = []
         if "bing" in tokens:
-            self.voice_engines.append(BingSpeech(tokens['bing']))
+            self.voice_engines.append(BingSpeech(self.channel, tokens['bing']))
         if "baidu" in tokens:
-            self.voice_engines.append(BaiduSpeech(tokens['baidu']))
+            self.voice_engines.append(BaiduSpeech(self.channel, tokens['baidu']))
 
     def recognize_speech(self, bot, update, args=[]):
         """
@@ -57,17 +59,17 @@ class VoiceRecognitionManager:
         """
 
         if not getattr(update.message, "reply_to_message", None):
-            text = "/recog lang_code\n" \
-                   "Reply to a voice with this command to recognize it.\n" \
-                   "examples:\n/recog zh\n/recog en-US\n\nSupported languages:\n"
+            text = self._("/recog lang_code\n" \
+                          "Reply to a voice with this command to recognize it.\n" \
+                          "examples:\n/recog zh\n/recog en-US\n\nSupported languages:\n")
             text += "\n".join("%s: %r" % (i.engine_name, i.lang_list) for i in self.voice_engines)
             return self._reply_error(bot, update, text)
         if not getattr(update.message.reply_to_message, "voice"):
             return self._reply_error(bot, update,
-                                     "Reply only to a voice with this command to recognize it. (RS02)")
+                                     self._("Reply only to a voice with this command to recognize it. (RS02)"))
 
         if update.message.reply_to_message.voice.duration > 60:
-            return self._reply_error(bot, update, "Only voice shorter than 60s is supported. (RS04)")
+            return self._reply_error(bot, update, self._("Only voice shorter than 60s is supported. (RS04)"))
 
         file, _, _ = self._download_file(update.message, update.message.reply_to_message.voice, MsgType.Audio)
 
@@ -80,7 +82,7 @@ class VoiceRecognitionManager:
             msg += "\n<b>%s</b>:\n" % html.escape(i)
             for j in results[i]:
                 msg += "%s\n" % html.escape(j)
-        msg = "Results:\n%s" % msg
+        msg = self._("Results:\n{0}").format(msg)
         self.bot_send_message(update.message.reply_to_message.chat.id, msg,
                               reply_to_message_id=update.message.reply_to_message.message_id,
                               parse_mode=telegram.ParseMode.HTML)
@@ -99,14 +101,15 @@ class SpeechEngine(ABC):
         raise NotImplementedError()
 
 
-class BaiduSpeech(SpeechEngine):
+class BaiduSpeech(SpeechEngine, LocaleMixin):
     key_dict = None
     access_token = None
     full_token = None
     engine_name = "Baidu"
     lang_list = ['zh', 'ct', 'en']
 
-    def __init__(self, key_dict):
+    def __init__(self, channel, key_dict):
+        self.channel = channel
         self.key_dict = key_dict
         d = {
             "grant_type": "client_credentials",
@@ -123,9 +126,9 @@ class BaiduSpeech(SpeechEngine):
         elif isinstance(file, str):
             file = open(file, 'rb')
         else:
-            return ["ERROR!", "File must by a path string or a file object in `rb` mode."]
+            return [self._("ERROR!"), self._("File must by a path string or a file object in `rb` mode.")]
         if lang.lower() not in self.lang_list:
-            return ["ERROR!", "Invalid language."]
+            return [self._("ERROR!"), self._("Invalid language.")]
 
         audio = pydub.AudioSegment.from_file(file)
         audio = audio.set_frame_rate(16000)
@@ -144,10 +147,10 @@ class BaiduSpeech(SpeechEngine):
         if rjson['err_no'] == 0:
             return rjson['result']
         else:
-            return ["ERROR!", rjson['err_msg']]
+            return [self._("ERROR!"), rjson['err_msg']]
 
 
-class BingSpeech(SpeechEngine):
+class BingSpeech(SpeechEngine, LocaleMixin):
     keys = None
     access_token = None
     engine_name = "Bing"
@@ -172,18 +175,19 @@ class BingSpeech(SpeechEngine):
                 return i
         return None
 
-    def __init__(self, keys):
+    def __init__(self, channel, keys):
+        self.channel = channel
         self.keys = keys
 
     def recognize(self, path, lang):
         if isinstance(path, str):
             file = open(path, 'rb')
         else:
-            return ["ERROR!", "File must by a path string."]
+            return [self._("ERROR!"), self._("File must by a path string.")]
         if lang not in self.lang_list:
             lang = self.first(self.lang_list, lambda a: a.split('-')[0] == lang.split('-')[0])
             if lang not in self.lang_list:
-                return ["ERROR!", "Invalid language."]
+                return [self._("ERROR!"), self._("Invalid language.")]
 
         with tempfile.NamedTemporaryFile() as f:
             audio = pydub.AudioSegment.from_file(file)
@@ -204,9 +208,9 @@ class BingSpeech(SpeechEngine):
             try:
                 rjson = r.json()
             except ValueError:
-                return ["ERROR!", r.text]
+                return [self._("ERROR!"), r.text]
 
             if r.status_code == 200:
                 return [i['Display'] for i in rjson['NBest']]
             else:
-                return ["ERROR!", r.text]
+                return [self._("ERROR!"), r.text]
