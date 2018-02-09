@@ -1,7 +1,12 @@
 EFB Telegram Master Channel (ETM)
 =================================
 
-.. badges
+.. image:: https://img.shields.io/pypi/v/efb-telegram-master.svg
+   :alt: PyPI release
+   :target: https://pypi.org/project/efb-telegram-master/
+.. image:: https://img.shields.io/badge/Translate-Crowdin-orange.svg
+   :alt: Translate this project
+   :target: https://crowdin.com/project/ehforwarderbot/
 
 **Channel ID**: ``blueset.telegram``
 
