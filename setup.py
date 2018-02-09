@@ -23,6 +23,7 @@ setup(
     author_email='ilove@1a23.com',
     url='https://github.com/blueset/efb-telegram-master',
     license='GPLv3',
+    include_package_data=True,
     python_requires='>=3.6',
     keywords=['ehforwarderbot', 'EH Forwarder Bot', 'EH Forwarder Bot Master Channel', 'Telegram',
               'Telegram Bot', 'chatbot'],
