@@ -1,1 +1,1 @@
-recursive-include ehforwarderbot/locale *.mo *.po
+recursive-include efb_telegram_master/locale *.mo *.po
