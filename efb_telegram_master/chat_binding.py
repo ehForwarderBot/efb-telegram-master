@@ -5,9 +5,8 @@ import logging
 import re
 import threading
 import urllib.parse
-from typing import Tuple, Dict, Optional, List, Pattern, TYPE_CHECKING
-
 import io
+from typing import Tuple, Dict, Optional, List, Pattern, TYPE_CHECKING
 
 import peewee
 import telegram

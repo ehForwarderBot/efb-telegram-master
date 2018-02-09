@@ -4,6 +4,7 @@ import logging
 import mimetypes
 import os
 import tempfile
+import threading
 from typing import Tuple, IO, Optional, TYPE_CHECKING
 
 import magic
@@ -57,11 +58,15 @@ class MasterMessageProcessor(LocaleMixin):
         self.bot.dispatcher.add_handler(MessageHandler(
             Filters.text | Filters.photo | Filters.sticker | Filters.document |
             Filters.venue | Filters.location | Filters.audio | Filters.voice | Filters.video,
-            self.msg, edited_updates=True
+            self.msg_thread_creator, edited_updates=True
         ))
         self.logger: logging.Logger = logging.getLogger(__name__)
 
         self.channel_id: str = self.channel.channel_id
+
+    def msg_thread_creator(self, bot, update):
+        """Process message in a thread, to ensure it doesn't block the main thread."""
+        threading.Thread(target=self.msg, args=(bot, update)).run()
 
     def msg(self, bot, update: telegram.Update):
         """

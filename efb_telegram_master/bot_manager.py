@@ -1,11 +1,13 @@
 # coding=utf-8
 
+import io
+import os
+
 import telegram
 import telegram.ext
 import telegram.error
 import telegram.constants
-import io
-import os
+from retrying import retry
 
 from typing import Optional, List, TYPE_CHECKING, Callable
 from .whitelisthandler import WhitelistHandler
@@ -27,6 +29,13 @@ class TelegramBotManager(LocaleMixin):
         dispatcher (telegram.ext.Dispatcher): Dispatcher of the updater
     """
 
+    class Decorators:
+        @classmethod
+        def retry_on_timeout(cls, fn):
+            """Infinitely retry for timed-out exceptions."""
+            return retry(wait_exponential_multiplier=1e3, wait_exponential_max=180e3,
+                         retry_on_exception=lambda e: isinstance(e, telegram.error.TimedOut))(fn)
+
     def __init__(self, channel: 'TelegramChannel'):
         self.channel: 'TelegramChannel' = channel
         try:
@@ -39,6 +48,7 @@ class TelegramBotManager(LocaleMixin):
         self.dispatcher.add_handler(WhitelistHandler(self.admins))
         self.dispatcher.add_handler(LocaleHandler(channel))
 
+    @Decorators.retry_on_timeout
     def send_message(self, *args, prefix: Optional[str]= '', suffix: Optional[str]= '', **kwargs):
         """
         Send text message.
@@ -79,6 +89,7 @@ class TelegramBotManager(LocaleMixin):
             kwargs['text'] = prefix + text + suffix
             return self._bot_send_message_fallback(*args, **kwargs)
 
+    @Decorators.retry_on_timeout
     def edit_message_text(self, *args, **kwargs):
         """
         Edit text message.
@@ -175,6 +186,7 @@ class TelegramBotManager(LocaleMixin):
                 return fn(self, *args, **kwargs)
         return caption_affix
 
+    @Decorators.retry_on_timeout
     @caption_affix_decorator
     def send_picture(self, *args, **kwargs):
         """
@@ -197,6 +209,7 @@ class TelegramBotManager(LocaleMixin):
         except telegram.error.BadRequest:
             return self.updater.bot.send_document(*args, **kwargs)
 
+    @Decorators.retry_on_timeout
     @caption_affix_decorator
     def send_audio(self, *args, **kwargs):
         """
@@ -219,6 +232,7 @@ class TelegramBotManager(LocaleMixin):
         except telegram.error.BadRequest:
             return self.updater.bot.send_document(*args, **kwargs)
 
+    @Decorators.retry_on_timeout
     @caption_affix_decorator
     def send_voice(self, *args, **kwargs):
         """
@@ -241,6 +255,7 @@ class TelegramBotManager(LocaleMixin):
         except telegram.error.BadRequest:
             return self.updater.bot.send_document(*args, **kwargs)
 
+    @Decorators.retry_on_timeout
     @caption_affix_decorator
     def send_video(self, *args, **kwargs):
         """
@@ -263,6 +278,7 @@ class TelegramBotManager(LocaleMixin):
         except telegram.error.BadRequest:
             return self.updater.bot.send_document(*args, **kwargs)
 
+    @Decorators.retry_on_timeout
     @caption_affix_decorator
     def send_document(self, *args, **kwargs):
         """
@@ -280,6 +296,7 @@ class TelegramBotManager(LocaleMixin):
         """
         return self.updater.bot.send_document(*args, **kwargs)
 
+    @Decorators.retry_on_timeout
     @caption_affix_decorator
     def send_photo(self, *args, **kwargs):
         """
@@ -297,12 +314,15 @@ class TelegramBotManager(LocaleMixin):
         """
         return self.updater.bot.send_photo(*args, **kwargs)
 
+    @Decorators.retry_on_timeout
     def send_chat_action(self, *args, **kwargs):
         return self.updater.bot.send_chat_action(*args, **kwargs)
 
+    @Decorators.retry_on_timeout
     def send_venue(self, *args, **kwargs):
         return self.updater.bot.send_venue(*args, **kwargs)
 
+    @Decorators.retry_on_timeout
     def get_me(self, *args, **kwargs):
         return self.updater.bot.get_me(*args, **kwargs)
 
@@ -311,6 +331,7 @@ class TelegramBotManager(LocaleMixin):
                                    chat_id=update.effective_chat.id,
                                    message_id=update.effective_message.message_id)
 
+    @Decorators.retry_on_timeout
     @caption_affix_decorator
     def edit_message_caption(self, *args, **kwargs):
         return self.updater.bot.edit_message_caption(*args, **kwargs)
@@ -325,9 +346,11 @@ class TelegramBotManager(LocaleMixin):
         return self.send_message(update.effective_chat.id, errmsg,
                                  reply_to_message_id=update.effective_message.message_id)
 
+    @Decorators.retry_on_timeout
     def get_file(self, file_id):
         return self.updater.bot.get_file(file_id)
 
+    @Decorators.retry_on_timeout
     def delete_message(self, chat_id, message_id):
         return self.updater.bot.delete_message(chat_id, message_id)
 

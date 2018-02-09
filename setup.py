@@ -49,6 +49,7 @@ setup(
         "PyYaml",
         "pillow",
         "language-tags",
+        "retrying",
     ],
     entry_points={
         "ehforwarderbot.master": "blueset.telegram = efb_telegram_master:TelegramChannel"
