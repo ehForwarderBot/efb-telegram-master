@@ -429,5 +429,19 @@ e.g.:
 - ``auto_locale`` *(str)* [Default: ``True``]
 
    Detect the locale from admin's messages automatically. Locale
-   defined in environment variables (``LANGUAGE``, ``LC_ALL``, ``LC_MESSAGES``
-   or ``LANG``) will be used otherwise.
+   defined in environment variables will be used otherwise.
+
+Experimental localization support
+---------------------------------
+
+ETM supports localized user interface prompts experimentally.
+The bot detects languages of Telegram Client of the admins
+from their messages, and automatically matches with a supported
+language on the go. Otherwise, you can set your language by
+turning off the ``auto_locale`` feature, and then setting
+the locale environmental variable (``LANGUAGE``,
+``LC_ALL``, ``LC_MESSAGES`` or ``LANG``) to one of our
+supported languages. Meanwhile, you can help to translate
+this project into your languages on `our Crowdin page`_.
+
+.. _our Crowdin page: https://crowdin.com/project/ehforwarderbot/
