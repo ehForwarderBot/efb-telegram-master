@@ -1,0 +1,8 @@
+"preserve_hierarchy": true
+
+files: [
+  {
+    "source" : "/EFBChannels/efb-telegram-master/efb_telegram_master/locale/*.pot",
+    "translation" : "/EFBChannels/efb-telegram-master/efb_telegram_master/locale/%locale_with_underscore%/LC_MESSAGES/%file_name%.po",
+  },
+]
