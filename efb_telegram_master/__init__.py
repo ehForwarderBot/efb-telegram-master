@@ -321,6 +321,9 @@ class TelegramChannel(EFBChannel):
             self.logger.critical(msg)
             self.bot_manager.send_message(self.config['admins'][0], msg)
             return
+        if "Invalid server response" in str(error) and not update:
+            self.logger.error("Boom! Telegram API is no good. (Invalid server response.)")
+            return
         try:
             raise error
         except telegram.error.Unauthorized:
