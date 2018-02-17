@@ -23,7 +23,7 @@ class Emoji:
     SYSTEM = "💻"
     UNKNOWN = "❓"
     LINK = "🔗"
-    MUTED = "🔇",
+    MUTED = "🔇"
     MULTI_LINKED = "🖇️"
 
     @staticmethod
