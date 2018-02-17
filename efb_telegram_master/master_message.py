@@ -271,7 +271,7 @@ class MasterMessageProcessor(LocaleMixin):
             # Flag for edited message
             if edited:
                 m.edit = True
-                text = message.text or message.caption
+                text = message.text_markdown_urled or message.caption
                 msg_log = self.db.get_msg_log(master_msg_id=utils.message_id_to_str(update=update))
                 if not msg_log or msg_log == self.FAIL_FLAG:
                     raise EFBMessageNotFound()
@@ -289,7 +289,7 @@ class MasterMessageProcessor(LocaleMixin):
 
             # Enclose message as an EFBMsg object by message type.
             if mtype == TGMsgType.Text:
-                m.text = message.text
+                m.text = message.text_markdown_urled
             elif mtype == TGMsgType.Photo:
                 m.text = message.caption
                 m.file, m.mime, m.filename, m.path = self._download_file(message.photo[-1], None)
