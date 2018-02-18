@@ -142,7 +142,7 @@ to BotFather for a command list::
     info - Display information of the current Telegram chat.
     chat - Generate a chat head.
     recog - Recognize a speech by replying to it.
-    extra - Access extra functionalities.
+    extra - Access additional features from Slave Channels.
     update_info - Update the group name and profile picture
 
 .. note::
@@ -284,12 +284,12 @@ Examples:
 -  Look for all entries contain “John” and “Jonny” in any order:
    ``(?=.*John)(?=.*Jonny)"``
 
-``/extra``: External commands from slave channels (“extra functions”)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``/extra``: External commands from slave channels (“additonal features”)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Some slave channels may provide commands that allows you to remotely
 control those accounts, and achieve extra functionality, those commands
-are called “extra functions”. To view the list of available extra
+are called “additional features”. To view the list of available extra
 functions, send ``/extra`` to the bot, you will receive a list of
 commands available, together with their usages.
 

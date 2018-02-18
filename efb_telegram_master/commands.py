@@ -25,7 +25,7 @@ class ETMCommandMsgStorage:
 class CommandsManager(LocaleMixin):
     """
     Functions related to Command messages and
-    Extra functions of slave channels.
+    Additional features of slave channels.
     """
 
     def __init__(self, channel: 'TelegramChannel'):
@@ -106,7 +106,7 @@ class CommandsManager(LocaleMixin):
 
     def extra_help(self, bot, update):
         """
-        Show list of extra functions and their usage.
+        Show list of additional features and their usage.
         Triggered by `/extra`.
 
         Args:
@@ -129,7 +129,7 @@ class CommandsManager(LocaleMixin):
 
     def extra_call(self, bot, update, groupdict: Dict[str, str] = None):
         """
-        Call an extra function from slave channel.
+        Invoke an additional feature from slave channel.
 
         Args:
             bot: Telegram Bot instance

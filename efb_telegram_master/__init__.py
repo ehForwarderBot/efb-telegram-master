@@ -287,7 +287,7 @@ class TelegramChannel(EFBChannel):
                      "    Generate a chat head to start a conversation.\n"
                      "    Followed by a regular expression to filter results.\n"
                      "/extra\n"
-                     "    List all extra function from slave channels.\n"
+                     "    List all additional features from slave channels.\n"
                      "/unlink_all\n"
                      "    Unlink all remote chats in this chat.\n"
                      "/info\n"
