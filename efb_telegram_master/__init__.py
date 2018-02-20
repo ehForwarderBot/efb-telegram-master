@@ -91,11 +91,11 @@ class TelegramChannel(EFBChannel):
                                                fallback=True)
     locale: str = None
 
-    def __init__(self):
+    def __init__(self, instance_id: str = None):
         """
         Initialization.
         """
-        super().__init__()
+        super().__init__(instance_id)
 
         # Check PIL support for WebP
         Image.init()
