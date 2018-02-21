@@ -13,6 +13,7 @@ import time
 from moviepy.video.io.VideoFileClip import VideoFileClip
 from telegram.ext import MessageHandler, Filters
 from PIL import Image
+from telegram.utils.helpers import escape_markdown
 
 from ehforwarderbot import EFBChat, EFBMsg, coordinator
 from ehforwarderbot.constants import MsgType
@@ -269,9 +270,12 @@ class MasterMessageProcessor(LocaleMixin):
                 ))
 
             # Flag for edited message
+            msg_md_text = message.text_markdown_urled
+            if msg_md_text == escape_markdown(message.text):
+                msg_md_text = message.text
             if edited:
                 m.edit = True
-                text = message.text_markdown_urled or message.caption
+                text = msg_md_text or message.caption
                 msg_log = self.db.get_msg_log(master_msg_id=utils.message_id_to_str(update=update))
                 if not msg_log or msg_log == self.FAIL_FLAG:
                     raise EFBMessageNotFound()
@@ -289,7 +293,7 @@ class MasterMessageProcessor(LocaleMixin):
 
             # Enclose message as an EFBMsg object by message type.
             if mtype == TGMsgType.Text:
-                m.text = message.text_markdown_urled
+                m.text = msg_md_text
             elif mtype == TGMsgType.Photo:
                 m.text = message.caption
                 m.file, m.mime, m.filename, m.path = self._download_file(message.photo[-1], None)
@@ -425,7 +429,7 @@ class MasterMessageProcessor(LocaleMixin):
         """
         file, _, filename, path = self._download_file(file, 'video/mpeg')
         gif_file = tempfile.NamedTemporaryFile(suffix='.gif')
-        VideoFileClip(path).write_gif(gif_file(), program="ffmpeg")
+        VideoFileClip(path).write_gif(gif_file, program="ffmpeg")
         file.close()
         gif_file.seek(0)
         return gif_file, "image/gif", os.path.basename(gif_file.file_path), gif_file.file_path
