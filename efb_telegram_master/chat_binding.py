@@ -792,10 +792,10 @@ class ChatBindingManager(LocaleMixin):
         self.msg_storage[storage_id].set_chat_suggestion(update, candidates)
         legends, buttons = self.channel.chat_binding.slave_chats_pagination(
             storage_id, 0, source_chats=candidates)
-        self.bot.edit_message_text(self._("Error: No recipient specified.\n"
-                                          "Please reply to a previous message, "
-                                          "or choose a recipient:\n\nLegend:\n") + "\n".join(legends),
-                                   chat_id, message_id,
+        self.bot.edit_message_text(text=self._("Error: No recipient specified.\n"
+                                               "Please reply to a previous message, "
+                                               "or choose a recipient:\n\nLegend:\n") + "\n".join(legends),
+                                   chat_id=chat_id, message_id=message_id,
                                    reply_markup=telegram.InlineKeyboardMarkup(buttons))
         self.suggestion_handler.conversations[storage_id] = Flags.SUGGEST_RECIPIENT
 
@@ -814,14 +814,14 @@ class ChatBindingManager(LocaleMixin):
                                        chat_id=chat_id,
                                        message_id=msg_id)
         elif param == Flags.CANCEL_PROCESS:
-            self.bot.edit_message_text(self._("Error: No recipient specified.\n"
-                                              "Please reply to a previous message."),
+            self.bot.edit_message_text(text=self._("Error: No recipient specified.\n"
+                                                   "Please reply to a previous message."),
                                        chat_id=chat_id,
                                        message_id=msg_id)
         else:
-            self.bot.edit_message_text(self._("Error: No recipient specified.\n"
-                                              "Please reply to a previous message.\n\n"
-                                              "Invalid parameter ({0}).").format(param),
+            self.bot.edit_message_text(text=self._("Error: No recipient specified.\n"
+                                                   "Please reply to a previous message.\n\n"
+                                                   "Invalid parameter ({0}).").format(param),
                                        chat_id=chat_id,
                                        message_id=msg_id)
         return ConversationHandler.END
