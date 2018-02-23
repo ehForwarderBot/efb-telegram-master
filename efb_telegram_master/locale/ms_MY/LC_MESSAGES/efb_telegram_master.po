@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ehforwarderbot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-02-18 18:27+0800\n"
-"PO-Revision-Date: 2018-02-18 07:08-0500\n"
+"POT-Creation-Date: 2018-02-23 21:44+1100\n"
+"PO-Revision-Date: 2018-02-23 05:45-0500\n"
 "Last-Translator: blueset <ilove@1a23.com>\n"
 "Language-Team: Malay\n"
 "Language: ms_MY\n"
@@ -18,31 +18,31 @@ msgstr ""
 
 #: efb_telegram_master/slave_message.py:122
 msgid "Command message cannot be edited"
-msgstr ""
+msgstr "Mesej arahan tidak boleh diedit"
 
-#: efb_telegram_master/slave_message.py:150
+#: efb_telegram_master/slave_message.py:152
 msgid "Unsupported type of message. (UT01)"
-msgstr ""
+msgstr "Jenis mesej yang tidak disokong. (UT01)"
 
 #. TRANSLATORS: Flag for edited message, but cannot be edited on Telegram.
-#: efb_telegram_master/slave_message.py:414
+#: efb_telegram_master/slave_message.py:416
 msgid "[edited]"
 msgstr ""
 
-#: efb_telegram_master/slave_message.py:492
+#: efb_telegram_master/slave_message.py:494
 msgid "Message removed in remote chat."
-msgstr ""
+msgstr "Mesej dikeluarkan dalam sembang jauh."
 
-#: efb_telegram_master/slave_message.py:530
+#: efb_telegram_master/slave_message.py:532
 #, python-brace-format
 msgid "Unknown message source ({0}):"
-msgstr ""
+msgstr "Sumber mesej tidak diketahui ({0}):"
 
 #: efb_telegram_master/__init__.py:103
 msgid "WebP support of Pillow is required.\n"
 "Please refer to Pillow Documentation for instructions.\n"
 "https://pillow.readthedocs.io/"
-msgstr ""
+msgstr "Diperlukan WebP bantal. Sila rujuk Dokumentasi Bantal untuk arahan. https://pillow.readthedocs.io/"
 
 #: efb_telegram_master/__init__.py:165
 #, python-brace-format
@@ -51,21 +51,21 @@ msgstr ""
 
 #: efb_telegram_master/__init__.py:171
 msgid "Telegram bot token must be a string"
-msgstr ""
+msgstr "Token bot Telegram mestilah rentetan"
 
 #: efb_telegram_master/__init__.py:177
 msgid "Admins' user IDs must be a list of one number or more."
-msgstr ""
+msgstr "ID pengguna pentadbir mestilah senarai satu nombor atau lebih."
 
 #: efb_telegram_master/__init__.py:182
 #, python-brace-format
 msgid "Admin ID is expected to be an int, but {data} is found."
-msgstr ""
+msgstr "ID pentadbir dijangka menjadi int, tetapi {data} dijumpai."
 
 #: efb_telegram_master/__init__.py:199
 #, python-brace-format
 msgid "The group {group_name} ({group_id}) is linked to:"
-msgstr ""
+msgstr "Kumpulan {group_name} ({group_id}) dikaitkan dengan:"
 
 #: efb_telegram_master/__init__.py:208 efb_telegram_master/__init__.py:231
 #, python-brace-format
@@ -76,12 +76,12 @@ msgstr ""
 #: efb_telegram_master/__init__.py:214
 #, python-brace-format
 msgid "The group {group_name} ({group_id}) is not linked to any remote chat. To link one, use /link."
-msgstr ""
+msgstr "Kumpulan {group_name} ({group_id}) tidak dikaitkan dengan sebarang perbualan jauh. Untuk memautkan satu, gunakan / pautan."
 
 #: efb_telegram_master/__init__.py:222
 #, python-brace-format
 msgid "The channel {group_name} ({group_id}) is linked to:"
-msgstr ""
+msgstr "Saluran {group_name} ({group_id}) dikaitkan dengan:"
 
 #: efb_telegram_master/__init__.py:237
 #, python-brace-format
@@ -106,12 +106,12 @@ msgstr[0] ""
 
 #: efb_telegram_master/__init__.py:275
 msgid "You cannot link remote chats to here. Please try again."
-msgstr ""
+msgstr "Anda tidak boleh mengaitkan perbualan jauh ke sini. Sila cuba lagi."
 
 #: efb_telegram_master/__init__.py:277
 msgid "This is EFB Telegram Master Channel.\n\n"
 "To learn more, please visit https://github.com/blueset/efb-telegram-master ."
-msgstr ""
+msgstr "Untuk mengetahui lebih lanjut, sila lawati https://github.com/blueset/efb-telegram-master."
 
 #: efb_telegram_master/__init__.py:282
 msgid "EFB Telegram Master Channel\n"
@@ -136,11 +136,32 @@ msgid "EFB Telegram Master Channel\n"
 "    You have to enable speech to text in the config file first.\n"
 "/help\n"
 "    Print this command list."
-msgstr ""
+msgstr "Saluran Induk EFB Telegram\n"
+"/ pautan\n"
+"     Pautkan sembang jauh ke kumpulan Telegram kosong.\n"
+"     Diikuti dengan ungkapan biasa untuk menapis hasil.\n"
+"/ berbual\n"
+"     Buat kepala perbualan untuk memulakan perbualan.\n"
+"     Diikuti dengan ungkapan biasa untuk menapis hasil.\n"
+"/ tambahan\n"
+"     Senaraikan semua ciri tambahan dari saluran hamba.\n"
+"/ unlink_all\n"
+"     Nyahpaut semua sembang jauh dalam sembang ini.\n"
+"/ maklumat\n"
+"     Tunjukkan maklumat mengenai sembang Telegram semasa.\n"
+"/ update_info\n"
+"     Kemas kini nama dan gambar profil kumpulan Telegram yang dikaitkan.\n"
+"     Hanya berfungsi dalam kumpulan yang disambungkan di mana bot adalah pentadbir.\n"
+"/ recog\n"
+"     Balas mesej suara untuk mengubahnya menjadi teks.\n"
+"     Diikuti dengan kod bahasa untuk memilih bahasa tertentu.\n"
+"     Anda perlu mendayakan ucapan kepada teks dalam fail konfigurasi dahulu.\n"
+"/ bantuan\n"
+"     Cetak senarai arahan ini."
 
 #: efb_telegram_master/__init__.py:319
 msgid "Conflicted polling detected. If this error persists, please ensure you are running only one instance of this Telegram bot."
-msgstr ""
+msgstr "Pengundian berleluasa dikesan. Jika ralat ini berterusan, sila pastikan anda hanya menjalankan satu contoh bot Telegram ini."
 
 #: efb_telegram_master/__init__.py:337
 #, python-brace-format
@@ -153,7 +174,7 @@ msgstr ""
 #, python-brace-format
 msgid "This message is not processed due to poor internet environment of the server.\n"
 "<code>{code}</code>"
-msgstr ""
+msgstr "Mesej ini tidak diproses kerana persekitaran internet yang lemah di pelayan.<code>{code}</code>"
 
 #: efb_telegram_master/__init__.py:355
 #, python-brace-format
@@ -171,7 +192,7 @@ msgid "Chat migration detected.\n"
 "All {count} remote chat are now linked to this new group."
 msgid_plural "Chat migration detected.\n"
 "All {count} remote chats are now linked to this new group."
-msgstr[0] ""
+msgstr[0] "Penghijrahan sembang dikesan. Semua {count} sembang jauh kini dikaitkan dengan kumpulan baru ini."
 
 #: efb_telegram_master/__init__.py:383
 #, python-brace-format
@@ -181,7 +202,7 @@ msgstr ""
 #: efb_telegram_master/utils.py:32
 #, python-brace-format
 msgid "{0} is not a valid experimental flag"
-msgstr ""
+msgstr "{0} bukan bendera eksperimen yang sah"
 
 #: efb_telegram_master/voice_recognition.py:62
 msgid "/recog lang_code\n"
@@ -194,11 +215,11 @@ msgstr ""
 
 #: efb_telegram_master/voice_recognition.py:69
 msgid "Reply only to a voice with this command to recognize it. (RS02)"
-msgstr ""
+msgstr "Balas hanya kepada suara dengan arahan ini untuk mengenalinya. (RS02)"
 
 #: efb_telegram_master/voice_recognition.py:72
 msgid "Only voice shorter than 60s is supported. (RS04)"
-msgstr ""
+msgstr "Hanya suara yang lebih pendek daripada 60-an disokong. (RS04)"
 
 #: efb_telegram_master/voice_recognition.py:85
 #, python-brace-format
@@ -218,103 +239,103 @@ msgstr ""
 
 #: efb_telegram_master/voice_recognition.py:129
 msgid "File must by a path string or a file object in `rb` mode."
-msgstr ""
+msgstr "Fail mestilah dengan rentetan laluan atau objek fail dalam `rb` mod."
 
 #: efb_telegram_master/voice_recognition.py:131
 #: efb_telegram_master/voice_recognition.py:190
 msgid "Invalid language."
-msgstr ""
+msgstr "Bahasa tidak sah."
 
 #: efb_telegram_master/voice_recognition.py:186
 msgid "File must by a path string."
-msgstr ""
+msgstr "Fail mestilah dengan rentetan laluan."
 
-#: efb_telegram_master/master_message.py:98
+#: efb_telegram_master/master_message.py:99
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message. (MS01)"
-msgstr ""
+msgstr "Ralat: Tiada penerima yang dinyatakan. Sila balas mesej sebelumnya. (MS01)"
 
-#: efb_telegram_master/master_message.py:104
+#: efb_telegram_master/master_message.py:105
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message. (MS02)"
-msgstr ""
+msgstr "Ralat: Tiada penerima yang dinyatakan. Sila balas mesej sebelumnya. (MS02)"
 
-#: efb_telegram_master/master_message.py:166
-#: efb_telegram_master/master_message.py:210
+#: efb_telegram_master/master_message.py:167
+#: efb_telegram_master/master_message.py:211
 msgid "Message is not found in database. Please try with another message. (UC07)"
-msgstr ""
+msgstr "Mesej tidak dijumpai dalam pangkalan data. Sila cuba dengan mesej lain. (UC07)"
 
-#: efb_telegram_master/master_message.py:177
+#: efb_telegram_master/master_message.py:178
 msgid "Message is not found in database. Please try with another one. (UC03)"
-msgstr ""
+msgstr "Mesej tidak dijumpai dalam pangkalan data. Sila cuba dengan yang lain. (UC03)"
 
-#: efb_telegram_master/master_message.py:181
+#: efb_telegram_master/master_message.py:182
 msgid "Please reply to an incoming message. (UC04)"
-msgstr ""
+msgstr "Sila balas mesej yang masuk. (UC04)"
 
-#: efb_telegram_master/master_message.py:192
+#: efb_telegram_master/master_message.py:193
 msgid "Message is not found in database. Please try with another one. (UC05)"
-msgstr ""
+msgstr "Mesej tidak dijumpai dalam pangkalan data. Sila cuba dengan yang lain. (UC05)"
 
-#: efb_telegram_master/master_message.py:196
+#: efb_telegram_master/master_message.py:197
 msgid "This group is linked to multiple remote chats. Please reply to an incoming message. To unlink all remote chats, please send /unlink_all . (UC06)"
-msgstr ""
+msgstr "Kumpulan ini dikaitkan dengan beberapa berbual jauh. Sila balas mesej yang masuk. Untuk menyahpaut semua sembang terpencil, sila hantar / unlink_all. (UC06)"
 
-#: efb_telegram_master/master_message.py:214
+#: efb_telegram_master/master_message.py:215
 msgid "This group is not linked to any chat. (UC06)"
-msgstr ""
+msgstr "Kumpulan ini tidak dikaitkan dengan sebarang perbualan. (UC06)"
 
-#: efb_telegram_master/master_message.py:221
+#: efb_telegram_master/master_message.py:222
 #, python-brace-format
 msgid "Internal error: Channel \"{0}\" not found."
-msgstr ""
+msgstr "Ralat dalaman: Saluran \"{0}\" tidak dijumpai."
 
-#: efb_telegram_master/master_message.py:351
+#: efb_telegram_master/master_message.py:355
 #, python-brace-format
 msgid "Message type {0} is not supported."
-msgstr ""
-
-#: efb_telegram_master/master_message.py:356
-msgid "Chat is not found."
-msgstr ""
-
-#: efb_telegram_master/master_message.py:358
-msgid "Message type is not supported."
-msgstr ""
+msgstr "Jenis mesej {0} tidak disokong."
 
 #: efb_telegram_master/master_message.py:360
-msgid "Message editing is not supported.\n\n"
-"{!r}"
-msgstr ""
+msgid "Chat is not found."
+msgstr "Sembang tidak dijumpai."
 
 #: efb_telegram_master/master_message.py:362
+msgid "Message type is not supported."
+msgstr "Jenis mesej tidak disokong."
+
+#: efb_telegram_master/master_message.py:364
+msgid "Message editing is not supported.\n\n"
+"{!r}"
+msgstr "Pengeditan mesej tidak disokong.{!r}"
+
+#: efb_telegram_master/master_message.py:366
 msgid "Message is not sent.\n\n"
 "{!r}"
-msgstr ""
+msgstr "Mesej tidak dihantar. {!r}"
 
-#: efb_telegram_master/master_message.py:399
+#: efb_telegram_master/master_message.py:403
 msgid "Attachment is too large. Maximum is 20 MB. (AT01)"
-msgstr ""
+msgstr "Lampiran terlalu besar. Maksimum ialah 20 MB. (AT01)"
 
-#: efb_telegram_master/bot_manager.py:44
+#: efb_telegram_master/bot_manager.py:53
 msgid "Token is not properly defined."
-msgstr ""
+msgstr "Token tidak ditakrifkan dengan betul."
 
-#: efb_telegram_master/bot_manager.py:85 efb_telegram_master/bot_manager.py:124
+#: efb_telegram_master/bot_manager.py:94 efb_telegram_master/bot_manager.py:133
 msgid "Message is truncated due to its length. Full message is sent as attachment."
-msgstr ""
+msgstr "Mesej dipenggal kerana panjangnya. Mesej penuh dihantar sebagai lampiran."
 
-#: efb_telegram_master/bot_manager.py:181
+#: efb_telegram_master/bot_manager.py:190
 msgid "Caption is truncated due to its length. Full message is sent as attachment."
-msgstr ""
+msgstr "Kapsyen dipangkas disebabkan panjangnya. Mesej penuh dihantar sebagai lampiran."
 
-#: efb_telegram_master/bot_manager.py:330
+#: efb_telegram_master/bot_manager.py:339
 msgid "Session expired. Please try again. (SE01)"
 msgstr ""
 
-#: efb_telegram_master/bot_manager.py:378
+#: efb_telegram_master/bot_manager.py:387
 msgid "Empty attachment detected."
-msgstr ""
+msgstr "Kosong lampiran dikesan."
 
 #: efb_telegram_master/chat_binding.py:284
 #, python-brace-format
@@ -449,7 +470,7 @@ msgstr ""
 
 #: efb_telegram_master/chat_binding.py:564
 msgid "Session expired or unknown parameter. (SE02)"
-msgstr ""
+msgstr "Parameter tamat tempoh atau tidak diketahui. (SE02)"
 
 #: efb_telegram_master/chat_binding.py:576
 #, python-brace-format
@@ -463,7 +484,7 @@ msgstr ""
 
 #: efb_telegram_master/chat_binding.py:605
 msgid "No chat is linked to the group."
-msgstr ""
+msgstr "Tiada sembang dikaitkan dengan kumpulan tersebut."
 
 #: efb_telegram_master/chat_binding.py:611
 #, python-brace-format
@@ -473,7 +494,7 @@ msgstr[0] ""
 
 #: efb_telegram_master/chat_binding.py:623
 msgid "No chat is linked to the channel."
-msgstr ""
+msgstr "Tiada sembang dikaitkan dengan saluran tersebut."
 
 #: efb_telegram_master/chat_binding.py:628
 #, python-brace-format
@@ -483,13 +504,13 @@ msgstr[0] ""
 
 #: efb_telegram_master/chat_binding.py:634
 msgid "Send `/unlink_all` to a group to unlink all remote chats from it."
-msgstr ""
+msgstr "Hantar `/ unlink_all` ke kumpulan untuk menyahpaut semua sembang terpencil daripadanya."
 
 #: efb_telegram_master/chat_binding.py:685
 #, python-brace-format
 msgid "This group is linked to {0}Send a message to this group to deliver it to the chat.\n"
 "Do NOT reply to this system message."
-msgstr ""
+msgstr "Kumpulan ini dikaitkan dengan {0} Hantar mesej ke kumpulan ini untuk menyampaikannya ke sembang. JANGAN balas mesej sistem ini."
 
 #: efb_telegram_master/chat_binding.py:691
 #, python-brace-format
@@ -498,17 +519,17 @@ msgstr ""
 
 #: efb_telegram_master/chat_binding.py:702
 msgid "This Telegram group is linked to the following chats, choose one to start a conversation with."
-msgstr ""
+msgstr "Kumpulan Telegram ini dikaitkan dengan sembang berikut, pilih salah satu untuk memulakan perbualan dengan."
 
 #: efb_telegram_master/chat_binding.py:748
 #, python-brace-format
 msgid "Invalid command. ({0})"
-msgstr ""
+msgstr "Perintah tidak sah.({0})"
 
 #: efb_telegram_master/chat_binding.py:760
 #, python-brace-format
 msgid "Reply to this message to chat with {0}."
-msgstr ""
+msgstr "Balas mesej ini untuk bersembang dengan{0}."
 
 #: efb_telegram_master/chat_binding.py:795
 msgid "Error: No recipient specified.\n"
@@ -519,12 +540,12 @@ msgstr ""
 #: efb_telegram_master/chat_binding.py:813
 #, python-brace-format
 msgid "Delivering the message to {0}"
-msgstr ""
+msgstr "Menyampaikan mesej kepada{0}"
 
 #: efb_telegram_master/chat_binding.py:817
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message."
-msgstr ""
+msgstr "Ralat: Tiada penerima yang dinyatakan. Sila balas mesej sebelumnya."
 
 #: efb_telegram_master/chat_binding.py:822
 #, python-brace-format
@@ -535,7 +556,7 @@ msgstr ""
 
 #: efb_telegram_master/chat_binding.py:835
 msgid "Send /update_info in a group where this bot is a group admin to update group title and profile picture"
-msgstr ""
+msgstr "Hantar / update_info dalam kumpulan di mana bot ini adalah pentadbir kumpulan untuk mengemas kini tajuk kumpulan dan gambar profil"
 
 #: efb_telegram_master/chat_binding.py:845
 #, python-brace-format
@@ -545,31 +566,31 @@ msgstr[0] ""
 
 #: efb_telegram_master/chat_binding.py:874
 msgid "Chat information updated."
-msgstr ""
+msgstr "Maklumat sembang dikemas kini."
 
 #: efb_telegram_master/chat_binding.py:876
 msgid "Channel linked is not found."
-msgstr ""
+msgstr "Pautan saluran tidak dijumpai."
 
 #: efb_telegram_master/chat_binding.py:878
 msgid "Chat linked is not found in channel."
-msgstr ""
+msgstr "Hubungan sembang tidak terdapat dalam saluran."
 
 #: efb_telegram_master/chat_binding.py:880
 #, python-brace-format
 msgid "Error occurred while update chat information.\n"
 "{0}"
-msgstr ""
+msgstr "Ralat berlaku semasa mengemaskini maklumat sembang.{0}"
 
 #: efb_telegram_master/chat_binding.py:883
 #, python-brace-format
 msgid "Error occurred while update chat information. \n"
 "{0}"
-msgstr ""
+msgstr "Ralat berlaku semasa mengemaskini maklumat sembang.{0}"
 
 #: efb_telegram_master/chat_binding.py:886
 msgid "No profile picture provided from this chat."
-msgstr ""
+msgstr "Tiada gambar profil yang disediakan daripada sembang ini."
 
 #: efb_telegram_master/commands.py:80
 #, python-brace-format
@@ -583,7 +604,7 @@ msgstr ""
 
 #: efb_telegram_master/commands.py:116
 msgid "List of slave channel features:"
-msgstr ""
+msgstr "Senarai ciri saluran hamba:"
 
 #: efb_telegram_master/commands.py:127
 msgid "\n"
@@ -596,11 +617,11 @@ msgstr ""
 
 #: efb_telegram_master/commands.py:150
 msgid "Command not found in selected channel. (XC02)"
-msgstr ""
+msgstr "Perintah tidak dijumpai dalam saluran yang dipilih. (XC02)"
 
 #: efb_telegram_master/commands.py:155
 msgid "Please wait..."
-msgstr ""
+msgstr "Sila tunggu..."
 
 #: efb_telegram_master/commands.py:163
 msgid "Error: Command is not found in the channel.\n"

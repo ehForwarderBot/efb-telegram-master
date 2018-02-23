@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ehforwarderbot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-02-18 18:27+0800\n"
-"PO-Revision-Date: 2018-02-18 07:08-0500\n"
+"POT-Creation-Date: 2018-02-23 21:44+1100\n"
+"PO-Revision-Date: 2018-02-23 05:44-0500\n"
 "Last-Translator: blueset <ilove@1a23.com>\n"
 "Language-Team: Japanese\n"
 "Language: ja_JP\n"
@@ -20,20 +20,20 @@ msgstr ""
 msgid "Command message cannot be edited"
 msgstr "コマンドメッセージは編集できまさん。"
 
-#: efb_telegram_master/slave_message.py:150
+#: efb_telegram_master/slave_message.py:152
 msgid "Unsupported type of message. (UT01)"
 msgstr "この種類のメッセージはサポートしません。 (UT01)"
 
 #. TRANSLATORS: Flag for edited message, but cannot be edited on Telegram.
-#: efb_telegram_master/slave_message.py:414
+#: efb_telegram_master/slave_message.py:416
 msgid "[edited]"
 msgstr "[編集済]"
 
-#: efb_telegram_master/slave_message.py:492
+#: efb_telegram_master/slave_message.py:494
 msgid "Message removed in remote chat."
 msgstr "メッセージを削除されました。"
 
-#: efb_telegram_master/slave_message.py:530
+#: efb_telegram_master/slave_message.py:532
 #, python-brace-format
 msgid "Unknown message source ({0}):"
 msgstr "不明なメッセージソース（{0}）:"
@@ -266,94 +266,94 @@ msgstr "無効な言語です。"
 msgid "File must by a path string."
 msgstr "ファイルは、ファイルパスの文字列にしなければなれません。"
 
-#: efb_telegram_master/master_message.py:98
+#: efb_telegram_master/master_message.py:99
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message. (MS01)"
 msgstr "エラー: 受信者が指定されていません。\n"
 "前のメッセージに返信してください。(MS01)"
 
-#: efb_telegram_master/master_message.py:104
+#: efb_telegram_master/master_message.py:105
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message. (MS02)"
 msgstr "エラー: 受信者が指定されていません。\n"
 "前のメッセージに返信してください。(MS02)"
 
-#: efb_telegram_master/master_message.py:166
-#: efb_telegram_master/master_message.py:210
+#: efb_telegram_master/master_message.py:167
+#: efb_telegram_master/master_message.py:211
 msgid "Message is not found in database. Please try with another message. (UC07)"
 msgstr "メッセージがデータベースに見つかりません。他のメッセージでお試しください。(UC07)"
 
-#: efb_telegram_master/master_message.py:177
+#: efb_telegram_master/master_message.py:178
 msgid "Message is not found in database. Please try with another one. (UC03)"
 msgstr "メッセージがデータベースに見つかりません。他のメッセージでお試しください。(UC03)"
 
-#: efb_telegram_master/master_message.py:181
+#: efb_telegram_master/master_message.py:182
 msgid "Please reply to an incoming message. (UC04)"
 msgstr "受信したメッセージに返信してください。(UC04)"
 
-#: efb_telegram_master/master_message.py:192
+#: efb_telegram_master/master_message.py:193
 msgid "Message is not found in database. Please try with another one. (UC05)"
 msgstr "メッセージがデータベースに見つかりません。他のメッセージでお試しください。(UC05)"
 
-#: efb_telegram_master/master_message.py:196
+#: efb_telegram_master/master_message.py:197
 msgid "This group is linked to multiple remote chats. Please reply to an incoming message. To unlink all remote chats, please send /unlink_all . (UC06)"
 msgstr "このグループは、複数のリモート チャットにリンクされます。受信したメッセージに返信してください。すべてのチャットのリンクを解除するには、/unlink_all を送信してください。(UC06)"
 
-#: efb_telegram_master/master_message.py:214
+#: efb_telegram_master/master_message.py:215
 msgid "This group is not linked to any chat. (UC06)"
 msgstr "このグループは、まだリンクされていません。(UC06)"
 
-#: efb_telegram_master/master_message.py:221
+#: efb_telegram_master/master_message.py:222
 #, python-brace-format
 msgid "Internal error: Channel \"{0}\" not found."
 msgstr "内部エラー: チャンネル \"{0}\" が見つかりません。"
 
-#: efb_telegram_master/master_message.py:351
+#: efb_telegram_master/master_message.py:355
 #, python-brace-format
 msgid "Message type {0} is not supported."
 msgstr "メッセージタイプ {0} は対応されていません。"
 
-#: efb_telegram_master/master_message.py:356
+#: efb_telegram_master/master_message.py:360
 msgid "Chat is not found."
 msgstr "チャットが見つかりません。"
 
-#: efb_telegram_master/master_message.py:358
+#: efb_telegram_master/master_message.py:362
 msgid "Message type is not supported."
 msgstr "このメッセージタイプは対応されていません。"
 
-#: efb_telegram_master/master_message.py:360
+#: efb_telegram_master/master_message.py:364
 msgid "Message editing is not supported.\n\n"
 "{!r}"
 msgstr "メッセージの編集は対応されていません。 \n\n"
 "{!r}"
 
-#: efb_telegram_master/master_message.py:362
+#: efb_telegram_master/master_message.py:366
 msgid "Message is not sent.\n\n"
 "{!r}"
 msgstr "メッセージは送信されません。\n\n"
 "{!r}"
 
-#: efb_telegram_master/master_message.py:399
+#: efb_telegram_master/master_message.py:403
 msgid "Attachment is too large. Maximum is 20 MB. (AT01)"
 msgstr "添付ファイルが大きすぎます。最大 20 MB までのファイルのみを送信できます。 (AT01)"
 
-#: efb_telegram_master/bot_manager.py:44
+#: efb_telegram_master/bot_manager.py:53
 msgid "Token is not properly defined."
 msgstr "Token は正しく入力されません。"
 
-#: efb_telegram_master/bot_manager.py:85 efb_telegram_master/bot_manager.py:124
+#: efb_telegram_master/bot_manager.py:94 efb_telegram_master/bot_manager.py:133
 msgid "Message is truncated due to its length. Full message is sent as attachment."
 msgstr "メッセージが長すぎますので、切り捨てられました。完全なメッセージはファイルで送信されます。"
 
-#: efb_telegram_master/bot_manager.py:181
+#: efb_telegram_master/bot_manager.py:190
 msgid "Caption is truncated due to its length. Full message is sent as attachment."
 msgstr "説名分が長すぎますので、切り捨てられました。完全な説明文はファイルで送信されます。"
 
-#: efb_telegram_master/bot_manager.py:330
+#: efb_telegram_master/bot_manager.py:339
 msgid "Session expired. Please try again. (SE01)"
 msgstr "セッションが切れた。もう一度やり直してください。(SE01)"
 
-#: efb_telegram_master/bot_manager.py:378
+#: efb_telegram_master/bot_manager.py:387
 msgid "Empty attachment detected."
 msgstr "空の添付ファイルが検出されました。"
 
