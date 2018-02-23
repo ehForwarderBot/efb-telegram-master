@@ -270,7 +270,7 @@ class MasterMessageProcessor(LocaleMixin):
                 ))
 
             # Flag for edited message
-            msg_md_text = message.text_markdown_urled
+            msg_md_text = message.text and message.text_markdown_urled
             if msg_md_text == escape_markdown(message.text):
                 msg_md_text = message.text
             if edited:
