@@ -1,6 +1,7 @@
 # coding=utf-8
 
 import io
+import logging
 import os
 
 import telegram
@@ -30,11 +31,19 @@ class TelegramBotManager(LocaleMixin):
     """
 
     class Decorators:
+        logger = logging.getLogger(__name__)
+
+        @classmethod
+        def exception_filter(cls, exception):
+            cls.logger.error("Exception: %s while sending request to Telegram server.")
+            return isinstance(exception, telegram.error.TimedOut)
+
         @classmethod
         def retry_on_timeout(cls, fn):
             """Infinitely retry for timed-out exceptions."""
+            cls.logger.debug("Trying to call %s with infinite retry.", fn)
             return retry(wait_exponential_multiplier=1e3, wait_exponential_max=180e3,
-                         retry_on_exception=lambda e: isinstance(e, telegram.error.TimedOut))(fn)
+                         retry_on_exception=cls.exception_filter)(fn)
 
     def __init__(self, channel: 'TelegramChannel'):
         self.channel: 'TelegramChannel' = channel

@@ -125,6 +125,8 @@ class SlaveMessageProcessor(LocaleMixin):
                     buttons.append([telegram.InlineKeyboardButton(ival.name, callback_data=str(i))])
                 reply_markup = telegram.InlineKeyboardMarkup(buttons)
 
+            msg.text = msg.text or ""
+
             # Type dispatching
             if msg.type == MsgType.Text:
                 tg_msg = self.slave_message_text(msg, tg_dest, msg_template, old_msg_id, target_msg_id, reply_markup)
@@ -262,7 +264,7 @@ class SlaveMessageProcessor(LocaleMixin):
                 prev = i[1]
             text += html.escape(msg.text[prev:])
             msg.text = text
-        else:
+        elif msg.text:
             msg.text = html.escape(msg.text)
 
         if not old_msg_id:
