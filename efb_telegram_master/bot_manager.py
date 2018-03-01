@@ -33,6 +33,8 @@ class TelegramBotManager(LocaleMixin):
     class Decorators:
         logger = logging.getLogger(__name__)
 
+        enabled = False
+
         @classmethod
         def exception_filter(cls, exception):
             cls.logger.error("Exception: %s while sending request to Telegram server.")
@@ -41,6 +43,8 @@ class TelegramBotManager(LocaleMixin):
         @classmethod
         def retry_on_timeout(cls, fn):
             """Infinitely retry for timed-out exceptions."""
+            if not cls.enabled:
+                return fn
             cls.logger.debug("Trying to call %s with infinite retry.", fn)
             return retry(wait_exponential_multiplier=1e3, wait_exponential_max=180e3,
                          retry_on_exception=cls.exception_filter)(fn)
@@ -56,6 +60,7 @@ class TelegramBotManager(LocaleMixin):
         self.dispatcher: telegram.ext.Dispatcher = self.updater.dispatcher
         self.dispatcher.add_handler(WhitelistHandler(self.admins))
         self.dispatcher.add_handler(LocaleHandler(channel))
+        self.Decorators.enabled = channel.flag('retry_on_error')
 
     @Decorators.retry_on_timeout
     def send_message(self, *args, prefix: Optional[str]= '', suffix: Optional[str]= '', **kwargs):

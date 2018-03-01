@@ -426,10 +426,17 @@ e.g.:
    When a slave channel requires to remove a message, EFB will ignore
    the request if this value is ``true``.
 
-- ``auto_locale`` *(str)* [Default: ``True``]
+- ``auto_locale`` *(str)* [Default: ``true``]
 
    Detect the locale from admin's messages automatically. Locale
    defined in environment variables will be used otherwise.
+
+- ``retry_on_error`` *(bool)* [Default: ``false``]
+
+    Retry infinitely when an error occurred while sending request
+    to Telegram Bot API. Note that this may lead to repetitive
+    message delivery, as the respond of Telegram Bot API is
+    not reliable, and may not reflect the actual result.
 
 Experimental localization support
 ---------------------------------
