@@ -269,13 +269,21 @@ class MasterMessageProcessor(LocaleMixin):
                     m.type, coordinator.slaves[channel].channel_name
                 ))
 
-            # Flag for edited message
+            # Parse message text and caption to markdown
             msg_md_text = message.text and message.text_markdown_urled
-            if msg_md_text == escape_markdown(message.text):
+            if msg_md_text and msg_md_text == escape_markdown(message.text):
                 msg_md_text = message.text
+            msg_md_text = msg_md_text or ""
+
+            msg_md_caption = message.caption and message.caption_markdown_urled
+            if msg_md_caption and msg_md_caption == escape_markdown(message.caption):
+                msg_md_caption = message.caption
+            msg_md_caption = msg_md_caption or ""
+
+            # Flag for edited message
             if edited:
                 m.edit = True
-                text = msg_md_text or message.caption
+                text = msg_md_text or msg_md_caption
                 msg_log = self.db.get_msg_log(master_msg_id=utils.message_id_to_str(update=update))
                 if not msg_log or msg_log == self.FAIL_FLAG:
                     raise EFBMessageNotFound()
@@ -295,7 +303,7 @@ class MasterMessageProcessor(LocaleMixin):
             if mtype == TGMsgType.Text:
                 m.text = msg_md_text
             elif mtype == TGMsgType.Photo:
-                m.text = message.caption
+                m.text = msg_md_caption
                 m.file, m.mime, m.filename, m.path = self._download_file(message.photo[-1], None)
             elif mtype == TGMsgType.Sticker:
                 # Convert WebP to the more common PNG
@@ -308,7 +316,7 @@ class MasterMessageProcessor(LocaleMixin):
                 m.file, m.mime, m.filename, m.path = f, 'image/png', os.path.basename(f.name), f.name
                 self.logger.debug("[%s] WebP sticker is converted to PNG (%s).", message_id, f.name)
             elif mtype == TGMsgType.Document:
-                m.text = message.caption
+                m.text = msg_md_caption
                 self.logger.debug("[%s] Telegram message type is document.", message_id)
                 m.filename = getattr(message.document, "file_name", None) or None
                 if message.document.mime_type == "video/mp4":
@@ -323,18 +331,18 @@ class MasterMessageProcessor(LocaleMixin):
                 m.mime = message.document.mime_type or m.mime
             elif mtype == TGMsgType.Video:
                 m.type = MsgType.Video
-                m.text = message.caption
+                m.text = msg_md_caption
                 m.file, m.mime, m.filename, m.path = self._download_file(message.video,
                                                                          message.video.mime_type)
             elif mtype == TGMsgType.Audio:
                 m.type = MsgType.Audio
                 m.text = "%s - %s\n%s" % (
-                    message.audio.title, message.audio.performer, message.caption)
+                    message.audio.title, message.audio.performer, msg_md_caption)
                 m.file, m.mime, m.filename, m.path = self._download_file(message.audio,
                                                                          message.audio.mime_type)
             elif mtype == TGMsgType.Voice:
                 m.type = MsgType.Audio
-                m.text = message.caption
+                m.text = msg_md_caption
                 m.file, m.mime, m.filename, m.path = self._download_file(message.voice,
                                                                          message.voice.mime_type)
             elif mtype == TGMsgType.Location:
