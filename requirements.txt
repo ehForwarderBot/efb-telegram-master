@@ -1,7 +1,7 @@
 fbchat
 PyYAML
-ehforwarderbot
-python-telegram-bot
+ehforwarderbot>=2.0.0b10
+python-telegram-bot>=10.0.0
 python-magic
 moviepy
 peewee
