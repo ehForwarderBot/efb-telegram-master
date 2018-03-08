@@ -66,14 +66,14 @@ class TelegramBotManager(LocaleMixin):
     def send_message(self, *args, prefix: Optional[str]= '', suffix: Optional[str]= '', **kwargs):
         """
         Send text message.
-        
-        Takes exactly same parameters as telegram.bot.send_message, 
+
+        Takes exactly same parameters as telegram.bot.send_message,
         plus the following.
-        
+
         Args:
             prefix (str, optional): Prefix of the message. Default: ""
             suffix (str, optional): Suffix of the message. Default: ""
-            
+
         Returns:
             telegram.Message
         """
@@ -107,7 +107,7 @@ class TelegramBotManager(LocaleMixin):
     def edit_message_text(self, *args, **kwargs):
         """
         Edit text message.
-        Takes exactly same parameters as telegram.bot.edit_message_text, 
+        Takes exactly same parameters as telegram.bot.edit_message_text,
         plus the following.
 
         Args:
@@ -145,7 +145,7 @@ class TelegramBotManager(LocaleMixin):
     def _bot_send_message_fallback(self, *args, **kwargs):
         """
         Remove ``parse_mode`` if the server fails to parse.
-        
+
         Returns:
             telegram.Message: The message sent
         """
@@ -205,10 +205,10 @@ class TelegramBotManager(LocaleMixin):
     def send_picture(self, *args, **kwargs):
         """
         Send a picture.
-        
-        Takes exactly same parameters as telegram.bot.send_picture, 
+
+        Takes exactly same parameters as telegram.bot.send_picture,
         plus the following.
-        
+
         Fallback to document when failed to send.
 
         Args:
@@ -229,7 +229,7 @@ class TelegramBotManager(LocaleMixin):
         """
         Send an audio file.
 
-        Takes exactly same parameters as telegram.bot.send_audio, 
+        Takes exactly same parameters as telegram.bot.send_audio,
         plus the following.
 
         Fallback to document when failed to send.
@@ -252,7 +252,7 @@ class TelegramBotManager(LocaleMixin):
         """
         Send an voice message.
 
-        Takes exactly same parameters as telegram.bot.send_voice, 
+        Takes exactly same parameters as telegram.bot.send_voice,
         plus the following.
 
         Fallback to document when failed to send.
@@ -275,7 +275,7 @@ class TelegramBotManager(LocaleMixin):
         """
         Send an voice message.
 
-        Takes exactly same parameters as telegram.bot.send_voice, 
+        Takes exactly same parameters as telegram.bot.send_voice,
         plus the following.
 
         Fallback to document when failed to send.
@@ -298,7 +298,7 @@ class TelegramBotManager(LocaleMixin):
         """
         Send a document.
 
-        Takes exactly same parameters as telegram.bot.send_document, 
+        Takes exactly same parameters as telegram.bot.send_document,
         plus the following.
 
         Args:
@@ -373,7 +373,19 @@ class TelegramBotManager(LocaleMixin):
         Poll message from Telegram Bot API. Can be used to extend for web hook.
         This method must NOT be blocking.
         """
-        self.updater.start_polling(timeout=10)
+        # self.updater.start_polling(timeout=10)
+        webhook_url = self.channel.config['webhook_url']
+        port = self.channel.config['port']
+        if webhook_url != '':
+            token = self.channel.config['token']
+            if not webhook_url.endswith('/'):
+                webhook_url += '/'
+            webhook_url += token
+            self.updater.start_webhook('127.0.0.1', port, token)
+            self.updater.bot.setWebhook(webhook_url=webhook_url)
+            # self.logger.critical("webhook_url: %s" % webhook_url)
+        else:
+            self.updater.start_polling(timeout=10)
 
     def graceful_stop(self):
         """Gracefully stop the bot"""
