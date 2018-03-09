@@ -62,6 +62,7 @@ class MasterMessageProcessor(LocaleMixin):
             self.msg_thread_creator, edited_updates=True
         ))
         self.logger: logging.Logger = logging.getLogger(__name__)
+        self.DELETE_FLAG = getattr(self.channel.config, "delete_flag", self.DELETE_FLAG)
 
         self.channel_id: str = self.channel.channel_id
 
