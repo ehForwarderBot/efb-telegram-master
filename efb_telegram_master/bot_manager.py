@@ -374,8 +374,8 @@ class TelegramBotManager(LocaleMixin):
         This method must NOT be blocking.
         """
         # self.updater.start_polling(timeout=10)
-        webhook_url = self.channel.config['webhook_url']
-        port = self.channel.config['port']
+        webhook_url = getattr(self.channel.config, 'webhook_url', '')
+        port = getattr(self.channel.config, 'port', '')
         if webhook_url != '':
             token = self.channel.config['token']
             if not webhook_url.endswith('/'):
