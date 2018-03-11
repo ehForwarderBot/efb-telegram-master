@@ -126,7 +126,7 @@ class BaiduSpeech(SpeechEngine, LocaleMixin):
         elif isinstance(file, str):
             file = open(file, 'rb')
         else:
-            return [self._("ERROR!"), self._("File must by a path string or a file object in `rb` mode.")]
+            return [self._("ERROR!"), self._("File must be a path string or a file object in `rb` mode.")]
         if lang.lower() not in self.lang_list:
             return [self._("ERROR!"), self._("Invalid language.")]
 
@@ -183,7 +183,7 @@ class BingSpeech(SpeechEngine, LocaleMixin):
         if isinstance(path, str):
             file = open(path, 'rb')
         else:
-            return [self._("ERROR!"), self._("File must by a path string.")]
+            return [self._("ERROR!"), self._("File must be a path string.")]
         if lang not in self.lang_list:
             lang = self.first(self.lang_list, lambda a: a.split('-')[0] == lang.split('-')[0])
             if lang not in self.lang_list:
