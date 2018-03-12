@@ -64,6 +64,7 @@ class MasterMessageProcessor(LocaleMixin):
         self.logger: logging.Logger = logging.getLogger(__name__)
 
         self.channel_id: str = self.channel.channel_id
+        self.DELETE_FLAG = self.channel.config.get('delete_flag', self.DELETE_FLAG)
 
     def msg_thread_creator(self, bot, update):
         """Process message in a thread, to ensure it doesn't block the main thread."""

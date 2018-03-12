@@ -88,11 +88,15 @@ A sample config file can be as follows:
 
     # List of Telegram User IDs of admins
     # ETM will only process messages and commands from users
-    # listed below. This ID can be obtained from various ways 
+    # listed below. This ID can be obtained from various ways
     # on Telegram.
     admins:
     - 102938475
     - 91827364
+
+    # webhook url
+    webhook_url: "https://xxx.com:443"
+    port: 5000
 
     ##################
     # Optional items #
@@ -101,7 +105,7 @@ A sample config file can be as follows:
     # will only affect an additional part of functionality of
     # this channel.
 
-    # API tokens required for speech recognition 
+    # API tokens required for speech recognition
     speech_api:
         # Microsoft (Bing) speech recognition token
         # API key can be obtained from
@@ -114,7 +118,7 @@ A sample config file can be as follows:
             app_id: 123456
             api_key: "API_KEY_GOES_HERE"
             secret_key: "SECRET_KEY_GOES_HERE"
-            
+
 
     # Experimental Flags
     # This section can be used to enable experimental functionality.
