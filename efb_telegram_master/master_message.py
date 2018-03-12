@@ -271,12 +271,12 @@ class MasterMessageProcessor(LocaleMixin):
                 ))
 
             # Parse message text and caption to markdown
-            msg_md_text = message.text and message.text_markdown_urled
+            msg_md_text = message.text and message.text_markdown
             if msg_md_text and msg_md_text == escape_markdown(message.text):
                 msg_md_text = message.text
             msg_md_text = msg_md_text or ""
 
-            msg_md_caption = message.caption and message.caption_markdown_urled
+            msg_md_caption = message.caption and message.caption_markdown
             if msg_md_caption and msg_md_caption == escape_markdown(message.caption):
                 msg_md_caption = message.caption
             msg_md_caption = msg_md_caption or ""
