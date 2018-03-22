@@ -97,7 +97,7 @@ A sample config file can be as follows:
     ##################
     # Optional items #
     ##################
-    # The following options are optional. Lack of this section
+    # The following options are optional. Omissiond of this section
     # will only affect an additional part of functionality of
     # this channel.
 
