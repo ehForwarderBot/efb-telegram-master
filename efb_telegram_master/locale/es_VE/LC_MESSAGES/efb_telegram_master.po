@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ehforwarderbot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-02-23 21:44+1100\n"
-"PO-Revision-Date: 2018-02-23 05:45-0500\n"
+"POT-Creation-Date: 2018-03-11 20:00+1100\n"
+"PO-Revision-Date: 2018-03-22 07:41-0400\n"
 "Last-Translator: blueset <ilove@1a23.com>\n"
 "Language-Team: Spanish, Venezuela\n"
 "Language: es_VE\n"
@@ -222,7 +222,7 @@ msgstr[1] "Migración de chat detectada. Todas las conversaciones remotas {count
 msgid "EFB Telegram Master channel encountered error <code>{error}</code> caused by update <code>{update}</code>."
 msgstr "El canal maestro del telegrama EFB encontró error <code>{error}</code> causado por actualizar <code>{update}</code>."
 
-#: efb_telegram_master/utils.py:32
+#: efb_telegram_master/utils.py:33
 #, python-brace-format
 msgid "{0} is not a valid experimental flag"
 msgstr "{0} no es una etiqueta de prueba válida"
@@ -266,8 +266,8 @@ msgid "ERROR!"
 msgstr "ERROR!"
 
 #: efb_telegram_master/voice_recognition.py:129
-msgid "File must by a path string or a file object in `rb` mode."
-msgstr "El archivo debe ser una ruta de acceso o un objeto de archivo en modo `rb`."
+msgid "File must be a path string or a file object in `rb` mode."
+msgstr ""
 
 #: efb_telegram_master/voice_recognition.py:131
 #: efb_telegram_master/voice_recognition.py:190
@@ -275,8 +275,8 @@ msgid "Invalid language."
 msgstr "Lenguaje inválido."
 
 #: efb_telegram_master/voice_recognition.py:186
-msgid "File must by a path string."
-msgstr "El archivo debe estar en una secuencia de ruta."
+msgid "File must be a path string."
+msgstr ""
 
 #: efb_telegram_master/master_message.py:99
 msgid "Error: No recipient specified.\n"
@@ -320,52 +320,52 @@ msgstr "Este grupo no está vinculado a ningún chat. (UC06)"
 msgid "Internal error: Channel \"{0}\" not found."
 msgstr "Error interno. El canal \"{0}\" no se encuentra."
 
-#: efb_telegram_master/master_message.py:355
+#: efb_telegram_master/master_message.py:363
 #, python-brace-format
 msgid "Message type {0} is not supported."
 msgstr "El tipo de mensajev{0} no es compatible."
 
-#: efb_telegram_master/master_message.py:360
+#: efb_telegram_master/master_message.py:368
 msgid "Chat is not found."
 msgstr "No se encuentra el chat."
 
-#: efb_telegram_master/master_message.py:362
+#: efb_telegram_master/master_message.py:370
 msgid "Message type is not supported."
 msgstr "El tipo de mensaje no es compatible."
 
-#: efb_telegram_master/master_message.py:364
+#: efb_telegram_master/master_message.py:372
 msgid "Message editing is not supported.\n\n"
 "{!r}"
 msgstr "La edición del mensaje no es compatible.\n\n"
 "{!r}"
 
-#: efb_telegram_master/master_message.py:366
+#: efb_telegram_master/master_message.py:374
 msgid "Message is not sent.\n\n"
 "{!r}"
 msgstr "El mensaje no es enviado.\n\n"
 "{!r}"
 
-#: efb_telegram_master/master_message.py:403
+#: efb_telegram_master/master_message.py:411
 msgid "Attachment is too large. Maximum is 20 MB. (AT01)"
 msgstr "El archivo adjunto es muy grande. El máximo es de 20 MB (AT01)"
 
-#: efb_telegram_master/bot_manager.py:53
+#: efb_telegram_master/bot_manager.py:57
 msgid "Token is not properly defined."
 msgstr "El Token no es correctamente definido."
 
-#: efb_telegram_master/bot_manager.py:94 efb_telegram_master/bot_manager.py:133
+#: efb_telegram_master/bot_manager.py:99 efb_telegram_master/bot_manager.py:138
 msgid "Message is truncated due to its length. Full message is sent as attachment."
 msgstr "El mensaje se interrumpe debido a la longitud. Todo el mensaje es enviado como archivo adjunto."
 
-#: efb_telegram_master/bot_manager.py:190
+#: efb_telegram_master/bot_manager.py:195
 msgid "Caption is truncated due to its length. Full message is sent as attachment."
 msgstr "El subtitulo se interrumpe debido a la longitud. Todo el mensaje es enviado como archivo adjunto."
 
-#: efb_telegram_master/bot_manager.py:339
+#: efb_telegram_master/bot_manager.py:344
 msgid "Session expired. Please try again. (SE01)"
 msgstr "Su sesión ha expirado. Por favor inténtelo nuevamente. (SE01)"
 
-#: efb_telegram_master/bot_manager.py:387
+#: efb_telegram_master/bot_manager.py:392
 msgid "Empty attachment detected."
 msgstr "Archivo adjunto vacío detectado."
 
@@ -426,7 +426,7 @@ msgstr "\n\n"
 #: efb_telegram_master/chat_binding.py:517
 #: efb_telegram_master/chat_binding.py:739
 msgid "Cancelled."
-msgstr ""
+msgstr "Cancelado."
 
 #: efb_telegram_master/chat_binding.py:451
 #, python-brace-format
@@ -436,12 +436,12 @@ msgstr "Parámetro invalido ({0}). (IP01)"
 #: efb_telegram_master/chat_binding.py:460
 #, python-brace-format
 msgid "{alias} ({name})"
-msgstr ""
+msgstr "{alias} ({name})"
 
 #: efb_telegram_master/chat_binding.py:466
 #, python-brace-format
 msgid "You've selected chat {0}."
-msgstr ""
+msgstr "Has seleccionado el chat {0}."
 
 #: efb_telegram_master/chat_binding.py:468
 msgid "\n"
@@ -465,7 +465,7 @@ msgstr "\n"
 
 #: efb_telegram_master/chat_binding.py:478
 msgid "Relink"
-msgstr ""
+msgstr "Volver a vincular"
 
 #: efb_telegram_master/chat_binding.py:479
 #: efb_telegram_master/chat_binding.py:486
@@ -526,7 +526,7 @@ msgstr "El chat {0} ahora esta vinculado."
 
 #: efb_telegram_master/chat_binding.py:605
 msgid "No chat is linked to the group."
-msgstr ""
+msgstr "No hay chat vinculado al grupo."
 
 #: efb_telegram_master/chat_binding.py:611
 #, python-brace-format
@@ -537,7 +537,7 @@ msgstr[1] ""
 
 #: efb_telegram_master/chat_binding.py:623
 msgid "No chat is linked to the channel."
-msgstr ""
+msgstr "No hay chat vinculado al canal."
 
 #: efb_telegram_master/chat_binding.py:628
 #, python-brace-format
@@ -599,7 +599,9 @@ msgstr "Error: No hay un destino en especifico.\n"
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message.\n\n"
 "Invalid parameter ({0})."
-msgstr ""
+msgstr "Error: No hay destinatario especificado.\n"
+"Por favor responda a un mensaje anterior.\n\n"
+"Parámetro no válido ({0})."
 
 #: efb_telegram_master/chat_binding.py:835
 msgid "Send /update_info in a group where this bot is a group admin to update group title and profile picture"
@@ -640,7 +642,7 @@ msgstr "Error ocurrido al actualizar la información del chat.\n"
 
 #: efb_telegram_master/chat_binding.py:886
 msgid "No profile picture provided from this chat."
-msgstr ""
+msgstr "No hay ninguna foto de perfil proporcionada de este chat."
 
 #: efb_telegram_master/commands.py:80
 #, python-brace-format
@@ -650,7 +652,7 @@ msgstr "Parámetro inválido.{0}. (CE01)"
 #: efb_telegram_master/commands.py:85
 #, python-brace-format
 msgid "Index out of bound: {0}. (CE02)"
-msgstr ""
+msgstr "Indice fuera de límite: {0}. (CE02)"
 
 #: efb_telegram_master/commands.py:116
 msgid "List of slave channel features:"
@@ -664,7 +666,7 @@ msgstr "\n"
 
 #: efb_telegram_master/commands.py:142
 msgid "Invalid slave channel ID. (XC01)"
-msgstr ""
+msgstr "Canal esclavo no válido ID. (XC01)"
 
 #: efb_telegram_master/commands.py:150
 msgid "Command not found in selected channel. (XC02)"

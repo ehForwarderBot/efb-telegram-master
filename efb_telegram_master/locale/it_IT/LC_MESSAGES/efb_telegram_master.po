@@ -5,88 +5,91 @@ msgstr ""
 "POT-Creation-Date: 2018-03-11 20:00+1100\n"
 "PO-Revision-Date: 2018-03-22 07:40-0400\n"
 "Last-Translator: blueset <ilove@1a23.com>\n"
-"Language-Team: Chinese Traditional\n"
-"Language: zh_TW\n"
+"Language-Team: Italian\n"
+"Language: it_IT\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: crowdin.com\n"
 "X-Crowdin-Project: ehforwarderbot\n"
-"X-Crowdin-Language: zh-TW\n"
+"X-Crowdin-Language: it\n"
 "X-Crowdin-File: /EFBChannels/efb-telegram-master/efb_telegram_master/locale/efb_telegram_master.pot\n"
 
 #: efb_telegram_master/slave_message.py:122
 msgid "Command message cannot be edited"
-msgstr ""
+msgstr "Il messaggio di comand non può essere editato"
 
 #: efb_telegram_master/slave_message.py:152
 msgid "Unsupported type of message. (UT01)"
-msgstr ""
+msgstr "Tipo di messaggio non supportato. (UT01)"
 
 #. TRANSLATORS: Flag for edited message, but cannot be edited on Telegram.
 #: efb_telegram_master/slave_message.py:416
 msgid "[edited]"
-msgstr ""
+msgstr "[edited]"
 
 #: efb_telegram_master/slave_message.py:494
 msgid "Message removed in remote chat."
-msgstr ""
+msgstr "Messaggio rimosso in chat remota."
 
 #: efb_telegram_master/slave_message.py:532
 #, python-brace-format
 msgid "Unknown message source ({0}):"
-msgstr ""
+msgstr "Origine del messaggio sconosciuta ({0}):"
 
 #: efb_telegram_master/__init__.py:103
 msgid "WebP support of Pillow is required.\n"
 "Please refer to Pillow Documentation for instructions.\n"
 "https://pillow.readthedocs.io/"
-msgstr ""
+msgstr "È richiesto il supporto web di Pillow.\n"
+"Fare riferimento alla documentzione di Pillow prt istruzioni.\n"
+"https://pillow.readthedocs.io/"
 
 #: efb_telegram_master/__init__.py:165
 #, python-brace-format
 msgid "Config File does not exist. ({path})"
-msgstr ""
+msgstr "Il file di configurazione non esiste. ({path})"
 
 #: efb_telegram_master/__init__.py:171
 msgid "Telegram bot token must be a string"
-msgstr ""
+msgstr "Il token bot Telegram deve essere una stringa"
 
 #: efb_telegram_master/__init__.py:177
 msgid "Admins' user IDs must be a list of one number or more."
-msgstr ""
+msgstr "L'Id utente dell'amministratore deve essere una lista di uno o piú numeri."
 
 #: efb_telegram_master/__init__.py:182
 #, python-brace-format
 msgid "Admin ID is expected to be an int, but {data} is found."
-msgstr ""
+msgstr "L'ID amministratore dovrebbe essere un int, ma {data} è stato trovato."
 
 #: efb_telegram_master/__init__.py:199
 #, python-brace-format
 msgid "The group {group_name} ({group_id}) is linked to:"
-msgstr ""
+msgstr "Il gruppo {group_name} ({group_id}) è collegato a:"
 
 #: efb_telegram_master/__init__.py:208 efb_telegram_master/__init__.py:231
 #, python-brace-format
 msgid "\n"
 "- {channel_emoji} {channel_name}: Unknown chat ({chat_id})"
-msgstr ""
+msgstr "\n"
+"- {channel_emoji}{channel_name}: Chat sconosciuta ({chat_id})"
 
 #: efb_telegram_master/__init__.py:214
 #, python-brace-format
 msgid "The group {group_name} ({group_id}) is not linked to any remote chat. To link one, use /link."
-msgstr ""
+msgstr "Il gruppo {group_name} ({group_id}) non è collegato a nessuna chat remota. Per collegarlo usa /collegamenti."
 
 #: efb_telegram_master/__init__.py:222
 #, python-brace-format
 msgid "The channel {group_name} ({group_id}) is linked to:"
-msgstr ""
+msgstr "Il canale {group_name} ({group_id}) è collegato a:"
 
 #: efb_telegram_master/__init__.py:237
 #, python-brace-format
 msgid "The channel {group_name} ({group_id}) is not linked to any remote chat. "
-msgstr ""
+msgstr "Il canale {group_name} ({group_id}) non è collegato a nessuna chat remota. "
 
 #: efb_telegram_master/__init__.py:241
 #, python-brace-format
@@ -94,7 +97,10 @@ msgid "This is EFB Telegram Master Channel {version}.\n"
 "{count} slave channel activated:"
 msgid_plural "This is EFB Telegram Master Channel {version}.\n"
 "{count} slave channels activated:"
-msgstr[0] ""
+msgstr[0] "Questo è EFB Telegram Master Channel {version}.\n"
+"{count} canale slave attivato:"
+msgstr[1] "Questo è EFB Telegram Master Channel {version}.\n"
+"{count} canali slave attivati:"
 
 #: efb_telegram_master/__init__.py:252
 #, python-brace-format
@@ -102,11 +108,14 @@ msgid "\n\n"
 "{count} middleware activated:"
 msgid_plural "\n\n"
 "{count} middlewares activated:"
-msgstr[0] ""
+msgstr[0] "\n\n"
+"{count} middleware attivato:"
+msgstr[1] "\n\n"
+"{count} middleware attivati:"
 
 #: efb_telegram_master/__init__.py:275
 msgid "You cannot link remote chats to here. Please try again."
-msgstr ""
+msgstr "Non è possibile collegare qui le chat remote. Si prega di riprovare."
 
 #: efb_telegram_master/__init__.py:277
 msgid "This is EFB Telegram Master Channel.\n\n"
@@ -164,6 +173,7 @@ msgid_plural "<b>EFB Telegram Master channel</b>\n"
 "You may have a poor internet connection on your server. Currently {count} network errors are detected.\n"
 "For more details, please refer to the log."
 msgstr[0] ""
+msgstr[1] ""
 
 #: efb_telegram_master/__init__.py:375
 #, python-brace-format
@@ -172,6 +182,7 @@ msgid "Chat migration detected.\n"
 msgid_plural "Chat migration detected.\n"
 "All {count} remote chats are now linked to this new group."
 msgstr[0] ""
+msgstr[1] ""
 
 #: efb_telegram_master/__init__.py:383
 #, python-brace-format
@@ -470,6 +481,7 @@ msgstr ""
 msgid "All {0} chat has been unlinked from this group."
 msgid_plural "All {0} chats has been unlinked from this group."
 msgstr[0] ""
+msgstr[1] ""
 
 #: efb_telegram_master/chat_binding.py:623
 msgid "No chat is linked to the channel."
@@ -480,6 +492,7 @@ msgstr ""
 msgid "All {0} chat has been unlinked from this channel."
 msgid_plural "All {0} chats has been unlinked from this channel."
 msgstr[0] ""
+msgstr[1] ""
 
 #: efb_telegram_master/chat_binding.py:634
 msgid "Send `/unlink_all` to a group to unlink all remote chats from it."
@@ -542,6 +555,7 @@ msgstr ""
 msgid "This only works in a group linked with one chat. Currently {0} chat linked to this group."
 msgid_plural "This only works in a group linked with one chat. Currently {0} chats linked to this group."
 msgstr[0] ""
+msgstr[1] ""
 
 #: efb_telegram_master/chat_binding.py:874
 msgid "Chat information updated."
