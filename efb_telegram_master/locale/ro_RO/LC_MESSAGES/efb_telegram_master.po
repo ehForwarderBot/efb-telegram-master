@@ -5,88 +5,89 @@ msgstr ""
 "POT-Creation-Date: 2018-03-11 20:00+1100\n"
 "PO-Revision-Date: 2018-03-22 07:40-0400\n"
 "Last-Translator: blueset <ilove@1a23.com>\n"
-"Language-Team: Chinese Traditional\n"
-"Language: zh_TW\n"
+"Language-Team: Romanian\n"
+"Language: ro_RO\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : (n==0 || (n%100>0 && n%100<20)) ? 1 : 2);\n"
 "X-Generator: crowdin.com\n"
 "X-Crowdin-Project: ehforwarderbot\n"
-"X-Crowdin-Language: zh-TW\n"
+"X-Crowdin-Language: ro\n"
 "X-Crowdin-File: /EFBChannels/efb-telegram-master/efb_telegram_master/locale/efb_telegram_master.pot\n"
 
 #: efb_telegram_master/slave_message.py:122
 msgid "Command message cannot be edited"
-msgstr ""
+msgstr "Comanda mesaj nu poate fi editat"
 
 #: efb_telegram_master/slave_message.py:152
 msgid "Unsupported type of message. (UT01)"
-msgstr ""
+msgstr "Neacceptat tip de mesaj. (UT01)"
 
 #. TRANSLATORS: Flag for edited message, but cannot be edited on Telegram.
 #: efb_telegram_master/slave_message.py:416
 msgid "[edited]"
-msgstr ""
+msgstr "[edited]"
 
 #: efb_telegram_master/slave_message.py:494
 msgid "Message removed in remote chat."
-msgstr ""
+msgstr "Mesaj în chat-ul la distanţă."
 
 #: efb_telegram_master/slave_message.py:532
 #, python-brace-format
 msgid "Unknown message source ({0}):"
-msgstr ""
+msgstr "Mesajul sursa ({0}):"
 
 #: efb_telegram_master/__init__.py:103
 msgid "WebP support of Pillow is required.\n"
 "Please refer to Pillow Documentation for instructions.\n"
 "https://pillow.readthedocs.io/"
-msgstr ""
+msgstr "Culegere de sprijin de pernă este necesară. Vă rugăm să consultaţi documentaţia perna pentru instrucţiuni. https://Pillow.readthedocs.io/"
 
 #: efb_telegram_master/__init__.py:165
 #, python-brace-format
 msgid "Config File does not exist. ({path})"
-msgstr ""
+msgstr "Fişierul de configurare nu exista. ({path})"
 
 #: efb_telegram_master/__init__.py:171
 msgid "Telegram bot token must be a string"
-msgstr ""
+msgstr "Telegrama bot token-ul trebuie să fie un șir"
 
 #: efb_telegram_master/__init__.py:177
 msgid "Admins' user IDs must be a list of one number or more."
-msgstr ""
+msgstr "Admins' user ID trebuie să fie o listă de un număr sau mai multe."
 
 #: efb_telegram_master/__init__.py:182
 #, python-brace-format
 msgid "Admin ID is expected to be an int, but {data} is found."
-msgstr ""
+msgstr "Admin ID este de aşteptat să fie un int, dar {data} este găsit."
 
 #: efb_telegram_master/__init__.py:199
 #, python-brace-format
 msgid "The group {group_name} ({group_id}) is linked to:"
-msgstr ""
+msgstr "Grupul {group_name} ({group_id}) este legat de:"
 
 #: efb_telegram_master/__init__.py:208 efb_telegram_master/__init__.py:231
 #, python-brace-format
 msgid "\n"
 "- {channel_emoji} {channel_name}: Unknown chat ({chat_id})"
-msgstr ""
+msgstr "\n"
+"- {channel_emoji} {channel_name}: chat-ul necunoscut ({chat_id})"
 
 #: efb_telegram_master/__init__.py:214
 #, python-brace-format
 msgid "The group {group_name} ({group_id}) is not linked to any remote chat. To link one, use /link."
-msgstr ""
+msgstr "Grupul {group_name} ({group_id}) nu este legată de orice chat la distanţă. La link-ul unul, utilizaţi/link."
 
 #: efb_telegram_master/__init__.py:222
 #, python-brace-format
 msgid "The channel {group_name} ({group_id}) is linked to:"
-msgstr ""
+msgstr "Grupul {group_name} ({group_id}) este legat de:"
 
 #: efb_telegram_master/__init__.py:237
 #, python-brace-format
 msgid "The channel {group_name} ({group_id}) is not linked to any remote chat. "
-msgstr ""
+msgstr "Grupul {group_name} ({group_id}) este legat de. "
 
 #: efb_telegram_master/__init__.py:241
 #, python-brace-format
@@ -95,6 +96,8 @@ msgid "This is EFB Telegram Master Channel {version}.\n"
 msgid_plural "This is EFB Telegram Master Channel {version}.\n"
 "{count} slave channels activated:"
 msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
 
 #: efb_telegram_master/__init__.py:252
 #, python-brace-format
@@ -103,6 +106,8 @@ msgid "\n\n"
 msgid_plural "\n\n"
 "{count} middlewares activated:"
 msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
 
 #: efb_telegram_master/__init__.py:275
 msgid "You cannot link remote chats to here. Please try again."
@@ -164,6 +169,8 @@ msgid_plural "<b>EFB Telegram Master channel</b>\n"
 "You may have a poor internet connection on your server. Currently {count} network errors are detected.\n"
 "For more details, please refer to the log."
 msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
 
 #: efb_telegram_master/__init__.py:375
 #, python-brace-format
@@ -172,16 +179,18 @@ msgid "Chat migration detected.\n"
 msgid_plural "Chat migration detected.\n"
 "All {count} remote chats are now linked to this new group."
 msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
 
 #: efb_telegram_master/__init__.py:383
 #, python-brace-format
 msgid "EFB Telegram Master channel encountered error <code>{error}</code> caused by update <code>{update}</code>."
-msgstr ""
+msgstr "Maestru de telegrama EFB canal întâlnite eroare <code>{error}</code> cauzate de actualizare <code>{update}</code>."
 
 #: efb_telegram_master/utils.py:33
 #, python-brace-format
 msgid "{0} is not a valid experimental flag"
-msgstr ""
+msgstr "{0} nu este un pavilion experimental valabil"
 
 #: efb_telegram_master/voice_recognition.py:62
 msgid "/recog lang_code\n"
@@ -190,21 +199,22 @@ msgid "/recog lang_code\n"
 "/recog zh\n"
 "/recog en-US\n\n"
 "Supported languages:\n"
-msgstr ""
+msgstr "/ urmând lang_code răspuns o voce cu această comandă să-l recunoască. exemple: / urmând zh/urmând en-US limbi acceptate:\n"
 
 #: efb_telegram_master/voice_recognition.py:69
 msgid "Reply only to a voice with this command to recognize it. (RS02)"
-msgstr ""
+msgstr "Răspundă numai la o voce cu această comandă să-l recunoască. (RS02)"
 
 #: efb_telegram_master/voice_recognition.py:72
 msgid "Only voice shorter than 60s is supported. (RS04)"
-msgstr ""
+msgstr "Este susţinută numai voce mai puţin de 60 de ani. (RS04)"
 
 #: efb_telegram_master/voice_recognition.py:85
 #, python-brace-format
 msgid "Results:\n"
 "{0}"
-msgstr ""
+msgstr "Rezultate:\n"
+"{0}"
 
 #: efb_telegram_master/voice_recognition.py:129
 #: efb_telegram_master/voice_recognition.py:131
@@ -214,7 +224,7 @@ msgstr ""
 #: efb_telegram_master/voice_recognition.py:211
 #: efb_telegram_master/voice_recognition.py:216
 msgid "ERROR!"
-msgstr ""
+msgstr "EROARE!"
 
 #: efb_telegram_master/voice_recognition.py:129
 msgid "File must be a path string or a file object in `rb` mode."
@@ -223,7 +233,7 @@ msgstr ""
 #: efb_telegram_master/voice_recognition.py:131
 #: efb_telegram_master/voice_recognition.py:190
 msgid "Invalid language."
-msgstr ""
+msgstr "Limba în nevalid."
 
 #: efb_telegram_master/voice_recognition.py:186
 msgid "File must be a path string."
@@ -232,69 +242,69 @@ msgstr ""
 #: efb_telegram_master/master_message.py:99
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message. (MS01)"
-msgstr ""
+msgstr "Eroare: Niciun destinatar specificat. Vă rugăm să răspundeţi la un mesaj anterior. (MS01)"
 
 #: efb_telegram_master/master_message.py:105
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message. (MS02)"
-msgstr ""
+msgstr "Eroare: Niciun destinatar specificat. Vă rugăm să răspundeţi la un mesaj anterior. (MS02)"
 
 #: efb_telegram_master/master_message.py:167
 #: efb_telegram_master/master_message.py:211
 msgid "Message is not found in database. Please try with another message. (UC07)"
-msgstr ""
+msgstr "Mesajul nu este găsit în baza de date. Vă rugăm să încercaţi cu un alt mesaj. (UC07)"
 
 #: efb_telegram_master/master_message.py:178
 msgid "Message is not found in database. Please try with another one. (UC03)"
-msgstr ""
+msgstr "Mesajul nu este găsit în baza de date. Vă rugăm să încercaţi cu un altul. (UC03)"
 
 #: efb_telegram_master/master_message.py:182
 msgid "Please reply to an incoming message. (UC04)"
-msgstr ""
+msgstr "Vă rugăm să răspundeţi la un mesaj de intrare. (UC04)"
 
 #: efb_telegram_master/master_message.py:193
 msgid "Message is not found in database. Please try with another one. (UC05)"
-msgstr ""
+msgstr "Mesajul nu este găsit în baza de date. Vă rugăm să încercaţi cu un altul. (UC05)"
 
 #: efb_telegram_master/master_message.py:197
 msgid "This group is linked to multiple remote chats. Please reply to an incoming message. To unlink all remote chats, please send /unlink_all . (UC06)"
-msgstr ""
+msgstr "Acest grup este legată de mai multe chat-uri de la distanţă. Vă rugăm să răspundeţi la un mesaj de intrare. Pentru a deconecta toate chat-urile de la distanţă, vă rugăm să trimiteţi /unlink_all. (UC06)"
 
 #: efb_telegram_master/master_message.py:215
 msgid "This group is not linked to any chat. (UC06)"
-msgstr ""
+msgstr "Acest grup nu este legată de orice chat. (UC06)"
 
 #: efb_telegram_master/master_message.py:222
 #, python-brace-format
 msgid "Internal error: Channel \"{0}\" not found."
-msgstr ""
+msgstr "Eroare internă: canalul \"{0}\" nu a fost găsit."
 
 #: efb_telegram_master/master_message.py:363
 #, python-brace-format
 msgid "Message type {0} is not supported."
-msgstr ""
+msgstr "{0} de tip mesaj nu este acceptată."
 
 #: efb_telegram_master/master_message.py:368
 msgid "Chat is not found."
-msgstr ""
+msgstr "Chat-ul nu a fost găsit."
 
 #: efb_telegram_master/master_message.py:370
 msgid "Message type is not supported."
-msgstr ""
+msgstr "Tipul de mesaj nu este acceptată."
 
 #: efb_telegram_master/master_message.py:372
 msgid "Message editing is not supported.\n\n"
 "{!r}"
-msgstr ""
+msgstr "Editare mesaj nu este acceptată. {! r}"
 
 #: efb_telegram_master/master_message.py:374
 msgid "Message is not sent.\n\n"
 "{!r}"
-msgstr ""
+msgstr "Mesajul este expediat. {! r}"
 
 #: efb_telegram_master/master_message.py:411
 msgid "Attachment is too large. Maximum is 20 MB. (AT01)"
-msgstr ""
+msgstr "Atasamentul este prea mare. Maxim este de 20 MB. (AT01)"
 
 #: efb_telegram_master/bot_manager.py:57
 msgid "Token is not properly defined."
@@ -470,6 +480,8 @@ msgstr ""
 msgid "All {0} chat has been unlinked from this group."
 msgid_plural "All {0} chats has been unlinked from this group."
 msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
 
 #: efb_telegram_master/chat_binding.py:623
 msgid "No chat is linked to the channel."
@@ -480,6 +492,8 @@ msgstr ""
 msgid "All {0} chat has been unlinked from this channel."
 msgid_plural "All {0} chats has been unlinked from this channel."
 msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
 
 #: efb_telegram_master/chat_binding.py:634
 msgid "Send `/unlink_all` to a group to unlink all remote chats from it."
@@ -494,44 +508,44 @@ msgstr ""
 #: efb_telegram_master/chat_binding.py:691
 #, python-brace-format
 msgid "This group is linked to an unknown chat ({chat_id}) on channel {channel_emoji} {channel_name}. Possibly you can no longer reach this chat. Send /unlink_all to unlink all chats from this group."
-msgstr ""
+msgstr "Acest grup este legată de un necunoscut, chat ({chat_id}) pe canalul {channel_emoji} {channel_name}. Eventual, poate nu mai ajunge la acest chat. Trimite /unlink_all deconecta toate chat-urile din acest grup."
 
 #: efb_telegram_master/chat_binding.py:702
 msgid "This Telegram group is linked to the following chats, choose one to start a conversation with."
-msgstr ""
+msgstr "Acest grup de telegramă este legată de următoarele sesiuni de chat, alege unul pentru a începe o conversaţie cu."
 
 #: efb_telegram_master/chat_binding.py:748
 #, python-brace-format
 msgid "Invalid command. ({0})"
-msgstr ""
+msgstr "Comanda invalid. ({0})"
 
 #: efb_telegram_master/chat_binding.py:760
 #, python-brace-format
 msgid "Reply to this message to chat with {0}."
-msgstr ""
+msgstr "Răspundeţi la acest mesaj pentru a discuta cu {0}."
 
 #: efb_telegram_master/chat_binding.py:795
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message, or choose a recipient:\n\n"
 "Legend:\n"
-msgstr ""
+msgstr "Eroare: Niciun destinatar specificat. Vă rugăm să răspundeţi la un mesaj anterior, sau selectaţi un destinatar: legenda:\n"
 
 #: efb_telegram_master/chat_binding.py:813
 #, python-brace-format
 msgid "Delivering the message to {0}"
-msgstr ""
+msgstr "Transmiterea mesajului de la {0}"
 
 #: efb_telegram_master/chat_binding.py:817
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message."
-msgstr ""
+msgstr "Eroare: Niciun destinatar specificat. Vă rugăm să răspundeţi la un mesaj anterior."
 
 #: efb_telegram_master/chat_binding.py:822
 #, python-brace-format
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message.\n\n"
 "Invalid parameter ({0})."
-msgstr ""
+msgstr "Eroare: Niciun destinatar specificat. Vă rugăm să răspundeţi la un mesaj anterior. (Ms01)."
 
 #: efb_telegram_master/chat_binding.py:835
 msgid "Send /update_info in a group where this bot is a group admin to update group title and profile picture"
@@ -542,6 +556,8 @@ msgstr ""
 msgid "This only works in a group linked with one chat. Currently {0} chat linked to this group."
 msgid_plural "This only works in a group linked with one chat. Currently {0} chats linked to this group."
 msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
 
 #: efb_telegram_master/chat_binding.py:874
 msgid "Chat information updated."

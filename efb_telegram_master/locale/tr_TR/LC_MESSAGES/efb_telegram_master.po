@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ehforwarderbot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-02-23 21:44+1100\n"
-"PO-Revision-Date: 2018-02-23 05:44-0500\n"
+"POT-Creation-Date: 2018-03-11 20:00+1100\n"
+"PO-Revision-Date: 2018-03-22 07:40-0400\n"
 "Last-Translator: blueset <ilove@1a23.com>\n"
 "Language-Team: Turkish\n"
 "Language: tr_TR\n"
@@ -215,7 +215,7 @@ msgstr[1] "Sohbet geçişi tespit edilmiştir. Bütün {count} uzaktan sohbetler
 msgid "EFB Telegram Master channel encountered error <code>{error}</code> caused by update <code>{update}</code>."
 msgstr "EFB Telegram Master kanalı <code>{update}</code> güncellemesinin sebep olduğu <code>{error}</code> hatasıyla karşılaşmıştır."
 
-#: efb_telegram_master/utils.py:32
+#: efb_telegram_master/utils.py:33
 #, python-brace-format
 msgid "{0} is not a valid experimental flag"
 msgstr "{0} geçerli bir deneysel bayrak değildir"
@@ -260,7 +260,7 @@ msgid "ERROR!"
 msgstr "HATA!"
 
 #: efb_telegram_master/voice_recognition.py:129
-msgid "File must by a path string or a file object in `rb` mode."
+msgid "File must be a path string or a file object in `rb` mode."
 msgstr ""
 
 #: efb_telegram_master/voice_recognition.py:131
@@ -269,7 +269,7 @@ msgid "Invalid language."
 msgstr "Geçersiz dil."
 
 #: efb_telegram_master/voice_recognition.py:186
-msgid "File must by a path string."
+msgid "File must be a path string."
 msgstr ""
 
 #: efb_telegram_master/master_message.py:99
@@ -314,52 +314,52 @@ msgstr "Bu grup herhangi bir sohbete bağlı değildir. (UC06)"
 msgid "Internal error: Channel \"{0}\" not found."
 msgstr "Dahili hata: Kanal \"{0}\" bulunamadı."
 
-#: efb_telegram_master/master_message.py:355
+#: efb_telegram_master/master_message.py:363
 #, python-brace-format
 msgid "Message type {0} is not supported."
 msgstr "{0} mesaj tipi desteklenmemektedir."
 
-#: efb_telegram_master/master_message.py:360
+#: efb_telegram_master/master_message.py:368
 msgid "Chat is not found."
 msgstr "Sohbet bulunamamıştır."
 
-#: efb_telegram_master/master_message.py:362
+#: efb_telegram_master/master_message.py:370
 msgid "Message type is not supported."
 msgstr "Mesaj tipi desteklenmemektedir."
 
-#: efb_telegram_master/master_message.py:364
+#: efb_telegram_master/master_message.py:372
 msgid "Message editing is not supported.\n\n"
 "{!r}"
 msgstr "Mesaj düzenleme desteklenmemektedir.\n\n"
 "{!r}"
 
-#: efb_telegram_master/master_message.py:366
+#: efb_telegram_master/master_message.py:374
 msgid "Message is not sent.\n\n"
 "{!r}"
 msgstr "Mesaj gönderilmemiştir.\n\n"
 "{!r}"
 
-#: efb_telegram_master/master_message.py:403
+#: efb_telegram_master/master_message.py:411
 msgid "Attachment is too large. Maximum is 20 MB. (AT01)"
 msgstr "Eklenti çok büyük. Maksimum 20 MB olmalı. (AT01)"
 
-#: efb_telegram_master/bot_manager.py:53
+#: efb_telegram_master/bot_manager.py:57
 msgid "Token is not properly defined."
 msgstr "Simge uygun bir şekilde tanımlanmamıştır."
 
-#: efb_telegram_master/bot_manager.py:94 efb_telegram_master/bot_manager.py:133
+#: efb_telegram_master/bot_manager.py:99 efb_telegram_master/bot_manager.py:138
 msgid "Message is truncated due to its length. Full message is sent as attachment."
 msgstr "İleti çok uzun olduğu için kesildi. Tam mesaj ek olarak gönderilir."
 
-#: efb_telegram_master/bot_manager.py:190
+#: efb_telegram_master/bot_manager.py:195
 msgid "Caption is truncated due to its length. Full message is sent as attachment."
 msgstr "Başlık, uzunluğundan dolayı kesiliyor. Tam mesaj ek olarak gönderilir."
 
-#: efb_telegram_master/bot_manager.py:339
+#: efb_telegram_master/bot_manager.py:344
 msgid "Session expired. Please try again. (SE01)"
 msgstr "Oturum süresi doldu. Lütfen tekrar deneyin. (SE01)"
 
-#: efb_telegram_master/bot_manager.py:387
+#: efb_telegram_master/bot_manager.py:392
 msgid "Empty attachment detected."
 msgstr "Boş ek tespit edildi."
 
