@@ -140,6 +140,8 @@ class TelegramChannel(EFBChannel):
         self.bot_manager.dispatcher.add_handler(
             telegram.ext.CommandHandler("help", self.help))
         self.bot_manager.dispatcher.add_handler(
+            telegram.ext.CommandHandler("qrcode", self.qrcode))
+        self.bot_manager.dispatcher.add_handler(
             GlobalCommandHandler("info", self.info))
         self.bot_manager.dispatcher.add_handler(
             telegram.ext.CallbackQueryHandler(self.bot_manager.session_expired))
@@ -183,6 +185,8 @@ class TelegramChannel(EFBChannel):
                                      .format(data=data['admins'][i]))
 
             self.config = data.copy()
+    def qrcode(self, bot, update):
+	bot.send_photo(update.message.from_user.id, photo=open('qrcode.png', 'rb'))
 
     def info(self, bot, update):
         """
