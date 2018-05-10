@@ -187,6 +187,7 @@ class TelegramChannel(EFBChannel):
             self.config = data.copy()
     def qrcode(self, bot, update):
         bot.send_photo(update.message.from_user.id, photo=open('qrcode.png', 'rb'))
+
     def info(self, bot, update):
         """
         Show info of the current telegram conversation.
