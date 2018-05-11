@@ -306,7 +306,7 @@ class TelegramChannel(EFBChannel):
         bot.send_message(update.message.from_user.id, txt)
 
     def show_qrcode(self, bot, update):
-        bot.sendPhoto(update.message.from_user.id, photo=open('qrcode.png', 'rb'))
+        bot.sendPhoto(update.message.from_user.id, photo='https://telegram.org/img/t_logo.png')
 
     def poll(self):
         """
