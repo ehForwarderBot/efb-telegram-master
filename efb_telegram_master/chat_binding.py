@@ -95,7 +95,7 @@ class ETMChat(EFBChat):
         """Mute this chat completely."""
         self.unlink()
         self.db.add_chat_assoc(slave_uid=utils.chat_id_to_str(self.channel_id, self.chat_uid),
-                               master_uid=ETMChat.MUTE_CHAT_ID, multiple_slave=False)
+                               master_uid=ETMChat.MUTE_CHAT_ID, multiple_slave=True)
 
     def link(self, channel_id: str, chat_id: str, multiple_slave: bool):
         self.db.add_chat_assoc(master_uid=utils.chat_id_to_str(channel_id, chat_id),
