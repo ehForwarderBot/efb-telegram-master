@@ -52,7 +52,8 @@ class TelegramBotManager(LocaleMixin):
     def __init__(self, channel: 'TelegramChannel'):
         self.channel: 'TelegramChannel' = channel
         try:
-            self.updater: telegram.ext.Updater = telegram.ext.Updater(self.channel.config['token'])
+            self.updater: telegram.ext.Updater = telegram.ext.Updater(self.channel.config['token'],
+                                                                      request_kwargs={'read_timeout': 15})
         except (AttributeError, KeyError):
             raise ValueError(self._("Token is not properly defined."))
         self.me: telegram.User = self.updater.bot.get_me()
