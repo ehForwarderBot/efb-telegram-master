@@ -437,7 +437,7 @@ class MasterMessageProcessor(LocaleMixin):
         """
         file, _, filename, path = self._download_file(file, 'video/mpeg')
         gif_file = tempfile.NamedTemporaryFile(suffix='.gif')
-        VideoFileClip(path).write_gif(gif_file, program="ffmpeg")
+        VideoFileClip(path).write_gif(gif_file.name, program="ffmpeg")
         file.close()
         gif_file.seek(0)
-        return gif_file, "image/gif", os.path.basename(gif_file.file_path), gif_file.file_path
+        return gif_file, "image/gif", os.path.basename(gif_file.name), gif_file.name
