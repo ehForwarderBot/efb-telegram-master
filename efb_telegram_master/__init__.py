@@ -315,7 +315,7 @@ class TelegramChannel(EFBChannel):
         Print error to console, and send error message to first admin.
         Triggered by python-telegram-bot error callback.
         """
-        if "Conflict: terminated by other long poll or webhook (409)" in str(error):
+        if "(409)" in str(error):
             msg = self._('Conflicted polling detected. If this error persists, '
                          'please ensure you are running only one instance of this Telegram bot.')
             self.logger.critical(msg)
