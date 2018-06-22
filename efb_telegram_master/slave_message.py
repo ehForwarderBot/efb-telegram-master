@@ -340,7 +340,7 @@ class SlaveMessageProcessor(LocaleMixin):
                                                reply_to_message_id=target_msg_id,
                                                reply_markup=reply_markup)
                 except telegram.error.BadRequest as e:
-                    self.logger.error('[%s] Failed to send it as image, sending as document. Reason: %s', e)
+                    self.logger.error('[%s] Failed to send it as image, sending as document. Reason: %s', msg.uid, e)
                     return self.bot.send_document(tg_dest, msg.file, prefix=msg_template,
                                                   caption=msg.text, filename=msg.filename,
                                                   reply_to_message_id=target_msg_id,
@@ -416,7 +416,7 @@ class SlaveMessageProcessor(LocaleMixin):
             msg_template += self._('[edited]')
             target_msg_id = target_msg_id or old_msg_id[1]
         return self.bot.send_venue(tg_dest, latitude=attributes.latitude,
-                                   longitude=attributes.longitude, title=msg.text,
+                                   longitude=attributes.longitude, title=msg.text or self._("Sent a location."),
                                    address=msg_template, reply_to_message_id=target_msg_id,
                                    reply_markup=reply_markup)
 
