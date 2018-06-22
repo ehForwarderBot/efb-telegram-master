@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ehforwarderbot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-03-11 20:00+1100\n"
-"PO-Revision-Date: 2018-03-22 07:40-0400\n"
+"POT-Creation-Date: 2018-06-22 20:02+1000\n"
+"PO-Revision-Date: 2018-06-22T10:02:21+0000\n"
 "Last-Translator: blueset <ilove@1a23.com>\n"
 "Language-Team: Japanese\n"
 "Language: ja_JP\n"
@@ -28,6 +28,10 @@ msgstr "この種類のメッセージはサポートしません。 (UT01)"
 #: efb_telegram_master/slave_message.py:416
 msgid "[edited]"
 msgstr "[編集済]"
+
+#: efb_telegram_master/slave_message.py:419
+msgid "Sent a location."
+msgstr ""
 
 #: efb_telegram_master/slave_message.py:494
 msgid "Message removed in remote chat."
@@ -160,7 +164,7 @@ msgstr "EFB Telegram マスターチャンネル\n"
 "    このコマンドはボットが単独繋がりのグループの管理者の場合のみ、動作します。\n"
 "/recog\n"
 "    音声メッセージを文字に変換します。\n"
-"    後に言語コードを続くと指定言語のみのへんさ変換結果を表示します。\n"
+"    後に言語コードを続くと指定言語のみへの変換結果を表示します。\n"
 "    設定ファイルで音声認識サービスを設定することは必要です。\n"
 "/help\n"
 "    この説明を表示する。"
@@ -337,23 +341,24 @@ msgstr "メッセージは送信されません。\n\n"
 msgid "Attachment is too large. Maximum is 20 MB. (AT01)"
 msgstr "添付ファイルが大きすぎます。最大 20 MB までのファイルのみを送信できます。 (AT01)"
 
-#: efb_telegram_master/bot_manager.py:57
+#: efb_telegram_master/bot_manager.py:58
 msgid "Token is not properly defined."
 msgstr "Token は正しく入力されません。"
 
-#: efb_telegram_master/bot_manager.py:99 efb_telegram_master/bot_manager.py:138
+#: efb_telegram_master/bot_manager.py:100
+#: efb_telegram_master/bot_manager.py:139
 msgid "Message is truncated due to its length. Full message is sent as attachment."
 msgstr "メッセージが長すぎますので、切り捨てられました。完全なメッセージはファイルで送信されます。"
 
-#: efb_telegram_master/bot_manager.py:195
+#: efb_telegram_master/bot_manager.py:196
 msgid "Caption is truncated due to its length. Full message is sent as attachment."
 msgstr "説名分が長すぎますので、切り捨てられました。完全な説明文はファイルで送信されます。"
 
-#: efb_telegram_master/bot_manager.py:344
+#: efb_telegram_master/bot_manager.py:345
 msgid "Session expired. Please try again. (SE01)"
 msgstr "セッションが切れた。もう一度やり直してください。(SE01)"
 
-#: efb_telegram_master/bot_manager.py:392
+#: efb_telegram_master/bot_manager.py:393
 msgid "Empty attachment detected."
 msgstr "空の添付ファイルが検出されました。"
 
@@ -540,7 +545,7 @@ msgstr "`/unlink_all` をグループに送信すると、そこにリンクさ�
 #, python-brace-format
 msgid "This group is linked to {0}Send a message to this group to deliver it to the chat.\n"
 "Do NOT reply to this system message."
-msgstr "このグループは {0} にリンクされました。ここに送信されたメッセージは全部そこへ転送します。\n"
+msgstr "このグループは {0} にリンクされました。ここに送信されたメッセージは全部リンク先に転送します。\n"
 "このメッセージに返信しないでください。"
 
 #: efb_telegram_master/chat_binding.py:691
@@ -560,7 +565,7 @@ msgstr "無効なコマンドです。({0})"
 #: efb_telegram_master/chat_binding.py:760
 #, python-brace-format
 msgid "Reply to this message to chat with {0}."
-msgstr "このメッセージへ返信して {0} と会話する。"
+msgstr "このメッセージに返信して {0} と会話する。"
 
 #: efb_telegram_master/chat_binding.py:795
 msgid "Error: No recipient specified.\n"

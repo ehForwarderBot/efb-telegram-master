@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ehforwarderbot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-03-11 20:00+1100\n"
-"PO-Revision-Date: 2018-03-22 07:40-0400\n"
+"POT-Creation-Date: 2018-06-22 20:02+1000\n"
+"PO-Revision-Date: 2018-06-22T10:02:29+0000\n"
 "Last-Translator: blueset <ilove@1a23.com>\n"
 "Language-Team: English\n"
 "Language: en_US\n"
@@ -27,6 +27,10 @@ msgstr ""
 #. TRANSLATORS: Flag for edited message, but cannot be edited on Telegram.
 #: efb_telegram_master/slave_message.py:416
 msgid "[edited]"
+msgstr ""
+
+#: efb_telegram_master/slave_message.py:419
+msgid "Sent a location."
 msgstr ""
 
 #: efb_telegram_master/slave_message.py:494
@@ -300,23 +304,24 @@ msgstr ""
 msgid "Attachment is too large. Maximum is 20 MB. (AT01)"
 msgstr ""
 
-#: efb_telegram_master/bot_manager.py:57
+#: efb_telegram_master/bot_manager.py:58
 msgid "Token is not properly defined."
 msgstr ""
 
-#: efb_telegram_master/bot_manager.py:99 efb_telegram_master/bot_manager.py:138
+#: efb_telegram_master/bot_manager.py:100
+#: efb_telegram_master/bot_manager.py:139
 msgid "Message is truncated due to its length. Full message is sent as attachment."
 msgstr ""
 
-#: efb_telegram_master/bot_manager.py:195
+#: efb_telegram_master/bot_manager.py:196
 msgid "Caption is truncated due to its length. Full message is sent as attachment."
 msgstr ""
 
-#: efb_telegram_master/bot_manager.py:344
+#: efb_telegram_master/bot_manager.py:345
 msgid "Session expired. Please try again. (SE01)"
 msgstr ""
 
-#: efb_telegram_master/bot_manager.py:392
+#: efb_telegram_master/bot_manager.py:393
 msgid "Empty attachment detected."
 msgstr ""
 
