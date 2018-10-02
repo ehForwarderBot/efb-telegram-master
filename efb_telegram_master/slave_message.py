@@ -362,6 +362,8 @@ class SlaveMessageProcessor(LocaleMixin):
             if old_msg_id:
                 return self.bot.edit_message_caption(chat=old_msg_id[0], message_id=old_msg_id[1],
                                                      prefix=msg_template, caption=msg.text)
+            self.logger.debug("[%s] Uploading file %s (%s) as %s", msg.uid,
+                              msg.file.name, msg.mime, file_name)
             return self.bot.send_document(tg_dest, msg.file,
                                           prefix=msg_template,
                                           caption=msg.text, filename=file_name,

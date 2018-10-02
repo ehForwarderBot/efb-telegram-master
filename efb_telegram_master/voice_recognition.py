@@ -36,9 +36,9 @@ class VoiceRecognitionManager(LocaleMixin):
              channel: The channel.
         """
         self.channel: 'TelegramChannel' = channel
-        self.bot_manager: 'TelegramBotManager' = self.channel.bot_manager
+        self.bot: 'TelegramBotManager' = self.channel.bot_manager
 
-        self.bot_manager.dispatcher.add_handler(
+        self.bot.dispatcher.add_handler(
             telegram.ext.CommandHandler("recog", self.recognize_speech, pass_args=True))
 
         tokens: Dict[str, Any] = self.channel.config.get("speech_api", dict())
@@ -59,23 +59,25 @@ class VoiceRecognitionManager(LocaleMixin):
         """
 
         if not getattr(update.message, "reply_to_message", None):
-            text = self._("/recog lang_code\n" \
-                          "Reply to a voice with this command to recognize it.\n" \
+            text = self._("/recog lang_code\n"
+                          "Reply to a voice with this command to recognize it.\n"
                           "examples:\n/recog zh\n/recog en-US\n\nSupported languages:\n")
             text += "\n".join("%s: %r" % (i.engine_name, i.lang_list) for i in self.voice_engines)
-            return self._reply_error(bot, update, text)
+            return self.bot.reply_error(update, text)
         if not getattr(update.message.reply_to_message, "voice"):
-            return self._reply_error(bot, update,
-                                     self._("Reply only to a voice with this command to recognize it. (RS02)"))
+            return self.bot.reply_error(update,
+                                        self._("Reply only to a voice with this command "
+                                               "to recognize it. (RS02)"))
 
         if update.message.reply_to_message.voice.duration > 60:
-            return self._reply_error(bot, update, self._("Only voice shorter than 60s is supported. (RS04)"))
+            return self.bot.reply_error(update, self._("Only voice shorter than 60s "
+                                                       "is supported. (RS04)"))
 
-        file, _, _ = self._download_file(update.message, update.message.reply_to_message.voice, MsgType.Audio)
+        file, _, _ = self.bot.download_file(update.message, update.message.reply_to_message.voice, MsgType.Audio)
 
         results = OrderedDict()
         for i in self.voice_engines:
-            results["%s (%s)" % (i.engine_name, args[0])] = i.recognise(file.name, args[0])
+            results["%s (%s)" % (i.engine_name, args[0])] = i.recognize(file.name, args[0])
 
         msg = ""
         for i in results:
@@ -83,7 +85,7 @@ class VoiceRecognitionManager(LocaleMixin):
             for j in results[i]:
                 msg += "%s\n" % html.escape(j)
         msg = self._("Results:\n{0}").format(msg)
-        self.bot_send_message(update.message.reply_to_message.chat.id, msg,
+        self.bot.send_message(update.message.reply_to_message.chat.id, msg,
                               reply_to_message_id=update.message.reply_to_message.message_id,
                               parse_mode=telegram.ParseMode.HTML)
 

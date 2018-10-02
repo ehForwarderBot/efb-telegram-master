@@ -98,7 +98,7 @@ class TelegramBotManager(LocaleMixin):
             self.updater.bot.send_document(args[0], full_message, filename,
                                            reply_to_message_id=msg.message_id,
                                            caption=self._("Message is truncated due to its length. "
-                                                   "Full message is sent as attachment."))
+                                                          "Full message is sent as attachment."))
             return msg
         else:
             kwargs['text'] = prefix + text + suffix
@@ -194,7 +194,7 @@ class TelegramBotManager(LocaleMixin):
                 self.updater.bot.send_document(args[0], full_message, filename,
                                                reply_to_message_id=msg.message_id,
                                                caption=self._("Caption is truncated due to its length. "
-                                                       "Full message is sent as attachment."))
+                                                              "Full message is sent as attachment."))
                 return msg
             else:
                 kwargs['caption'] = prefix + text + suffix
