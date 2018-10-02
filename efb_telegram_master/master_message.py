@@ -315,19 +315,21 @@ class MasterMessageProcessor(LocaleMixin):
                 m.file.close()
                 m.file, m.mime, m.filename, m.path = f, 'image/png', os.path.basename(f.name), f.name
                 self.logger.debug("[%s] WebP sticker is converted to PNG (%s).", message_id, f.name)
+            elif mtype == TGMsgType.Animation:
+                m.text = ""
+                self.logger.debug("[%s] Telegram message is a \"Telegram GIF\".", message_id)
+                m.filename = getattr(message.document, "file_name", None) or None
+                m.type = MsgType.Image
+                m.file, m.mime, m.filename, m.path = self._download_gif(message.document)
+                m.mime = message.document.mime_type or m.mime
             elif mtype == TGMsgType.Document:
                 m.text = msg_md_caption
                 self.logger.debug("[%s] Telegram message type is document.", message_id)
                 m.filename = getattr(message.document, "file_name", None) or None
-                if message.document.mime_type == "video/mp4":
-                    self.logger.debug("[%s] Telegram message is a \"Telegram GIF\".", message_id)
-                    m.type = MsgType.Image
-                    m.file, m.mime, m.filename, m.path = self._download_gif(message.document)
-                else:
-                    m.type = MsgType.File
-                    m.file, m.mime, filename, m.path = self._download_file(message.document,
-                                                                           message.document.mime_type)
-                    m.filename = m.filename or filename
+                m.type = MsgType.File
+                m.file, m.mime, filename, m.path = self._download_file(message.document,
+                                                                       message.document.mime_type)
+                m.filename = m.filename or filename
                 m.mime = message.document.mime_type or m.mime
             elif mtype == TGMsgType.Video:
                 m.type = MsgType.Video
