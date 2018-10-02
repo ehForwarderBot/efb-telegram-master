@@ -17,6 +17,7 @@ class TGMsgType:
     System = "System"
     Game = "Game"
     VideoNote = "Video_note"
+    Animation = "Animation"
 
 
 def get_msg_type(msg: telegram.Message):
@@ -34,7 +35,8 @@ def get_msg_type(msg: telegram.Message):
     for i in sys:
         if getattr(msg, i, False):
             return TGMsgType.System
-    types = ['audio',
+    types = ['animation',
+             'audio',
              'document',
              'photo',
              'sticker',
