@@ -247,9 +247,8 @@ class SlaveMessageProcessor(LocaleMixin):
         # self.logger.debug("[%s] Message is successfully processed as text message", msg.uid)
         # return tg_msg, append_last_msg
 
-        parse_mode = "HTML"
-
         text = msg.text
+        msg_template = html.escape(msg_template)
         
         if msg.substitutions:
             ranges = sorted(msg.substitutions.keys())
@@ -272,7 +271,7 @@ class SlaveMessageProcessor(LocaleMixin):
         if not old_msg_id:
             tg_msg = self.bot.send_message(tg_dest,
                                            text=text, prefix=msg_template,
-                                           parse_mode=parse_mode,
+                                           parse_mode='HTML',
                                            reply_to_message_id=target_msg_id,
                                            reply_markup=reply_markup)
         else:
@@ -280,7 +279,7 @@ class SlaveMessageProcessor(LocaleMixin):
             tg_msg = self.bot.edit_message_text(chat_id=old_msg_id[0],
                                                 message_id=old_msg_id[1],
                                                 text=text, prefix=msg_template,
-                                                parse_mode=parse_mode,
+                                                parse_mode='HTML',
                                                 reply_markup=reply_markup)
 
         self.logger.debug("[%s] Processed and sent as text message", msg.uid)
@@ -291,6 +290,8 @@ class SlaveMessageProcessor(LocaleMixin):
                            target_msg_id: Optional[str] = None,
                            reply_markup: Optional[telegram.ReplyMarkup] = None) -> telegram.Message:
         self.bot.send_chat_action(tg_dest, telegram.ChatAction.TYPING)
+
+        msg_template = html.escape(msg_template)
 
         attributes: EFBMsgLinkAttribute = msg.attributes
 
