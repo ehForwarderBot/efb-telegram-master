@@ -123,7 +123,7 @@ class TelegramChannel(EFBChannel):
         self.flag: ExperimentalFlagsManager = ExperimentalFlagsManager(self)
         self.db: DatabaseManager = DatabaseManager(self)
         self.bot_manager: TelegramBotManager = TelegramBotManager(self)
-        self.voice_recognition: VoiceRecognitionManager = VoiceRecognitionManager(self)
+        # self.voice_recognition: VoiceRecognitionManager = VoiceRecognitionManager(self)
         self.chat_binding: ChatBindingManager = ChatBindingManager(self)
         self.commands: CommandsManager = CommandsManager(self)
         self.master_messages: MasterMessageProcessor = MasterMessageProcessor(self)

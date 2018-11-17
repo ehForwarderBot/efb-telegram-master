@@ -94,14 +94,23 @@ A sample config file can be as follows:
     - 102938475
     - 91827364
 
+    # Experimental Flags
+    # This section can be used to enable experimental functionality.
+    # However, those features may be changed or removed at any time.
+    # Options in this section is explained afterward.
+    flags:
+        option_one: 10
+        option_two: false
+        option_three: "foobar"
+
+..  Removal of Speech recognition
     ##################
     # Optional items #
     ##################
-    # The following options are optional. Omissiond of this section
+    # The following options are optional. Omission of this section
     # will only affect an additional part of functionality of
     # this channel.
-
-    # API tokens required for speech recognition 
+    # API tokens required for speech recognition
     speech_api:
         # Microsoft (Bing) speech recognition token
         # API key can be obtained from
@@ -114,16 +123,6 @@ A sample config file can be as follows:
             app_id: 123456
             api_key: "API_KEY_GOES_HERE"
             secret_key: "SECRET_KEY_GOES_HERE"
-            
-
-    # Experimental Flags
-    # This section can be used to enable experimental functionality.
-    # However, those features may be changed or removed at any time.
-    # Options in this section is explained afterward.
-    flags:
-        option_one: 10
-        option_two: false
-        option_three: "foobar"
 
 Usage
 -----
