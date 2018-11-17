@@ -91,11 +91,12 @@ class ETMChat(EFBChat):
         """ Unlink this chat from any Telegram group."""
         self.db.remove_chat_assoc(slave_uid=utils.chat_id_to_str(self.channel_id, self.chat_uid))
 
-    def mute(self):
-        """Mute this chat completely."""
-        self.unlink()
-        self.db.add_chat_assoc(slave_uid=utils.chat_id_to_str(self.channel_id, self.chat_uid),
-                               master_uid=ETMChat.MUTE_CHAT_ID, multiple_slave=True)
+    # TODO: Remove code for muted chats.
+    # def mute(self):
+    #     """Mute this chat completely."""
+    #     self.unlink()
+    #     self.db.add_chat_assoc(slave_uid=utils.chat_id_to_str(self.channel_id, self.chat_uid),
+    #                            master_uid=ETMChat.MUTE_CHAT_ID, multiple_slave=True)
 
     def link(self, channel_id: str, chat_id: str, multiple_slave: bool):
         self.db.add_chat_assoc(master_uid=utils.chat_id_to_str(channel_id, chat_id),
@@ -474,16 +475,19 @@ class ChatBindingManager(LocaleMixin):
         link_url = "https://telegram.me/%s?startgroup=%s" % (
             self.bot.me.username, urllib.parse.quote(utils.b64en(utils.message_id_to_str(tg_chat_id, tg_msg_id))))
         self.logger.debug("Telegram start trigger for linking chat: %s", link_url)
+
+        # TODO: Remove code for muted chats.
         if chat.linked and not chat.muted:
             btn_list = [telegram.InlineKeyboardButton(self._("Relink"), url=link_url),
-                        telegram.InlineKeyboardButton(self._("Mute"), callback_data="mute 0"),
+                        # telegram.InlineKeyboardButton(self._("Mute"), callback_data="mute 0"),
                         telegram.InlineKeyboardButton(self._("Restore"), callback_data="unlink 0")]
         elif chat.muted:
             btn_list = [telegram.InlineKeyboardButton(self._("Link"), url=link_url),
                         telegram.InlineKeyboardButton(self._("Unmute"), callback_data="unlink 0")]
         else:
             btn_list = [telegram.InlineKeyboardButton(self._("Link"), url=link_url),
-                        telegram.InlineKeyboardButton(self._("Mute"), callback_data="mute 0")]
+                        # telegram.InlineKeyboardButton(self._("Mute"), callback_data="mute 0")
+                        ]
 
         btn_list.append(telegram.InlineKeyboardButton(self._("Manual {link_or_relink}")
                                                       .format(link_or_relink=btn_list[0].text),
@@ -526,10 +530,11 @@ class ChatBindingManager(LocaleMixin):
             chat.unlink()
             txt = "Chat %s is restored." % chat_display_name
             self.bot.edit_message_text(text=txt, chat_id=tg_chat_id, message_id=tg_msg_id)
-        elif cmd == "mute":
-            chat.mute()
-            txt = "Chat %s is now muted." % chat_display_name
-            self.bot.edit_message_text(text=txt, chat_id=tg_chat_id, message_id=tg_msg_id)
+        # TODO: Remove code for muted chats.
+        # elif cmd == "mute":
+        #     chat.mute()
+        #     txt = "Chat %s is now muted." % chat_display_name
+        #     self.bot.edit_message_text(text=txt, chat_id=tg_chat_id, message_id=tg_msg_id)
         elif cmd == "manual_link":
             txt = self._("To link {chat_display_name} manually, please:\n\n"
                          "1. Add me to the Telegram Group you want to link to.\n"
