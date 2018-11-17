@@ -247,8 +247,8 @@ class DatabaseManager:
                 return self.MsgLog.select().where(self.MsgLog.master_msg_id == master_msg_id) \
                     .order_by(self.MsgLog.time.desc()).first()
             else:
-                return self.MsgLog.select().where(self.MsgLog.slave_message_id == slave_msg_id and
-                                                  self.MsgLog.slave_origin_uid == slave_origin_uid
+                return self.MsgLog.select().where((self.MsgLog.slave_message_id == slave_msg_id) &
+                                                  (self.MsgLog.slave_origin_uid == slave_origin_uid)
                                                   ).order_by(self.MsgLog.time.desc()).first()
         except DoesNotExist:
             return None
@@ -273,8 +273,8 @@ class DatabaseManager:
             if master_msg_id:
                 self.MsgLog.delete().where(self.MsgLog.master_msg_id == master_msg_id).execute()
             else:
-                self.MsgLog.delete().where(self.MsgLog.slave_message_id == slave_msg_id and
-                                           self.MsgLog.slave_origin_uid == slave_origin_uid
+                self.MsgLog.delete().where((self.MsgLog.slave_message_id == slave_msg_id) &
+                                           (self.MsgLog.slave_origin_uid == slave_origin_uid)
                                            ).execute()
         except DoesNotExist:
             return
@@ -289,8 +289,9 @@ class DatabaseManager:
         if slave_channel_id is None or slave_chat_uid is None:
             raise ValueError("Both slave_channel_id and slave_chat_id should be provided.")
         try:
-            return self.SlaveChatInfo.select().where(self.SlaveChatInfo.slave_channel_id == slave_channel_id,
-                                                     self.SlaveChatInfo.slave_chat_uid == slave_chat_uid).first()
+            return self.SlaveChatInfo.select()\
+                .where((self.SlaveChatInfo.slave_channel_id == slave_channel_id) &
+                       (self.SlaveChatInfo.slave_chat_uid == slave_chat_uid)).first()
         except DoesNotExist:
             return None
 
@@ -337,8 +338,9 @@ class DatabaseManager:
                                              slave_chat_type=slave_chat_type.value)
 
     def delete_slave_chat_info(self, slave_channel_id, slave_chat_uid):
-        return self.SlaveChatInfo.delete().where(self.SlaveChatInfo.slave_channel_id == slave_channel_id and
-                                                 self.SlaveChatInfo.slave_chat_uid == slave_chat_uid).execute()
+        return self.SlaveChatInfo.delete()\
+            .where((self.SlaveChatInfo.slave_channel_id == slave_channel_id) &
+                   (self.SlaveChatInfo.slave_chat_uid == slave_chat_uid)).execute()
 
     def get_recent_slave_chats(self, master_chat_id, limit=5):
         return [i.slave_origin_uid for i in

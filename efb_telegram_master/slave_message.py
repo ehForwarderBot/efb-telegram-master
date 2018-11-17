@@ -156,7 +156,8 @@ class SlaveMessageProcessor(LocaleMixin):
                     commands, coordinator.slaves[msg.chat.channel_id], msg_template, msg.text
                 ))
 
-            self.logger.debug("[%s] Message is sent to the user.", xid)
+            self.logger.debug("[%s] Message is sent to the user with telegram message id %s.%s.",
+                              xid, tg_msg.chat.id, tg_msg.message_id)
             if not msg.author.is_system:
                 msg_log = {"master_msg_id": utils.message_id_to_str(tg_msg.chat.id, tg_msg.message_id),
                            "text": msg.text or "Sent a %s." % msg.type,
@@ -489,6 +490,8 @@ class SlaveMessageProcessor(LocaleMixin):
                 slave_origin_uid=utils.chat_id_to_str(chat=status.message.chat))
             if old_msg:
                 old_msg_id: Tuple[str, str] = utils.message_id_str_to_id(old_msg.master_msg_id)
+                self.logger.debug("Found message to delete in Telegram: %s.%s",
+                                  *old_msg_id)
                 try:
                     if not self.channel.flag('prevent_message_removal'):
                         self.bot.delete_message(*old_msg_id)
@@ -499,7 +502,7 @@ class SlaveMessageProcessor(LocaleMixin):
                                       text=self._("Message removed in remote chat."),
                                       reply_to_message_id=old_msg_id[1])
             else:
-                self.logger.info('[%s] Was supposed to delete a message, '
+                self.logger.info('Was supposed to delete a message, '
                                  'but it does not exist in database: %s', status)
 
         else:
