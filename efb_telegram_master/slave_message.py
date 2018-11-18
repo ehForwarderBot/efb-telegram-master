@@ -253,19 +253,19 @@ class SlaveMessageProcessor(LocaleMixin):
         
         if msg.substitutions:
             ranges = sorted(msg.substitutions.keys())
-            text = ""
+            t = ""
             prev = 0
             for i in ranges:
-                text += html.escape(text[prev:i[0]])
+                t += html.escape(text[prev:i[0]])
                 if msg.substitutions[i].is_self:
-                    text += '<a href="tg://user?id=%s">' % self.channel.config['admins'][0]
-                    text += html.escape(text[i[0]:i[1]])
-                    text += "</a>"
+                    t += '<a href="tg://user?id=%s">' % self.channel.config['admins'][0]
+                    t += html.escape(text[i[0]:i[1]])
+                    t += "</a>"
                 else:
-                    text += html.escape(text[i[0]:i[1]])
+                    t += html.escape(text[i[0]:i[1]])
                 prev = i[1]
-            text += html.escape(text[prev:])
-            text = text
+            t += html.escape(text[prev:])
+            text = t
         elif text:
             text = html.escape(text)
 
