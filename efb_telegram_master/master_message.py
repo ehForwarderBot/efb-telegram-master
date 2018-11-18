@@ -348,7 +348,8 @@ class MasterMessageProcessor(LocaleMixin):
                                                                          message.voice.mime_type)
             elif mtype == TGMsgType.Location:
                 m.type = MsgType.Location
-                m.text = "Location"
+                # TRANSLATORS: Message body text for location messages.
+                m.text = self._("Location")
                 m.attributes = EFBMsgLocationAttribute(
                     message.location.latitude,
                     message.location.longitude
