@@ -50,6 +50,7 @@ class MasterMessageProcessor(LocaleMixin):
         TGMsgType.Voice: MsgType.Audio,
         TGMsgType.Location: MsgType.Location,
         TGMsgType.Venue: MsgType.Location,
+        TGMsgType.Animation: MsgType.Image
     }
 
     def __init__(self, channel: 'TelegramChannel'):
@@ -319,14 +320,12 @@ class MasterMessageProcessor(LocaleMixin):
                 m.text = ""
                 self.logger.debug("[%s] Telegram message is a \"Telegram GIF\".", message_id)
                 m.filename = getattr(message.document, "file_name", None) or None
-                m.type = MsgType.Image
                 m.file, m.mime, m.filename, m.path = self._download_gif(message.document)
                 m.mime = message.document.mime_type or m.mime
             elif mtype == TGMsgType.Document:
                 m.text = msg_md_caption
                 self.logger.debug("[%s] Telegram message type is document.", message_id)
                 m.filename = getattr(message.document, "file_name", None) or None
-                m.type = MsgType.File
                 m.file, m.mime, filename, m.path = self._download_file(message.document,
                                                                        message.document.mime_type)
                 m.filename = m.filename or filename
