@@ -156,7 +156,8 @@ class SlaveMessageProcessor(LocaleMixin):
                     commands, coordinator.slaves[msg.chat.channel_id], msg_template, msg.text
                 ))
 
-            self.logger.debug("[%s] Message is sent to the user.", xid)
+            self.logger.debug("[%s] Message is sent to the user with telegram message id %s.%s.",
+                              xid, tg_msg.chat.id, tg_msg.message_id)
             if not msg.author.is_system:
                 msg_log = {"master_msg_id": utils.message_id_to_str(tg_msg.chat.id, tg_msg.message_id),
                            "text": msg.text or "Sent a %s." % msg.type,
@@ -247,38 +248,39 @@ class SlaveMessageProcessor(LocaleMixin):
         # self.logger.debug("[%s] Message is successfully processed as text message", msg.uid)
         # return tg_msg, append_last_msg
 
-        parse_mode = "HTML"
-
+        text = msg.text
+        msg_template = html.escape(msg_template)
+        
         if msg.substitutions:
             ranges = sorted(msg.substitutions.keys())
-            text = ""
+            t = ""
             prev = 0
             for i in ranges:
-                text += html.escape(msg.text[prev:i[0]])
+                t += html.escape(text[prev:i[0]])
                 if msg.substitutions[i].is_self:
-                    text += '<a href="tg://user?id=%s">' % self.channel.config['admins'][0]
-                    text += html.escape(msg.text[i[0]:i[1]])
-                    text += "</a>"
+                    t += '<a href="tg://user?id=%s">' % self.channel.config['admins'][0]
+                    t += html.escape(text[i[0]:i[1]])
+                    t += "</a>"
                 else:
-                    text += html.escape(msg.text[i[0]:i[1]])
+                    t += html.escape(text[i[0]:i[1]])
                 prev = i[1]
-            text += html.escape(msg.text[prev:])
-            msg.text = text
-        elif msg.text:
-            msg.text = html.escape(msg.text)
+            t += html.escape(text[prev:])
+            text = t
+        elif text:
+            text = html.escape(text)
 
         if not old_msg_id:
             tg_msg = self.bot.send_message(tg_dest,
-                                           text=msg.text, prefix=msg_template,
-                                           parse_mode=parse_mode,
+                                           text=text, prefix=msg_template,
+                                           parse_mode='HTML',
                                            reply_to_message_id=target_msg_id,
                                            reply_markup=reply_markup)
         else:
             # Cannot change reply_to_message_id when editing a message
             tg_msg = self.bot.edit_message_text(chat_id=old_msg_id[0],
                                                 message_id=old_msg_id[1],
-                                                text=msg.text, prefix=msg_template,
-                                                parse_mode=parse_mode,
+                                                text=text, prefix=msg_template,
+                                                parse_mode='HTML',
                                                 reply_markup=reply_markup)
 
         self.logger.debug("[%s] Processed and sent as text message", msg.uid)
@@ -289,6 +291,8 @@ class SlaveMessageProcessor(LocaleMixin):
                            target_msg_id: Optional[str] = None,
                            reply_markup: Optional[telegram.ReplyMarkup] = None) -> telegram.Message:
         self.bot.send_chat_action(tg_dest, telegram.ChatAction.TYPING)
+
+        msg_template = html.escape(msg_template)
 
         attributes: EFBMsgLinkAttribute = msg.attributes
 
@@ -340,7 +344,7 @@ class SlaveMessageProcessor(LocaleMixin):
                                                reply_to_message_id=target_msg_id,
                                                reply_markup=reply_markup)
                 except telegram.error.BadRequest as e:
-                    self.logger.error('[%s] Failed to send it as image, sending as document. Reason: %s', e)
+                    self.logger.error('[%s] Failed to send it as image, sending as document. Reason: %s', msg.uid, e)
                     return self.bot.send_document(tg_dest, msg.file, prefix=msg_template,
                                                   caption=msg.text, filename=msg.filename,
                                                   reply_to_message_id=target_msg_id,
@@ -362,6 +366,8 @@ class SlaveMessageProcessor(LocaleMixin):
             if old_msg_id:
                 return self.bot.edit_message_caption(chat=old_msg_id[0], message_id=old_msg_id[1],
                                                      prefix=msg_template, caption=msg.text)
+            self.logger.debug("[%s] Uploading file %s (%s) as %s", msg.uid,
+                              msg.file.name, msg.mime, file_name)
             return self.bot.send_document(tg_dest, msg.file,
                                           prefix=msg_template,
                                           caption=msg.text, filename=file_name,
@@ -416,7 +422,7 @@ class SlaveMessageProcessor(LocaleMixin):
             msg_template += self._('[edited]')
             target_msg_id = target_msg_id or old_msg_id[1]
         return self.bot.send_venue(tg_dest, latitude=attributes.latitude,
-                                   longitude=attributes.longitude, title=msg.text,
+                                   longitude=attributes.longitude, title=msg.text or self._("Sent a location."),
                                    address=msg_template, reply_to_message_id=target_msg_id,
                                    reply_markup=reply_markup)
 
@@ -484,6 +490,10 @@ class SlaveMessageProcessor(LocaleMixin):
                 slave_origin_uid=utils.chat_id_to_str(chat=status.message.chat))
             if old_msg:
                 old_msg_id: Tuple[str, str] = utils.message_id_str_to_id(old_msg.master_msg_id)
+                if old_msg_id[0] == ETMChat.MUTE_CHAT_ID:
+                    return
+                self.logger.debug("Found message to delete in Telegram: %s.%s",
+                                  *old_msg_id)
                 try:
                     if not self.channel.flag('prevent_message_removal'):
                         self.bot.delete_message(*old_msg_id)
@@ -494,7 +504,7 @@ class SlaveMessageProcessor(LocaleMixin):
                                       text=self._("Message removed in remote chat."),
                                       reply_to_message_id=old_msg_id[1])
             else:
-                self.logger.info('[%s] Was supposed to delete a message, '
+                self.logger.info('Was supposed to delete a message, '
                                  'but it does not exist in database: %s', status)
 
         else:

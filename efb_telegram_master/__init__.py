@@ -123,7 +123,7 @@ class TelegramChannel(EFBChannel):
         self.flag: ExperimentalFlagsManager = ExperimentalFlagsManager(self)
         self.db: DatabaseManager = DatabaseManager(self)
         self.bot_manager: TelegramBotManager = TelegramBotManager(self)
-        self.voice_recognition: VoiceRecognitionManager = VoiceRecognitionManager(self)
+        # self.voice_recognition: VoiceRecognitionManager = VoiceRecognitionManager(self)
         self.chat_binding: ChatBindingManager = ChatBindingManager(self)
         self.commands: CommandsManager = CommandsManager(self)
         self.master_messages: MasterMessageProcessor = MasterMessageProcessor(self)
@@ -205,7 +205,8 @@ class TelegramChannel(EFBChannel):
                     channel_id, chat_id = etm_utils.chat_id_str_to_id(i)
                     d = self.chat_binding.get_chat_from_db(channel_id, chat_id)
                     if d:
-                        msg += "\n- %s" % ETMChat(chat=d, db=self.db).full_name
+                        msg += "\n- %s (%s:%s)" % (ETMChat(chat=d, db=self.db).full_name,
+                                                   d.channel_id, d.chat_uid)
                     else:
                         msg += self._("\n- {channel_emoji} {channel_name}: Unknown chat ({chat_id})").format(
                             channel_emoji=coordinator.slaves[channel_id].channel_emoji,
@@ -320,7 +321,7 @@ class TelegramChannel(EFBChannel):
         Print error to console, and send error message to first admin.
         Triggered by python-telegram-bot error callback.
         """
-        if "Conflict: terminated by other long poll or webhook (409)" in str(error):
+        if "(409)" in str(error):
             msg = self._('Conflicted polling detected. If this error persists, '
                          'please ensure you are running only one instance of this Telegram bot.')
             self.logger.critical(msg)
@@ -339,7 +340,8 @@ class TelegramChannel(EFBChannel):
             else:
                 self.logger.error("Message request is invalid.\n%s\n%s", str(update), str(error))
                 self.bot_manager.send_message(self.config['admins'][0],
-                                              self._("Message request is invalid.\n{error}\n<code>{update}</code>").format(
+                                              self._("Message request is invalid.\n{error}\n"
+                                                     "<code>{update}</code>").format(
                                                   error=html.escape(str(error)), update=html.escape(str(update))),
                                               parse_mode="HTML")
         except (telegram.error.TimedOut, telegram.error.NetworkError):

@@ -52,7 +52,8 @@ class TelegramBotManager(LocaleMixin):
     def __init__(self, channel: 'TelegramChannel'):
         self.channel: 'TelegramChannel' = channel
         try:
-            self.updater: telegram.ext.Updater = telegram.ext.Updater(self.channel.config['token'])
+            self.updater: telegram.ext.Updater = telegram.ext.Updater(self.channel.config['token'],
+                                                                      request_kwargs={'read_timeout': 15})
         except (AttributeError, KeyError):
             raise ValueError(self._("Token is not properly defined."))
         self.me: telegram.User = self.updater.bot.get_me()
@@ -97,7 +98,7 @@ class TelegramBotManager(LocaleMixin):
             self.updater.bot.send_document(args[0], full_message, filename,
                                            reply_to_message_id=msg.message_id,
                                            caption=self._("Message is truncated due to its length. "
-                                                   "Full message is sent as attachment."))
+                                                          "Full message is sent as attachment."))
             return msg
         else:
             kwargs['text'] = prefix + text + suffix
@@ -193,7 +194,7 @@ class TelegramBotManager(LocaleMixin):
                 self.updater.bot.send_document(args[0], full_message, filename,
                                                reply_to_message_id=msg.message_id,
                                                caption=self._("Caption is truncated due to its length. "
-                                                       "Full message is sent as attachment."))
+                                                              "Full message is sent as attachment."))
                 return msg
             else:
                 kwargs['caption'] = prefix + text + suffix
