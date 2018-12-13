@@ -13,6 +13,17 @@ EFB Telegram Master Channel (ETM)
 ETM is a Telegram Master Channel for EH Forwarder Bot, based on Telegram
 Bot API, ``python-telegram-bot``.
 
+Modified version
+-------------
+
+This is a forked version to support QR code display via telegram bot.
+
+How To Use
+-------------
+
+1. Put a ``qrcode.jpg`` file into your user directory. (file type is limited to jpg)
+2. Open Telegram bot chat, and input ``/show_qrcode``.
+
 Beta version
 -------------
 
