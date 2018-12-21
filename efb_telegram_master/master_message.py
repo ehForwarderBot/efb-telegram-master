@@ -22,6 +22,7 @@ from ehforwarderbot.exceptions import EFBMessageTypeNotSupported, EFBChatNotFoun
 from ehforwarderbot.message import EFBMsgLocationAttribute
 from ehforwarderbot.status import EFBMessageRemoval
 from . import utils
+from .chat_binding import ETMChat
 from .msg_type import get_msg_type, TGMsgType
 from .locale_mixin import LocaleMixin
 
@@ -198,7 +199,7 @@ class MasterMessageProcessor(LocaleMixin):
                                                 self._("This group is linked to multiple remote chats. "
                                                 "Please reply to an incoming message. "
                                                 "To unlink all remote chats, please send /unlink_all . (UC06)"))
-            elif destination:
+            else:
                 if reply_to:
                     target_log: self.db.MsgLog = \
                         self.db.get_msg_log(master_msg_id=utils.message_id_to_str(
@@ -206,19 +207,34 @@ class MasterMessageProcessor(LocaleMixin):
                                                                message.reply_to_message.message_id))
                     if target_log:
                         target = target_log.slave_origin_uid
-                        target_channel, target_uid = utils.chat_id_str_to_id(target)
+                        if destination:
+                            target_channel, target_uid = utils.chat_id_str_to_id(target)
+                        else:
+                            destination = target
                     else:
                         return self.bot.reply_error(update,
                                                     self._("Message is not found in database. "
                                                     "Please try with another message. (UC07)"))
-            else:
-                return self.bot.reply_error(update,
-                                            self._("This group is not linked to any chat. (UC06)"))
+                if not destination:
+                    return self.bot.reply_error(update,
+                                                self._("This group is not linked to any chat. (UC06)"))
 
         self.logger.debug("[%s] Telegram received. From private chat: %s; Group has multiple linked chats: %s; "
                           "Message replied to another message: %s", message_id, private_chat, multi_slaves, reply_to)
         self.logger.debug("[%s] Destination chat = %s", message_id, destination)
+
         channel, uid = utils.chat_id_str_to_id(destination)
+
+        if uid in ETMChat.AGG_CHAT_INFO:
+            if reply_to:
+                # redirect the message to the original sender instead of the virtual chat ID
+                channel, uid = utils.chat_id_str_to_id(target)
+                target = None
+            else:
+                return self.bot.reply_error(update,
+                                            self._("This group is linked to a message aggregator. "
+                                                   "Please reply to an incoming message."))
+
         if channel not in coordinator.slaves:
             return self.bot.reply_error(update, self._("Internal error: Channel \"{0}\" not found.").format(channel))
 

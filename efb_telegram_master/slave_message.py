@@ -51,18 +51,27 @@ class SlaveMessageProcessor(LocaleMixin):
             xid = msg.uid
             self.logger.debug("[%s] Slave message delivered to ETM.\n%s", xid, msg)
 
+            multi_slaves = False
+
             chat_uid = utils.chat_id_to_str(chat=msg.chat)
             tg_chat = self.db.get_chat_assoc(slave_uid=chat_uid)
             if tg_chat:
                 tg_chat = tg_chat[0]
+            else:
+                agg_chat_id = ETMChat.AGG_CHAT_INFO_BY_TYPE.get(msg.chat.chat_type)
+                if agg_chat_id:
+                    chat_uid = utils.chat_id_to_str(channel_id=msg.chat.channel_id, chat_uid=agg_chat_id)
+                    tg_chat = self.db.get_chat_assoc(slave_uid=chat_uid)
+                if tg_chat:
+                    # Need to show source information for messages from aggregated sources
+                    multi_slaves = True
+                    tg_chat = tg_chat[0]
 
             self.logger.debug("[%s] The message should deliver to %s", xid, tg_chat)
 
             if tg_chat == ETMChat.MUTE_CHAT_ID:
                 self.logger.debug("[%s] Sender of the message is muted.", xid)
                 return msg
-
-            multi_slaves = False
 
             if tg_chat:
                 slaves = self.db.get_chat_assoc(master_uid=tg_chat)
