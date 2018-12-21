@@ -58,14 +58,16 @@ class SlaveMessageProcessor(LocaleMixin):
             if tg_chat:
                 tg_chat = tg_chat[0]
             else:
-                agg_chat_id = ETMChat.AGG_CHAT_INFO_BY_TYPE.get(msg.chat.chat_type)
-                if agg_chat_id:
-                    chat_uid = utils.chat_id_to_str(channel_id=msg.chat.channel_id, chat_uid=agg_chat_id)
-                    tg_chat = self.db.get_chat_assoc(slave_uid=chat_uid)
-                if tg_chat:
-                    # Need to show source information for messages from aggregated sources
-                    multi_slaves = True
-                    tg_chat = tg_chat[0]
+                # Try aggregated chats
+                for agg_chat_id, _, agg_pred in ETMChat.agg_chat_info.get(msg.chat.channel_id, []):
+                    if agg_pred(msg.chat):
+                        chat_uid = utils.chat_id_to_str(channel_id=msg.chat.channel_id, chat_uid=agg_chat_id)
+                        tg_chat = self.db.get_chat_assoc(slave_uid=chat_uid)
+                        if tg_chat:
+                            # Need to show source information for messages from aggregated sources
+                            multi_slaves = True
+                            tg_chat = tg_chat[0]
+                            break
 
             self.logger.debug("[%s] The message should deliver to %s", xid, tg_chat)
 

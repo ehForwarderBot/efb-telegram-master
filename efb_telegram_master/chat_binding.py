@@ -6,7 +6,7 @@ import re
 import threading
 import urllib.parse
 import io
-from typing import Tuple, Dict, Optional, List, Pattern, TYPE_CHECKING
+from typing import Tuple, Dict, Optional, List, Pattern, Callable, TYPE_CHECKING
 
 import peewee
 import telegram
@@ -30,18 +30,15 @@ __all__ = ['ChatBindingManager', 'ETMChat']
 
 
 class ETMChat(EFBChat):
-    # Constants
+    # Constant
     MUTE_CHAT_ID = "__muted__"
-    USR_AGG_CHAT_ID = "__usr_agg__"
-    GRP_AGG_CHAT_ID = "__grp_agg__"
-    AGG_CHAT_CMD = "__AGG"
 
-    AGG_CHAT_INFO = {
-        USR_AGG_CHAT_ID: [ "User Message Aggregator", ChatType.User ],
-        GRP_AGG_CHAT_ID: [ "Group Message Aggregator", ChatType.Group ]
-    }
+    agg_chat_info = {}
 
-    AGG_CHAT_INFO_BY_TYPE = { v[1]: k for k, v in AGG_CHAT_INFO.items() }
+    @staticmethod
+    def add_agg_chat(slave_id: str, chat_id: str, desc: str, pred: Callable[[EFBChat], bool]):
+        ETMChat.agg_chat_info[slave_id] = agg_chats_by_slave = ETMChat.agg_chat_info.get(slave_id, [])
+        agg_chats_by_slave.append((chat_id, desc, pred))
 
     def __init__(self,
                  channel: Optional[EFBChannel] = None,
@@ -234,6 +231,16 @@ class ChatBindingManager(LocaleMixin):
         # Update group title and profile picture
         self.bot.dispatcher.add_handler(CommandHandler('update_info', self.update_group_info))
 
+        ETMChat.add_agg_chat("blueset.wechat",
+                             "__usr_agg__",
+                             "User Message Aggregator",
+                             lambda chat: chat.chat_type == ChatType.User
+                                          and not chat.vendor_specific.get('is_mp', False))
+        ETMChat.add_agg_chat("blueset.wechat",
+                             "__grp_agg__",
+                             "Group Message Aggregator",
+                             lambda chat: chat.chat_type == ChatType.Group)
+
     def link_chat_show_list(self, bot, update, args=None):
         """
         Show the list of available chats for linking.
@@ -297,6 +304,7 @@ class ChatBindingManager(LocaleMixin):
             self._("{0}: Muted").format(Emoji.MUTED),
             self._("{0}: User").format(Emoji.USER),
             self._("{0}: Group").format(Emoji.GROUP),
+            self._("{0}: System").format(Emoji.SYSTEM),
         ]
 
         chat_list: ChatListStorage = self.msg_storage.get(storage_id, None)
@@ -305,40 +313,40 @@ class ChatBindingManager(LocaleMixin):
             # Generate the full chat list first
             if pattern:
                 self.logger.debug("Filter pattern: %s", pattern)
+            re_filter = re.compile(pattern, re.DOTALL | re.IGNORECASE) if pattern else None
             chats: List[ETMChat] = []
 
-            if allow_agg and pattern == ETMChat.AGG_CHAT_CMD:
-                for slave in coordinator.slaves.values():
-                    for agg_chat_id, agg_chat_info in ETMChat.AGG_CHAT_INFO.items():
+            if allow_agg and not re_filter:
+                for slave_id, slave in coordinator.slaves.items():
+                    for agg_chat_id, agg_desc, _ in ETMChat.agg_chat_info.get(slave_id, []):
                         chat = EFBChat(channel=slave)
-                        chat.chat_name = self._(agg_chat_info[0])
-                        chat.chat_type = agg_chat_info[1]
+                        chat.chat_name = agg_desc
+                        chat.chat_type = ChatType.System
                         chat.chat_uid = agg_chat_id
                         chats.append(ETMChat(chat=chat, db=self.db))
-            else:
-                re_filter = re.compile(pattern, re.DOTALL | re.IGNORECASE) if pattern else None
-                if source_chats:
-                    for i in source_chats:
-                        channel_id, chat_uid = utils.chat_id_str_to_id(i)
-                        if channel_id not in coordinator.slaves:
-                            continue
-                        channel = coordinator.slaves[channel_id]
-                        try:
-                            chat = ETMChat(chat=self.get_chat_from_db(channel_id, chat_uid) or channel.get_chat(chat_uid),
-                                           db=self.db)
-                        except KeyError:
-                            self.logger.error("slave_chats_pagination with chat list: Chat %s not found.", i)
-                            continue
 
+            if source_chats:
+                for i in source_chats:
+                    channel_id, chat_uid = utils.chat_id_str_to_id(i)
+                    if channel_id not in coordinator.slaves:
+                        continue
+                    channel = coordinator.slaves[channel_id]
+                    try:
+                        chat = ETMChat(chat=self.get_chat_from_db(channel_id, chat_uid) or channel.get_chat(chat_uid),
+                                       db=self.db)
+                    except KeyError:
+                        self.logger.error("slave_chats_pagination with chat list: Chat %s not found.", i)
+                        continue
+
+                    if chat.match(re_filter):
+                        chats.append(chat)
+            else:
+                for slave in coordinator.slaves.values():
+                    slave_chats = slave.get_chats()
+                    for chat in slave_chats:
+                        chat = ETMChat(chat=chat, db=self.db)
                         if chat.match(re_filter):
                             chats.append(chat)
-                else:
-                    for slave in coordinator.slaves.values():
-                        slave_chats = slave.get_chats()
-                        for chat in slave_chats:
-                            chat = ETMChat(chat=chat, db=self.db)
-                            if chat.match(re_filter):
-                                chats.append(chat)
 
             chat_list = self.msg_storage[storage_id] = ChatListStorage(chats, offset)
 
@@ -801,12 +809,13 @@ class ChatBindingManager(LocaleMixin):
         return ConversationHandler.END
 
     def get_chat_from_db(self, channel_id: str, chat_id: str) -> Optional[EFBChat]:
-        if chat_id in ETMChat.AGG_CHAT_INFO:
-            d = ETMChat.AGG_CHAT_INFO[chat_id]
+        for agg_chat_id, agg_desc, _ in ETMChat.agg_chat_info.get(channel_id, []):
+            if chat_id != agg_chat_id:
+                continue
             chat = EFBChat(coordinator.slaves[channel_id])
-            chat.chat_name = self._(d[0])
+            chat.chat_name = agg_desc
             chat.chat_uid = chat_id
-            chat.chat_type = d[1]
+            chat.chat_type = ChatType.System
             return chat
 
         d = self.db.get_slave_chat_info(slave_channel_id=channel_id, slave_chat_uid=chat_id)

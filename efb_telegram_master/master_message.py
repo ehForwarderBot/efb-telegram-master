@@ -225,7 +225,9 @@ class MasterMessageProcessor(LocaleMixin):
 
         channel, uid = utils.chat_id_str_to_id(destination)
 
-        if uid in ETMChat.AGG_CHAT_INFO:
+        for agg_chat_id, _, _ in ETMChat.agg_chat_info.get(channel, []):
+            if uid != agg_chat_id:
+                continue
             if reply_to:
                 # redirect the message to the original sender instead of the virtual chat ID
                 channel, uid = utils.chat_id_str_to_id(target)
