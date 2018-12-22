@@ -437,6 +437,67 @@ e.g.:
     message delivery, as the respond of Telegram Bot API is
     not reliable, and may not reflect the actual result.
 
+Experimental chat aggregation support
+-------------------------------------
+You can now aggregate multiple chats into single virtual chats and link
+them to Telegram groups or channels. Specifically, you can define a list
+of aggregation rules that will be matched by order on incoming messages
+that do not belong to any previously linked chat (i.e., these messages
+are previously supposed to be sent directly to the first admin). If some
+rule hits a message, the message will be sent to the Telegram groups
+or channels linked with the virtual chat that this rule is associated
+with. If no rule applies, the message will be sent directly to the first
+admin, as usual.
+
+To define the aggregation rules, you need to add a new section ``aggr_chats``
+as well as corresponding rule entries in the configuration file. For each
+rule entry, you need to specify the following properties:
+
+- ``slaveid`` *(str)*
+
+    ID of the slave channel that this rule applies to.
+
+- ``chatuid`` *(str)*
+
+    A unique internal ID for the virtual chat.
+
+- ``desc`` *(str)*
+
+    Name of the virtual chat, or description of the rule.
+
+- ``pred`` *(str)*
+
+    Predicate function for deciding whether the rule applies to a chat.
+    It must be an anonymous function defined using ``lambda`` keyword,
+    taking an ``EFBChat`` object, and returning a boolean value.
+
+An example config is shown below, which defines three aggregation rules
+(and virtual chats) for the WeChat slave channel. The first rule collects
+messages from individual senders (e.g., friends) but not subscribed accounts.
+The second rule works on group messages. And finally, the third rule applies
+only to messages from subscribed accounts. The first rule has the highest
+matching priority, while the third rule has the lowest matching priority.
+
+.. code:: yaml
+
+    aggr_chats:
+      - slaveid  : "blueset.wechat"
+        chatuid  : "__usr_agg__"
+        desc     : "User Message Aggregator"
+        pred     : "lambda chat: chat.chat_type == ChatType.User
+                                 and not chat.vendor_specific.get('is_mp', False)"
+
+      - slaveid  : "blueset.wechat"
+        chatuid  : "__grp_agg__"
+        desc     : "Group Message Aggregator"
+        pred     : "lambda chat: chat.chat_type == ChatType.Group"
+
+      - slaveid  : "blueset.wechat"
+        chatuid  : "__pm_agg__"
+        desc     : "Subscription Message Aggregator"
+        pred     : "lambda chat: chat.vendor_specific.get('is_mp', False)"
+
+
 Experimental localization support
 ---------------------------------
 
