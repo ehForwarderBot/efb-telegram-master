@@ -468,8 +468,8 @@ rule entry, you need to specify the following properties:
 - ``pred`` *(str)*
 
     Predicate function for deciding whether the rule applies to a chat.
-    It must be an anonymous function defined using ``lambda`` keyword,
-    taking an ``EFBChat`` object, and returning a boolean value.
+    It must be an anonymous function taking an ``EFBChat`` object and
+    returning a boolean value.
 
 An example config is shown below, which defines three aggregation rules
 (and virtual chats) for the WeChat slave channel. The first rule collects
@@ -477,6 +477,11 @@ messages from individual senders (e.g., friends) but not subscribed accounts.
 The second rule works on group messages. And finally, the third rule applies
 only to messages from subscribed accounts. The first rule has the highest
 matching priority, while the third rule has the lowest matching priority.
+
+After adding rules to the configuration file, you can now send ``/link``
+command to the bot on Telegram and see your predefined virtual chats showing
+in the top of the list. You can link them to any group or channel just like
+other chats.
 
 .. code:: yaml
 
