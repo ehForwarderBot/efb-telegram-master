@@ -231,15 +231,20 @@ class ChatBindingManager(LocaleMixin):
         # Update group title and profile picture
         self.bot.dispatcher.add_handler(CommandHandler('update_info', self.update_group_info))
 
-        ETMChat.add_agg_chat("blueset.wechat",
-                             "__usr_agg__",
-                             "User Message Aggregator",
-                             lambda chat: chat.chat_type == ChatType.User
-                                          and not chat.vendor_specific.get('is_mp', False))
-        ETMChat.add_agg_chat("blueset.wechat",
-                             "__grp_agg__",
-                             "Group Message Aggregator",
-                             lambda chat: chat.chat_type == ChatType.Group)
+        # Load aggregated chats from config
+        loaded_aggr_chat_ids = set()
+        for aggr_chat_item in channel.config.get("aggr_chats", []):
+            slaveid = aggr_chat_item['slaveid']
+            if slaveid not in coordinator.slaves:
+                continue
+            chat_uid = aggr_chat_item['chatuid']
+            aggr_chat_id = utils.chat_id_to_str(channel_id=slaveid, chat_uid=chat_uid)
+            if aggr_chat_id in loaded_aggr_chat_ids:
+                continue
+            loaded_aggr_chat_ids.add(aggr_chat_id)
+            desc = aggr_chat_item['desc']
+            pred: Callable[[EFBChat], bool] = eval(aggr_chat_item['pred'])
+            ETMChat.add_agg_chat(slaveid, chat_uid, desc, pred)
 
     def link_chat_show_list(self, bot, update, args=None):
         """
@@ -311,9 +316,9 @@ class ChatBindingManager(LocaleMixin):
 
         if chat_list is None or chat_list.length == 0:
             # Generate the full chat list first
+            re_filter = re.compile(pattern, re.DOTALL | re.IGNORECASE) if pattern else None
             if pattern:
                 self.logger.debug("Filter pattern: %s", pattern)
-            re_filter = re.compile(pattern, re.DOTALL | re.IGNORECASE) if pattern else None
             chats: List[ETMChat] = []
 
             if allow_agg and not re_filter:
