@@ -786,10 +786,14 @@ class ChatBindingManager(LocaleMixin):
             chat.chat_type = ChatType(d.slave_chat_type)
             return chat
         else:
-            chat = coordinator.slaves[channel_id].get_chat(chat_id)
-            if chat:
-                self._db_update_slave_chats_cache([chat])
-                return chat
+            try:
+                chat = coordinator.slaves[channel_id].get_chat(chat_id)
+                if chat:
+                    self._db_update_slave_chats_cache([chat])
+                    return chat
+                return None
+            except EFBChatNotFound:
+                return None
 
     def register_suggestions(self, update: telegram.Update, candidates: List[str], chat_id: int, message_id: int):
         storage_id = (chat_id, message_id)
