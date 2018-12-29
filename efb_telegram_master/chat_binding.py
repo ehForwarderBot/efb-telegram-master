@@ -217,6 +217,8 @@ class ChatBindingManager(LocaleMixin):
             states={Flags.SUGGEST_RECIPIENT: [CallbackQueryHandler(self.suggested_recipient)]},
             fallbacks=[CallbackQueryHandler(self.bot.session_expired)],
             per_message=True,
+            per_chat=True,
+            per_user=False
         )
 
         self.bot.dispatcher.add_handler(self.suggestion_handler)
