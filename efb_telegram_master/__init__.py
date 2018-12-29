@@ -212,7 +212,7 @@ class TelegramChannel(EFBChannel):
                             chat_id=chat_id
                         )
             else:
-                msg = self._("The group {group_name} ({group_id}) is not linked to any remote chat. " \
+                msg = self._("The group {group_name} ({group_id}) is not linked to any remote chat. "
                              "To link one, use /link.").format(group_name=update.message.chat.title,
                                                                group_id=update.message.chat_id)
         elif update.effective_message.forward_from_chat and \
@@ -383,8 +383,9 @@ class TelegramChannel(EFBChannel):
             try:
                 bot.send_message(self.config['admins'][0],
                                  self._("EFB Telegram Master channel encountered error <code>{error}</code> "
-                                 "caused by update <code>{update}</code>.").format(error=html.escape(str(error)),
-                                                                                   update=html.escape(str(update))),
+                                        "caused by update <code>{update}</code>.").format(error=html.escape(str(error)),
+                                                                                          update=html.escape(
+                                                                                              str(update))),
                                  parse_mode="HTML")
             except:
                 self.logger.error("Failed to send error message through Telegram.")

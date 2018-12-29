@@ -128,7 +128,7 @@ class MasterMessageProcessor(LocaleMixin):
         """
         target: str = None
         target_channel: str = None
-        target_log: self.db.MsgLog = None
+        target_log: 'MsgLog' = None
         # Message ID for logging
         message_id = utils.message_id_to_str(update=update)
 
@@ -200,7 +200,7 @@ class MasterMessageProcessor(LocaleMixin):
                                                 "To unlink all remote chats, please send /unlink_all . (UC06)"))
             elif destination:
                 if reply_to:
-                    target_log: self.db.MsgLog = \
+                    target_log: 'MsgLog' = \
                         self.db.get_msg_log(master_msg_id=utils.message_id_to_str(
                                                                message.reply_to_message.chat.id,
                                                                message.reply_to_message.message_id))
