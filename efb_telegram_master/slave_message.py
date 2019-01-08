@@ -13,6 +13,7 @@ import telegram
 import telegram.constants
 import telegram.error
 import telegram.ext
+from telegram import Audio
 
 from ehforwarderbot import EFBMsg, EFBStatus, coordinator
 from ehforwarderbot.constants import MsgType, ChatType
@@ -95,7 +96,7 @@ class SlaveMessageProcessor(LocaleMixin):
                                      msg.uid)
 
             # When targeting a message (reply to)
-            target_msg_id: Tuple[str, str] = None
+            target_msg_id: str = None
             if isinstance(msg.target, EFBMsg):
                 self.logger.debug("[%s] Message is replying to %s.", msg.uid, msg.target)
                 log = self.db.get_msg_log(
@@ -111,6 +112,7 @@ class SlaveMessageProcessor(LocaleMixin):
                         self.logger.error('[%s] Trying to reply to a message not from this chat. '
                                           'Message destination: %s. Target message: %s.',
                                           msg.uid, tg_dest, target_msg_id)
+                        target_msg_id = None
                     else:
                         target_msg_id = target_msg_id[1]
 
@@ -118,8 +120,6 @@ class SlaveMessageProcessor(LocaleMixin):
             reply_markup: Optional[telegram.InlineKeyboardMarkup] = None
             if msg.commands:
                 commands = msg.commands.commands
-                if old_msg_id:
-                    raise EFBMessageError(self._('Command message cannot be edited'))
                 buttons = []
                 for i, ival in enumerate(commands):
                     buttons.append([telegram.InlineKeyboardButton(ival.name, callback_data=str(i))])
@@ -158,6 +158,7 @@ class SlaveMessageProcessor(LocaleMixin):
 
             self.logger.debug("[%s] Message is sent to the user with telegram message id %s.%s.",
                               xid, tg_msg.chat.id, tg_msg.message_id)
+
             if not msg.author.is_system:
                 msg_log = {"master_msg_id": utils.message_id_to_str(tg_msg.chat.id, tg_msg.message_id),
                            "text": msg.text or "Sent a %s." % msg.type,
@@ -170,6 +171,28 @@ class SlaveMessageProcessor(LocaleMixin):
                            "slave_message_id": msg.uid,
                            "update": msg.edit
                            }
+
+                # Store media related information to local database
+                for tg_media_type in ('audio', 'animation', 'document', 'video', 'voice', 'video_note'):
+                    attachment = getattr(tg_msg, tg_media_type, None)
+                    if attachment:
+                        msg_log.update(media_type=tg_media_type,
+                                       file_id=attachment.file_id,
+                                       mime=attachment.msg_type)
+                        break
+                if not msg_log['media_type']:
+                    if getattr(tg_msg, 'sticker', None):
+                        msg_log.update(
+                            media_type='sticker',
+                            file_id=tg_msg.sticker.file_id,
+                            mime='image/webp'
+                        )
+                    elif getattr(tg_msg, 'photo', None):
+                        attachment = tg_msg.photo[-1]
+                        msg_log.update(media_type=tg_media_type,
+                                       file_id=attachment.file_id,
+                                       mime=attachment.msg_type)
+
                 self.db.add_msg_log(**msg_log)
                 self.logger.debug("[%s] Message inserted/updated to the database.", xid)
         except Exception as e:
@@ -277,6 +300,7 @@ class SlaveMessageProcessor(LocaleMixin):
                                            reply_markup=reply_markup)
         else:
             # Cannot change reply_to_message_id when editing a message
+            # TODO: Add checking mechanism to allow edits from user via replying.
             tg_msg = self.bot.edit_message_text(chat_id=old_msg_id[0],
                                                 message_id=old_msg_id[1],
                                                 text=text, prefix=msg_template,
@@ -332,7 +356,9 @@ class SlaveMessageProcessor(LocaleMixin):
                 msg.text = "sent a sticker."
         try:
             if old_msg_id:
-                return self.bot.edit_message_caption(chat=old_msg_id[0], message_id=old_msg_id[1],
+                if msg.edit_media:
+                    self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=msg.file)
+                return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1],
                                                      prefix=msg_template, caption=msg.text)
             elif msg.mime == "image/gif":
                 return self.bot.send_document(tg_dest, msg.file, prefix=msg_template, caption=msg.text,
@@ -364,7 +390,9 @@ class SlaveMessageProcessor(LocaleMixin):
             file_name = msg.filename
         try:
             if old_msg_id:
-                return self.bot.edit_message_caption(chat=old_msg_id[0], message_id=old_msg_id[1],
+                if msg.edit_media:
+                    self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=msg.file)
+                return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1],
                                                      prefix=msg_template, caption=msg.text)
             self.logger.debug("[%s] Uploading file %s (%s) as %s", msg.uid,
                               msg.file.name, msg.mime, file_name)
@@ -386,7 +414,9 @@ class SlaveMessageProcessor(LocaleMixin):
         no_conversion = self.flag("no_conversion")
         try:
             if old_msg_id:
-                return self.bot.edit_message_caption(chat=old_msg_id[0], message_id=old_msg_id[1],
+                if msg.edit_media:
+                    self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=msg.file)
+                return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1],
                                                      prefix=msg_template, caption=msg.text)
             if no_conversion:
                 self.logger.debug('[%s] This audio file is sent as a document without converting to OPUS.', msg.uid)
@@ -435,7 +465,9 @@ class SlaveMessageProcessor(LocaleMixin):
             msg.text = "sent a video."
         try:
             if old_msg_id:
-                return self.bot.edit_message_caption(chat=old_msg_id[0], message_id=old_msg_id[1],
+                if msg.edit_media:
+                    self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=msg.file)
+                return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1],
                                                      prefix=msg_template, caption=msg.text)
             return self.bot.send_video(tg_dest, msg.file, prefix=msg_template, caption=msg.text,
                                        reply_to_message_id=target_msg_id,
@@ -452,13 +484,13 @@ class SlaveMessageProcessor(LocaleMixin):
 
         if not old_msg_id:
             tg_msg = self.bot.send_message(tg_dest,
-                                           text=msg.text, prefix=msg_template + " (unsupported)",
+                                           text=msg.text, prefix=msg_template + " " + self._("(unsupported)"),
                                            reply_to_message_id=target_msg_id, reply_markup=reply_markup)
         else:
             # Cannot change reply_to_message_id when editing a message
             tg_msg = self.bot.edit_message_text(chat_id=old_msg_id[0],
                                                 message_id=old_msg_id[1],
-                                                text=msg.text, prefix=msg_template + " (unsupported)",
+                                                text=msg.text, prefix=msg_template + " " + self._("(unsupported)"),
                                                 reply_markup=reply_markup)
 
         self.logger.debug("[%s] Processed and sent as text message", msg.uid)

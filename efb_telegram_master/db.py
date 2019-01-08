@@ -5,6 +5,7 @@ import logging
 from typing import List, Optional
 
 from peewee import Model, TextField, DateTimeField, CharField, SqliteDatabase, DoesNotExist
+from playhouse.migrate import SqliteMigrator, migrate
 
 from ehforwarderbot import utils, EFBChannel
 
@@ -29,12 +30,16 @@ class DatabaseManager:
 
         class MsgLog(BaseModel):
             master_msg_id = TextField(unique=True, primary_key=True)
+            master_msg_id_alt = TextField(null=True)
             slave_message_id = TextField()
             text = TextField()
             slave_origin_uid = TextField()
             slave_origin_display_name = TextField(null=True)
             slave_member_uid = TextField(null=True)
             slave_member_display_name = TextField(null=True)
+            media_type = TextField(null=True)
+            mime = TextField(null=True)
+            file_id = TextField(null=True)
             msg_type = TextField()
             sent_to = TextField()
             time = DateTimeField(default=datetime.datetime.now, null=True)
@@ -54,6 +59,8 @@ class DatabaseManager:
 
         if not ChatAssoc.table_exists():
             self._create()
+        elif "file_id" not in {i.name for i in self.db.get_columns("MsgLog")}:
+            self._migrate(0)
 
     def _create(self):
         """
@@ -72,7 +79,16 @@ class DatabaseManager:
         Returns:
             False: when migration ID is not found
         """
-        # migrator = SqliteMigrator(db)
+        migrator = SqliteMigrator(self.db)
+        if i >= 0:
+            # Migration 0: Add media file ID and editable message ID
+            # 2019JAN08
+            migrate(
+                migrator.add_column("msglog", "file_id", self.MsgLog.file_id),
+                migrator.add_column("msglog", "media_type", self.MsgLog.media_type),
+                migrator.add_column("msglog", "mime", self.MsgLog.mime),
+                migrator.add_column("msglog", "master_msg_id_alt", self.MsgLog.master_msg_id_alt)
+            )
         # if i == 0:
         #     # Migration 0: Added Time column in MsgLog table.
         #     # 2016JUN15
