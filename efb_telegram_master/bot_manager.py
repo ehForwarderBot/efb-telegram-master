@@ -14,6 +14,7 @@ from typing import Optional, List, TYPE_CHECKING, Callable
 from .whitelisthandler import WhitelistHandler
 from .locale_handler import LocaleHandler
 from .locale_mixin import LocaleMixin
+
 if TYPE_CHECKING:
     from . import TelegramChannel
 
@@ -64,7 +65,7 @@ class TelegramBotManager(LocaleMixin):
         self.Decorators.enabled = channel.flag('retry_on_error')
 
     @Decorators.retry_on_timeout
-    def send_message(self, *args, prefix: Optional[str]= '', suffix: Optional[str]= '', **kwargs):
+    def send_message(self, *args, prefix: Optional[str] = '', suffix: Optional[str] = '', **kwargs):
         """
         Send text message.
         
@@ -137,7 +138,7 @@ class TelegramBotManager(LocaleMixin):
             self.updater.bot.send_document(kwargs['chat_id'], full_message, filename,
                                            reply_to_message_id=msg.message_id,
                                            caption=self._("Message is truncated due to its length. "
-                                                   "Full message is sent as attachment."))
+                                                          "Full message is sent as attachment."))
             return msg
         else:
             kwargs['text'] = prefix + text + suffix
@@ -199,6 +200,7 @@ class TelegramBotManager(LocaleMixin):
             else:
                 kwargs['caption'] = prefix + text + suffix
                 return fn(self, *args, **kwargs)
+
         return caption_affix
 
     @Decorators.retry_on_timeout
@@ -343,13 +345,17 @@ class TelegramBotManager(LocaleMixin):
 
     def session_expired(self, bot, update):
         self.edit_message_text(text=self._("Session expired. Please try again. (SE01)"),
-                                   chat_id=update.effective_chat.id,
-                                   message_id=update.effective_message.message_id)
+                               chat_id=update.effective_chat.id,
+                               message_id=update.effective_message.message_id)
 
     @Decorators.retry_on_timeout
     @caption_affix_decorator
     def edit_message_caption(self, *args, **kwargs):
         return self.updater.bot.edit_message_caption(*args, **kwargs)
+
+    @Decorators.retry_on_timeout
+    def edit_message_media(self, *args, **kwargs):
+        return self.updater.bot.edit_message_media(*args, **kwargs)
 
     def reply_error(self, update, errmsg):
         """
