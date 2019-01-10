@@ -1,11 +1,11 @@
 # coding=utf-8
 
-from typing import Tuple, Dict, TYPE_CHECKING, List
+from typing import Tuple, Dict, TYPE_CHECKING, List, Any
 
 from telegram import Message, Update
 from telegram.ext import CommandHandler, ConversationHandler, RegexHandler, CallbackQueryHandler
 
-from ehforwarderbot import coordinator, EFBChannel
+from ehforwarderbot import coordinator, EFBChannel, EFBMiddleware
 from ehforwarderbot.message import EFBMsgCommand
 from .constants import Flags
 from .locale_mixin import LocaleMixin
@@ -34,7 +34,10 @@ class CommandsManager(LocaleMixin):
         self.msg_storage: Dict[Tuple[int, int], ETMCommandMsgStorage] = dict()
 
         self.bot.dispatcher.add_handler(
-            CommandHandler("extra", self.extra_help))
+            CommandHandler("extra", self.extra_listing))
+        self.bot.dispatcher.add_handler(
+            RegexHandler(r"^/h_(?P<id>[0-9]+)_(?P<command>[a-z0-9_-]+)", self.extra_usage,
+                         pass_groupdict=True))
         self.bot.dispatcher.add_handler(
             RegexHandler(r"^/(?P<id>[0-9]+)_(?P<command>[a-z0-9_-]+)", self.extra_call,
                          pass_groupdict=True))
@@ -49,6 +52,11 @@ class CommandsManager(LocaleMixin):
         )
 
         self.bot.dispatcher.add_handler(self.command_conv)
+
+        self.modules_list: List[Any[EFBChannel, EFBMiddleware]] = []
+        for i in sorted(coordinator.slaves.keys()):
+            self.modules_list.append(coordinator.slaves[i])
+        self.modules_list.extend(coordinator.middlewares)
 
     def register_command(self, message: Message, commands: ETMCommandMsgStorage):
         message_identifier = (message.chat.id, message.message_id)
@@ -104,7 +112,7 @@ class CommandsManager(LocaleMixin):
                                    chat_id=chat_id, message_id=message_id)
         return ConversationHandler.END
 
-    def extra_help(self, bot, update):
+    def extra_listing(self, bot, update):
         """
         Show list of additional features and their usage.
         Triggered by `/extra`.
@@ -113,18 +121,35 @@ class CommandsManager(LocaleMixin):
             bot: Telegram Bot instance
             update: Message update
         """
-        msg = self._("List of slave channel features:")
-        for n, i in enumerate(sorted(coordinator.slaves)):
-            i = coordinator.slaves[i]
-            msg += "\n\n<b>%s %s</b>" % (i.channel_emoji, i.channel_name)
+        msg = self._("<i>Click the link next to the name for usage.</i>\n")
+        for n, i in enumerate(self.modules_list):
+            msg += "\n\n<b>%s %s (%s)</b>" % (i.channel_emoji, i.channel_name, i.channel_id)
             extra_fns = i.get_extra_functions()
             if extra_fns:
                 for j in extra_fns:
-                    fn_name = "/%s_%s" % (n, j)
-                    msg += "\n\n%s <b>(%s)</b>\n%s" % (
-                        fn_name, extra_fns[j].name, extra_fns[j].desc.format(function_name=fn_name))
+                    fn_name = "/h_%s_%s" % (n, j)
+                    msg += "\n- <b>%s</b> %s" % (extra_fns[j].name, fn_name)
             else:
-                msg += self._("\nNo command found.")
+                msg += "\n" + self._("No command found.")
+        self.bot.send_message(update.effective_chat.id, msg, parse_mode="HTML")
+
+    def extra_usage(self, bot, update, groupdict: Dict[str, str] = None):
+        if int(groupdict['id']) >= len(self.modules_list):
+            return self.bot.reply_error(update, self._("Invalid module id ID. (XC03)"))
+
+        channel = self.modules_list[int(groupdict['id'])]
+        functions = channel.get_extra_functions()
+
+        if groupdict['command'] not in functions:
+            return self.bot.reply_error(update, self._("Command not found in selected module. (XC04)"))
+
+        command = getattr(channel, groupdict['command'])
+
+        msg = "<b>%s %s (%s)</b>" % (channel.channel_emoji, channel.channel_name, channel.channel_id)
+
+        fn_name = "/%s_%s" % (groupdict['id'], groupdict['command'])
+        msg += "\n\n%s <b>(%s)</b>\n%s" % (
+            fn_name, command.name, command.desc.format(function_name=fn_name))
         self.bot.send_message(update.effective_chat.id, msg, parse_mode="HTML")
 
     def extra_call(self, bot, update, groupdict: Dict[str, str] = None):
@@ -139,7 +164,7 @@ class CommandsManager(LocaleMixin):
                 'command': Name of the command.
         """
         if int(groupdict['id']) >= len(coordinator.slaves):
-            return self.bot.reply_error(update, self._("Invalid slave channel ID. (XC01)"))
+            return self.bot.reply_error(update, self._("Invalid module ID. (XC01)"))
 
         slaves = coordinator.slaves
 
@@ -147,7 +172,7 @@ class CommandsManager(LocaleMixin):
         functions = channel.get_extra_functions()
 
         if groupdict['command'] not in functions:
-            return self.bot.reply_error(update, self._("Command not found in selected channel. (XC02)"))
+            return self.bot.reply_error(update, self._("Command not found in selected module. (XC02)"))
 
         header = "%s %s: %s\n-------\n" % (
             channel.channel_emoji, channel.channel_name, functions[groupdict['command']].name)
