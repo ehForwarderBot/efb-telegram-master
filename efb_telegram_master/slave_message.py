@@ -89,7 +89,11 @@ class SlaveMessageProcessor(LocaleMixin):
                 old_msg = self.db.get_msg_log(slave_msg_id=msg.uid,
                                               slave_origin_uid=utils.chat_id_to_str(chat=msg.chat))
                 if old_msg:
-                    old_msg_id: Tuple[str, str] = utils.message_id_str_to_id(old_msg.master_msg_id)
+
+                    if old_msg.master_msg_id_alt:
+                        old_msg_id = utils.message_id_str_to_id(old_msg.master_msg_id_alt)
+                    else:
+                        old_msg_id = utils.message_id_str_to_id(old_msg.master_msg_id)
                 else:
                     self.logger.info('[%s] Was supposed to edit this message, '
                                      'but it does not exist in database. Sending new message instead.',
@@ -172,6 +176,10 @@ class SlaveMessageProcessor(LocaleMixin):
                            "update": msg.edit
                            }
 
+                if old_msg_id and old_msg_id != tg_msg.message_id:
+                    msg_log['master_msg_id'] = utils.message_id_to_str(*old_msg_id)
+                    msg_log['master_msg_id_alt'] = utils.message_id_to_str(tg_msg.chat.id, tg_msg.message_id)
+
                 # Store media related information to local database
                 for tg_media_type in ('audio', 'animation', 'document', 'video', 'voice', 'video_note'):
                     attachment = getattr(tg_msg, tg_media_type, None)
@@ -180,7 +188,7 @@ class SlaveMessageProcessor(LocaleMixin):
                                        file_id=attachment.file_id,
                                        mime=attachment.msg_type)
                         break
-                if not msg_log['media_type']:
+                if not msg_log.get('media_type', None):
                     if getattr(tg_msg, 'sticker', None):
                         msg_log.update(
                             media_type='sticker',
@@ -300,7 +308,6 @@ class SlaveMessageProcessor(LocaleMixin):
                                            reply_markup=reply_markup)
         else:
             # Cannot change reply_to_message_id when editing a message
-            # TODO: Add checking mechanism to allow edits from user via replying.
             tg_msg = self.bot.edit_message_text(chat_id=old_msg_id[0],
                                                 message_id=old_msg_id[1],
                                                 text=text, prefix=msg_template,

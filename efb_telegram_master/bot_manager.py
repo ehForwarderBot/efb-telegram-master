@@ -153,9 +153,12 @@ class TelegramBotManager(LocaleMixin):
         """
         try:
             return self.updater.bot.send_message(*args, **kwargs)
-        except telegram.error.BadRequest:
-            kwargs.pop("parse_mode")
-            return self.updater.bot.send_message(*args, **kwargs)
+        except telegram.error.BadRequest as e:
+            if e.message.startswith("can't parse entities") and 'parse_mode' in kwargs:
+                kwargs.pop("parse_mode")
+                return self.updater.bot.send_message(*args, **kwargs)
+            else:
+                raise e
 
     def _bot_edit_message_text_fallback(self, *args, **kwargs):
         """
@@ -166,10 +169,18 @@ class TelegramBotManager(LocaleMixin):
         """
         try:
             return self.updater.bot.edit_message_text(*args, **kwargs)
-        except telegram.error.BadRequest:
-            if 'parse_mode' in kwargs:
+        except telegram.error.BadRequest as e:
+            if e.message == "Message can't be edited":
+                kwargs['reply_to_message_id'] = kwargs.pop('message_id')
+                return self.updater.bot.send_message(*args, **kwargs)
+            elif e.message == "message to edit not found":
+                kwargs.pop('message_id')
+                return self.updater.bot.send_message(*args, **kwargs)
+            elif e.message.startswith("can't parse entities") and 'parse_mode' in kwargs:
                 kwargs.pop("parse_mode")
-            return self.updater.bot.edit_message_text(*args, **kwargs)
+                return self.updater.bot.edit_message_text(*args, **kwargs)
+            else:
+                raise e
 
     # @Decorator
     def caption_affix_decorator(fn: Callable):

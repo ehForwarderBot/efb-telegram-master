@@ -395,7 +395,7 @@ class MasterMessageProcessor(LocaleMixin):
                                          file_id=attachment.file_id,
                                          mime=attachment.msg_type)
                         break
-                if not msg_log_d['media_type']:
+                if not msg_log_d.get('media_type', None):
                     if getattr(message, 'sticker', None):
                         msg_log_d.update(
                             media_type='sticker',
