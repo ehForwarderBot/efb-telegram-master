@@ -214,6 +214,10 @@ class DatabaseManager:
         slave_member_uid = kwargs.get('slave_member_uid', None)
         slave_member_display_name = kwargs.get('slave_member_display_name', None)
         slave_message_id = kwargs.get('slave_message_id')
+        master_msg_id_alt = kwargs.get('master_msg_id_alt', None)
+        media_type = kwargs.get('media_type', None)
+        file_id = kwargs.get('file_id', None)
+        mime = kwargs.get('mime', None)
         update = kwargs.get('update', False)
         if update:
             msg_log = self.MsgLog.get(self.MsgLog.master_msg_id == master_msg_id)
@@ -225,6 +229,10 @@ class DatabaseManager:
             msg_log.slave_member_uid = slave_member_uid or msg_log.slave_member_uid
             msg_log.slave_member_display_name = slave_member_display_name or msg_log.slave_member_display_name
             msg_log.slave_message_id = slave_message_id or msg_log.slave_message_id
+            msg_log.master_msg_id_alt = master_msg_id_alt
+            msg_log.media_type = media_type or msg_log.media_type
+            msg_log.file_id = file_id or msg_log.file_id
+            msg_log.mime = mime or msg_log.mime
             msg_log.save()
             return msg_log
         else:
@@ -236,7 +244,11 @@ class DatabaseManager:
                                       sent_to=sent_to,
                                       slave_origin_display_name=slave_origin_display_name,
                                       slave_member_uid=slave_member_uid,
-                                      slave_member_display_name=slave_member_display_name
+                                      slave_member_display_name=slave_member_display_name,
+                                      master_msg_id_alt=master_msg_id_alt,
+                                      media_type=media_type,
+                                      file_id=file_id,
+                                      mime=mime
                                       )
 
     def get_msg_log(self,

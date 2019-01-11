@@ -779,6 +779,8 @@ class ChatBindingManager(LocaleMixin):
         return ConversationHandler.END
 
     def get_chat_from_db(self, channel_id: str, chat_id: str) -> Optional[EFBChat]:
+        if channel_id not in coordinator.slaves:
+            return
         d = self.db.get_slave_chat_info(slave_channel_id=channel_id, slave_chat_uid=chat_id)
         if d:
             chat = EFBChat(coordinator.slaves[channel_id])

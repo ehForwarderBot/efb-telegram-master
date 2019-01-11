@@ -206,11 +206,17 @@ class TelegramChannel(EFBChannel):
                         msg += "\n- %s (%s:%s)" % (ETMChat(chat=d, db=self.db).full_name,
                                                    d.channel_id, d.chat_uid)
                     else:
-                        msg += self._("\n- {channel_emoji} {channel_name}: Unknown chat ({chat_id})").format(
-                            channel_emoji=coordinator.slaves[channel_id].channel_emoji,
-                            channel_name=coordinator.slaves[channel_id].channel_name,
-                            chat_id=chat_id
-                        )
+                        if channel_id not in coordinator.slaves:
+                            msg += self._("\n- Unknown channel {channel_id}: {chat_id}").format(
+                                channel_id=channel_id,
+                                chat_id=chat_id
+                            )
+                        else:
+                            msg += self._("\n- {channel_emoji} {channel_name}: Unknown chat ({chat_id})").format(
+                                channel_emoji=coordinator.slaves[channel_id].channel_emoji,
+                                channel_name=coordinator.slaves[channel_id].channel_name,
+                                chat_id=chat_id
+                            )
             else:
                 msg = self._("The group {group_name} ({group_id}) is not linked to any remote chat. "
                              "To link one, use /link.").format(group_name=update.message.chat.title,
