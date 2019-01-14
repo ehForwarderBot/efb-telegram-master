@@ -186,7 +186,7 @@ class SlaveMessageProcessor(LocaleMixin):
                     if attachment:
                         msg_log.update(media_type=tg_media_type,
                                        file_id=attachment.file_id,
-                                       mime=attachment.msg_type)
+                                       mime=attachment.mime_type)
                         break
                 if not msg_log.get('media_type', None):
                     if getattr(tg_msg, 'sticker', None):
@@ -199,7 +199,7 @@ class SlaveMessageProcessor(LocaleMixin):
                         attachment = tg_msg.photo[-1]
                         msg_log.update(media_type=tg_media_type,
                                        file_id=attachment.file_id,
-                                       mime=attachment.msg_type)
+                                       mime='image')
 
                 self.db.add_msg_log(**msg_log)
                 self.logger.debug("[%s] Message inserted/updated to the database.", xid)
@@ -354,7 +354,8 @@ class SlaveMessageProcessor(LocaleMixin):
                             reply_markup: Optional[telegram.ReplyMarkup] = None) -> telegram.Message:
         self.bot.send_chat_action(tg_dest, telegram.ChatAction.UPLOAD_PHOTO)
         self.logger.debug("[%s] Message is of %s type.\nPath: %s\nMIME: %s", msg.uid, msg.type, msg.path, msg.mime)
-        self.logger.debug("[%s] Size of %s is %s.", msg.uid, msg.path, os.stat(msg.path).st_size)
+        if msg.path:
+            self.logger.debug("[%s] Size of %s is %s.", msg.uid, msg.path, os.stat(msg.path).st_size)
 
         if not msg.text:
             if msg.type == MsgType.Image:
@@ -383,7 +384,8 @@ class SlaveMessageProcessor(LocaleMixin):
                                                   reply_to_message_id=target_msg_id,
                                                   reply_markup=reply_markup)
         finally:
-            msg.file.close()
+            if msg.file:
+                msg.file.close()
 
     def slave_message_file(self, msg: EFBMsg, tg_dest: str, msg_template: str,
                            old_msg_id: Optional[Tuple[str, str]] = None,
