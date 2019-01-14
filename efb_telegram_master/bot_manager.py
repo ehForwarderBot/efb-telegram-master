@@ -189,10 +189,14 @@ class TelegramBotManager(LocaleMixin):
             suffix = kwargs.pop('suffix', '')
             text = kwargs.pop('caption', '')
 
-            is_empty = self._detect_empty_file(args[1], args[0], text, prefix, suffix)
+            file = args[1] if len(args) >= 2 else kwargs.get('file', None)
+            chat = args[0] if len(args) >= 1 else kwargs.get('chat_id', None)
 
-            if is_empty:
-                return is_empty
+            if file:
+                is_empty = self._detect_empty_file(file, chat, text, prefix, suffix)
+
+                if is_empty:
+                    return is_empty
 
             prefix = (prefix and (prefix + "\n")) or prefix
             suffix = (suffix and ("\n" + suffix)) or suffix
