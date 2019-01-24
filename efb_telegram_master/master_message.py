@@ -393,7 +393,7 @@ class MasterMessageProcessor(LocaleMixin):
                     if attachment:
                         msg_log_d.update(media_type=tg_media_type,
                                          file_id=attachment.file_id,
-                                         mime=attachment.msg_type)
+                                         mime=attachment.mime_type)
                         break
                 if not msg_log_d.get('media_type', None):
                     if getattr(message, 'sticker', None):
@@ -406,7 +406,7 @@ class MasterMessageProcessor(LocaleMixin):
                         attachment = message.photo[-1]
                         msg_log_d.update(media_type=tg_media_type,
                                          file_id=attachment.file_id,
-                                         mime=attachment.msg_type)
+                                         mime=attachment.mime_type)
 
                 if slave_msg:
                     msg_log_d['slave_message_id'] = slave_msg.uid
