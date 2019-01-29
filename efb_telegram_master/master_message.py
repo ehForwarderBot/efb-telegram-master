@@ -371,8 +371,8 @@ class MasterMessageProcessor(LocaleMixin):
         except EFBMessageTypeNotSupported as e:
             self.bot.reply_error(update, e.args[0] or self._("Message type is not supported."))
         except EFBOperationNotSupported as e:
-            self.bot.reply_error(update, self._("Message editing is not supported.\n\n{!r}".format(e)))
-        except EFBMessageError as e:
+            self.bot.reply_error(update, self._("Message editing is not supported.\n\n{!s}".format(e)))
+        except Exception as e:
             self.bot.reply_error(update, self._("Message is not sent.\n\n{!r}".format(e)))
         finally:
             if m:
