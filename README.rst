@@ -140,9 +140,8 @@ to BotFather for a command list::
     unlink_all - Unlink all remote chats from a group.
     info - Display information of the current Telegram chat.
     chat - Generate a chat head.
-    recog - Recognize a speech by replying to it.
     extra - Access additional features from Slave Channels.
-    update_info - Update the group name and profile picture
+    update_info - Update the group name and profile picture.
 
 .. note::
 
