@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ehforwarderbot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-11 16:35-0800\n"
-"PO-Revision-Date: 2019-01-12 00:35\n"
+"POT-Creation-Date: 2019-01-23 15:58-0800\n"
+"PO-Revision-Date: 2019-01-29 00:46\n"
 "Last-Translator: blueset <ilove@1a23.com>\n"
 "Language-Team: Spanish, Argentina\n"
 "Language: es_AR\n"
@@ -21,24 +21,24 @@ msgid "Unsupported type of message. (UT01)"
 msgstr "Tipo de mensaje no compatible. (UT01)"
 
 #. TRANSLATORS: Flag for edited message, but cannot be edited on Telegram.
-#: efb_telegram_master/slave_message.py:459
+#: efb_telegram_master/slave_message.py:461
 msgid "[edited]"
 msgstr "[edited]"
 
-#: efb_telegram_master/slave_message.py:462
+#: efb_telegram_master/slave_message.py:464
 msgid "Sent a location."
 msgstr ""
 
-#: efb_telegram_master/slave_message.py:494
-#: efb_telegram_master/slave_message.py:500
+#: efb_telegram_master/slave_message.py:496
+#: efb_telegram_master/slave_message.py:502
 msgid "(unsupported)"
 msgstr ""
 
-#: efb_telegram_master/slave_message.py:543
+#: efb_telegram_master/slave_message.py:545
 msgid "Message removed in remote chat."
 msgstr "Mensaje eliminado en chat remoto."
 
-#: efb_telegram_master/slave_message.py:581
+#: efb_telegram_master/slave_message.py:583
 #, python-brace-format
 msgid "Unknown message source ({0}):"
 msgstr "Fuente de mensaje desconocida ({0}):"
@@ -369,15 +369,15 @@ msgstr "El token no está definido correctamente."
 msgid "Message is truncated due to its length. Full message is sent as attachment."
 msgstr "El mensaje se trunca debido a su longitud. El mensaje completo se envía como archivo adjunto."
 
-#: efb_telegram_master/bot_manager.py:208
+#: efb_telegram_master/bot_manager.py:212
 msgid "Caption is truncated due to its length. Full message is sent as attachment."
 msgstr "La leyenda se trunca debido a su longitud. El mensaje completo se envía como archivo adjunto."
 
-#: efb_telegram_master/bot_manager.py:358
+#: efb_telegram_master/bot_manager.py:362
 msgid "Session expired. Please try again. (SE01)"
 msgstr "Sesión expirada. Inténtalo de nuevo. (SE01)"
 
-#: efb_telegram_master/bot_manager.py:410
+#: efb_telegram_master/bot_manager.py:414
 msgid "Empty attachment detected."
 msgstr "Se ha detectado un archivo adjunto vacío."
 

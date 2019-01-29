@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ehforwarderbot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-11 16:35-0800\n"
-"PO-Revision-Date: 2019-01-12 00:35\n"
+"POT-Creation-Date: 2019-01-23 15:58-0800\n"
+"PO-Revision-Date: 2019-01-23 23:58\n"
 "Last-Translator: blueset <ilove@1a23.com>\n"
 "Language-Team: Indonesian\n"
 "Language: id_ID\n"
@@ -21,24 +21,24 @@ msgid "Unsupported type of message. (UT01)"
 msgstr "Jenis pesan yang tidak didukung. (UT01)"
 
 #. TRANSLATORS: Flag for edited message, but cannot be edited on Telegram.
-#: efb_telegram_master/slave_message.py:459
+#: efb_telegram_master/slave_message.py:461
 msgid "[edited]"
 msgstr "[diedit]"
 
-#: efb_telegram_master/slave_message.py:462
+#: efb_telegram_master/slave_message.py:464
 msgid "Sent a location."
 msgstr "Kirim lokasi."
 
-#: efb_telegram_master/slave_message.py:494
-#: efb_telegram_master/slave_message.py:500
+#: efb_telegram_master/slave_message.py:496
+#: efb_telegram_master/slave_message.py:502
 msgid "(unsupported)"
 msgstr ""
 
-#: efb_telegram_master/slave_message.py:543
+#: efb_telegram_master/slave_message.py:545
 msgid "Message removed in remote chat."
 msgstr "Pesan dihapus di obrolan terpencil."
 
-#: efb_telegram_master/slave_message.py:581
+#: efb_telegram_master/slave_message.py:583
 #, python-brace-format
 msgid "Unknown message source ({0}):"
 msgstr "Sumber pesan tidak dikenal ({0}):"
@@ -359,15 +359,15 @@ msgstr "Token tidak didefinisikan dengan baik."
 msgid "Message is truncated due to its length. Full message is sent as attachment."
 msgstr "Pesan terpotong karena panjangnya. Pesan penuh dikirim sebagai lampiran."
 
-#: efb_telegram_master/bot_manager.py:208
+#: efb_telegram_master/bot_manager.py:212
 msgid "Caption is truncated due to its length. Full message is sent as attachment."
 msgstr "Keterangan dipotong karena kepanjangan. Pesan penuh dikirim sebagai lampiran."
 
-#: efb_telegram_master/bot_manager.py:358
+#: efb_telegram_master/bot_manager.py:362
 msgid "Session expired. Please try again. (SE01)"
 msgstr "Sesi sudah kadaluarsa. Silahkan coba lagi. (SE01)"
 
-#: efb_telegram_master/bot_manager.py:410
+#: efb_telegram_master/bot_manager.py:414
 msgid "Empty attachment detected."
 msgstr "Lampiran kosong terdeteksi."
 
