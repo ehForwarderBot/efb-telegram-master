@@ -406,7 +406,7 @@ class MasterMessageProcessor(LocaleMixin):
                         attachment = message.photo[-1]
                         msg_log_d.update(media_type=tg_media_type,
                                          file_id=attachment.file_id,
-                                         mime=attachment.mime_type)
+                                         mime='image/jpeg')
 
                 if slave_msg:
                     msg_log_d['slave_message_id'] = slave_msg.uid

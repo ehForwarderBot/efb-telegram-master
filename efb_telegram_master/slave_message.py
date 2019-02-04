@@ -199,7 +199,7 @@ class SlaveMessageProcessor(LocaleMixin):
                         attachment = tg_msg.photo[-1]
                         msg_log.update(media_type=tg_media_type,
                                        file_id=attachment.file_id,
-                                       mime='image')
+                                       mime='image/jpeg')
 
                 self.db.add_msg_log(**msg_log)
                 self.logger.debug("[%s] Message inserted/updated to the database.", xid)
