@@ -385,7 +385,7 @@ class TelegramChannel(EFBChannel):
                                                    "Chat migration detected.\n"
                                                    "All {count} remote chats are now linked to this new group.",
                                                    count).format(count=count))
-        except:
+        except Exception as e:
             try:
                 bot.send_message(self.config['admins'][0],
                                  self._("EFB Telegram Master channel encountered error <code>{error}</code> "
@@ -393,11 +393,12 @@ class TelegramChannel(EFBChannel):
                                                                                           update=html.escape(
                                                                                               str(update))),
                                  parse_mode="HTML")
-            except:
-                self.logger.error("Failed to send error message through Telegram.")
+            except Exception as ex:
+                self.logger.exception("Failed to send error message through Telegram: %s", ex)
+
             finally:
-                self.logger.error('Unhandled telegram bot error!\n'
-                                  'Update %s caused error %s' % (update, error))
+                self.logger.exception('Unhandled telegram bot error!\n'
+                                      'Update %s caused error %s. Exception', update, error, e)
 
     def send_message(self, msg: EFBMsg) -> EFBMsg:
         return self.slave_messages.send_message(msg)
