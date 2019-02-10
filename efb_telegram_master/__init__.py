@@ -5,7 +5,8 @@ import logging
 import mimetypes
 import os
 from gettext import NullTranslations, translation
-from pkg_resources import resource_filename
+from typing import Optional
+from xmlrpc.server import SimpleXMLRPCServer
 
 import telegram
 import telegram.constants
@@ -13,6 +14,7 @@ import telegram.error
 import telegram.ext
 import yaml
 from PIL import Image
+from pkg_resources import resource_filename
 
 from ehforwarderbot import EFBChannel, EFBMsg, EFBStatus, coordinator
 from ehforwarderbot import utils as efb_utils
@@ -20,15 +22,16 @@ from ehforwarderbot.constants import MsgType, ChannelType
 from ehforwarderbot.exceptions import EFBException
 from . import __version__ as version
 from . import utils as etm_utils
-from .db import DatabaseManager
 from .bot_manager import TelegramBotManager
 from .chat_binding import ChatBindingManager, ETMChat
 from .commands import CommandsManager
+from .db import DatabaseManager
+from .global_command_handler import GlobalCommandHandler
 from .master_message import MasterMessageProcessor
+from .rpc_utils import RPCUtilities
 from .slave_message import SlaveMessageProcessor
 from .utils import ExperimentalFlagsManager
 from .voice_recognition import VoiceRecognitionManager
-from .global_command_handler import GlobalCommandHandler
 
 
 class TelegramChannel(EFBChannel):
@@ -91,6 +94,9 @@ class TelegramChannel(EFBChannel):
                                                fallback=True)
     locale: str = None
 
+    # RPC server
+    rpc_server: SimpleXMLRPCServer = None
+
     def __init__(self, instance_id: str = None):
         """
         Initialization.
@@ -145,6 +151,8 @@ class TelegramChannel(EFBChannel):
             telegram.ext.CallbackQueryHandler(self.bot_manager.session_expired))
 
         self.bot_manager.dispatcher.add_error_handler(self.error)
+
+        self.rpc_utilities = RPCUtilities(self)
 
     @property
     def _(self):
@@ -302,10 +310,6 @@ class TelegramChannel(EFBChannel):
                      "/update_info\n"
                      "    Update name and profile picture a linked Telegram group.\n"
                      "    Only works in singly linked group where the bot is an admin.\n"
-                     "/recog\n"
-                     "    Reply to a voice message to convert it to text.\n"
-                     "    Followed by a language code to choose a specific language.\n"
-                     "    You have to enable speech to text in the config file first.\n"
                      "/help\n"
                      "    Print this command list.")
         bot.send_message(update.message.from_user.id, txt)
@@ -406,7 +410,12 @@ class TelegramChannel(EFBChannel):
     def send_status(self, status: EFBStatus):
         return self.slave_messages.send_status(status)
 
+    def get_message_by_id(self, msg_id: str) -> Optional['EFBMsg']:
+        # TODO: implement this method
+        pass
+
     def stop_polling(self):
         self.logger.debug("Gracefully stopping %s (%s).", self.channel_name, self.channel_id)
+        self.rpc_utilities.shutdown()
         self.bot_manager.graceful_stop()
         self.logger.debug("%s (%s) gracefully stopped.", self.channel_name, self.channel_id)
