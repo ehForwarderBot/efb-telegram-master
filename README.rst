@@ -436,6 +436,11 @@ e.g.:
     message delivery, as the respond of Telegram Bot API is
     not reliable, and may not reflect the actual result.
 
+- ``send_image_as_file`` *(bool)* [Default: ``false``]
+
+    Send all image messages as files, in order to prevent Telegram's
+    image compression in an aggressive way.
+
 Experimental localization support
 ---------------------------------
 

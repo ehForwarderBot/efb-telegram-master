@@ -21,7 +21,8 @@ class ExperimentalFlagsManager(LocaleMixin):
         "network_error_prompt_interval": 100,
         "prevent_message_removal": True,
         "auto_locale": True,
-        'retry_on_error': False,
+        "retry_on_error": False,
+        "send_image_as_file": False,
     }
 
     def __init__(self, channel: 'TelegramChannel'):

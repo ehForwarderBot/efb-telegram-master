@@ -136,8 +136,15 @@ class SlaveMessageProcessor(LocaleMixin):
                 tg_msg = self.slave_message_text(msg, tg_dest, msg_template, old_msg_id, target_msg_id, reply_markup)
             elif msg.type == MsgType.Link:
                 tg_msg = self.slave_message_link(msg, tg_dest, msg_template, old_msg_id, target_msg_id, reply_markup)
-            elif msg.type in [MsgType.Image, MsgType.Sticker]:
+            elif msg.type == MsgType.Sticker:
                 tg_msg = self.slave_message_image(msg, tg_dest, msg_template, old_msg_id, target_msg_id, reply_markup)
+            elif msg.type == MsgType.Image:
+                if self.flag("send_image_as_file"):
+                    tg_msg = self.slave_message_file(msg, tg_dest, msg_template, old_msg_id, target_msg_id,
+                                                     reply_markup)
+                else:
+                    tg_msg = self.slave_message_image(msg, tg_dest, msg_template, old_msg_id, target_msg_id,
+                                                      reply_markup)
             elif msg.type == MsgType.File:
                 tg_msg = self.slave_message_file(msg, tg_dest, msg_template, old_msg_id, target_msg_id, reply_markup)
             elif msg.type == MsgType.Audio:
