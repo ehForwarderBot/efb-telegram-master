@@ -95,7 +95,7 @@ def chat_id_to_str(channel_id: Optional[str] = None, chat_uid: Optional[str] = N
         raise ValueError("channel_id and channel is mutual exclusive.")
 
     if chat:
-        channel_id = chat.channel_id
+        channel_id = chat.module_id
         chat_uid = chat.chat_uid
     if channel:
         channel_id = channel.channel_id

@@ -16,7 +16,7 @@ class DatabaseManager:
     def __init__(self, channel: EFBChannel):
         base_path = utils.get_data_path(channel.channel_id)
 
-        self.db = SqliteDatabase(base_path + '/tgdata.db')
+        self.db = SqliteDatabase(str(base_path / 'tgdata.db'))
 
         self.db.connect()
 

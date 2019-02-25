@@ -1,9 +1,11 @@
 import tempfile
 import unittest
 import os
+from pathlib import PurePath
 from unittest.mock import patch
 
 import yaml
+from typing import Union
 
 import ehforwarderbot
 import ehforwarderbot.utils
@@ -46,8 +48,6 @@ class StandardChannelTest(unittest.TestCase):
         })
 
         channel_config_path = ehforwarderbot.utils.get_config_path('blueset.telegram')
-        if not os.path.exists(os.path.dirname(channel_config_path)):
-            os.makedirs(os.path.dirname(channel_config_path))
         with open(channel_config_path, 'w') as f:
             f.write(channel_config)
 
