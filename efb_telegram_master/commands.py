@@ -1,6 +1,6 @@
 # coding=utf-8
 
-from typing import Tuple, Dict, TYPE_CHECKING, List, Any
+from typing import Tuple, Dict, TYPE_CHECKING, List, Any, Union
 
 from telegram import Message, Update
 from telegram.ext import CommandHandler, ConversationHandler, RegexHandler, CallbackQueryHandler
@@ -15,9 +15,10 @@ if TYPE_CHECKING:
 
 
 class ETMCommandMsgStorage:
-    def __init__(self, command: List[EFBMsgCommand], channel: EFBChannel, prefix: str, body: str):
+    def __init__(self, command: List[EFBMsgCommand], module: Union[EFBChannel, EFBMiddleware],
+                 prefix: str, body: str):
         self.commands = command
-        self.channels = channel
+        self.module = module
         self.prefix = prefix
         self.body = body
 
@@ -97,15 +98,20 @@ class CommandsManager(LocaleMixin):
 
         callback = int(callback)
         command_storage = self.msg_storage[index]
-        channel_id = command_storage.channels.channel_id
+        module = command_storage.module
         command = command_storage.commands[callback]
         prefix = "%s\n%s\n--------" % (command_storage.prefix, command_storage.body)
 
-        fn = getattr(coordinator.slaves[channel_id], command.callable_name, None)
+        fn = getattr(module, command.callable_name, None)
         if fn is not None:
             msg = fn(*command.args, **command.kwargs)
         else:
-            msg = self._command_fallback(*command.args, __channel_id=channel_id, __callable=command.callable,
+            module_id = str(module)
+            if isinstance(module, EFBChannel):
+                module_id = module.channel_id
+            elif isinstance(module, EFBMiddleware):
+                module_id = module.middleware_id
+            msg = self._command_fallback(*command.args, __channel_id=module_id, __callable=command.callable_name,
                                          **command.kwargs)
         self.msg_storage.pop(index, None)
         self.bot.edit_message_text(prefix=prefix, text=msg,
@@ -123,7 +129,7 @@ class CommandsManager(LocaleMixin):
         """
         msg = self._("<i>Click the link next to the name for usage.</i>\n")
         for n, i in enumerate(self.modules_list):
-            msg += "\n\n<b>%s %s (%s)</b>" % (i.channel_emoji, i.channel_name, i.channel_id)
+            msg += "\n\n<b>%s %s (%s)</b>" % (i.channel_emoji, i.module_name, i.module_id)
             extra_fns = i.get_extra_functions()
             if extra_fns:
                 for j in extra_fns:
@@ -145,7 +151,7 @@ class CommandsManager(LocaleMixin):
 
         command = getattr(channel, groupdict['command'])
 
-        msg = "<b>%s %s (%s)</b>" % (channel.channel_emoji, channel.channel_name, channel.channel_id)
+        msg = "<b>%s %s (%s)</b>" % (channel.channel_emoji, channel.module_name, channel.module_id)
 
         fn_name = "/%s_%s" % (groupdict['id'], groupdict['command'])
         msg += "\n\n%s <b>(%s)</b>\n%s" % (
