@@ -16,7 +16,7 @@ from PIL import Image
 from telegram.utils.helpers import escape_markdown
 
 from ehforwarderbot import EFBChat, EFBMsg, coordinator
-from ehforwarderbot.constants import MsgType
+from ehforwarderbot.constants import MsgType, ChatType
 from ehforwarderbot.exceptions import EFBMessageTypeNotSupported, EFBChatNotFound, \
     EFBMessageError, EFBMessageNotFound, EFBOperationNotSupported
 from ehforwarderbot.message import EFBMsgLocationAttribute
@@ -230,6 +230,11 @@ class MasterMessageProcessor(LocaleMixin):
             m.author = EFBChat(self.channel).self()
             m.chat = EFBChat(coordinator.slaves[channel])
             m.chat.chat_uid = uid
+            chat_info = self.db.get_slave_chat_info(channel, uid)
+            if chat_info:
+                m.chat.chat_name = chat_info.slave_chat_name
+                m.chat.chat_alias = chat_info.slave_chat_alias
+                m.chat.chat_type = ChatType(chat_info.slave_chat_type)
             m.deliver_to = coordinator.slaves[channel]
             if target and target_channel == channel:
                 trgt_msg = EFBMsg()

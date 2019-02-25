@@ -170,46 +170,45 @@ class SlaveMessageProcessor(LocaleMixin):
             self.logger.debug("[%s] Message is sent to the user with telegram message id %s.%s.",
                               xid, tg_msg.chat.id, tg_msg.message_id)
 
-            if not msg.author.is_system:
-                msg_log = {"master_msg_id": utils.message_id_to_str(tg_msg.chat.id, tg_msg.message_id),
-                           "text": msg.text or "Sent a %s." % msg.type,
-                           "msg_type": msg.type,
-                           "sent_to": "master" if msg.author.is_self else 'slave',
-                           "slave_origin_uid": utils.chat_id_to_str(chat=msg.chat),
-                           "slave_origin_display_name": msg.chat.chat_alias,
-                           "slave_member_uid": msg.author.chat_uid if not msg.author.is_self else None,
-                           "slave_member_display_name": msg.author.chat_alias if not msg.author.is_self else None,
-                           "slave_message_id": msg.uid,
-                           "update": msg.edit
-                           }
+            msg_log = {"master_msg_id": utils.message_id_to_str(tg_msg.chat.id, tg_msg.message_id),
+                       "text": msg.text or "Sent a %s." % msg.type,
+                       "msg_type": msg.type,
+                       "sent_to": "master" if msg.author.is_self else 'slave',
+                       "slave_origin_uid": utils.chat_id_to_str(chat=msg.chat),
+                       "slave_origin_display_name": msg.chat.chat_alias,
+                       "slave_member_uid": msg.author.chat_uid if not msg.author.is_self else None,
+                       "slave_member_display_name": msg.author.chat_alias if not msg.author.is_self else None,
+                       "slave_message_id": msg.uid,
+                       "update": msg.edit
+                       }
 
-                if old_msg_id and old_msg_id != tg_msg.message_id:
-                    msg_log['master_msg_id'] = utils.message_id_to_str(*old_msg_id)
-                    msg_log['master_msg_id_alt'] = utils.message_id_to_str(tg_msg.chat.id, tg_msg.message_id)
+            if old_msg_id and old_msg_id != tg_msg.message_id:
+                msg_log['master_msg_id'] = utils.message_id_to_str(*old_msg_id)
+                msg_log['master_msg_id_alt'] = utils.message_id_to_str(tg_msg.chat.id, tg_msg.message_id)
 
-                # Store media related information to local database
-                for tg_media_type in ('audio', 'animation', 'document', 'video', 'voice', 'video_note'):
-                    attachment = getattr(tg_msg, tg_media_type, None)
-                    if attachment:
-                        msg_log.update(media_type=tg_media_type,
-                                       file_id=attachment.file_id,
-                                       mime=attachment.mime_type)
-                        break
-                if not msg_log.get('media_type', None):
-                    if getattr(tg_msg, 'sticker', None):
-                        msg_log.update(
-                            media_type='sticker',
-                            file_id=tg_msg.sticker.file_id,
-                            mime='image/webp'
-                        )
-                    elif getattr(tg_msg, 'photo', None):
-                        attachment = tg_msg.photo[-1]
-                        msg_log.update(media_type=tg_media_type,
-                                       file_id=attachment.file_id,
-                                       mime='image/jpeg')
+            # Store media related information to local database
+            for tg_media_type in ('audio', 'animation', 'document', 'video', 'voice', 'video_note'):
+                attachment = getattr(tg_msg, tg_media_type, None)
+                if attachment:
+                    msg_log.update(media_type=tg_media_type,
+                                   file_id=attachment.file_id,
+                                   mime=attachment.mime_type)
+                    break
+            if not msg_log.get('media_type', None):
+                if getattr(tg_msg, 'sticker', None):
+                    msg_log.update(
+                        media_type='sticker',
+                        file_id=tg_msg.sticker.file_id,
+                        mime='image/webp'
+                    )
+                elif getattr(tg_msg, 'photo', None):
+                    attachment = tg_msg.photo[-1]
+                    msg_log.update(media_type=tg_media_type,
+                                   file_id=attachment.file_id,
+                                   mime='image/jpeg')
 
-                self.db.add_msg_log(**msg_log)
-                self.logger.debug("[%s] Message inserted/updated to the database.", xid)
+            self.db.add_msg_log(**msg_log)
+            self.logger.debug("[%s] Message inserted/updated to the database.", xid)
         except Exception as e:
             self.logger.error("[%s] Error occurred while processing message from slave channel.\nMessage: %s\n%s\n%s",
                               xid, repr(msg), repr(e), traceback.format_exc())
@@ -587,5 +586,8 @@ class SlaveMessageProcessor(LocaleMixin):
             name_prefix = ETMChat(chat=msg.chat, db=self.db).display_name
             msg_template = "%s %s:" % (emoji_prefix, name_prefix)
         else:
-            msg_template = self._("Unknown message source ({0}):").format(msg.chat.chat_type)
+            if msg.chat == msg.author:
+                msg_template = "\u2753 {}:".format(msg.chat.long_name)
+            else:
+                msg_template = "\u2753 {0} ({1}):".format(msg.author.long_name, msg.chat.display_name)
         return msg_template
