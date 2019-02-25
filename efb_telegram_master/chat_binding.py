@@ -41,9 +41,9 @@ class ETMChat(EFBChat):
         if channel:
             super().__init__(channel)
         if chat:
-            self.channel_name = chat.channel_name
+            self.module_name = chat.module_name
             self.channel_emoji = chat.channel_emoji
-            self.channel_id = chat.channel_id
+            self.module_id = chat.module_id
             self.chat_name = chat.chat_name
             self.chat_type = chat.chat_type
             self.chat_alias = chat.chat_alias
@@ -52,7 +52,7 @@ class ETMChat(EFBChat):
             self.members = chat.members.copy()
             self.chat = chat.group
             self.vendor_specific = chat.vendor_specific.copy()
-        self.linked: List[str] = self.db.get_chat_assoc(slave_uid=utils.chat_id_to_str(self.channel_id, self.chat_uid))
+        self.linked: List[str] = self.db.get_chat_assoc(slave_uid=utils.chat_id_to_str(self.module_id, self.chat_uid))
         self.muted: bool = self.MUTE_CHAT_ID in self.linked
 
     def match(self, pattern: Optional[Pattern]) -> bool:
@@ -83,13 +83,13 @@ class ETMChat(EFBChat):
             mode.append("Linked")
         mode = ', '.join(mode)
         entry_string = "Channel: %s\nName: %s\nAlias: %s\nID: %s\nType: %s\nMode: %s\nOther: %s" \
-                       % (self.channel_name, self.chat_name, self.chat_alias, self.chat_uid, self.chat_type,
+                       % (self.module_name, self.chat_name, self.chat_alias, self.chat_uid, self.chat_type,
                           mode, self.vendor_specific)
         return bool(pattern.search(entry_string))
 
     def unlink(self):
         """ Unlink this chat from any Telegram group."""
-        self.db.remove_chat_assoc(slave_uid=utils.chat_id_to_str(self.channel_id, self.chat_uid))
+        self.db.remove_chat_assoc(slave_uid=utils.chat_id_to_str(self.module_id, self.chat_uid))
 
     # TODO: Remove code for muted chats.
     # def mute(self):
@@ -100,14 +100,14 @@ class ETMChat(EFBChat):
 
     def link(self, channel_id: str, chat_id: str, multiple_slave: bool):
         self.db.add_chat_assoc(master_uid=utils.chat_id_to_str(channel_id, chat_id),
-                               slave_uid=utils.chat_id_to_str(self.channel_id, self.chat_uid),
+                               slave_uid=utils.chat_id_to_str(self.module_id, self.chat_uid),
                                multiple_slave=multiple_slave)
 
     @property
     def full_name(self):
         chat_display_name = self.display_name
-        return "'%s' @ '%s %s'" % (chat_display_name, self.channel_emoji, self.channel_name) \
-            if self.channel_name else "'%s'" % chat_display_name
+        return "'%s' @ '%s %s'" % (chat_display_name, self.channel_emoji, self.module_name) \
+            if self.module_name else "'%s'" % chat_display_name
 
     @property
     def display_name(self):
@@ -153,8 +153,8 @@ class ChatListStorage:
         self.__chats = value
         self.channels = dict()
         for i in value:
-            if i.channel_id not in self.channels:
-                self.channels[i.channel_id] = coordinator.slaves[i.channel_id]
+            if i.module_id not in self.channels:
+                self.channels[i.module_id] = coordinator.slaves[i.module_id]
 
     def set_chat_suggestion(self, update: telegram.Update, candidates: List[str]):
         self.update: telegram.Update = update
@@ -369,8 +369,8 @@ class ChatBindingManager(LocaleMixin):
         """
         try:
             for i in chats:
-                self.db.set_slave_chat_info(slave_channel_id=i.channel_id,
-                                            slave_channel_name=i.channel_name,
+                self.db.set_slave_chat_info(slave_channel_id=i.module_id,
+                                            slave_channel_name=i.module_name,
                                             slave_channel_emoji=i.channel_emoji,
                                             slave_chat_uid=i.chat_uid,
                                             slave_chat_name=i.chat_name,
@@ -571,7 +571,7 @@ class ChatBindingManager(LocaleMixin):
             return update.message.reply_text(self._("Session expired or unknown parameter. (SE02)"))
         chat: ETMChat = data.chats[0]
         chat_display_name = chat.full_name
-        slave_channel, slave_chat_uid = chat.channel_id, chat.chat_uid
+        slave_channel, slave_chat_uid = chat.module_id, chat.chat_uid
         if slave_channel in coordinator.slaves:
 
             # Use channel ID if command is forwarded from a channel.
@@ -821,7 +821,7 @@ class ChatBindingManager(LocaleMixin):
             update = self.msg_storage[storage_id].update
             chat = self.msg_storage[storage_id].candidates[int(param.split(' ', 1)[1])]
             chat = ETMChat(chat=self.get_chat_from_db(*utils.chat_id_str_to_id(chat)), db=self.db)
-            self.channel.master_messages.process_telegram_message(bot, update, channel_id=chat.channel_id,
+            self.channel.master_messages.process_telegram_message(bot, update, channel_id=chat.module_id,
                                                                   chat_id=chat.chat_uid)
             self.bot.edit_message_text(text=self._("Delivering the message to {0}").format(chat.full_name),
                                        chat_id=chat_id,

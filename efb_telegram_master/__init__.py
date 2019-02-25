@@ -169,7 +169,7 @@ class TelegramChannel(EFBChannel):
         Configuration file is in YAML format.
         """
         config_path = efb_utils.get_config_path(self.channel_id)
-        if not os.path.exists(config_path):
+        if not config_path.exists():
             raise FileNotFoundError(self._("Config File does not exist. ({path})").format(path=config_path))
         with open(config_path) as f:
             data = yaml.load(f)
@@ -212,7 +212,7 @@ class TelegramChannel(EFBChannel):
                     d = self.chat_binding.get_chat_from_db(channel_id, chat_id)
                     if d:
                         msg += "\n- %s (%s:%s)" % (ETMChat(chat=d, db=self.db).full_name,
-                                                   d.channel_id, d.chat_uid)
+                                                   d.module_id, d.chat_uid)
                     else:
                         if channel_id not in coordinator.slaves:
                             msg += self._("\n- Unknown channel {channel_id}: {chat_id}").format(

@@ -49,20 +49,20 @@ class ChatBindingTest(StandardChannelTest):
         with self.subTest('Full channel pagination'):
             legend, buttons = self.master.chat_binding.slave_chats_pagination((0, 1))
             self.assertIn(self.slave.channel_emoji, "\n".join(legend))
-            self.assertIn(self.slave.channel_name, "\n".join(legend))
+            self.assertIn(self.slave.module_name, "\n".join(legend))
             self.assertEqual(min(self.master.flag("chats_per_page"), len(self.slave.get_chats())), len(buttons) - 1)
 
         with self.subTest('Pagination with filter'):
             legend, buttons = self.master.chat_binding.slave_chats_pagination((0, 2), pattern="wonderland")
             self.assertIn(self.slave.channel_emoji, "\n".join(legend))
-            self.assertIn(self.slave.channel_name, "\n".join(legend))
+            self.assertIn(self.slave.module_name, "\n".join(legend))
             self.assertEqual(2, len(buttons))
 
         with self.subTest('Pagination with list'):
             source_chats = [utils.chat_id_to_str(chat=self.slave.get_chat('wonderland001'))]
             legend, buttons = self.master.chat_binding.slave_chats_pagination((0, 3), source_chats=source_chats)
             self.assertIn(self.slave.channel_emoji, "\n".join(legend))
-            self.assertIn(self.slave.channel_name, "\n".join(legend))
+            self.assertIn(self.slave.module_name, "\n".join(legend))
             self.assertEqual(2, len(buttons))
 
     @patch('efb_telegram_master.chat_binding.ChatBindingManager.slave_chats_pagination',

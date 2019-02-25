@@ -164,7 +164,7 @@ class SlaveMessageProcessor(LocaleMixin):
 
             if tg_msg and msg.commands:
                 self.channel.commands.register_command(tg_msg, ETMCommandMsgStorage(
-                    commands, coordinator.slaves[msg.chat.channel_id], msg_template, msg.text
+                    commands, coordinator.get_module_by_id(msg.author.module_id), msg_template, msg.text
                 ))
 
             self.logger.debug("[%s] Message is sent to the user with telegram message id %s.%s.",
