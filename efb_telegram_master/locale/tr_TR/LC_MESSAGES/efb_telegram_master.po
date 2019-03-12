@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ehforwarderbot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-23 15:58-0800\n"
-"PO-Revision-Date: 2019-02-10 05:14\n"
+"POT-Creation-Date: 2019-02-09 21:16-0800\n"
+"PO-Revision-Date: 2019-02-25 23:29\n"
 "Last-Translator: blueset <ilove@1a23.com>\n"
 "Language-Team: Turkish\n"
 "Language: tr_TR\n"
@@ -43,7 +43,7 @@ msgstr "Mesaj uzaktan sohbetten kaldırıldı."
 msgid "Unknown message source ({0}):"
 msgstr "Bilinmeyen mesaj kaynağı ({0}):"
 
-#: efb_telegram_master/__init__.py:103
+#: efb_telegram_master/__init__.py:109
 msgid "WebP support of Pillow is required.\n"
 "Please refer to Pillow Documentation for instructions.\n"
 "https://pillow.readthedocs.io/"
@@ -51,58 +51,58 @@ msgstr "Pillow için WebP desteği gerekiyor.\n"
 "Talimatlar için lütfen Pillow Belgelerine başvurun.\n"
 "https://pillow.readthedocs.io/"
 
-#: efb_telegram_master/__init__.py:165
+#: efb_telegram_master/__init__.py:173
 #, python-brace-format
 msgid "Config File does not exist. ({path})"
 msgstr "Config Dosyası mevcut değil. ({path})"
 
-#: efb_telegram_master/__init__.py:171
+#: efb_telegram_master/__init__.py:179
 msgid "Telegram bot token must be a string"
 msgstr "Telegram botunun bir simgesi olması şart"
 
-#: efb_telegram_master/__init__.py:177
+#: efb_telegram_master/__init__.py:185
 msgid "Admins' user IDs must be a list of one number or more."
 msgstr "Yöneticilerin kullanıcı no'ları bir veya daha fazla numara dizisi olmalıdır."
 
-#: efb_telegram_master/__init__.py:182
+#: efb_telegram_master/__init__.py:190
 #, python-brace-format
 msgid "Admin ID is expected to be an int, but {data} is found."
 msgstr "Yönetici no'sunun tamsayı olması beklenmektedir, ama {data} bulundu."
 
-#: efb_telegram_master/__init__.py:199
+#: efb_telegram_master/__init__.py:207
 #, python-brace-format
 msgid "The group {group_name} ({group_id}) is linked to:"
 msgstr "{group_name} ({group_id}) grubu bağlantılıdır:"
 
-#: efb_telegram_master/__init__.py:210
+#: efb_telegram_master/__init__.py:218
 #, python-brace-format
 msgid "\n"
 "- Unknown channel {channel_id}: {chat_id}"
 msgstr ""
 
-#: efb_telegram_master/__init__.py:215 efb_telegram_master/__init__.py:238
+#: efb_telegram_master/__init__.py:223 efb_telegram_master/__init__.py:246
 #, python-brace-format
 msgid "\n"
 "- {channel_emoji} {channel_name}: Unknown chat ({chat_id})"
 msgstr "\n"
 " -{channel_emoji} {channel_name}: bilinmeyen sohbet ({chat_id})"
 
-#: efb_telegram_master/__init__.py:221
+#: efb_telegram_master/__init__.py:229
 #, python-brace-format
 msgid "The group {group_name} ({group_id}) is not linked to any remote chat. To link one, use /link."
 msgstr "{group_name} ({group_id}) grubu hiçbir uzaktan sohbetle bağlantılı değildir. Bir tanesine bağlamak için, /link kullanın."
 
-#: efb_telegram_master/__init__.py:229
+#: efb_telegram_master/__init__.py:237
 #, python-brace-format
 msgid "The channel {group_name} ({group_id}) is linked to:"
 msgstr "{group_name} ({group_id}) kanalı bağlantılıdır:"
 
-#: efb_telegram_master/__init__.py:244
+#: efb_telegram_master/__init__.py:252
 #, python-brace-format
 msgid "The channel {group_name} ({group_id}) is not linked to any remote chat. "
 msgstr "{group_name} ({group_id}) kanalı hiçbir uzaktan sohbetle bağlantılı değildir. "
 
-#: efb_telegram_master/__init__.py:248
+#: efb_telegram_master/__init__.py:256
 #, python-brace-format
 msgid "This is EFB Telegram Master Channel {version}.\n"
 "{count} slave channel activated:"
@@ -112,7 +112,7 @@ msgstr[0] "Bu, EFB Telegram Ana Kanal {version} 'dir.\n"
 "{count} bağımlı kanal etkinleştirildi:"
 msgstr[1] "Bu, EFB Telegram Ana Kanal {version} 'dir. {count} bağımlı kanal etkinleştirildi:"
 
-#: efb_telegram_master/__init__.py:259
+#: efb_telegram_master/__init__.py:267
 #, python-brace-format
 msgid "\n\n"
 "{count} middleware activated:"
@@ -123,17 +123,17 @@ msgstr[0] "\n\n"
 msgstr[1] "\n\n"
 "{count} özel yazılım aktifleştirildi:"
 
-#: efb_telegram_master/__init__.py:282
+#: efb_telegram_master/__init__.py:290
 msgid "You cannot link remote chats to here. Please try again."
 msgstr "Buraya uzaktan sohbetleri bağlayamazsınız. Lütfen tekrar deneyin."
 
-#: efb_telegram_master/__init__.py:284
+#: efb_telegram_master/__init__.py:292
 msgid "This is EFB Telegram Master Channel.\n\n"
 "To learn more, please visit https://github.com/blueset/efb-telegram-master ."
 msgstr "Bu EFB Telegram Master Kanalıdır.\n\n"
 "Daha fazla bilgi için lütfen https://github.com/blueset/efb-telegram-master sitesini ziyaret edin ."
 
-#: efb_telegram_master/__init__.py:289
+#: efb_telegram_master/__init__.py:297
 msgid "EFB Telegram Master Channel\n"
 "/link\n"
 "    Link a remote chat to an empty Telegram group.\n"
@@ -150,40 +150,15 @@ msgid "EFB Telegram Master Channel\n"
 "/update_info\n"
 "    Update name and profile picture a linked Telegram group.\n"
 "    Only works in singly linked group where the bot is an admin.\n"
-"/recog\n"
-"    Reply to a voice message to convert it to text.\n"
-"    Followed by a language code to choose a specific language.\n"
-"    You have to enable speech to text in the config file first.\n"
 "/help\n"
 "    Print this command list."
-msgstr "EFB Telgraf Ana Kanalı\n"
-"/link\n"
-"    Uzaktan bir sohbeti boş bir Telgraf grubuna bağlayın.\n"
-"    Sonuçları filtrelemek için düzenli bir ifade tarafından takip edilir.\n"
-"/sohbet\n"
-"    Bir sohbet başlatmak için bir sohbet başlığı oluşturun.\n"
-"    Sonuçları filtrelemek için düzenli bir ifade tarafından takip edilir.\n"
-"/ekstra\n"
-"    Bağımlı kanallardaki tüm ek özellikleri listeleyin.\n"
-"/ unlink_all\n"
-"    Bu sohbetteki tüm uzaktan sohbetlerin bağlantısını kesin.\n"
-"/bilgi\n"
-"    Mevcut Telgraf sohbetinin bilgilerini göster.\n"
-"/güncelleme_bilgisi\n"
-"    Bağlı bir Telgraf grubunun adını ve profilini güncelleştir.\n"
-"    Yalnızca, botun yönetici olduğu tek bağlantılı grupta çalışır.\n"
-"/tanıma\n"
-"    Metne dönüştürmek için bir sesli mesaja cevap verin.\n"
-"    Belirli bir dili seçmek için bir dil kodu tarafından takip edilir.\n"
-"    Öncelikle konfigürasyon dosyasında konuşma metnini etkinleştirmeniz gerekir.\n"
-"/yardım\n"
-"    Bu komut listesini yazdırın."
+msgstr ""
 
-#: efb_telegram_master/__init__.py:326
+#: efb_telegram_master/__init__.py:330
 msgid "Conflicted polling detected. If this error persists, please ensure you are running only one instance of this Telegram bot."
 msgstr "Çatışan sorgulama tespit edildi. Eğer hata devam ederse, lütfen sadece Telegram bot örneği çalıştırdığınıza emin olun."
 
-#: efb_telegram_master/__init__.py:344
+#: efb_telegram_master/__init__.py:348
 #, python-brace-format
 msgid "Message request is invalid.\n"
 "{error}\n"
@@ -192,14 +167,14 @@ msgstr "Mesaj isteği geçersizdir.\n"
 "{error}\n"
 "<code>{update}</code>"
 
-#: efb_telegram_master/__init__.py:354
+#: efb_telegram_master/__init__.py:358
 #, python-brace-format
 msgid "This message is not processed due to poor internet environment of the server.\n"
 "<code>{code}</code>"
 msgstr "Sunucunun zayıf internet bağlantısından dolayı bu mesaj işlenmemiştir.\n"
 "<code>{code}</code>"
 
-#: efb_telegram_master/__init__.py:363
+#: efb_telegram_master/__init__.py:367
 #, python-brace-format
 msgid "<b>EFB Telegram Master channel</b>\n"
 "You may have a poor internet connection on your server. Currently {count} network error is detected.\n"
@@ -211,7 +186,7 @@ msgstr[0] "<b>EFB Telegram Master kanalı</b>\n"
 "Sunucunuzun internet bağlantısı zayıf olabilir. Mevcut durumda {count} ağ hatası tespit edilmiştir. Daha fazla bilgi için, lütfen log'dan yararlanın."
 msgstr[1] "<b>EFB Telegram Master kanalı</b> Sunucunuzun internet bağlantısı zayıf olabilir. Mevcut durumda {count} ağ hatası tespit edilmiştir. Daha fazla bilgi için, lütfen log'dan yararlanın."
 
-#: efb_telegram_master/__init__.py:383
+#: efb_telegram_master/__init__.py:387
 #, python-brace-format
 msgid "Chat migration detected.\n"
 "All {count} remote chat are now linked to this new group."
@@ -221,7 +196,7 @@ msgstr[0] "Sohbet geçişi tespit edilmiştir.\n"
 "Bütün {count} uzaktan sohbetler bu yeni gruba bağlanmıştır."
 msgstr[1] "Sohbet geçişi tespit edilmiştir. Bütün {count} uzaktan sohbetler bu yeni gruba bağlanmıştır."
 
-#: efb_telegram_master/__init__.py:391
+#: efb_telegram_master/__init__.py:395
 #, python-brace-format
 msgid "EFB Telegram Master channel encountered error <code>{error}</code> caused by update <code>{update}</code>."
 msgstr "EFB Telegram Master kanalı <code>{update}</code> güncellemesinin sebep olduğu <code>{error}</code> hatasıyla karşılaşmıştır."
@@ -345,9 +320,8 @@ msgstr "Mesaj tipi desteklenmemektedir."
 
 #: efb_telegram_master/master_message.py:374
 msgid "Message editing is not supported.\n\n"
-"{!r}"
-msgstr "Mesaj düzenleme desteklenmemektedir.\n\n"
-"{!r}"
+"{!s}"
+msgstr ""
 
 #: efb_telegram_master/master_message.py:376
 msgid "Message is not sent.\n\n"
@@ -359,24 +333,20 @@ msgstr "Mesaj gönderilmemiştir.\n\n"
 msgid "Attachment is too large. Maximum is 20 MB. (AT01)"
 msgstr "Eklenti çok büyük. Maksimum 20 MB olmalı. (AT01)"
 
-#: efb_telegram_master/bot_manager.py:59
-msgid "Token is not properly defined."
-msgstr "Simge uygun bir şekilde tanımlanmamıştır."
-
-#: efb_telegram_master/bot_manager.py:101
-#: efb_telegram_master/bot_manager.py:140
+#: efb_telegram_master/bot_manager.py:116
+#: efb_telegram_master/bot_manager.py:153
 msgid "Message is truncated due to its length. Full message is sent as attachment."
 msgstr "İleti çok uzun olduğu için kesildi. Tam mesaj ek olarak gönderilir."
 
-#: efb_telegram_master/bot_manager.py:212
+#: efb_telegram_master/bot_manager.py:225
 msgid "Caption is truncated due to its length. Full message is sent as attachment."
 msgstr "Başlık, uzunluğundan dolayı kesiliyor. Tam mesaj ek olarak gönderilir."
 
-#: efb_telegram_master/bot_manager.py:362
+#: efb_telegram_master/bot_manager.py:375
 msgid "Session expired. Please try again. (SE01)"
 msgstr "Oturum süresi doldu. Lütfen tekrar deneyin. (SE01)"
 
-#: efb_telegram_master/bot_manager.py:414
+#: efb_telegram_master/bot_manager.py:431
 msgid "Empty attachment detected."
 msgstr "Boş ek tespit edildi."
 

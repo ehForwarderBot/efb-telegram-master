@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ehforwarderbot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-23 15:58-0800\n"
-"PO-Revision-Date: 2019-01-23 23:58\n"
+"POT-Creation-Date: 2019-02-09 21:16-0800\n"
+"PO-Revision-Date: 2019-02-25 23:29\n"
 "Last-Translator: blueset <ilove@1a23.com>\n"
 "Language-Team: Japanese\n"
 "Language: ja_JP\n"
@@ -43,7 +43,7 @@ msgstr "メッセージを削除されました。"
 msgid "Unknown message source ({0}):"
 msgstr "不明なメッセージソース（{0}）:"
 
-#: efb_telegram_master/__init__.py:103
+#: efb_telegram_master/__init__.py:109
 msgid "WebP support of Pillow is required.\n"
 "Please refer to Pillow Documentation for instructions.\n"
 "https://pillow.readthedocs.io/"
@@ -51,58 +51,58 @@ msgstr "PillowのWebP対応が必要です。\n"
 "詳しくはPillowのマニュアルを参照してください。\n"
 "https://pillow.readthedocs.io/"
 
-#: efb_telegram_master/__init__.py:165
+#: efb_telegram_master/__init__.py:173
 #, python-brace-format
 msgid "Config File does not exist. ({path})"
 msgstr "設定ファイルがありません（{path}）。"
 
-#: efb_telegram_master/__init__.py:171
+#: efb_telegram_master/__init__.py:179
 msgid "Telegram bot token must be a string"
 msgstr "Telegram Bot のトークンは文字列でなければなりません。"
 
-#: efb_telegram_master/__init__.py:177
+#: efb_telegram_master/__init__.py:185
 msgid "Admins' user IDs must be a list of one number or more."
 msgstr "管理者のユーザー ID は一つ以上の数字のリストでなければなりません。"
 
-#: efb_telegram_master/__init__.py:182
+#: efb_telegram_master/__init__.py:190
 #, python-brace-format
 msgid "Admin ID is expected to be an int, but {data} is found."
 msgstr "管理者 ID は整数値と期待されていましたが、{data} を見つかりました。"
 
-#: efb_telegram_master/__init__.py:199
+#: efb_telegram_master/__init__.py:207
 #, python-brace-format
 msgid "The group {group_name} ({group_id}) is linked to:"
 msgstr "このグループ {group_name} ({group_id}) は以下のチャットにリンクしています:"
 
-#: efb_telegram_master/__init__.py:210
+#: efb_telegram_master/__init__.py:218
 #, python-brace-format
 msgid "\n"
 "- Unknown channel {channel_id}: {chat_id}"
 msgstr ""
 
-#: efb_telegram_master/__init__.py:215 efb_telegram_master/__init__.py:238
+#: efb_telegram_master/__init__.py:223 efb_telegram_master/__init__.py:246
 #, python-brace-format
 msgid "\n"
 "- {channel_emoji} {channel_name}: Unknown chat ({chat_id})"
 msgstr "\n"
 "- {channel_emoji} {channel_name}: 不明なチャット ({chat_id})"
 
-#: efb_telegram_master/__init__.py:221
+#: efb_telegram_master/__init__.py:229
 #, python-brace-format
 msgid "The group {group_name} ({group_id}) is not linked to any remote chat. To link one, use /link."
 msgstr "このグループ {group_name} ({group_id}) はまだどこにも繋がりません。つながるには、 /link を送信してください。"
 
-#: efb_telegram_master/__init__.py:229
+#: efb_telegram_master/__init__.py:237
 #, python-brace-format
 msgid "The channel {group_name} ({group_id}) is linked to:"
 msgstr "このチャンネル {group_name} ({group_id}) は以下のチャットにリンクしています:"
 
-#: efb_telegram_master/__init__.py:244
+#: efb_telegram_master/__init__.py:252
 #, python-brace-format
 msgid "The channel {group_name} ({group_id}) is not linked to any remote chat. "
 msgstr "このチャンネル {group_name} ({group_id}) はまだチャットにリンクしていません。 "
 
-#: efb_telegram_master/__init__.py:248
+#: efb_telegram_master/__init__.py:256
 #, python-brace-format
 msgid "This is EFB Telegram Master Channel {version}.\n"
 "{count} slave channel activated:"
@@ -111,7 +111,7 @@ msgid_plural "This is EFB Telegram Master Channel {version}.\n"
 msgstr[0] "こちらは EFB Telegram マスターチャンネル バージョン{version} です。\n"
 "{count} 個のアクティブスレーブチャンネル:"
 
-#: efb_telegram_master/__init__.py:259
+#: efb_telegram_master/__init__.py:267
 #, python-brace-format
 msgid "\n\n"
 "{count} middleware activated:"
@@ -120,17 +120,17 @@ msgid_plural "\n\n"
 msgstr[0] "\n\n"
 "{count} 個のアクティブミドルウェア:"
 
-#: efb_telegram_master/__init__.py:282
+#: efb_telegram_master/__init__.py:290
 msgid "You cannot link remote chats to here. Please try again."
 msgstr "ここにチャットをリンクすることはできません、もう一度やり直してください。"
 
-#: efb_telegram_master/__init__.py:284
+#: efb_telegram_master/__init__.py:292
 msgid "This is EFB Telegram Master Channel.\n\n"
 "To learn more, please visit https://github.com/blueset/efb-telegram-master ."
 msgstr "こちらは EFB Telegram マスターチャンネルです。\n\n"
 "詳しくは、 https://github.com/blueset/efb-telegram-master をご覧ください。"
 
-#: efb_telegram_master/__init__.py:289
+#: efb_telegram_master/__init__.py:297
 msgid "EFB Telegram Master Channel\n"
 "/link\n"
 "    Link a remote chat to an empty Telegram group.\n"
@@ -147,40 +147,15 @@ msgid "EFB Telegram Master Channel\n"
 "/update_info\n"
 "    Update name and profile picture a linked Telegram group.\n"
 "    Only works in singly linked group where the bot is an admin.\n"
-"/recog\n"
-"    Reply to a voice message to convert it to text.\n"
-"    Followed by a language code to choose a specific language.\n"
-"    You have to enable speech to text in the config file first.\n"
 "/help\n"
 "    Print this command list."
-msgstr "EFB Telegram マスターチャンネル\n"
-"/link\n"
-"    Telegram グループとリモートチャットをリンクします。\n"
-"    後に正規表現を続くとフィルターを適用できます。\n"
-"/chat\n"
-"    チャットヘッドを作成し、会話を始めます。\n"
-"    後に正規表現を続くとフィルターを適用できます。\n"
-"/extra\n"
-"    スレーブチャンネルの追加機能を表示します。\n"
-"/unlink_all\n"
-"    指定した Telegram チャットのすべてのリンクを解除する。\n"
-"/info\n"
-"    指定した Telegram チャットの情報を表示します。\n"
-"/update_info\n"
-"    指定した Telegram グループの名前とアイコン画像を更新する。\n"
-"    このコマンドはボットが単独繋がりのグループの管理者の場合のみ、動作します。\n"
-"/recog\n"
-"    音声メッセージを文字に変換します。\n"
-"    後に言語コードを続くと指定言語のみへの変換結果を表示します。\n"
-"    設定ファイルで音声認識サービスを設定することは必要です。\n"
-"/help\n"
-"    この説明を表示する。"
+msgstr ""
 
-#: efb_telegram_master/__init__.py:326
+#: efb_telegram_master/__init__.py:330
 msgid "Conflicted polling detected. If this error persists, please ensure you are running only one instance of this Telegram bot."
 msgstr "競合するポーリングスレッドが発見しました。このエラーが引き続き発生する場合は、この Telegram Bot の一つだけのインスタントを実行することを確認してください。"
 
-#: efb_telegram_master/__init__.py:344
+#: efb_telegram_master/__init__.py:348
 #, python-brace-format
 msgid "Message request is invalid.\n"
 "{error}\n"
@@ -189,14 +164,14 @@ msgstr "メッセージリクエストは無効です。\n"
 "{error}\n"
 "<code>{update}</code>"
 
-#: efb_telegram_master/__init__.py:354
+#: efb_telegram_master/__init__.py:358
 #, python-brace-format
 msgid "This message is not processed due to poor internet environment of the server.\n"
 "<code>{code}</code>"
 msgstr "サーバーのインターネット環境が悪いため、このメッセージは処理されません。\n"
 "<code>{code}</code>"
 
-#: efb_telegram_master/__init__.py:363
+#: efb_telegram_master/__init__.py:367
 #, python-brace-format
 msgid "<b>EFB Telegram Master channel</b>\n"
 "You may have a poor internet connection on your server. Currently {count} network error is detected.\n"
@@ -207,7 +182,7 @@ msgid_plural "<b>EFB Telegram Master channel</b>\n"
 msgstr[0] "<b>EFB Telegram マスターチャンネル</b>\n"
 "サーバーでのインターネット接続が不十分である可能性があります。現在、{count} 個のネットワークエラーが検出されました。詳しくは、ログを参照したください。"
 
-#: efb_telegram_master/__init__.py:383
+#: efb_telegram_master/__init__.py:387
 #, python-brace-format
 msgid "Chat migration detected.\n"
 "All {count} remote chat are now linked to this new group."
@@ -215,7 +190,7 @@ msgid_plural "Chat migration detected.\n"
 "All {count} remote chats are now linked to this new group."
 msgstr[0] "チャットの移行を検出しました。全部 {count} 個のチャットは新しいグループにリンクされました。"
 
-#: efb_telegram_master/__init__.py:391
+#: efb_telegram_master/__init__.py:395
 #, python-brace-format
 msgid "EFB Telegram Master channel encountered error <code>{error}</code> caused by update <code>{update}</code>."
 msgstr "EFB Telegram マスターチャンネルはエラー<code>{error}</code>が発見しました。<code>{update}</code>により引き起こされた。"
@@ -339,9 +314,8 @@ msgstr "このメッセージタイプは対応されていません。"
 
 #: efb_telegram_master/master_message.py:374
 msgid "Message editing is not supported.\n\n"
-"{!r}"
-msgstr "メッセージの編集は対応されていません。 \n\n"
-"{!r}"
+"{!s}"
+msgstr ""
 
 #: efb_telegram_master/master_message.py:376
 msgid "Message is not sent.\n\n"
@@ -353,24 +327,20 @@ msgstr "メッセージは送信されません。\n\n"
 msgid "Attachment is too large. Maximum is 20 MB. (AT01)"
 msgstr "添付ファイルが大きすぎます。最大 20 MB までのファイルのみを送信できます。 (AT01)"
 
-#: efb_telegram_master/bot_manager.py:59
-msgid "Token is not properly defined."
-msgstr "Token は正しく入力されません。"
-
-#: efb_telegram_master/bot_manager.py:101
-#: efb_telegram_master/bot_manager.py:140
+#: efb_telegram_master/bot_manager.py:116
+#: efb_telegram_master/bot_manager.py:153
 msgid "Message is truncated due to its length. Full message is sent as attachment."
 msgstr "メッセージが長すぎますので、切り捨てられました。完全なメッセージはファイルで送信されます。"
 
-#: efb_telegram_master/bot_manager.py:212
+#: efb_telegram_master/bot_manager.py:225
 msgid "Caption is truncated due to its length. Full message is sent as attachment."
 msgstr "説名分が長すぎますので、切り捨てられました。完全な説明文はファイルで送信されます。"
 
-#: efb_telegram_master/bot_manager.py:362
+#: efb_telegram_master/bot_manager.py:375
 msgid "Session expired. Please try again. (SE01)"
 msgstr "セッションが切れた。もう一度やり直してください。(SE01)"
 
-#: efb_telegram_master/bot_manager.py:414
+#: efb_telegram_master/bot_manager.py:431
 msgid "Empty attachment detected."
 msgstr "空の添付ファイルが検出されました。"
 
