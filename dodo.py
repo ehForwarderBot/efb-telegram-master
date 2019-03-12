@@ -29,7 +29,7 @@ def task_gettext():
 def task_msgfmt():
     sources = glob.glob("./{package}/**/*.po".format(package=PACKAGE), recursive=True)
     dests = [i[:-3] + ".mo" for i in sources]
-    actions = [("msgfmt", sources[i], "-o", dests[i]) for i in range(len(sources))]
+    actions = [["msgfmt", sources[i], "-o", dests[i]] for i in range(len(sources))]
     return {
         "actions": actions,
         "targets": dests,
@@ -56,8 +56,8 @@ def task_crowdin_pull():
 def task_commit_lang_file():
     return {
         "actions": [
-            ("git", "add", "*.po"),
-            ("git", "commit", "-s", "Sync localization files from Crowdin")
+            ["git", "add", "*.po"],
+            ["git", "commit", "-m", "Sync localization files from Crowdin"]
         ],
         "task_dep": ["crowdin", "crowdin_pull"]
     }
@@ -89,24 +89,26 @@ def task_bump_version():
                     ("dev", "Bump a dev version (for commit only)")
                 ]
             }
-        ]
+        ],
+        "task_dep": ["test", "commit_lang_file"]
     }
 
 
 def task_mypy():
-    sources = glob.glob("./{package}/**/*.py".format(package=PACKAGE), recursive=True)
-    actions = ["mypy {}".format(i) for i in sources]
+    actions = ["mypy -p {}".format(PACKAGE)]
     return {
         "actions": actions
     }
 
 
 def task_test():
+    sources = glob.glob("./{package}/**/*.py".format(package=PACKAGE), recursive=True)
     return {
         "actions": [
-            "coverage run --source ./{} pytest".format(PACKAGE),
+            "coverage run --source ./{} -m pytest".format(PACKAGE),
             "coverage report"
-        ]
+        ],
+        "file_dep": sources
     }
 
 
@@ -114,7 +116,8 @@ def task_build():
     return {
         "actions": [
             "python setup.py sdist bdist_wheel"
-        ]
+        ],
+        "task_dep": ["test", "msgfmt", "bump_version"]
     }
 
 
@@ -125,5 +128,5 @@ def task_publish():
         return ["twine", "upload"] + binarys
     return {
         "actions": [get_twine_command],
-        "task_dep": ["test", "msgfmt", "build"]
+        "task_dep": ["build"]
     }
