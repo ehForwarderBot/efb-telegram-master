@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ehforwarderbot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-02-09 21:16-0800\n"
-"PO-Revision-Date: 2019-02-25 23:29\n"
+"POT-Creation-Date: 2019-03-12 14:52+1100\n"
+"PO-Revision-Date: 2019-03-12 04:09\n"
 "Last-Translator: blueset <ilove@1a23.com>\n"
 "Language-Team: Spanish, Argentina\n"
 "Language: es_AR\n"
@@ -16,32 +16,27 @@ msgstr ""
 "X-Crowdin-Language: es-AR\n"
 "X-Crowdin-File: /EFBChannels/efb-telegram-master/efb_telegram_master/locale/efb_telegram_master.pot\n"
 
-#: efb_telegram_master/slave_message.py:156
+#: efb_telegram_master/slave_message.py:163
 msgid "Unsupported type of message. (UT01)"
 msgstr "Tipo de mensaje no compatible. (UT01)"
 
 #. TRANSLATORS: Flag for edited message, but cannot be edited on Telegram.
-#: efb_telegram_master/slave_message.py:461
+#: efb_telegram_master/slave_message.py:467
 msgid "[edited]"
 msgstr "[edited]"
 
-#: efb_telegram_master/slave_message.py:464
+#: efb_telegram_master/slave_message.py:470
 msgid "Sent a location."
 msgstr ""
 
-#: efb_telegram_master/slave_message.py:496
 #: efb_telegram_master/slave_message.py:502
+#: efb_telegram_master/slave_message.py:508
 msgid "(unsupported)"
 msgstr ""
 
-#: efb_telegram_master/slave_message.py:545
+#: efb_telegram_master/slave_message.py:551
 msgid "Message removed in remote chat."
 msgstr "Mensaje eliminado en chat remoto."
-
-#: efb_telegram_master/slave_message.py:583
-#, python-brace-format
-msgid "Unknown message source ({0}):"
-msgstr "Fuente de mensaje desconocida ({0}):"
 
 #: efb_telegram_master/__init__.py:109
 msgid "WebP support of Pillow is required.\n"
@@ -202,7 +197,7 @@ msgstr[1] "Se detectó la migración de chat. Todos los {count} del chat remoto 
 msgid "EFB Telegram Master channel encountered error <code>{error}</code> caused by update <code>{update}</code>."
 msgstr "El Canal Maestro de EFB Telegram ha presentado un error <code>{error}</code> causados por actualización <code>{update}</code>."
 
-#: efb_telegram_master/utils.py:33
+#: efb_telegram_master/utils.py:34
 #, python-brace-format
 msgid "{0} is not a valid experimental flag"
 msgstr "{0} no es un indicador experimental válido"
@@ -302,35 +297,35 @@ msgid "Internal error: Channel \"{0}\" not found."
 msgstr "Error interno: Canal \"{0}\" no fue encontrado."
 
 #. TRANSLATORS: Message body text for location messages.
-#: efb_telegram_master/master_message.py:352
+#: efb_telegram_master/master_message.py:357
 msgid "Location"
 msgstr ""
 
-#: efb_telegram_master/master_message.py:365
+#: efb_telegram_master/master_message.py:370
 #, python-brace-format
 msgid "Message type {0} is not supported."
 msgstr "El tipo de mensaje {0} no es compatible."
 
-#: efb_telegram_master/master_message.py:370
+#: efb_telegram_master/master_message.py:375
 msgid "Chat is not found."
 msgstr "Chat no encontrado."
 
-#: efb_telegram_master/master_message.py:372
+#: efb_telegram_master/master_message.py:377
 msgid "Message type is not supported."
 msgstr "El tipo de mensaje no es compatible."
 
-#: efb_telegram_master/master_message.py:374
+#: efb_telegram_master/master_message.py:379
 msgid "Message editing is not supported.\n\n"
 "{!s}"
 msgstr ""
 
-#: efb_telegram_master/master_message.py:376
+#: efb_telegram_master/master_message.py:381
 msgid "Message is not sent.\n\n"
 "{!r}"
 msgstr "Mensaje no fue enviado.\n\n"
 "{!r}"
 
-#: efb_telegram_master/master_message.py:435
+#: efb_telegram_master/master_message.py:440
 msgid "Attachment is too large. Maximum is 20 MB. (AT01)"
 msgstr "El archivo adjunto es demasiado grande. El máximo es de 20 MB. (AT01)"
 
@@ -622,45 +617,45 @@ msgstr "Se produjo un error mientras se actualizaba la información del chat.\n"
 msgid "No profile picture provided from this chat."
 msgstr "No se proporcionó una foto de perfil de este chat."
 
-#: efb_telegram_master/commands.py:88
+#: efb_telegram_master/commands.py:89
 #, python-brace-format
 msgid "Invalid parameter: {0}. (CE01)"
 msgstr "Parámetro no válido {0}. (CE01)"
 
-#: efb_telegram_master/commands.py:93
+#: efb_telegram_master/commands.py:94
 #, python-brace-format
 msgid "Index out of bound: {0}. (CE02)"
 msgstr "Índice fuera de límite: {0}. (CE02)"
 
-#: efb_telegram_master/commands.py:124
+#: efb_telegram_master/commands.py:130
 msgid "<i>Click the link next to the name for usage.</i>\n"
 msgstr ""
 
-#: efb_telegram_master/commands.py:133
+#: efb_telegram_master/commands.py:139
 msgid "No command found."
 msgstr ""
 
-#: efb_telegram_master/commands.py:138
+#: efb_telegram_master/commands.py:144
 msgid "Invalid module id ID. (XC03)"
 msgstr ""
 
-#: efb_telegram_master/commands.py:144
+#: efb_telegram_master/commands.py:150
 msgid "Command not found in selected module. (XC04)"
 msgstr ""
 
-#: efb_telegram_master/commands.py:167
+#: efb_telegram_master/commands.py:173
 msgid "Invalid module ID. (XC01)"
 msgstr ""
 
-#: efb_telegram_master/commands.py:175
+#: efb_telegram_master/commands.py:181
 msgid "Command not found in selected module. (XC02)"
 msgstr ""
 
-#: efb_telegram_master/commands.py:180
+#: efb_telegram_master/commands.py:186
 msgid "Please wait..."
 msgstr "Espera por favor..."
 
-#: efb_telegram_master/commands.py:188
+#: efb_telegram_master/commands.py:194
 msgid "Error: Command is not found in the channel.\n"
 "Function: {channel_id}.{callable}\n"
 "Arguments: {args!r}\n"
