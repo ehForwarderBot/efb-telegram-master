@@ -1,5 +1,7 @@
 import glob
+import subprocess
 
+from doit.action import CmdAction
 
 PACKAGE = "efb_telegram_master"
 DEFAULT_BUMP_MODE = "bump"
@@ -40,6 +42,7 @@ def task_msgfmt():
 
 def task_crowdin():
     sources = glob.glob("./{package}/**/*.po".format(package=PACKAGE), recursive=True)
+    sources.append("README.rst")
     return {
         "actions": ["crowdin upload sources"],
         "file_dep": sources,
@@ -54,10 +57,15 @@ def task_crowdin_pull():
 
 
 def task_commit_lang_file():
+    def git_actions():
+        if subprocess.run(['git', 'diff-index', '--quiet', 'HEAD']).returncode != 0:
+            return ["git commit -m \"Sync localization files from Crowdin\""]
+        return ["echo"]
+
     return {
         "actions": [
-            ["git", "add", "*.po"],
-            ["git", "commit", "-m", "Sync localization files from Crowdin"]
+            ["git", "add", "*.po", "readme_translations/*.rst"],
+            CmdAction(git_actions)
         ],
         "task_dep": ["crowdin", "crowdin_pull"]
     }
@@ -65,10 +73,10 @@ def task_commit_lang_file():
 
 def task_bump_version():
     def gen_bump_version(mode=DEFAULT_BUMP_MODE):
-        return 'bumpversion', mode
+        return 'bumpversion ' + mode
 
     return {
-        "actions": [gen_bump_version],
+        "actions": [CmdAction(gen_bump_version)],
         "targets": [
             "./{package}/__version__.py".format(package=PACKAGE),
             ".bumpversion.cfg"
@@ -90,19 +98,23 @@ def task_bump_version():
                 ]
             }
         ],
-        "task_dep": ["test", "commit_lang_file"]
+        "task_dep": ["test", "mypy", "commit_lang_file"]
     }
 
 
 def task_mypy():
     actions = ["mypy -p {}".format(PACKAGE)]
+    sources = glob.glob("./{package}/**/*.py".format(package=PACKAGE), recursive=True)
+    sources = [i for i in sources if "__version__.py" not in i]
     return {
-        "actions": actions
+        "actions": actions,
+        "file_dep": sources
     }
 
 
 def task_test():
     sources = glob.glob("./{package}/**/*.py".format(package=PACKAGE), recursive=True)
+    sources = [i for i in sources if "__version__.py" not in i]
     return {
         "actions": [
             "coverage run --source ./{} -m pytest".format(PACKAGE),
@@ -125,8 +137,8 @@ def task_publish():
     def get_twine_command():
         __version__ = __import__("{}.__version__".format(PACKAGE)).__version__
         binarys = glob.glob("./dist/*{}*".format(__version__), recursive=True)
-        return ["twine", "upload"] + binarys
+        return " ".join(["twine", "upload"] + binarys)
     return {
-        "actions": [get_twine_command],
+        "actions": [CmdAction(get_twine_command)],
         "task_dep": ["build"]
     }

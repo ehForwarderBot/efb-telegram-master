@@ -10,7 +10,7 @@ EFB Telegram Master Channel (ETM)
 
 `README in other languages`_.
 .. _README in other languages: ./readme_translations
-.. TRANSLATORS: change the URL on previous line as ".." (without quotations).
+.. TRANSLATORS: change the URL on previous line as "." (without quotations).
 
 **Channel ID**: ``blueset.telegram``
 
@@ -300,22 +300,22 @@ called like a Linux/unix CLI utility. (of course, please don’t expect
 piping etc to be supported)
 
 .. Deprecated feature
-
+    .
     ``/recog``: Speech recognition
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+    .
     If you have entered a speech recognition service API keys, you can use
     it to convert speech in voice messages into text.
-
+    .
     Reply any voice messages in a conversation with the bot, with the
     command ``/recog``, and the bot will try to convert it to text using
     those speech recognition services enabled.
-
+    .
     If you know the language used in this message, you can also attach the
     language code to the command for a more precise conversion.
-
+    .
     Supported language codes:
-
+    .
     +-----------+-----------+---------------------------+
     | Code      | Baidu     | Bing                      |
     +===========+===========+===========================+
