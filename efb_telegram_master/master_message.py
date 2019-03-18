@@ -6,6 +6,8 @@ import os
 import tempfile
 import threading
 from typing import Tuple, IO, Optional, TYPE_CHECKING
+import subprocess as sp
+from ehforwarderbot.channel import EFBChannel
 
 import magic
 import telegram
@@ -325,7 +327,7 @@ class MasterMessageProcessor(LocaleMixin):
                 m.text = ""
                 self.logger.debug("[%s] Telegram message is a \"Telegram GIF\".", message_id)
                 m.filename = getattr(message.document, "file_name", None) or None
-                m.file, m.mime, m.filename, m.path = self._download_gif(message.document)
+                m.file, m.mime, m.filename, m.path = self._download_gif(message.document, channel)
                 m.mime = message.document.mime_type or m.mime
             elif mtype == TGMsgType.Document:
                 m.text = msg_md_caption
@@ -453,7 +455,7 @@ class MasterMessageProcessor(LocaleMixin):
             mime = mime.decode()
         return file, mime, os.path.basename(full_path), full_path
 
-    def _download_gif(self, file: telegram.File) -> Tuple[IO[bytes], str, str, str]:
+    def _download_gif(self, file: telegram.File, channel: str = "") -> Tuple[IO[bytes], str, str, str]:
         """
         Download and convert GIF image.
 
@@ -466,7 +468,20 @@ class MasterMessageProcessor(LocaleMixin):
         """
         file, _, filename, path = self._download_file(file, 'video/mpeg')
         gif_file = tempfile.NamedTemporaryFile(suffix='.gif')
-        VideoFileClip(path).write_gif(gif_file.name, program="ffmpeg")
+        try:
+            self.convertGif(path, gif_file.name, channel)
+        except IOError as err:
+            error = "ffmpeg convert fail"
+            raise IOError(error)
         file.close()
         gif_file.seek(0)
         return gif_file, "image/gif", os.path.basename(gif_file.name), gif_file.name
+    
+    def convertGif(self, path, tmp, channel: str = ""):
+        v = VideoFileClip(path)
+        self.logger.info("convert gif path:{} temp:{} channel:{} size:{}".format(path, tmp, channel, v.size))
+        if "wechat" in channel and v.size[0] > 600:
+            proc1 = sp.Popen(["ffmpeg", "-y", "-i", "%s"%path, '-vf', "scale=600:-2", "%s"%tmp], bufsize=0)
+        else:
+            proc1 = sp.Popen(["ffmpeg", "-y", "-i", "%s"%path, "%s"%tmp], bufsize=0)
+        proc1.wait()
