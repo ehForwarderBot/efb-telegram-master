@@ -40,7 +40,7 @@ setup(
     ],
     install_requires=[
         "ehforwarderbot>=2.0.0b15",
-        "python-telegram-bot>=10.0.0<12.0.0",
+        "python-telegram-bot>=10.0.0,<12.0.0",
         "python-magic",
         "moviepy",
         "peewee",
