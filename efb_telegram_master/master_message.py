@@ -5,9 +5,9 @@ import mimetypes
 import os
 import tempfile
 import threading
+import subprocess
 from typing import Tuple, IO, Optional, TYPE_CHECKING
-import subprocess as sp
-from ehforwarderbot.channel import EFBChannel
+
 
 import magic
 import telegram
@@ -23,6 +23,8 @@ from ehforwarderbot.exceptions import EFBMessageTypeNotSupported, EFBChatNotFoun
     EFBMessageError, EFBMessageNotFound, EFBOperationNotSupported
 from ehforwarderbot.message import EFBMsgLocationAttribute
 from ehforwarderbot.status import EFBMessageRemoval
+from ehforwarderbot.channel import EFBChannel
+
 from . import utils
 from .msg_type import get_msg_type, TGMsgType
 from .locale_mixin import LocaleMixin
@@ -455,12 +457,13 @@ class MasterMessageProcessor(LocaleMixin):
             mime = mime.decode()
         return file, mime, os.path.basename(full_path), full_path
 
-    def _download_gif(self, file: telegram.File, channel: str = "") -> Tuple[IO[bytes], str, str, str]:
+    def _download_gif(self, file: telegram.File, channel_id: str = "") -> Tuple[IO[bytes], str, str, str]:
         """
         Download and convert GIF image.
 
         Args:
             file: Telegram File object
+            channel_id: Destination channel ID of the message
 
         Returns:
             Tuple[IO[bytes], str, str, str]:
@@ -469,19 +472,21 @@ class MasterMessageProcessor(LocaleMixin):
         file, _, filename, path = self._download_file(file, 'video/mpeg')
         gif_file = tempfile.NamedTemporaryFile(suffix='.gif')
         try:
-            self.convertGif(path, gif_file.name, channel)
+            v = VideoFileClip(path)
+            self.logger.info("Convert Telegram MP4 to GIF from "
+                             "channel %s with size %s", channel, v.size)
+            if channel == "blueset.wechat" and v.size[0] > 600:
+                # Workaround: Compress GIF for slave channel `blueset.wechat`
+                # TODO: Move this logic to `blueset.wechat` in the future
+                subprocess.Popen(
+                    ["ffmpeg", "-y", "-i", path, '-vf', "scale=600:-2", gif_file.name], 
+                    bufsize=0
+                ).wait()
+            else:
+                v.write_gif(gif_file.name, program="ffmpeg")
         except IOError as err:
             error = "ffmpeg convert fail"
             raise IOError(error)
         file.close()
         gif_file.seek(0)
         return gif_file, "image/gif", os.path.basename(gif_file.name), gif_file.name
-    
-    def convertGif(self, path, tmp, channel: str = ""):
-        v = VideoFileClip(path)
-        self.logger.info("convert gif path:{} temp:{} channel:{} size:{}".format(path, tmp, channel, v.size))
-        if "wechat" in channel and v.size[0] > 600:
-            proc1 = sp.Popen(["ffmpeg", "-y", "-i", "%s"%path, '-vf', "scale=600:-2", "%s"%tmp], bufsize=0)
-        else:
-            proc1 = sp.Popen(["ffmpeg", "-y", "-i", "%s"%path, "%s"%tmp], bufsize=0)
-        proc1.wait()
