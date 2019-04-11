@@ -801,10 +801,14 @@ class ChatBindingManager(LocaleMixin):
 
     def register_suggestions(self, update: telegram.Update, candidates: List[str], chat_id: int, message_id: int):
         storage_id = (chat_id, message_id)
-        self.msg_storage[storage_id] = ChatListStorage([])
-        self.msg_storage[storage_id].set_chat_suggestion(update, candidates)
         legends, buttons = self.channel.chat_binding.slave_chats_pagination(
             storage_id, 0, source_chats=candidates)
+        if len(buttons) <= 1:
+            # Stop editing the message as no valid suggestion is available.
+            # Remove message from cache and return
+            del self.msg_storage[storage_id]
+            return
+        self.msg_storage[storage_id].set_chat_suggestion(update, candidates)
         self.bot.edit_message_text(text=self._("Error: No recipient specified.\n"
                                                "Please reply to a previous message, "
                                                "or choose a recipient:\n\nLegend:\n") + "\n".join(legends),
@@ -837,6 +841,7 @@ class ChatBindingManager(LocaleMixin):
                                                    "Invalid parameter ({0}).").format(param),
                                        chat_id=chat_id,
                                        message_id=msg_id)
+        del self.msg_storage[storage_id]
         return ConversationHandler.END
 
     def update_group_info(self, bot: telegram.Bot, update: telegram.Update):
