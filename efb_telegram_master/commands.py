@@ -129,7 +129,14 @@ class CommandsManager(LocaleMixin):
         """
         msg = self._("<i>Click the link next to the name for usage.</i>\n")
         for n, i in enumerate(self.modules_list):
-            msg += "\n\n<b>%s %s (%s)</b>" % (i.channel_emoji, i.module_name, i.module_id)
+            if isinstance(i, EFBChannel):
+                msg += "\n\n<b>%s %s (%s)</b>" % (i.channel_emoji, i.channel_name, i.instance_id)
+            elif isinstance(i, EFBMiddleware):
+                msg += "\n\n<b>%s (%s)</b>" % (i.middleware_name, i.middleware_id)
+            else:
+                # This should not occur as modules_list shall
+                # consist of only EFBChannel and EFBMiddleware instances
+                continue
             extra_fns = i.get_extra_functions()
             if extra_fns:
                 for j in extra_fns:
