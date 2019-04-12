@@ -5,7 +5,9 @@ import mimetypes
 import os
 import tempfile
 import threading
+import subprocess
 from typing import Tuple, IO, Optional, TYPE_CHECKING
+
 
 import magic
 import telegram
@@ -21,6 +23,8 @@ from ehforwarderbot.exceptions import EFBMessageTypeNotSupported, EFBChatNotFoun
     EFBMessageError, EFBMessageNotFound, EFBOperationNotSupported
 from ehforwarderbot.message import EFBMsgLocationAttribute
 from ehforwarderbot.status import EFBMessageRemoval
+from ehforwarderbot.channel import EFBChannel
+
 from . import utils
 from .msg_type import get_msg_type, TGMsgType
 from .locale_mixin import LocaleMixin
@@ -325,7 +329,7 @@ class MasterMessageProcessor(LocaleMixin):
                 m.text = ""
                 self.logger.debug("[%s] Telegram message is a \"Telegram GIF\".", message_id)
                 m.filename = getattr(message.document, "file_name", None) or None
-                m.file, m.mime, m.filename, m.path = self._download_gif(message.document)
+                m.file, m.mime, m.filename, m.path = self._download_gif(message.document, channel)
                 m.mime = message.document.mime_type or m.mime
             elif mtype == TGMsgType.Document:
                 m.text = msg_md_caption
@@ -453,12 +457,13 @@ class MasterMessageProcessor(LocaleMixin):
             mime = mime.decode()
         return file, mime, os.path.basename(full_path), full_path
 
-    def _download_gif(self, file: telegram.File) -> Tuple[IO[bytes], str, str, str]:
+    def _download_gif(self, file: telegram.File, channel_id: str = "") -> Tuple[IO[bytes], str, str, str]:
         """
         Download and convert GIF image.
 
         Args:
             file: Telegram File object
+            channel_id: Destination channel ID of the message
 
         Returns:
             Tuple[IO[bytes], str, str, str]:
@@ -466,7 +471,18 @@ class MasterMessageProcessor(LocaleMixin):
         """
         file, _, filename, path = self._download_file(file, 'video/mpeg')
         gif_file = tempfile.NamedTemporaryFile(suffix='.gif')
-        VideoFileClip(path).write_gif(gif_file.name, program="ffmpeg")
+        v = VideoFileClip(path)
+        self.logger.info("Convert Telegram MP4 to GIF from "
+                         "channel %s with size %s", channel, v.size)
+        if channel == "blueset.wechat" and v.size[0] > 600:
+            # Workaround: Compress GIF for slave channel `blueset.wechat`
+            # TODO: Move this logic to `blueset.wechat` in the future
+            subprocess.Popen(
+                ["ffmpeg", "-y", "-i", path, '-vf', "scale=600:-2", gif_file.name], 
+                bufsize=0
+            ).wait()
+        else:
+            v.write_gif(gif_file.name, program="ffmpeg")
         file.close()
         gif_file.seek(0)
         return gif_file, "image/gif", os.path.basename(gif_file.name), gif_file.name
