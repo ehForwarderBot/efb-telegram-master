@@ -9,6 +9,7 @@ EFB Telegram Master Channel (ETM)
    :target: https://crowdin.com/project/ehforwarderbot/
 
 `README in other languages`_.
+
 .. _README in other languages: ./readme_translations
 .. TRANSLATORS: change the URL on previous line as "." (without quotations).
 
