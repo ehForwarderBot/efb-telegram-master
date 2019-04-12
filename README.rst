@@ -164,7 +164,7 @@ to BotFather for a command list::
    *You can also choose to unlink or relink a linked chat from this
    menu.*
 4. Tap “Start” at the bottom of your screen, and you should see a
-   success message: “Chat associated.”
+   success message: “Chat linked.”
 
 .. note::
 
@@ -219,11 +219,11 @@ Edit and delete message
 
 In EFB v2, the framework added support to message editing and removal,
 and so does ETM. However, due to the limitation of Telegram Bot API,
-although you may have selected “Delete from the bot”, or “Delete from
+although you may have selected “Delete for the bot”, or “Delete for
 everyone” while deleting messages, the bot would not know anything about
 it. Therefore, if you want your message to be removed from a remote
 chat, edit your message and prepend it with rm\` (it’s R, M, and ~\`,
-not single quote), so that the bot knows that you want to remote the
+not single quote), so that the bot knows that you want to delete the
 message.
 
 Please also notice that some channels may not support editing and/or
