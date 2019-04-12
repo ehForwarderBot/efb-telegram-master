@@ -471,22 +471,18 @@ class MasterMessageProcessor(LocaleMixin):
         """
         file, _, filename, path = self._download_file(file, 'video/mpeg')
         gif_file = tempfile.NamedTemporaryFile(suffix='.gif')
-        try:
-            v = VideoFileClip(path)
-            self.logger.info("Convert Telegram MP4 to GIF from "
-                             "channel %s with size %s", channel, v.size)
-            if channel == "blueset.wechat" and v.size[0] > 600:
-                # Workaround: Compress GIF for slave channel `blueset.wechat`
-                # TODO: Move this logic to `blueset.wechat` in the future
-                subprocess.Popen(
-                    ["ffmpeg", "-y", "-i", path, '-vf', "scale=600:-2", gif_file.name], 
-                    bufsize=0
-                ).wait()
-            else:
-                v.write_gif(gif_file.name, program="ffmpeg")
-        except IOError as err:
-            error = "ffmpeg convert fail"
-            raise IOError(error)
+        v = VideoFileClip(path)
+        self.logger.info("Convert Telegram MP4 to GIF from "
+                         "channel %s with size %s", channel, v.size)
+        if channel == "blueset.wechat" and v.size[0] > 600:
+            # Workaround: Compress GIF for slave channel `blueset.wechat`
+            # TODO: Move this logic to `blueset.wechat` in the future
+            subprocess.Popen(
+                ["ffmpeg", "-y", "-i", path, '-vf', "scale=600:-2", gif_file.name], 
+                bufsize=0
+            ).wait()
+        else:
+            v.write_gif(gif_file.name, program="ffmpeg")
         file.close()
         gif_file.seek(0)
         return gif_file, "image/gif", os.path.basename(gif_file.name), gif_file.name
