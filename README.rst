@@ -53,6 +53,19 @@ Getting Started
 
 3. Configure the channel (described as follows)
 
+Alternative installation methods
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ETM also has other alternative installation methods
+contributed by the community, including:
+
+- `AUR package`_ maintained by KeLiu_ (``python-efb-telegram-master-git``)
+- Other `installation scripts and containers (e.g. Docker)`_
+
+.. _KeLiu: https://github.com/specter119
+.. _AUR package: https://aur.archlinux.org/packages/python-efb-telegram-master-git
+.. _installation scripts and containers (e.g. Docker): https://github.com/blueset/ehForwarderBot/wiki/Channels-Repository#scripts-and-containers-eg-docker
+
 Configuration
 -------------
 
