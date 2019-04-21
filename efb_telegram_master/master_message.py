@@ -54,7 +54,8 @@ class MasterMessageProcessor(LocaleMixin):
         TGMsgType.Voice: MsgType.Audio,
         TGMsgType.Location: MsgType.Location,
         TGMsgType.Venue: MsgType.Location,
-        TGMsgType.Animation: MsgType.Image
+        TGMsgType.Animation: MsgType.Image,
+        TGMsgType.Contact: MsgType.Text
     }
 
     def __init__(self, channel: 'TelegramChannel'):
@@ -340,23 +341,19 @@ class MasterMessageProcessor(LocaleMixin):
                 m.filename = m.filename or filename
                 m.mime = message.document.mime_type or m.mime
             elif mtype == TGMsgType.Video:
-                m.type = MsgType.Video
                 m.text = msg_md_caption
                 m.file, m.mime, m.filename, m.path = self._download_file(message.video,
                                                                          message.video.mime_type)
             elif mtype == TGMsgType.Audio:
-                m.type = MsgType.Audio
                 m.text = "%s - %s\n%s" % (
                     message.audio.title, message.audio.performer, msg_md_caption)
                 m.file, m.mime, m.filename, m.path = self._download_file(message.audio,
                                                                          message.audio.mime_type)
             elif mtype == TGMsgType.Voice:
-                m.type = MsgType.Audio
                 m.text = msg_md_caption
                 m.file, m.mime, m.filename, m.path = self._download_file(message.voice,
                                                                          message.voice.mime_type)
             elif mtype == TGMsgType.Location:
-                m.type = MsgType.Location
                 # TRANSLATORS: Message body text for location messages.
                 m.text = self._("Location")
                 m.attributes = EFBMsgLocationAttribute(
@@ -364,11 +361,15 @@ class MasterMessageProcessor(LocaleMixin):
                     message.location.longitude
                 )
             elif mtype == TGMsgType.Venue:
-                m.type = MsgType.Location
                 m.text = message.location.title + "\n" + message.location.adderss
                 m.attributes = EFBMsgLocationAttribute(
                     message.venue.location.latitude,
                     message.venue.location.longitude
+                )
+            elif mtype == TGMsgType.Contact:
+                contact: telegram.Contact = message.contact
+                m.text = self._("Shared a contact: {first_name} {last_name}\n{phone_number}").format(
+                    first_name=contact.first_name, last_name=contact.last_name, phone_number=contact.phone_number
                 )
             else:
                 raise EFBMessageTypeNotSupported(self._("Message type {0} is not supported.").format(mtype))
@@ -473,8 +474,8 @@ class MasterMessageProcessor(LocaleMixin):
         gif_file = tempfile.NamedTemporaryFile(suffix='.gif')
         v = VideoFileClip(path)
         self.logger.info("Convert Telegram MP4 to GIF from "
-                         "channel %s with size %s", channel, v.size)
-        if channel == "blueset.wechat" and v.size[0] > 600:
+                         "channel %s with size %s", channel_id, v.size)
+        if channel_id == "blueset.wechat" and v.size[0] > 600:
             # Workaround: Compress GIF for slave channel `blueset.wechat`
             # TODO: Move this logic to `blueset.wechat` in the future
             subprocess.Popen(

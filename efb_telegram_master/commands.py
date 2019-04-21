@@ -128,7 +128,7 @@ class CommandsManager(LocaleMixin):
             update: Message update
         """
         msg = self._("<i>Click the link next to the name for usage.</i>\n")
-        for n, i in enumerate(self.modules_list):
+        for idx, i in enumerate(self.modules_list):
             if isinstance(i, EFBChannel):
                 msg += "\n\n<b>{0} {1}".format(
                     html.escape(i.channel_emoji),
@@ -148,10 +148,11 @@ class CommandsManager(LocaleMixin):
                 continue
             extra_fns = i.get_extra_functions()
             if extra_fns:
-                for j in extra_fns:
-                    fn_name = "/h_%s_%s" % (n, j)
+                for fn in extra_fns:
+                    fn_name = f"/h_{idx}_{fn}"
+                    # noinspection PyUnresolvedReferences
                     msg += "\n- <b>{}</b> {}".format(
-                        html.escape(extra_fns[j].name),
+                        html.escape(extra_fns[fn].name),
                         html.escape(fn_name)
                     )
             else:
