@@ -183,8 +183,8 @@ to BotFather for a command list::
 
     You may introduce non-ETM admin users to the group, however, they:
 
--  Can read all messages send from the related remote chat;
--  May NOT send message on your behalf.
+    -  Can read all messages send from the related remote chat;
+    -  May NOT send message on your behalf.
 
 If the “Link” button doesn’t work for you, you may try the “Manual
 Link/Relink” button. To manually link a remote chat:
@@ -196,6 +196,52 @@ Link/Relink” button. To manually link a remote chat:
 
 Also, you can send ``/unlink_all`` to a group to unlink all remote chats
 from it.
+
+Advanced feature: Filtering
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you have just too much chats, and being too tired for keep tapping
+``Next >``, or maybe you just want to find a way to filter out what
+you’re looking for, now ETM has equipped ``/chat`` and ``/list`` with
+filtering feature. Attach your keyword behind, and you can get a
+filtered result.
+
+E.g.: ``/chat Eana`` will give you all chats has the word “Eana”.
+
+.. admonition:: Technical Details
+
+    The filter query is in fact a regular expression matching. We used
+    Python’s ``re.search`` with flags ``re.DOTALL | re.IGNORECASE`` in
+    this case, i.e.: ``.`` matches everything including line breaks, and
+    the query is NOT case-sensitive. Each comparison is done against a
+    specially crafted string which allows you to filter multiple criteria.
+
+::
+
+    Channel: <Channel name>
+    Name: <Chat name>
+    Alias: <Chat Alias>
+    ID: <Chat Unique ID>
+    Type: (User|Group)
+    Mode: [[Muted, ]Linked]
+    Other: <Python Dictionary String>
+
+
+.. note::
+
+    Type can be either “User” or “Group”
+
+    Other is the vendor specific information provided by slave channels.
+    Format of such information is specified in their documentations
+    respectively.
+
+
+Examples:
+
+-  Look for all WeChat groups: ``Channel: WeChat.*Type: Group``
+-  Look for everyone who has an alias ``Name: (.*?)\nAlias: (?!\1)``
+-  Look for all entries contain “John” and “Jonny” in any order:
+   ``(?=.*John)(?=.*Jonny)"``
 
 Send a message
 ~~~~~~~~~~~~~~
@@ -256,52 +302,12 @@ Send ``/chat`` to the bot, and choose a chat from the list. When you see
 Advanced feature: Filtering
 '''''''''''''''''''''''''''
 
-If you have just too much chats, and being too tired for keep tapping
-``Next >``, or maybe you just want to find a way to filter out what
-you’re looking for, now ETM has equipped ``/chat`` and ``/list`` with
-filtering feature. Attach your keyword behind, and you can get a
-filtered result.
-
-E.g.: ``/chat Eana`` will give you all chats has the word “Eana”.
-
-.. admonition:: Technical Details
-
-    The filter query is in fact a regular expression matching. We used
-    Python’s ``re.search`` with flags ``re.DOTALL | re.IGNORECASE`` in
-    this case, i.e.: ``.`` matches everything including line breaks, and
-    the query is NOT case-sensitive. Each comparison is done against a
-    specially crafted string which allows you to filter multiple criteria.
-
-::
-
-    Channel: <Channel name>
-    Name: <Chat name>
-    Alias: <Chat Alias>
-    ID: <Chat Unique ID>
-    Type: (User|Group)
-    Mode: [[Muted, ]Linked]
-    Other: <Python Dictionary String>
+Filter is also available in ``/chat`` command. Please refer to the
+same chapter above, under ``/link`` for the details.
 
 
-.. note::
-
-    Type can be either “User” or “Group”
-
-    Other is the vendor specific information provided by slave channels.
-    Format of such information is specified in their documentations
-    respectively.
-
-
-
-Examples:
-
--  Look for all WeChat groups: ``Channel: WeChat.*Type: Group``
--  Look for everyone who has an alias ``Name: (.*?)\nAlias: (?!\1)``
--  Look for all entries contain “John” and “Jonny” in any order:
-   ``(?=.*John)(?=.*Jonny)"``
-
-``/extra``: External commands from slave channels (“additonal features”)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``/extra``: External commands from slave channels (“additional features”)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Some slave channels may provide commands that allows you to remotely
 control those accounts, and achieve extra functionality, those commands
@@ -400,6 +406,30 @@ How to use:
 1. Add the bot as an administrator of the channel
 2. Send commands to the channel
 3. Forward the command message to the bot privately
+
+Limitations
+-----------
+
+Due to the technical limitations of Telegram Bot API and EH Forwarder
+Bot framework, there are some limitations:
+
+- Some Telegram message types are **not** supported:
+    - Game messages
+    - Invoice messages
+    - Payment messages
+    - Passport messages
+    - Vote messages
+- Some components in Telegram messages are dropped:
+    - Original author and signature of forwarded messages
+    - Formats, links and link previews
+    - Buttons attached to messages
+    - Details about inline bot used on messages
+- Some components in messages from slave channels are dropped:
+    - @ references.
+- The Telegram bot can only
+    - send you any file up to 50 MiB,
+    - receive file from you up to 20 MiB.
+
 
 Experimental flags
 ------------------
