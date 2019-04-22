@@ -3,7 +3,6 @@
 import html
 import logging
 import mimetypes
-import os
 from gettext import NullTranslations, translation
 from typing import Optional
 from xmlrpc.server import SimpleXMLRPCServer
@@ -20,7 +19,7 @@ from ehforwarderbot import EFBChannel, EFBMsg, EFBStatus, coordinator
 from ehforwarderbot import utils as efb_utils
 from ehforwarderbot.constants import MsgType, ChannelType
 from ehforwarderbot.exceptions import EFBException
-from . import __version__ as version
+from .__version__ import __version__
 from . import utils as etm_utils
 from .bot_manager import TelegramBotManager
 from .chat_binding import ChatBindingManager, ETMChat
@@ -41,11 +40,6 @@ class TelegramChannel(EFBChannel):
 
     Author: Eana Hufwe <https://github.com/blueset>
 
-    External Services:
-        You may need API keys from following service providers to use speech recognition.
-        Bing Speech API: https://www.microsoft.com/cognitive-services/en-us/speech-api
-        Baidu Speech Recognition API: http://yuyin.baidu.com/
-
     Configuration file example:
         .. code-block:: yaml
             
@@ -53,12 +47,6 @@ class TelegramChannel(EFBChannel):
             admins:
             - 102938475
             - 91827364
-            speech_api:
-                bing: "VOICE_RECOGNITION_TOKEN"
-                baidu:
-                    app_id: 123456
-                    api_key: "API_KEY_GOES_HERE"
-                    secret_key: "SECRET_KEY_GOES_HERE"
             flags:
                 join_msg_threshold_secs: 10
                 multiple_slave_chats: false
@@ -72,7 +60,7 @@ class TelegramChannel(EFBChannel):
     supported_message_types = {MsgType.Text, MsgType.File, MsgType.Audio,
                                MsgType.Image, MsgType.Link, MsgType.Location,
                                MsgType.Sticker, MsgType.Video}
-    __version__ = version.__version__
+    __version__ = __version__
 
     # Data
     msg_status = {}
