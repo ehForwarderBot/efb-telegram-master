@@ -9,6 +9,44 @@ from playhouse.migrate import SqliteMigrator, migrate
 
 from ehforwarderbot import utils, EFBChannel
 
+database = SqliteDatabase(None)
+
+
+class BaseModel(Model):
+    class Meta:
+        database = database
+
+
+class ChatAssoc(BaseModel):
+    master_uid = TextField()
+    slave_uid = TextField()
+
+
+class MsgLog(BaseModel):
+    master_msg_id = TextField(unique=True, primary_key=True)
+    master_msg_id_alt = TextField(null=True)
+    slave_message_id = TextField()
+    text = TextField()
+    slave_origin_uid = TextField()
+    slave_origin_display_name = TextField(null=True)
+    slave_member_uid = TextField(null=True)
+    slave_member_display_name = TextField(null=True)
+    media_type = TextField(null=True)
+    mime = TextField(null=True)
+    file_id = TextField(null=True)
+    msg_type = TextField()
+    sent_to = TextField()
+    time = DateTimeField(default=datetime.datetime.now, null=True)
+
+
+class SlaveChatInfo(BaseModel):
+    slave_channel_id = TextField()
+    slave_channel_emoji = CharField()
+    slave_chat_uid = TextField()
+    slave_chat_name = TextField()
+    slave_chat_alias = TextField(null=True)
+    slave_chat_type = CharField()
+
 
 class DatabaseManager:
     logger = logging.getLogger(__name__)
@@ -16,41 +54,8 @@ class DatabaseManager:
     def __init__(self, channel: EFBChannel):
         base_path = utils.get_data_path(channel.channel_id)
 
-        self.db = SqliteDatabase(str(base_path / 'tgdata.db'))
-
-        self.db.connect()
-
-        class BaseModel(Model):
-            class Meta:
-                database = self.db
-
-        class ChatAssoc(BaseModel):
-            master_uid = TextField()
-            slave_uid = TextField()
-
-        class MsgLog(BaseModel):
-            master_msg_id = TextField(unique=True, primary_key=True)
-            master_msg_id_alt = TextField(null=True)
-            slave_message_id = TextField()
-            text = TextField()
-            slave_origin_uid = TextField()
-            slave_origin_display_name = TextField(null=True)
-            slave_member_uid = TextField(null=True)
-            slave_member_display_name = TextField(null=True)
-            media_type = TextField(null=True)
-            mime = TextField(null=True)
-            file_id = TextField(null=True)
-            msg_type = TextField()
-            sent_to = TextField()
-            time = DateTimeField(default=datetime.datetime.now, null=True)
-
-        class SlaveChatInfo(BaseModel):
-            slave_channel_id = TextField()
-            slave_channel_emoji = CharField()
-            slave_chat_uid = TextField()
-            slave_chat_name = TextField()
-            slave_chat_alias = TextField(null=True)
-            slave_chat_type = CharField()
+        database.init(str(base_path / 'tgdata.db'))
+        database.connect()
 
         self.BaseModel = BaseModel
         self.ChatAssoc = ChatAssoc
@@ -59,15 +64,15 @@ class DatabaseManager:
 
         if not ChatAssoc.table_exists():
             self._create()
-        elif "file_id" not in {i.name for i in self.db.get_columns("MsgLog")}:
+        elif "file_id" not in {i.name for i in database.get_columns("MsgLog")}:
             self._migrate(0)
 
     def _create(self):
         """
         Initializing tables.
         """
-        self.db.execute_sql("PRAGMA journal_mode = OFF")
-        self.db.create_tables([self.ChatAssoc, self.MsgLog, self.SlaveChatInfo])
+        database.execute_sql("PRAGMA journal_mode = OFF")
+        database.create_tables([self.ChatAssoc, self.MsgLog, self.SlaveChatInfo])
 
     def _migrate(self, i):
         """
@@ -79,7 +84,7 @@ class DatabaseManager:
         Returns:
             False: when migration ID is not found
         """
-        migrator = SqliteMigrator(self.db)
+        migrator = SqliteMigrator(database)
         if i >= 0:
             # Migration 0: Add media file ID and editable message ID
             # 2019JAN08
@@ -111,6 +116,7 @@ class DatabaseManager:
         Args:
             master_uid (str): Master channel UID ("%(chat_id)s")
             slave_uid (str): Slave channel UID ("%(channel_id)s.%(chat_id)s")
+            multiple_slave: Allow linking to multiple slave channels.
         """
         if not multiple_slave:
             self.remove_chat_assoc(master_uid=master_uid)
@@ -163,6 +169,8 @@ class DatabaseManager:
                     return [i.master_uid for i in masters]
                 else:
                     return []
+            else:
+                return []
         except DoesNotExist:
             return []
 

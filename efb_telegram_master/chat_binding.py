@@ -458,10 +458,8 @@ class ChatBindingManager(LocaleMixin):
             self.msg_storage.pop((tg_chat_id, tg_msg_id), None)
             return ConversationHandler.END
 
-        callback_uid: int = int(callback_uid.split()[1])
-        chat: ETMChat = self.msg_storage[(tg_chat_id, tg_msg_id)].chats[callback_uid]
-        chat_display_name = chat.chat_name if not chat.chat_alias else self._("{alias} ({name})") \
-            .format(alias=chat.chat_alias, name=chat.chat_name)
+        callback_idx: int = int(callback_uid.split()[1])
+        chat: ETMChat = self.msg_storage[(tg_chat_id, tg_msg_id)].chats[callback_idx]
         chat_display_name = chat.full_name
 
         self.msg_storage[(tg_chat_id, tg_msg_id)].chats = [chat]
@@ -565,7 +563,8 @@ class ChatBindingManager(LocaleMixin):
 
     def link_chat(self, update, args):
         try:
-            storage_key: Tuple[int, int] = tuple(map(int, utils.message_id_str_to_id(utils.b64de(args[0]))))
+            msg_id = utils.message_id_str_to_id(utils.b64de(args[0]))
+            storage_key: Tuple[int, int] = (int(msg_id[0]), int(msg_id[1]))
             data = self.msg_storage[storage_key]
         except KeyError:
             return update.message.reply_text(self._("Session expired or unknown parameter. (SE02)"))
@@ -687,8 +686,8 @@ class ChatBindingManager(LocaleMixin):
                 slave_channel_id, slave_chat_id = utils.chat_id_str_to_id(chats[0])
                 channel = coordinator.slaves[slave_channel_id]
                 try:
-                    chat: ETMChat = ETMChat(chat=self.get_chat_from_db(slave_channel_id, slave_chat_id)
-                                                 or channel.get_chat(slave_chat_id))
+                    chat: ETMChat = ETMChat(chat=self.get_chat_from_db(slave_channel_id, slave_chat_id) or
+                                                 channel.get_chat(slave_chat_id))
                     msg_text = self._('This group is linked to {0}'
                                       'Send a message to this group to deliver it to the chat.\n'
                                       'Do NOT reply to this system message.') \

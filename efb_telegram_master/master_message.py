@@ -8,7 +8,6 @@ import threading
 import subprocess
 from typing import Tuple, IO, Optional, TYPE_CHECKING
 
-
 import magic
 import telegram
 import time
@@ -23,7 +22,6 @@ from ehforwarderbot.exceptions import EFBMessageTypeNotSupported, EFBChatNotFoun
     EFBMessageError, EFBMessageNotFound, EFBOperationNotSupported
 from ehforwarderbot.message import EFBMsgLocationAttribute
 from ehforwarderbot.status import EFBMessageRemoval
-from ehforwarderbot.channel import EFBChannel
 
 from . import utils
 from .msg_type import get_msg_type, TGMsgType
@@ -32,7 +30,7 @@ from .locale_mixin import LocaleMixin
 if TYPE_CHECKING:
     from . import TelegramChannel
     from .bot_manager import TelegramBotManager
-    from .db import DatabaseManager
+    from .db import DatabaseManager, MsgLog
 
 
 class MasterMessageProcessor(LocaleMixin):
@@ -131,15 +129,15 @@ class MasterMessageProcessor(LocaleMixin):
         Returns:
 
         """
-        target: str = None
-        target_channel: str = None
-        target_log: 'MsgLog' = None
+        target: Optional[str] = None
+        target_channel: Optional[str] = None
+        target_log: Optional['MsgLog'] = None
         # Message ID for logging
         message_id = utils.message_id_to_str(update=update)
 
         multi_slaves: bool = False
-        destination: str = None
-        slave_msg: EFBMsg = None
+        destination: Optional[str] = None
+        slave_msg: Optional[EFBMsg] = None
 
         message: telegram.Message = update.effective_message
 
@@ -174,11 +172,11 @@ class MasterMessageProcessor(LocaleMixin):
                                                        "Please try with another message. (UC07)"))
         elif private_chat:
             if reply_to:
-                destination = self.db.get_msg_log(master_msg_id=utils.message_id_to_str(
+                dest_msg = self.db.get_msg_log(master_msg_id=utils.message_id_to_str(
                     message.reply_to_message.chat.id,
                     message.reply_to_message.message_id))
-                if destination:
-                    destination = destination.slave_origin_uid
+                if dest_msg:
+                    destination = dest_msg.slave_origin_uid
                 else:
                     return self.bot.reply_error(update,
                                                 self._("Message is not found in database. "
@@ -189,11 +187,11 @@ class MasterMessageProcessor(LocaleMixin):
         else:  # group chat
             if multi_slaves:
                 if reply_to:
-                    destination = self.db.get_msg_log(master_msg_id=utils.message_id_to_str(
+                    dest_msg = self.db.get_msg_log(master_msg_id=utils.message_id_to_str(
                         message.reply_to_message.chat.id,
                         message.reply_to_message.message_id))
-                    if destination:
-                        destination = destination.slave_origin_uid
+                    if dest_msg:
+                        destination = dest_msg.slave_origin_uid
                     else:
                         return self.bot.reply_error(update,
                                                     self._("Message is not found in database. "
@@ -205,7 +203,7 @@ class MasterMessageProcessor(LocaleMixin):
                                                        "To unlink all remote chats, please send /unlink_all . (UC06)"))
             elif destination:
                 if reply_to:
-                    target_log: 'MsgLog' = \
+                    target_log = \
                         self.db.get_msg_log(master_msg_id=utils.message_id_to_str(
                             message.reply_to_message.chat.id,
                             message.reply_to_message.message_id))
@@ -258,7 +256,7 @@ class MasterMessageProcessor(LocaleMixin):
                 elif target_log.sent_to == 'master':
                     trgt_msg.author = trgt_msg.chat
                 else:
-                    trgt_msg.author = EFBChat(self).self()
+                    trgt_msg.author = EFBChat(self.channel).self()
                 m.target = trgt_msg
 
                 self.logger.debug("[%s] This message replies to another message of the same channel.\n"
@@ -315,7 +313,7 @@ class MasterMessageProcessor(LocaleMixin):
                 m.text = msg_md_text
             elif mtype == TGMsgType.Photo:
                 m.text = msg_md_caption
-                m.file, m.mime, m.filename, m.path = self._download_file(message.photo[-1], None)
+                m.file, m.mime, m.filename, m.path = self._download_file(message.photo[-1])
             elif mtype == TGMsgType.Sticker:
                 # Convert WebP to the more common PNG
                 m.text = ""
@@ -424,7 +422,7 @@ class MasterMessageProcessor(LocaleMixin):
                 if m.file:
                     m.file.close()
 
-    def _download_file(self, file_obj: telegram.File, mime: str) -> Tuple[IO[bytes], str, str, str]:
+    def _download_file(self, file_obj: telegram.File, mime: Optional[str] = None) -> Tuple[IO[bytes], str, str, str]:
         """
         Download media file from telegram platform.
 
@@ -479,7 +477,7 @@ class MasterMessageProcessor(LocaleMixin):
             # Workaround: Compress GIF for slave channel `blueset.wechat`
             # TODO: Move this logic to `blueset.wechat` in the future
             subprocess.Popen(
-                ["ffmpeg", "-y", "-i", path, '-vf', "scale=600:-2", gif_file.name], 
+                ["ffmpeg", "-y", "-i", path, '-vf', "scale=600:-2", gif_file.name],
                 bufsize=0
             ).wait()
         else:

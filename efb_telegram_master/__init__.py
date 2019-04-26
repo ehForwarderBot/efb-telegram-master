@@ -30,7 +30,6 @@ from .master_message import MasterMessageProcessor
 from .rpc_utils import RPCUtilities
 from .slave_message import SlaveMessageProcessor
 from .utils import ExperimentalFlagsManager
-from .voice_recognition import VoiceRecognitionManager
 
 
 class TelegramChannel(EFBChannel):
