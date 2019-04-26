@@ -100,7 +100,7 @@ class CommandsManager(LocaleMixin):
         command_storage = self.msg_storage[index]
         module = command_storage.module
         command = command_storage.commands[callback]
-        prefix = "%s\n%s\n--------" % (command_storage.prefix, command_storage.body)
+        prefix = f"{command_storage.prefix}\n{command_storage.body}\n--------"
 
         fn = getattr(module, command.callable_name, None)
         if fn is not None:
@@ -207,8 +207,10 @@ class CommandsManager(LocaleMixin):
         if groupdict['command'] not in functions:
             return self.bot.reply_error(update, self._("Command not found in selected module. (XC02)"))
 
-        header = "%s %s: %s\n-------\n" % (
-            channel.channel_emoji, channel.channel_name, functions[groupdict['command']].name)
+        header = "{} {}: {}\n-------\n".format(
+                channel.channel_emoji, channel.channel_name,
+                functions[groupdict['command']].name
+        )
         msg = self.bot.send_message(update.message.chat.id,
                                     prefix=header, text=self._("Please wait..."))
 

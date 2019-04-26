@@ -73,7 +73,8 @@ def message_id_str_to_id(s: str) -> Tuple[str, str]:
     Returns:
         chat_id, message_id
     """
-    return tuple(s.split(".", 1))[:2]
+    msg_ids = s.split(".", 1)
+    return msg_ids[0], msg_ids[1]
 
 
 def chat_id_to_str(channel_id: Optional[str] = None, chat_uid: Optional[str] = None,
@@ -100,7 +101,7 @@ def chat_id_to_str(channel_id: Optional[str] = None, chat_uid: Optional[str] = N
     if channel:
         channel_id = channel.channel_id
 
-    return "%s %s" % (channel_id, chat_uid)
+    return f"{channel_id} {chat_uid}"
 
 
 def chat_id_str_to_id(s: str) -> Tuple[str, str]:
@@ -109,4 +110,5 @@ def chat_id_str_to_id(s: str) -> Tuple[str, str]:
     Returns:
         channel_id, chat_uid
     """
-    return tuple(s.split(" ", 1))[:2]
+    chat_ids = s.split(" ", 1)
+    return chat_ids[0], chat_ids[1]

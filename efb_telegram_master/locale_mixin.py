@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
 
 class LocaleMixin:
-    channel: 'TelegramChannel' = None
+    channel: 'TelegramChannel'
 
     @property
     def _(self):
