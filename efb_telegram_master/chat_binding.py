@@ -6,7 +6,7 @@ import re
 import threading
 import urllib.parse
 import io
-from typing import Tuple, Dict, Optional, List, Pattern, TYPE_CHECKING
+from typing import Tuple, Dict, Optional, List, Pattern, TYPE_CHECKING, IO
 
 import peewee
 import telegram
@@ -65,7 +65,7 @@ class ETMChat(EFBChat):
             Alias: <Chat Alias>
             ID: <Chat Unique ID>
             Type: (User|Group)
-            Mode: [[Muted, ]Linked]
+            Mode: [Linked]
             Other: <Python Dictionary String>
 
         Args:
@@ -864,12 +864,15 @@ class ChatBindingManager(LocaleMixin):
                                                               'This only works in a group linked with one chat. '
                                                               'Currently {0} chats linked to this group.',
                                                               len(chats)).format(len(chats)))
-        picture = None
-        pic_resized = None
+        picture: Optional[IO] = None
+        pic_resized: Optional[IO] = None
         try:
             channel_id, chat_uid = utils.chat_id_str_to_id(chats[0])
             channel = coordinator.slaves[channel_id]
-            chat = ETMChat(chat=channel.get_chat(chat_uid), db=self.db)
+            chat = channel.get_chat(chat_uid)
+            if chat is None:
+                raise EFBChatNotFound()
+            chat = ETMChat(chat=chat, db=self.db)
             bot.set_chat_title(tg_chat, chat.chat_title)
             picture = channel.get_chat_picture(chat)
             if not picture:
@@ -892,15 +895,18 @@ class ChatBindingManager(LocaleMixin):
         except KeyError:
             return self.bot.reply_error(update, self._('Channel linked is not found.'))
         except EFBChatNotFound:
+            self.logger.exception("Chat linked is not found in channel.")
             return self.bot.reply_error(update, self._('Chat linked is not found in channel.'))
         except telegram.TelegramError as e:
+            self.logger.exception("Error occurred while update chat information.")
             return self.bot.reply_error(update, self._('Error occurred while update chat information.\n'
                                                        '{0}'.format(e.message)))
-        except Exception as e:
-            return self.bot.reply_error(update, self._('Error occurred while update chat information. \n'
-                                                       '{0}'.format(e)))
         except EFBOperationNotSupported:
             return self.bot.reply_error(update, self._('No profile picture provided from this chat.'))
+        except Exception as e:
+            self.logger.exception("Unknown error caught when querying chat.")
+            return self.bot.reply_error(update, self._('Error occurred while update chat information. \n'
+                                                       '{0}'.format(e)))
         finally:
             if getattr(picture, 'close', None):
                 picture.close()
