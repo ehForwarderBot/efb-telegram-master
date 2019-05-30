@@ -2,9 +2,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ehforwarderbot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-02-09 21:16-0800\n"
-"PO-Revision-Date: 2019-02-10 05:16\n"
-"Last-Translator: blueset <ilove@1a23.com>\n"
+"POT-Creation-Date: 2019-05-29 13:58+1000\n"
+"PO-Revision-Date: 2019-05-29 04:47\n"
+"Last-Translator: Eana Hufwe (blueset)\n"
 "Language-Team: Chinese Simplified\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
@@ -16,34 +16,29 @@ msgstr ""
 "X-Crowdin-Language: zh-CN\n"
 "X-Crowdin-File: /EFBChannels/efb-telegram-master/efb_telegram_master/locale/efb_telegram_master.pot\n"
 
-#: efb_telegram_master/slave_message.py:156
+#: efb_telegram_master/slave_message.py:163
 msgid "Unsupported type of message. (UT01)"
 msgstr "不支持的消息类型。(UT01)"
 
 #. TRANSLATORS: Flag for edited message, but cannot be edited on Telegram.
-#: efb_telegram_master/slave_message.py:461
+#: efb_telegram_master/slave_message.py:467
 msgid "[edited]"
 msgstr "[已编辑]"
 
-#: efb_telegram_master/slave_message.py:464
+#: efb_telegram_master/slave_message.py:470
 msgid "Sent a location."
 msgstr "发送了一个位置。"
 
-#: efb_telegram_master/slave_message.py:496
 #: efb_telegram_master/slave_message.py:502
+#: efb_telegram_master/slave_message.py:508
 msgid "(unsupported)"
-msgstr ""
+msgstr "(不支持)"
 
-#: efb_telegram_master/slave_message.py:545
+#: efb_telegram_master/slave_message.py:551
 msgid "Message removed in remote chat."
 msgstr "消息已从远端会话中移除。"
 
-#: efb_telegram_master/slave_message.py:583
-#, python-brace-format
-msgid "Unknown message source ({0}):"
-msgstr "未知消息来源 ({0})："
-
-#: efb_telegram_master/__init__.py:109
+#: efb_telegram_master/__init__.py:96
 msgid "WebP support of Pillow is required.\n"
 "Please refer to Pillow Documentation for instructions.\n"
 "https://pillow.readthedocs.io/"
@@ -51,59 +46,60 @@ msgstr "本程序依赖 Pillow 的 WebP 支持。\n"
 "有关安装方法请参阅 Pillow 文档。\n"
 "https://pillow.readthedocs.io/"
 
-#: efb_telegram_master/__init__.py:173
+#: efb_telegram_master/__init__.py:160
 #, python-brace-format
 msgid "Config File does not exist. ({path})"
 msgstr "缺少设置文件。({path})"
 
-#: efb_telegram_master/__init__.py:179
+#: efb_telegram_master/__init__.py:166
 msgid "Telegram bot token must be a string"
 msgstr "Telegram bot token 必须为字符串"
 
-#: efb_telegram_master/__init__.py:185
+#: efb_telegram_master/__init__.py:172
 msgid "Admins' user IDs must be a list of one number or more."
 msgstr "管理员 ID 必须为一个或多个数字组成的列表。"
 
-#: efb_telegram_master/__init__.py:190
+#: efb_telegram_master/__init__.py:177
 #, python-brace-format
 msgid "Admin ID is expected to be an int, but {data} is found."
 msgstr "管理员 ID 应为整数，但被设置为 {data} 。"
 
-#: efb_telegram_master/__init__.py:207
+#: efb_telegram_master/__init__.py:194
 #, python-brace-format
 msgid "The group {group_name} ({group_id}) is linked to:"
 msgstr "群组 {group_name} ({group_id}) 已被绑定至："
 
-#: efb_telegram_master/__init__.py:218
+#: efb_telegram_master/__init__.py:205
 #, python-brace-format
 msgid "\n"
 "- Unknown channel {channel_id}: {chat_id}"
-msgstr ""
+msgstr "\n"
+"- 未知信道 {channel_id}: {chat_id}"
 
-#: efb_telegram_master/__init__.py:223 efb_telegram_master/__init__.py:246
+#: efb_telegram_master/__init__.py:210 efb_telegram_master/__init__.py:233
 #, python-brace-format
 msgid "\n"
 "- {channel_emoji} {channel_name}: Unknown chat ({chat_id})"
 msgstr "\n"
 "- {channel_emoji} {channel_name}: 未知会话 ({chat_id})"
 
-#: efb_telegram_master/__init__.py:229
+#: efb_telegram_master/__init__.py:216
 #, python-brace-format
 msgid "The group {group_name} ({group_id}) is not linked to any remote chat. To link one, use /link."
 msgstr "群组 {group_name} ({group_id}) 尚未被绑定至任何会话。\n"
 "请使用命令 /link 以绑定会话。"
 
-#: efb_telegram_master/__init__.py:237
+#: efb_telegram_master/__init__.py:224
 #, python-brace-format
 msgid "The channel {group_name} ({group_id}) is linked to:"
 msgstr "频道 {group_name}({group_id}) 已被绑定至："
 
-#: efb_telegram_master/__init__.py:252
+#: efb_telegram_master/__init__.py:239
 #, python-brace-format
 msgid "The channel {group_name} ({group_id}) is not linked to any remote chat. "
 msgstr "频道 {group_name}({group_id}) 尚未与任何会话绑定。 "
 
-#: efb_telegram_master/__init__.py:256
+#: efb_telegram_master/__init__.py:243
 #, python-brace-format
 msgid "This is EFB Telegram Master Channel {version}.\n"
 "{count} slave channel activated:"
@@ -111,7 +107,7 @@ msgid_plural "This is EFB Telegram Master Channel {version}.\n"
 "{count} slave channels activated:"
 msgstr[0] "该 EFB Telegram 主端版本为 {version}。检测到 {count} 个启用中的从端:"
 
-#: efb_telegram_master/__init__.py:267
+#: efb_telegram_master/__init__.py:254
 #, python-brace-format
 msgid "\n\n"
 "{count} middleware activated:"
@@ -120,17 +116,17 @@ msgid_plural "\n\n"
 msgstr[0] "\n\n"
 "已启用 {count} 个中间件："
 
-#: efb_telegram_master/__init__.py:290
+#: efb_telegram_master/__init__.py:277
 msgid "You cannot link remote chats to here. Please try again."
 msgstr "无法将会话绑定至此，请重试。"
 
-#: efb_telegram_master/__init__.py:292
+#: efb_telegram_master/__init__.py:279
 msgid "This is EFB Telegram Master Channel.\n\n"
 "To learn more, please visit https://github.com/blueset/efb-telegram-master ."
 msgstr "这里是 EFB Telegram主端. \n\n"
 "如需更多信息，请访问 https://github.com/blueset/efb-telegram-master 。"
 
-#: efb_telegram_master/__init__.py:297
+#: efb_telegram_master/__init__.py:284
 msgid "EFB Telegram Master Channel\n"
 "/link\n"
 "    Link a remote chat to an empty Telegram group.\n"
@@ -149,13 +145,30 @@ msgid "EFB Telegram Master Channel\n"
 "    Only works in singly linked group where the bot is an admin.\n"
 "/help\n"
 "    Print this command list."
-msgstr ""
+msgstr "EFB Telegram 主端 \n"
+"/link\n"
+"     将一个远端会话与一个空 Telegram 群组绑定。\n"
+"     通过附加正则表达式来筛选结果。\n"
+" /chat\n"
+"     生成一个会话头以开始会话。\n"
+"     通过附加正则表达式来筛选结果。\n"
+"/extra\n"
+"     列出所有由从端提供的附加功能。\n"
+" /unlink_all\n"
+"     断开该会话中的所有远程会话。\n"
+" /info\n"
+"     显示该 Telegram 会话的相关信息。\n"
+" /update_info\n"
+"     更新一个被绑定的Telegram群组的名称及头像。\n"
+"     只对被单独绑定且Bot为管理员的群组有效。\n"
+" /help\n"
+"     显示本帮助信息。"
 
-#: efb_telegram_master/__init__.py:330
+#: efb_telegram_master/__init__.py:317
 msgid "Conflicted polling detected. If this error persists, please ensure you are running only one instance of this Telegram bot."
 msgstr "检测到冲突轮询。如果此错误持续存在，请确保该 Telegram bot 只存在一个运行实例。"
 
-#: efb_telegram_master/__init__.py:348
+#: efb_telegram_master/__init__.py:335
 #, python-brace-format
 msgid "Message request is invalid.\n"
 "{error}\n"
@@ -164,14 +177,14 @@ msgstr "无效的消息请求。\n"
 "{error}\n"
 "<code>{update}</code>"
 
-#: efb_telegram_master/__init__.py:358
+#: efb_telegram_master/__init__.py:345
 #, python-brace-format
 msgid "This message is not processed due to poor internet environment of the server.\n"
 "<code>{code}</code>"
 msgstr "由于服务器网络环境较差，无法处理此消息。\n"
 "<code>{code}</code>"
 
-#: efb_telegram_master/__init__.py:367
+#: efb_telegram_master/__init__.py:354
 #, python-brace-format
 msgid "<b>EFB Telegram Master channel</b>\n"
 "You may have a poor internet connection on your server. Currently {count} network error is detected.\n"
@@ -183,7 +196,7 @@ msgstr[0] "<b>EFB Telegram 主端</b>\n"
 "您服务器的网络环境可能较差，目前已检测到 {count} 个网络问题。\n"
 "如需更多信息，请查看日志。"
 
-#: efb_telegram_master/__init__.py:387
+#: efb_telegram_master/__init__.py:374
 #, python-brace-format
 msgid "Chat migration detected.\n"
 "All {count} remote chat are now linked to this new group."
@@ -192,143 +205,99 @@ msgid_plural "Chat migration detected.\n"
 msgstr[0] "检测到聊天迁移。\n"
 "全部 {count} 个远程会话已绑定到新群组。"
 
-#: efb_telegram_master/__init__.py:395
+#: efb_telegram_master/__init__.py:382
 #, python-brace-format
 msgid "EFB Telegram Master channel encountered error <code>{error}</code> caused by update <code>{update}</code>."
 msgstr "EFB Telegram 主端遇到错误 <code>{error}</code>。\n"
 "来自状态：<code>{update}</code>。"
 
-#: efb_telegram_master/utils.py:33
+#: efb_telegram_master/utils.py:34
 #, python-brace-format
 msgid "{0} is not a valid experimental flag"
 msgstr "{0} 不是有效的实验性开关"
 
-#: efb_telegram_master/voice_recognition.py:65
-msgid "/recog lang_code\n"
-"Reply to a voice with this command to recognize it.\n"
-"examples:\n"
-"/recog zh\n"
-"/recog en-US\n\n"
-"Supported languages:\n"
-msgstr "/recog 语言代码\n"
-"以此命令回复语音消息以进行识别。\n"
-"用例：\n"
-"/recog zh\n"
-"/recog en-US\n\n\n"
-"支持的语言：\n"
-
-#: efb_telegram_master/voice_recognition.py:72
-msgid "Reply only to a voice with this command to recognize it. (RS02)"
-msgstr "请回复语音消息来进行识别。(RS02)"
-
-#: efb_telegram_master/voice_recognition.py:76
-msgid "Only voice shorter than 60s is supported. (RS04)"
-msgstr "仅支持 60 秒或更短的语音消息。(RS04)"
-
-#: efb_telegram_master/voice_recognition.py:90
-#, python-brace-format
-msgid "Results:\n"
-"{0}"
-msgstr "识别结果:\n"
-"{0}"
-
-#: efb_telegram_master/voice_recognition.py:134
-#: efb_telegram_master/voice_recognition.py:136
-#: efb_telegram_master/voice_recognition.py:155
-#: efb_telegram_master/voice_recognition.py:191
-#: efb_telegram_master/voice_recognition.py:195
-#: efb_telegram_master/voice_recognition.py:216
-#: efb_telegram_master/voice_recognition.py:221
-msgid "ERROR!"
-msgstr "错误!"
-
-#: efb_telegram_master/voice_recognition.py:134
-msgid "File must be a path string or a file object in `rb` mode."
-msgstr "文件必须为路径字符串或是在 \"rb\" 模式下的文件对象。"
-
-#: efb_telegram_master/voice_recognition.py:136
-#: efb_telegram_master/voice_recognition.py:195
-msgid "Invalid language."
-msgstr "语言代码无效。"
-
-#: efb_telegram_master/voice_recognition.py:191
-msgid "File must be a path string."
-msgstr "文件必须为路径字符串。"
-
-#: efb_telegram_master/master_message.py:100
+#: efb_telegram_master/master_message.py:103
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message. (MS01)"
 msgstr "错误: 未指定消息接收者。\n"
 "请回复一条过去的消息。(MS01)"
 
-#: efb_telegram_master/master_message.py:106
+#: efb_telegram_master/master_message.py:109
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message. (MS02)"
 msgstr "错误: 未指定消息接收者。\n"
 "请回复一条过去的消息。(MS02)"
 
-#: efb_telegram_master/master_message.py:168
-#: efb_telegram_master/master_message.py:212
+#: efb_telegram_master/master_message.py:171
+#: efb_telegram_master/master_message.py:215
 msgid "Message is not found in database. Please try with another message. (UC07)"
 msgstr "无法在数据库中找到该消息。\n"
 "请对另一条消息重试。(UC07)"
 
-#: efb_telegram_master/master_message.py:179
+#: efb_telegram_master/master_message.py:182
 msgid "Message is not found in database. Please try with another one. (UC03)"
 msgstr "无法在数据库中找到该消息。\n"
 "请对另一条消息重试。(UC03)"
 
-#: efb_telegram_master/master_message.py:183
+#: efb_telegram_master/master_message.py:186
 msgid "Please reply to an incoming message. (UC04)"
 msgstr "只能回复收到的消息。(UC04)"
 
-#: efb_telegram_master/master_message.py:194
+#: efb_telegram_master/master_message.py:197
 msgid "Message is not found in database. Please try with another one. (UC05)"
 msgstr "无法在数据库中找到该消息。请对另一条消息重试。(UC05)"
 
-#: efb_telegram_master/master_message.py:198
+#: efb_telegram_master/master_message.py:201
 msgid "This group is linked to multiple remote chats. Please reply to an incoming message. To unlink all remote chats, please send /unlink_all . (UC06)"
 msgstr "此群组绑定到到多个远程会话。请回复收到的消息。要取消所有远程会话的绑定，请发送 /unlink_all 。(UC06)"
 
-#: efb_telegram_master/master_message.py:216
+#: efb_telegram_master/master_message.py:219
 msgid "This group is not linked to any chat. (UC06)"
 msgstr "此群组未绑定到任何会话。(UC06)"
 
-#: efb_telegram_master/master_message.py:223
+#: efb_telegram_master/master_message.py:226
 #, python-brace-format
 msgid "Internal error: Channel \"{0}\" not found."
 msgstr "内部错误：找不到信道「{0}」。"
 
 #. TRANSLATORS: Message body text for location messages.
-#: efb_telegram_master/master_message.py:352
+#: efb_telegram_master/master_message.py:356
 msgid "Location"
-msgstr ""
+msgstr "位置"
 
-#: efb_telegram_master/master_message.py:365
+#: efb_telegram_master/master_message.py:369
+#, python-brace-format
+msgid "Shared a contact: {first_name} {last_name}\n"
+"{phone_number}"
+msgstr "分享了联系人: {first_name} {last_name}\n"
+"{phone_number}"
+
+#: efb_telegram_master/master_message.py:373
 #, python-brace-format
 msgid "Message type {0} is not supported."
 msgstr "不支持的消息类型：{0}"
 
-#: efb_telegram_master/master_message.py:370
+#: efb_telegram_master/master_message.py:378
 msgid "Chat is not found."
 msgstr "聊天会话未找到。"
 
-#: efb_telegram_master/master_message.py:372
+#: efb_telegram_master/master_message.py:380
 msgid "Message type is not supported."
 msgstr "不支持该消息类型。"
 
-#: efb_telegram_master/master_message.py:374
+#: efb_telegram_master/master_message.py:382
 msgid "Message editing is not supported.\n\n"
 "{!s}"
-msgstr ""
+msgstr "不支持编辑该消息。 \n\n"
+"{!s}"
 
-#: efb_telegram_master/master_message.py:376
+#: efb_telegram_master/master_message.py:384
 msgid "Message is not sent.\n\n"
 "{!r}"
 msgstr "消息未发送。 \n\n"
 "{!r}"
 
-#: efb_telegram_master/master_message.py:435
+#: efb_telegram_master/master_message.py:443
 msgid "Attachment is too large. Maximum is 20 MB. (AT01)"
 msgstr "附件过大。请确保附件小于 20MB。(AT01)"
 
@@ -374,7 +343,7 @@ msgid "< Prev"
 msgstr "< 上一页"
 
 #: efb_telegram_master/chat_binding.py:354
-#: efb_telegram_master/chat_binding.py:555
+#: efb_telegram_master/chat_binding.py:553
 msgid "Cancel"
 msgstr "取消"
 
@@ -383,7 +352,7 @@ msgid "Next >"
 msgstr "下一页 >"
 
 #: efb_telegram_master/chat_binding.py:400
-#: efb_telegram_master/chat_binding.py:682
+#: efb_telegram_master/chat_binding.py:681
 msgid "Processing..."
 msgstr "处理中…"
 
@@ -396,15 +365,15 @@ msgid "Please choose the chat you want to link with..."
 msgstr "请选择要绑定的会话…"
 
 #: efb_telegram_master/chat_binding.py:406
-#: efb_telegram_master/chat_binding.py:717
+#: efb_telegram_master/chat_binding.py:716
 msgid "\n\n"
 "Legend:\n"
 msgstr "\n\n"
 "图例:\n"
 
 #: efb_telegram_master/chat_binding.py:445
-#: efb_telegram_master/chat_binding.py:523
-#: efb_telegram_master/chat_binding.py:746
+#: efb_telegram_master/chat_binding.py:521
+#: efb_telegram_master/chat_binding.py:745
 msgid "Cancelled."
 msgstr "已取消。"
 
@@ -413,29 +382,24 @@ msgstr "已取消。"
 msgid "Invalid parameter ({0}). (IP01)"
 msgstr "无效的参数：({0})。(IP01)"
 
-#: efb_telegram_master/chat_binding.py:463
-#, python-brace-format
-msgid "{alias} ({name})"
-msgstr "{alias} ({name})"
-
-#: efb_telegram_master/chat_binding.py:469
+#: efb_telegram_master/chat_binding.py:467
 #, python-brace-format
 msgid "You've selected chat {0}."
 msgstr "你选择了会话 {0} 。"
 
-#: efb_telegram_master/chat_binding.py:471
+#: efb_telegram_master/chat_binding.py:469
 msgid "\n"
 "This chat is currently muted."
 msgstr "\n"
 "该会话已处于免打扰中。"
 
-#: efb_telegram_master/chat_binding.py:473
+#: efb_telegram_master/chat_binding.py:471
 msgid "\n"
 "This chat has already linked to Telegram."
 msgstr "\n"
 "该会话已被绑定至 Telegram。"
 
-#: efb_telegram_master/chat_binding.py:474
+#: efb_telegram_master/chat_binding.py:472
 msgid "\n"
 "What would you like to do?\n\n"
 "<i>* If the link button doesn't work for you, please try to link manually.</i>"
@@ -443,29 +407,29 @@ msgstr "\n"
 "接下来要做什么？\n\n"
 "<i>* 如果你无法使用绑定按钮，请尝试手动绑定。</i>"
 
-#: efb_telegram_master/chat_binding.py:483
+#: efb_telegram_master/chat_binding.py:481
 msgid "Relink"
 msgstr "重新绑定"
 
-#: efb_telegram_master/chat_binding.py:485
+#: efb_telegram_master/chat_binding.py:483
 msgid "Restore"
 msgstr "还原"
 
-#: efb_telegram_master/chat_binding.py:487
-#: efb_telegram_master/chat_binding.py:490
+#: efb_telegram_master/chat_binding.py:485
+#: efb_telegram_master/chat_binding.py:488
 msgid "Link"
 msgstr "绑定"
 
-#: efb_telegram_master/chat_binding.py:488
+#: efb_telegram_master/chat_binding.py:486
 msgid "Unmute"
 msgstr "解除免打扰"
 
-#: efb_telegram_master/chat_binding.py:494
+#: efb_telegram_master/chat_binding.py:492
 #, python-brace-format
 msgid "Manual {link_or_relink}"
 msgstr "手动{link_or_relink}"
 
-#: efb_telegram_master/chat_binding.py:541
+#: efb_telegram_master/chat_binding.py:539
 #, python-brace-format
 msgid "To link {chat_display_name} manually, please:\n\n"
 "1. Add me to the Telegram Group you want to link to.\n"
@@ -480,76 +444,76 @@ msgstr "若要手动对 {chat_display_name} 进行链接，请按以下步骤进
 "3. 若链接成功，你将会收到提示。\n\n"
 "<i>* 若要绑定频道，请把上面的代码发送至你的频道，然后将该消息转发给 Bot。请注意，Bot 不会接收任何人发送至频道的消息。</i>"
 
-#: efb_telegram_master/chat_binding.py:560
+#: efb_telegram_master/chat_binding.py:558
 #, python-brace-format
 msgid "Command '{command}' ({query}) is not recognised, please try again"
 msgstr "未能成功识别命令 '{command}' ({query}) ，请重试。"
 
-#: efb_telegram_master/chat_binding.py:571
+#: efb_telegram_master/chat_binding.py:570
 msgid "Session expired or unknown parameter. (SE02)"
 msgstr "会话过期或未知参数。(SE02)"
 
-#: efb_telegram_master/chat_binding.py:583
+#: efb_telegram_master/chat_binding.py:582
 #, python-brace-format
 msgid "Trying to link chat {0}..."
 msgstr "正在尝试绑定会话 {0}…"
 
-#: efb_telegram_master/chat_binding.py:591
+#: efb_telegram_master/chat_binding.py:590
 #, python-brace-format
 msgid "Chat {0} is now linked."
 msgstr "会话 {0} 已成功绑定。"
 
-#: efb_telegram_master/chat_binding.py:612
+#: efb_telegram_master/chat_binding.py:611
 msgid "No chat is linked to the group."
 msgstr "尚无会话被绑定至该群组。"
 
-#: efb_telegram_master/chat_binding.py:618
+#: efb_telegram_master/chat_binding.py:617
 #, python-brace-format
 msgid "All {0} chat has been unlinked from this group."
 msgid_plural "All {0} chats has been unlinked from this group."
 msgstr[0] "所有 {0} 个会话已从该群组解绑。"
 
-#: efb_telegram_master/chat_binding.py:630
+#: efb_telegram_master/chat_binding.py:629
 msgid "No chat is linked to the channel."
 msgstr "尚无会话被绑定至该频道。"
 
-#: efb_telegram_master/chat_binding.py:635
+#: efb_telegram_master/chat_binding.py:634
 #, python-brace-format
 msgid "All {0} chat has been unlinked from this channel."
 msgid_plural "All {0} chats has been unlinked from this channel."
 msgstr[0] "所有 {0} 个会话已从该频道解绑。"
 
-#: efb_telegram_master/chat_binding.py:641
+#: efb_telegram_master/chat_binding.py:640
 msgid "Send `/unlink_all` to a group to unlink all remote chats from it."
 msgstr "将 \"/unlink_all\" 发送至一个群组, 以解绑所有绑定到该群组的会话。"
 
-#: efb_telegram_master/chat_binding.py:692
+#: efb_telegram_master/chat_binding.py:691
 #, python-brace-format
 msgid "This group is linked to {0}Send a message to this group to deliver it to the chat.\n"
 "Do NOT reply to this system message."
 msgstr "该群组已与 {0} 绑定，向该群组发送消息以将其传至该会话中。\n"
 "请 不要 回复该系统消息。"
 
-#: efb_telegram_master/chat_binding.py:698
+#: efb_telegram_master/chat_binding.py:697
 #, python-brace-format
 msgid "This group is linked to an unknown chat ({chat_id}) on channel {channel_emoji} {channel_name}. Possibly you can no longer reach this chat. Send /unlink_all to unlink all chats from this group."
 msgstr "该群组绑定到了来自 {channel_emoji} {channel_name} 的未知会话（{chat_id}）。或许该会话已不再存在。发送 /unlink_all 以解绑所有绑定至此的会话。"
 
-#: efb_telegram_master/chat_binding.py:709
+#: efb_telegram_master/chat_binding.py:708
 msgid "This Telegram group is linked to the following chats, choose one to start a conversation with."
 msgstr "此 Telegram 群组已被绑定至以下会话，请选择其中一个来开始聊天。"
 
-#: efb_telegram_master/chat_binding.py:755
+#: efb_telegram_master/chat_binding.py:754
 #, python-brace-format
 msgid "Invalid command. ({0})"
 msgstr "无效命令。({0})"
 
-#: efb_telegram_master/chat_binding.py:767
+#: efb_telegram_master/chat_binding.py:766
 #, python-brace-format
 msgid "Reply to this message to chat with {0}."
 msgstr "回复该消息以与 {0} 对话。"
 
-#: efb_telegram_master/chat_binding.py:808
+#: efb_telegram_master/chat_binding.py:811
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message, or choose a recipient:\n\n"
 "Legend:\n"
@@ -557,18 +521,18 @@ msgstr "错误：未指定消息接收者。\n"
 "请回复一条过去的消息，或选择一个收件人：\n\n"
 "图例：\n"
 
-#: efb_telegram_master/chat_binding.py:826
+#: efb_telegram_master/chat_binding.py:829
 #, python-brace-format
 msgid "Delivering the message to {0}"
 msgstr "发送消息至 {0}"
 
-#: efb_telegram_master/chat_binding.py:830
+#: efb_telegram_master/chat_binding.py:833
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message."
 msgstr "错误：未指定消息接收者。\n"
 "请回复一条过去的消息。"
 
-#: efb_telegram_master/chat_binding.py:835
+#: efb_telegram_master/chat_binding.py:838
 #, python-brace-format
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message.\n\n"
@@ -577,85 +541,85 @@ msgstr "错误：未指定消息接收者。\n"
 "请回复一条过去的消息。\n\n"
 "参数无效 ({0}) 。"
 
-#: efb_telegram_master/chat_binding.py:848
+#: efb_telegram_master/chat_binding.py:852
 msgid "Send /update_info in a group where this bot is a group admin to update group title and profile picture"
 msgstr "将本 bot 设置为群组管理员，发送 /update_info 以更新群组名称和头像。"
 
-#: efb_telegram_master/chat_binding.py:858
+#: efb_telegram_master/chat_binding.py:862
 #, python-brace-format
 msgid "This only works in a group linked with one chat. Currently {0} chat linked to this group."
 msgid_plural "This only works in a group linked with one chat. Currently {0} chats linked to this group."
 msgstr[0] "该指令只适用于单一绑定的群组。目前该群组已绑定了 {0} 个会话。"
 
-#: efb_telegram_master/chat_binding.py:887
+#: efb_telegram_master/chat_binding.py:891
 msgid "Chat information updated."
 msgstr "会话信息已更新。"
 
-#: efb_telegram_master/chat_binding.py:889
+#: efb_telegram_master/chat_binding.py:893
 msgid "Channel linked is not found."
 msgstr "绑定的从端不存在。"
 
-#: efb_telegram_master/chat_binding.py:891
+#: efb_telegram_master/chat_binding.py:895
 msgid "Chat linked is not found in channel."
 msgstr "从端中未找到绑定的会话。"
 
-#: efb_telegram_master/chat_binding.py:893
+#: efb_telegram_master/chat_binding.py:897
 #, python-brace-format
 msgid "Error occurred while update chat information.\n"
 "{0}"
 msgstr "更新会话信息时出现错误。\n"
 "{0}"
 
-#: efb_telegram_master/chat_binding.py:896
+#: efb_telegram_master/chat_binding.py:900
 #, python-brace-format
 msgid "Error occurred while update chat information. \n"
 "{0}"
 msgstr "更新会话信息时出现错误。\n"
 "{0}"
 
-#: efb_telegram_master/chat_binding.py:899
+#: efb_telegram_master/chat_binding.py:903
 msgid "No profile picture provided from this chat."
 msgstr "该会话没有头像。"
 
-#: efb_telegram_master/commands.py:88
+#: efb_telegram_master/commands.py:89
 #, python-brace-format
 msgid "Invalid parameter: {0}. (CE01)"
 msgstr "参数无效: {0}。(CE01)"
 
-#: efb_telegram_master/commands.py:93
+#: efb_telegram_master/commands.py:94
 #, python-brace-format
 msgid "Index out of bound: {0}. (CE02)"
 msgstr "索引越界：{0} (CE02)"
 
-#: efb_telegram_master/commands.py:124
+#: efb_telegram_master/commands.py:130
 msgid "<i>Click the link next to the name for usage.</i>\n"
-msgstr ""
+msgstr "<i>点击名称旁的链接以查看用法</i>\n"
 
-#: efb_telegram_master/commands.py:133
+#: efb_telegram_master/commands.py:159
 msgid "No command found."
-msgstr ""
+msgstr "找不到命令。"
 
-#: efb_telegram_master/commands.py:138
+#: efb_telegram_master/commands.py:164
 msgid "Invalid module id ID. (XC03)"
-msgstr ""
+msgstr "无效的组件 ID。(XC03)"
 
-#: efb_telegram_master/commands.py:144
+#: efb_telegram_master/commands.py:170
 msgid "Command not found in selected module. (XC04)"
-msgstr ""
+msgstr "该指令在指定的组件中不存在。(XC04)"
 
-#: efb_telegram_master/commands.py:167
+#: efb_telegram_master/commands.py:200
 msgid "Invalid module ID. (XC01)"
-msgstr ""
+msgstr "无效的组件 ID。(XC01)"
 
-#: efb_telegram_master/commands.py:175
+#: efb_telegram_master/commands.py:208
 msgid "Command not found in selected module. (XC02)"
-msgstr ""
+msgstr "该指令在指定的组件中不存在。(XC02)"
 
-#: efb_telegram_master/commands.py:180
+#: efb_telegram_master/commands.py:215
 msgid "Please wait..."
 msgstr "请稍等..."
 
-#: efb_telegram_master/commands.py:188
+#: efb_telegram_master/commands.py:223
 msgid "Error: Command is not found in the channel.\n"
 "Function: {channel_id}.{callable}\n"
 "Arguments: {args!r}\n"

@@ -9,6 +9,7 @@ EFB Telegram Master Channel (ETM)
    :target: https://crowdin.com/project/ehforwarderbot/
 
 `README in other languages`_.
+
 .. _README in other languages: ./readme_translations
 .. TRANSLATORS: change the URL on previous line as "." (without quotations).
 
@@ -51,6 +52,19 @@ Getting Started
    ``~/.ehforwarderbot/profiles/default`` **)**
 
 3. Configure the channel (described as follows)
+
+Alternative installation methods
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ETM also has other alternative installation methods
+contributed by the community, including:
+
+- `AUR package`_ maintained by KeLiu_ (``python-efb-telegram-master-git``)
+- Other `installation scripts and containers (e.g. Docker)`_
+
+.. _KeLiu: https://github.com/specter119
+.. _AUR package: https://aur.archlinux.org/packages/python-efb-telegram-master-git
+.. _installation scripts and containers (e.g. Docker): https://github.com/blueset/ehForwarderBot/wiki/Channels-Repository#scripts-and-containers-eg-docker
 
 Configuration
 -------------
@@ -163,14 +177,14 @@ to BotFather for a command list::
    *You can also choose to unlink or relink a linked chat from this
    menu.*
 4. Tap “Start” at the bottom of your screen, and you should see a
-   success message: “Chat associated.”
+   success message: “Chat linked.”
 
 .. note::
 
     You may introduce non-ETM admin users to the group, however, they:
 
--  Can read all messages send from the related remote chat;
--  May NOT send message on your behalf.
+    -  Can read all messages send from the related remote chat;
+    -  May NOT send message on your behalf.
 
 If the “Link” button doesn’t work for you, you may try the “Manual
 Link/Relink” button. To manually link a remote chat:
@@ -182,6 +196,52 @@ Link/Relink” button. To manually link a remote chat:
 
 Also, you can send ``/unlink_all`` to a group to unlink all remote chats
 from it.
+
+Advanced feature: Filtering
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you have just too much chats, and being too tired for keep tapping
+``Next >``, or maybe you just want to find a way to filter out what
+you’re looking for, now ETM has equipped ``/chat`` and ``/list`` with
+filtering feature. Attach your keyword behind, and you can get a
+filtered result.
+
+E.g.: ``/chat Eana`` will give you all chats has the word “Eana”.
+
+.. admonition:: Technical Details
+
+    The filter query is in fact a regular expression matching. We used
+    Python’s ``re.search`` with flags ``re.DOTALL | re.IGNORECASE`` in
+    this case, i.e.: ``.`` matches everything including line breaks, and
+    the query is NOT case-sensitive. Each comparison is done against a
+    specially crafted string which allows you to filter multiple criteria.
+
+::
+
+    Channel: <Channel name>
+    Name: <Chat name>
+    Alias: <Chat Alias>
+    ID: <Chat Unique ID>
+    Type: (User|Group)
+    Mode: [Linked]
+    Other: <Python Dictionary String>
+
+
+.. note::
+
+    Type can be either “User” or “Group”
+
+    Other is the vendor specific information provided by slave channels.
+    Format of such information is specified in their documentations
+    respectively.
+
+
+Examples:
+
+-  Look for all WeChat groups: ``Channel: WeChat.*Type: Group``
+-  Look for everyone who has an alias ``Name: (.*?)\nAlias: (?!\1)``
+-  Look for all entries contain “John” and “Johnny” in any order:
+   ``(?=.*John)(?=.*Johnny)"``
 
 Send a message
 ~~~~~~~~~~~~~~
@@ -218,11 +278,11 @@ Edit and delete message
 
 In EFB v2, the framework added support to message editing and removal,
 and so does ETM. However, due to the limitation of Telegram Bot API,
-although you may have selected “Delete from the bot”, or “Delete from
+although you may have selected “Delete for the bot”, or “Delete for
 everyone” while deleting messages, the bot would not know anything about
 it. Therefore, if you want your message to be removed from a remote
 chat, edit your message and prepend it with rm\` (it’s R, M, and ~\`,
-not single quote), so that the bot knows that you want to remote the
+not single quote), so that the bot knows that you want to delete the
 message.
 
 Please also notice that some channels may not support editing and/or
@@ -242,62 +302,22 @@ Send ``/chat`` to the bot, and choose a chat from the list. When you see
 Advanced feature: Filtering
 '''''''''''''''''''''''''''
 
-If you have just too much chats, and being too tired for keep tapping
-``Next >``, or maybe you just want to find a way to filter out what
-you’re looking for, now ETM has equipped ``/chat`` and ``/list`` with
-filtering feature. Attach your keyword behind, and you can get a
-filtered result.
-
-E.g.: ``/chat Eana`` will give you all chats has the word “Eana”.
-
-.. admonition:: Technical Details
-
-    The filter query is in fact a regular expression matching. We used
-    Python’s ``re.search`` with flags ``re.DOTALL | re.IGNORECASE`` in
-    this case, i.e.: ``.`` matches everything including line breaks, and
-    the query is NOT case-sensitive. Each comparison is done against a
-    specially crafted string which allows you to filter multiple criteria.
-
-::
-
-    Channel: <Channel name>
-    Name: <Chat name>
-    Alias: <Chat Alias>
-    ID: <Chat Unique ID>
-    Type: (User|Group)
-    Mode: [[Muted, ]Linked]
-    Other: <Python Dictionary String>
+Filter is also available in ``/chat`` command. Please refer to the
+same chapter above, under ``/link`` for the details.
 
 
-.. note::
-
-    Type can be either “User” or “Group”
-
-    Other is the vendor specific information provided by slave channels.
-    Format of such information is specified in their documentations
-    respectively.
-
-
-
-Examples:
-
--  Look for all WeChat groups: ``Channel: WeChat.*Type: Group``
--  Look for everyone who has an alias ``Name: (.*?)\nAlias: (?!\1)``
--  Look for all entries contain “John” and “Jonny” in any order:
-   ``(?=.*John)(?=.*Jonny)"``
-
-``/extra``: External commands from slave channels (“additonal features”)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``/extra``: External commands from slave channels (“additional features”)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Some slave channels may provide commands that allows you to remotely
 control those accounts, and achieve extra functionality, those commands
 are called “additional features”. To view the list of available extra
 functions, send ``/extra`` to the bot, you will receive a list of
-commands available, together with their usages.
+commands available.
 
 Those commands are named like “\ ``/<number>_<command_name>``\ ”, and can be
-called like a Linux/unix CLI utility. (of course, please don’t expect
-piping etc to be supported)
+called like an CLI utility. (of course, advanced features like
+piping etc would not be supported)
 
 .. Deprecated feature
     .
@@ -343,14 +363,13 @@ piping etc to be supported)
 ``/update_info``: Update name and profile picture of linked group
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-EFB can help you to update the name and profile picture of a group to
+ETM can help you to update the name and profile picture of a group to
 match with appearance in the remote chat.
 
 This functionality is available when:
 
 * This command is sent to a group
-* The bot is an admin of the group (“Everyone is admin” will not work
-  in this case)
+* The bot is an admin of the group
 * The group is linked to **exactly** one remote chat
 * The remote chat is accessible
 
@@ -367,7 +386,7 @@ The bot can:
 
 -  Link one or more remote chats to a Telegram Channel
 -  Check and manage link status of the channel
--  Let the bot to update channel title and profile pictures accordingly
+-  Update channel title and profile pictures accordingly
 
 It cannot:
 
@@ -377,7 +396,7 @@ It cannot:
 Currently the following commands are supported in channels:
 
 -  ``/start`` for manual chat linking
--  ``/link`` to manage groups linked to the channel
+-  ``/link`` to manage chats linked to the channel
 -  ``/info`` to show information of the channel
 -  ``/update_info`` to update the channel title and picture
 
@@ -386,6 +405,30 @@ How to use:
 1. Add the bot as an administrator of the channel
 2. Send commands to the channel
 3. Forward the command message to the bot privately
+
+Limitations
+-----------
+
+Due to the technical limitations of Telegram Bot API and EH Forwarder
+Bot framework, there are some limitations:
+
+- Some Telegram message types are **not** supported:
+    - Game messages
+    - Invoice messages
+    - Payment messages
+    - Passport messages
+    - Vote messages
+- Some components in Telegram messages are dropped:
+    - Original author and signature of forwarded messages
+    - Formats, links and link previews
+    - Buttons attached to messages
+    - Details about inline bot used on messages
+- Some components in messages from slave channels are dropped:
+    - @ references.
+- The Telegram bot can only
+    - send you any file up to 50 MiB,
+    - receive file from you up to 20 MiB.
+
 
 Experimental flags
 ------------------
