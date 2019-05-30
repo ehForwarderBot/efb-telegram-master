@@ -223,7 +223,7 @@ E.g.: ``/chat Eana`` will give you all chats has the word “Eana”.
     Alias: <Chat Alias>
     ID: <Chat Unique ID>
     Type: (User|Group)
-    Mode: [[Muted, ]Linked]
+    Mode: [Linked]
     Other: <Python Dictionary String>
 
 
@@ -240,8 +240,8 @@ Examples:
 
 -  Look for all WeChat groups: ``Channel: WeChat.*Type: Group``
 -  Look for everyone who has an alias ``Name: (.*?)\nAlias: (?!\1)``
--  Look for all entries contain “John” and “Jonny” in any order:
-   ``(?=.*John)(?=.*Jonny)"``
+-  Look for all entries contain “John” and “Johnny” in any order:
+   ``(?=.*John)(?=.*Johnny)"``
 
 Send a message
 ~~~~~~~~~~~~~~
@@ -313,11 +313,11 @@ Some slave channels may provide commands that allows you to remotely
 control those accounts, and achieve extra functionality, those commands
 are called “additional features”. To view the list of available extra
 functions, send ``/extra`` to the bot, you will receive a list of
-commands available, together with their usages.
+commands available.
 
 Those commands are named like “\ ``/<number>_<command_name>``\ ”, and can be
-called like a Linux/unix CLI utility. (of course, please don’t expect
-piping etc to be supported)
+called like an CLI utility. (of course, advanced features like
+piping etc would not be supported)
 
 .. Deprecated feature
     .
@@ -363,14 +363,13 @@ piping etc to be supported)
 ``/update_info``: Update name and profile picture of linked group
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-EFB can help you to update the name and profile picture of a group to
+ETM can help you to update the name and profile picture of a group to
 match with appearance in the remote chat.
 
 This functionality is available when:
 
 * This command is sent to a group
-* The bot is an admin of the group (“Everyone is admin” will not work
-  in this case)
+* The bot is an admin of the group
 * The group is linked to **exactly** one remote chat
 * The remote chat is accessible
 
@@ -387,7 +386,7 @@ The bot can:
 
 -  Link one or more remote chats to a Telegram Channel
 -  Check and manage link status of the channel
--  Let the bot to update channel title and profile pictures accordingly
+-  Update channel title and profile pictures accordingly
 
 It cannot:
 
@@ -397,7 +396,7 @@ It cannot:
 Currently the following commands are supported in channels:
 
 -  ``/start`` for manual chat linking
--  ``/link`` to manage groups linked to the channel
+-  ``/link`` to manage chats linked to the channel
 -  ``/info`` to show information of the channel
 -  ``/update_info`` to update the channel title and picture
 
