@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ehforwarderbot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-29 13:58+1000\n"
-"PO-Revision-Date: 2019-05-29 04:46\n"
+"POT-Creation-Date: 2019-05-31 13:23+1000\n"
+"PO-Revision-Date: 2019-05-31 08:50\n"
 "Last-Translator: Eana Hufwe (blueset)\n"
 "Language-Team: Turkish\n"
 "Language: tr_TR\n"
@@ -278,7 +278,7 @@ msgid "Message is not sent.\n\n"
 msgstr "Mesaj gönderilmemiştir.\n\n"
 "{!r}"
 
-#: efb_telegram_master/master_message.py:443
+#: efb_telegram_master/master_message.py:444
 msgid "Attachment is too large. Maximum is 20 MB. (AT01)"
 msgstr "Eklenti çok büyük. Maksimum 20 MB olmalı. (AT01)"
 
@@ -535,35 +535,35 @@ msgid_plural "This only works in a group linked with one chat. Currently {0} cha
 msgstr[0] "Bu sadece tek bir sohbete bağlı olan bir grupta çalışır. Mevcut durumda {0} sohbetleri bu gruba bağlıdır."
 msgstr[1] "Bu sadece tek bir sohbete bağlı olan bir grupta çalışır. Mevcut durumda {0} sohbeti bu gruba bağlıdır."
 
-#: efb_telegram_master/chat_binding.py:891
+#: efb_telegram_master/chat_binding.py:894
 msgid "Chat information updated."
 msgstr "Sohbet bilgisi güncellendi."
 
-#: efb_telegram_master/chat_binding.py:893
+#: efb_telegram_master/chat_binding.py:896
 msgid "Channel linked is not found."
 msgstr "Kanal bağlantısı bulunamadı."
 
-#: efb_telegram_master/chat_binding.py:895
+#: efb_telegram_master/chat_binding.py:899
 msgid "Chat linked is not found in channel."
 msgstr "Bağlantılı sohbet kanalda bulunamadı."
 
-#: efb_telegram_master/chat_binding.py:897
+#: efb_telegram_master/chat_binding.py:902
 #, python-brace-format
 msgid "Error occurred while update chat information.\n"
 "{0}"
 msgstr "Sohbet bilgisini güncellerden bir hata oluştu.\n"
 "{0}"
 
-#: efb_telegram_master/chat_binding.py:900
+#: efb_telegram_master/chat_binding.py:905
+msgid "No profile picture provided from this chat."
+msgstr "Bu sohbetten bir profil fotoğrafı bulunamamıştır."
+
+#: efb_telegram_master/chat_binding.py:908
 #, python-brace-format
 msgid "Error occurred while update chat information. \n"
 "{0}"
 msgstr "Sohbet bilgisini güncellerden bir hata oluştu. \n"
 "{0}"
-
-#: efb_telegram_master/chat_binding.py:903
-msgid "No profile picture provided from this chat."
-msgstr "Bu sohbetten bir profil fotoğrafı bulunamamıştır."
 
 #: efb_telegram_master/commands.py:89
 #, python-brace-format
