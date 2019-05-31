@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ehforwarderbot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-29 13:58+1000\n"
-"PO-Revision-Date: 2019-05-29 04:47\n"
+"POT-Creation-Date: 2019-05-31 13:23+1000\n"
+"PO-Revision-Date: 2019-05-31 08:50\n"
 "Last-Translator: Eana Hufwe (blueset)\n"
 "Language-Team: Indonesian\n"
 "Language: id_ID\n"
@@ -271,7 +271,7 @@ msgid "Message is not sent.\n\n"
 msgstr "Pesan tidak terkirim.\n\n"
 "{!r}"
 
-#: efb_telegram_master/master_message.py:443
+#: efb_telegram_master/master_message.py:444
 msgid "Attachment is too large. Maximum is 20 MB. (AT01)"
 msgstr "Lampiran terlalu besar. Maksimum adalah 20 MB. (AT01)"
 
@@ -524,35 +524,35 @@ msgid "This only works in a group linked with one chat. Currently {0} chat linke
 msgid_plural "This only works in a group linked with one chat. Currently {0} chats linked to this group."
 msgstr[0] "Ini hanya bekerja dalam sebuah kelompok yang terhubung dengan satu obrolan. Saat ini {0} obrolan ditautkan ke kelompok ini."
 
-#: efb_telegram_master/chat_binding.py:891
+#: efb_telegram_master/chat_binding.py:894
 msgid "Chat information updated."
 msgstr "Informasi obrolan diperbarui."
 
-#: efb_telegram_master/chat_binding.py:893
+#: efb_telegram_master/chat_binding.py:896
 msgid "Channel linked is not found."
 msgstr "Saluran yang terkait tidak ditemukan."
 
-#: efb_telegram_master/chat_binding.py:895
+#: efb_telegram_master/chat_binding.py:899
 msgid "Chat linked is not found in channel."
 msgstr "Tautan obrolan tidak ditemukan dalam saluran."
 
-#: efb_telegram_master/chat_binding.py:897
+#: efb_telegram_master/chat_binding.py:902
 #, python-brace-format
 msgid "Error occurred while update chat information.\n"
 "{0}"
 msgstr "Terjadi kesalahan saat memperbarui informasi obrolan.\n"
 "{0}"
 
-#: efb_telegram_master/chat_binding.py:900
+#: efb_telegram_master/chat_binding.py:905
+msgid "No profile picture provided from this chat."
+msgstr "Tidak ada foto profil yang disediakan dari obrolan ini."
+
+#: efb_telegram_master/chat_binding.py:908
 #, python-brace-format
 msgid "Error occurred while update chat information. \n"
 "{0}"
 msgstr "Terjadi kesalahan saat memperbarui informasi obrolan. \n"
 "{0}"
-
-#: efb_telegram_master/chat_binding.py:903
-msgid "No profile picture provided from this chat."
-msgstr "Tidak ada foto profil yang disediakan dari obrolan ini."
 
 #: efb_telegram_master/commands.py:89
 #, python-brace-format
