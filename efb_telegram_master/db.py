@@ -4,7 +4,7 @@ import datetime
 import logging
 from typing import List, Optional
 
-from peewee import Model, TextField, DateTimeField, CharField, SqliteDatabase, DoesNotExist
+from peewee import Model, TextField, DateTimeField, CharField, SqliteDatabase, DoesNotExist, fn
 from playhouse.migrate import SqliteMigrator, migrate
 
 from ehforwarderbot import utils, EFBChannel
@@ -57,11 +57,6 @@ class DatabaseManager:
         database.init(str(base_path / 'tgdata.db'))
         database.connect()
 
-        self.BaseModel = BaseModel
-        self.ChatAssoc = ChatAssoc
-        self.MsgLog = MsgLog
-        self.SlaveChatInfo = SlaveChatInfo
-
         if not ChatAssoc.table_exists():
             self._create()
         elif "file_id" not in {i.name for i in database.get_columns("MsgLog")}:
@@ -72,7 +67,7 @@ class DatabaseManager:
         Initializing tables.
         """
         database.execute_sql("PRAGMA journal_mode = OFF")
-        database.create_tables([self.ChatAssoc, self.MsgLog, self.SlaveChatInfo])
+        database.create_tables([ChatAssoc, MsgLog, SlaveChatInfo])
 
     def _migrate(self, i):
         """
@@ -89,10 +84,10 @@ class DatabaseManager:
             # Migration 0: Add media file ID and editable message ID
             # 2019JAN08
             migrate(
-                migrator.add_column("msglog", "file_id", self.MsgLog.file_id),
-                migrator.add_column("msglog", "media_type", self.MsgLog.media_type),
-                migrator.add_column("msglog", "mime", self.MsgLog.mime),
-                migrator.add_column("msglog", "master_msg_id_alt", self.MsgLog.master_msg_id_alt)
+                migrator.add_column("msglog", "file_id", MsgLog.file_id),
+                migrator.add_column("msglog", "media_type", MsgLog.media_type),
+                migrator.add_column("msglog", "mime", MsgLog.mime),
+                migrator.add_column("msglog", "master_msg_id_alt", MsgLog.master_msg_id_alt)
             )
         # if i == 0:
         #     # Migration 0: Added Time column in MsgLog table.
@@ -121,7 +116,7 @@ class DatabaseManager:
         if not multiple_slave:
             self.remove_chat_assoc(master_uid=master_uid)
         self.remove_chat_assoc(slave_uid=slave_uid)
-        return self.ChatAssoc.create(master_uid=master_uid, slave_uid=slave_uid)
+        return ChatAssoc.create(master_uid=master_uid, slave_uid=slave_uid)
 
     def remove_chat_assoc(self, master_uid=None, slave_uid=None):
         """
@@ -136,9 +131,9 @@ class DatabaseManager:
             if bool(master_uid) == bool(slave_uid):
                 raise ValueError("Only one parameter is to be provided.")
             elif master_uid:
-                return self.ChatAssoc.delete().where(self.ChatAssoc.master_uid == master_uid).execute()
+                return ChatAssoc.delete().where(ChatAssoc.master_uid == master_uid).execute()
             elif slave_uid:
-                return self.ChatAssoc.delete().where(self.ChatAssoc.slave_uid == slave_uid).execute()
+                return ChatAssoc.delete().where(ChatAssoc.slave_uid == slave_uid).execute()
         except DoesNotExist:
             return 0
 
@@ -158,13 +153,13 @@ class DatabaseManager:
             if bool(master_uid) == bool(slave_uid):
                 raise ValueError("Only one parameter is to be provided.")
             elif master_uid:
-                slaves = self.ChatAssoc.select().where(self.ChatAssoc.master_uid == master_uid)
+                slaves = ChatAssoc.select().where(ChatAssoc.master_uid == master_uid)
                 if len(slaves) > 0:
                     return [i.slave_uid for i in slaves]
                 else:
                     return []
             elif slave_uid:
-                masters = self.ChatAssoc.select().where(self.ChatAssoc.slave_uid == slave_uid)
+                masters = ChatAssoc.select().where(ChatAssoc.slave_uid == slave_uid)
                 if len(masters) > 0:
                     return [i.master_uid for i in masters]
                 else:
@@ -184,8 +179,8 @@ class DatabaseManager:
             MsgLog: The last message from the chat
         """
         try:
-            return self.MsgLog.select().where(self.MsgLog.master_msg_id.startswith("%s." % chat_id)).order_by(
-                self.MsgLog.time.desc()).first()
+            return MsgLog.select().where(MsgLog.master_msg_id.startswith("%s." % chat_id)).order_by(
+                MsgLog.time.desc()).first()
         except DoesNotExist:
             return None
 
@@ -228,7 +223,7 @@ class DatabaseManager:
         mime = kwargs.get('mime', None)
         update = kwargs.get('update', False)
         if update:
-            msg_log = self.MsgLog.get(self.MsgLog.master_msg_id == master_msg_id)
+            msg_log = MsgLog.get(MsgLog.master_msg_id == master_msg_id)
             msg_log.text = text or msg_log.text
             msg_log.msg_type = msg_type or msg_log.msg_type
             msg_log.sent_to = sent_to or msg_log.sent_to
@@ -244,7 +239,7 @@ class DatabaseManager:
             msg_log.save()
             return msg_log
         else:
-            return self.MsgLog.create(master_msg_id=master_msg_id,
+            return MsgLog.create(master_msg_id=master_msg_id,
                                       slave_message_id=slave_message_id,
                                       text=text,
                                       slave_origin_uid=slave_origin_uid,
@@ -280,12 +275,12 @@ class DatabaseManager:
             raise ValueError('slave_msg_id and slave_origin_uid must exists together.')
         try:
             if master_msg_id:
-                return self.MsgLog.select().where(self.MsgLog.master_msg_id == master_msg_id) \
-                    .order_by(self.MsgLog.time.desc()).first()
+                return MsgLog.select().where(MsgLog.master_msg_id == master_msg_id) \
+                    .order_by(MsgLog.time.desc()).first()
             else:
-                return self.MsgLog.select().where((self.MsgLog.slave_message_id == slave_msg_id) &
-                                                  (self.MsgLog.slave_origin_uid == slave_origin_uid)
-                                                  ).order_by(self.MsgLog.time.desc()).first()
+                return MsgLog.select().where((MsgLog.slave_message_id == slave_msg_id) &
+                                                  (MsgLog.slave_origin_uid == slave_origin_uid)
+                                                  ).order_by(MsgLog.time.desc()).first()
         except DoesNotExist:
             return None
 
@@ -307,10 +302,10 @@ class DatabaseManager:
             raise ValueError('slave_msg_id and slave_origin_uid must exists together.')
         try:
             if master_msg_id:
-                self.MsgLog.delete().where(self.MsgLog.master_msg_id == master_msg_id).execute()
+                MsgLog.delete().where(MsgLog.master_msg_id == master_msg_id).execute()
             else:
-                self.MsgLog.delete().where((self.MsgLog.slave_message_id == slave_msg_id) &
-                                           (self.MsgLog.slave_origin_uid == slave_origin_uid)
+                MsgLog.delete().where((MsgLog.slave_message_id == slave_msg_id) &
+                                           (MsgLog.slave_origin_uid == slave_origin_uid)
                                            ).execute()
         except DoesNotExist:
             return
@@ -325,9 +320,9 @@ class DatabaseManager:
         if slave_channel_id is None or slave_chat_uid is None:
             raise ValueError("Both slave_channel_id and slave_chat_id should be provided.")
         try:
-            return self.SlaveChatInfo.select()\
-                .where((self.SlaveChatInfo.slave_channel_id == slave_channel_id) &
-                       (self.SlaveChatInfo.slave_chat_uid == slave_chat_uid)).first()
+            return SlaveChatInfo.select()\
+                .where((SlaveChatInfo.slave_channel_id == slave_channel_id) &
+                       (SlaveChatInfo.slave_chat_uid == slave_chat_uid)).first()
         except DoesNotExist:
             return None
 
@@ -355,8 +350,8 @@ class DatabaseManager:
             SlaveChatInfo: The inserted or updated row
         """
         if self.get_slave_chat_info(slave_channel_id=slave_channel_id, slave_chat_uid=slave_chat_uid):
-            chat_info = self.SlaveChatInfo.get(self.SlaveChatInfo.slave_channel_id == slave_channel_id,
-                                               self.SlaveChatInfo.slave_chat_uid == slave_chat_uid)
+            chat_info = SlaveChatInfo.get(SlaveChatInfo.slave_channel_id == slave_channel_id,
+                                               SlaveChatInfo.slave_chat_uid == slave_chat_uid)
             chat_info.slave_channel_name = slave_channel_name
             chat_info.slave_channel_emoji = slave_channel_emoji
             chat_info.slave_chat_name = slave_chat_name
@@ -365,7 +360,7 @@ class DatabaseManager:
             chat_info.save()
             return chat_info
         else:
-            return self.SlaveChatInfo.create(slave_channel_id=slave_channel_id,
+            return SlaveChatInfo.create(slave_channel_id=slave_channel_id,
                                              slave_channel_name=slave_channel_name,
                                              slave_channel_emoji=slave_channel_emoji,
                                              slave_chat_uid=slave_chat_uid,
@@ -374,14 +369,17 @@ class DatabaseManager:
                                              slave_chat_type=slave_chat_type.value)
 
     def delete_slave_chat_info(self, slave_channel_id, slave_chat_uid):
-        return self.SlaveChatInfo.delete()\
-            .where((self.SlaveChatInfo.slave_channel_id == slave_channel_id) &
-                   (self.SlaveChatInfo.slave_chat_uid == slave_chat_uid)).execute()
+        return SlaveChatInfo.delete()\
+            .where((SlaveChatInfo.slave_channel_id == slave_channel_id) &
+                   (SlaveChatInfo.slave_chat_uid == slave_chat_uid)).execute()
 
-    def get_recent_slave_chats(self, master_chat_id, limit=5):
-        return [i.slave_origin_uid for i in
-                self.MsgLog.select(self.MsgLog.slave_origin_uid)
-                    .distinct()
-                    .where(self.MsgLog.master_msg_id.startswith("%s." % master_chat_id))
-                    .order_by(self.MsgLog.time.desc())
-                    .limit(limit)]
+    @staticmethod
+    def get_recent_slave_chats(master_chat_id, limit=5):
+        query = MsgLog\
+            .select(MsgLog.slave_origin_uid, fn.MAX(MsgLog.time)) \
+            .where(MsgLog.master_msg_id.startswith("{}.".format(master_chat_id))) \
+            .group_by(MsgLog.slave_origin_uid) \
+            .order_by(fn.MAX(MsgLog.time).desc()) \
+            .limit(limit)
+
+        return [i.slave_origin_uid for i in query]

@@ -24,9 +24,11 @@ class LocaleHandler(Handler):
             be used to insert updates. Default is ``False``
     """
 
-    def __init__(self, channel: 'TelegramChannel', callback, pass_update_queue: bool = False):
+    def __init__(self, channel: 'TelegramChannel', pass_update_queue: bool = False):
+        def void_function(*args, **kwargs):
+            pass
 
-        super().__init__(callback, pass_update_queue)
+        super().__init__(void_function, pass_update_queue)
         self.logger = logging.getLogger(__name__)
 
         self.channel = channel
