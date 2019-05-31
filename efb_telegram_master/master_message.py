@@ -392,6 +392,7 @@ class MasterMessageProcessor(LocaleMixin):
                     "msg_type": m.type,
                     "sent_to": "slave",
                     "slave_message_id": None if m.edit else "%s.%s" % (self.FAIL_FLAG, int(time.time())),
+                    # Overwritten later if slave message ID exists
                     "update": m.edit
                 }
 
