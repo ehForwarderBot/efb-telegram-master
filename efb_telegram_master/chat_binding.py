@@ -891,21 +891,21 @@ class ChatBindingManager(LocaleMixin):
             picture.seek(0)
 
             bot.set_chat_photo(tg_chat, pic_resized or picture)
-            update.message.reply_text(self._('Chat information updated.'))
+            update.message.reply_text(self._('Chat details updated.'))
         except KeyError:
             return self.bot.reply_error(update, self._('Channel linked is not found.'))
         except EFBChatNotFound:
             self.logger.exception("Chat linked is not found in channel.")
             return self.bot.reply_error(update, self._('Chat linked is not found in channel.'))
         except telegram.TelegramError as e:
-            self.logger.exception("Error occurred while update chat information.")
-            return self.bot.reply_error(update, self._('Error occurred while update chat information.\n'
+            self.logger.exception("Error occurred while update chat details.")
+            return self.bot.reply_error(update, self._('Error occurred while update chat details.\n'
                                                        '{0}'.format(e.message)))
         except EFBOperationNotSupported:
             return self.bot.reply_error(update, self._('No profile picture provided from this chat.'))
         except Exception as e:
             self.logger.exception("Unknown error caught when querying chat.")
-            return self.bot.reply_error(update, self._('Error occurred while update chat information. \n'
+            return self.bot.reply_error(update, self._('Error occurred while update chat details. \n'
                                                        '{0}'.format(e)))
         finally:
             if getattr(picture, 'close', None):
