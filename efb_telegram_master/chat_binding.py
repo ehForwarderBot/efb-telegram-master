@@ -307,8 +307,8 @@ class ChatBindingManager(LocaleMixin):
                     try:
                         chat = ETMChat(chat=self.get_chat_from_db(channel_id, chat_uid) or channel.get_chat(chat_uid),
                                        db=self.db)
-                    except KeyError:
-                        self.logger.error("slave_chats_pagination with chat list: Chat %s not found.", i)
+                    except EFBChatNotFound:
+                        self.logger.debug("slave_chats_pagination with chat list: Chat %s not found.", i)
                         continue
 
                     if chat.match(re_filter):
