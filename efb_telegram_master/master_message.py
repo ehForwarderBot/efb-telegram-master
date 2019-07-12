@@ -166,7 +166,6 @@ class MasterMessageProcessor(LocaleMixin):
                     target = target_log.slave_origin_uid
                     target_channel, target_uid = utils.chat_id_str_to_id(target)
                 else:
-                    self.logger.info("[%s], Predefined chat %d.%d with target msg")
                     return self.bot.reply_error(update,
                                                 self._("Message is not found in database. "
                                                        "Please try with another message. (UC07)"))

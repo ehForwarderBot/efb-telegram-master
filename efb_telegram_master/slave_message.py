@@ -84,7 +84,7 @@ class SlaveMessageProcessor(LocaleMixin):
                               xid, tg_dest, msg_template)
 
             # When editing message
-            old_msg_id: Tuple[str, str] = None
+            old_msg_id: Optional[Tuple[str, str]] = None
             if msg.edit:
                 old_msg = self.db.get_msg_log(slave_msg_id=msg.uid,
                                               slave_origin_uid=utils.chat_id_to_str(chat=msg.chat))
@@ -100,7 +100,7 @@ class SlaveMessageProcessor(LocaleMixin):
                                      msg.uid)
 
             # When targeting a message (reply to)
-            target_msg_id: str = None
+            target_msg_id: Optional[str] = None
             if isinstance(msg.target, EFBMsg):
                 self.logger.debug("[%s] Message is replying to %s.", msg.uid, msg.target)
                 log = self.db.get_msg_log(
@@ -111,14 +111,14 @@ class SlaveMessageProcessor(LocaleMixin):
                     self.logger.debug("[%s] Target message %s is not found in database.", msg.uid, msg.target)
                 else:
                     self.logger.debug("[%s] Target message has database entry: %s.", msg.uid, log)
-                    target_msg_id = utils.message_id_str_to_id(log.master_msg_id)
-                    if not target_msg_id or target_msg_id[0] != str(tg_dest):
+                    target_msg = utils.message_id_str_to_id(log.master_msg_id)
+                    if not target_msg or target_msg[0] != str(tg_dest):
                         self.logger.error('[%s] Trying to reply to a message not from this chat. '
                                           'Message destination: %s. Target message: %s.',
-                                          msg.uid, tg_dest, target_msg_id)
+                                          msg.uid, tg_dest, target_msg)
                         target_msg_id = None
                     else:
-                        target_msg_id = target_msg_id[1]
+                        target_msg_id = target_msg[1]
 
             commands: Optional[List[EFBMsgCommand]] = None
             reply_markup: Optional[telegram.InlineKeyboardMarkup] = None
@@ -299,7 +299,9 @@ class SlaveMessageProcessor(LocaleMixin):
                     t += html.escape(text[i[0]:i[1]])
                     t += "</a>"
                 else:
+                    t += '<code>'
                     t += html.escape(text[i[0]:i[1]])
+                    t += '</code>'
                 prev = i[1]
             t += html.escape(text[prev:])
             text = t
