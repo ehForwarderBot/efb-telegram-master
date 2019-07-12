@@ -1,6 +1,7 @@
 # coding=utf-8
 
 import html
+import itertools
 import logging
 import os
 import tempfile
@@ -333,6 +334,7 @@ class SlaveMessageProcessor(LocaleMixin):
 
         msg_template = html.escape(msg_template)
 
+        assert(isinstance(msg.attributes, EFBMsgLinkAttribute))
         attributes: EFBMsgLinkAttribute = msg.attributes
 
         thumbnail = urllib.parse.quote(attributes.image or "", safe="?=&#:/")
@@ -361,7 +363,7 @@ class SlaveMessageProcessor(LocaleMixin):
                             target_msg_id: Optional[str] = None,
                             reply_markup: Optional[telegram.ReplyMarkup] = None) -> telegram.Message:
         self.bot.send_chat_action(tg_dest, telegram.ChatAction.UPLOAD_PHOTO)
-        self.logger.debug("[%s] Message is of %s type.\nPath: %s\nMIME: %s", msg.uid, msg.type, msg.path, msg.mime)
+        self.logger.debug("[%s] Message is of %s type; Path: %s; MIME: %s", msg.uid, msg.type, msg.path, msg.mime)
         if msg.path:
             self.logger.debug("[%s] Size of %s is %s.", msg.uid, msg.path, os.stat(msg.path).st_size)
 
@@ -459,6 +461,7 @@ class SlaveMessageProcessor(LocaleMixin):
                                target_msg_id: Optional[str] = None,
                                reply_markup: Optional[telegram.ReplyMarkup] = None) -> telegram.Message:
         self.bot.send_chat_action(tg_dest, telegram.ChatAction.FIND_LOCATION)
+        assert(isinstance(msg.attributes, EFBMsgLocationAttribute))
         attributes: EFBMsgLocationAttribute = msg.attributes
         self.logger.info("[%s] Sending as a Telegram venue.\nlat: %s, long: %s\ntitle: %s\naddress: %s",
                          msg.uid,
@@ -518,7 +521,7 @@ class SlaveMessageProcessor(LocaleMixin):
             self.logger.debug("Received chat updates from channel %s", status.channel)
             for i in status.removed_chats:
                 self.db.delete_slave_chat_info(status.channel.channel_id, i)
-            for i in status.new_chats + status.modified_chats:
+            for i in itertools.chain(status.new_chats, status.modified_chats):
                 chat = status.channel.get_chat(i)
                 self.db.set_slave_chat_info(slave_channel_name=status.channel.channel_name,
                                             slave_channel_emoji=status.channel.channel_emoji,
