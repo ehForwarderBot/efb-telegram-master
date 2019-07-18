@@ -14,6 +14,7 @@ import telegram
 import telegram.constants
 import telegram.error
 import telegram.ext
+from PIL import Image
 from telegram import Audio
 
 from ehforwarderbot import EFBMsg, EFBStatus, coordinator
@@ -235,57 +236,6 @@ class SlaveMessageProcessor(LocaleMixin):
         self.logger.debug("[%s] Sending as a text message.", msg.uid)
         self.bot.send_chat_action(tg_dest, telegram.ChatAction.TYPING)
 
-        # Join message is Deprecated from ETM v2.0.0a1
-        #
-        # join_msg_threshold_secs = self._flag('join_msg_threshold_secs', 15)
-        #
-        # Check if this message should append the previous one
-        # Logic:
-        #   1. Only append if the message is sent to linked chats
-        #   2. Only append if flag ``join_msg_threshold_secs`` > 0
-        #   3. Check for the previous non-system message in the Telegram chat sent by the bot
-        #      Link if it is also a text message, sent by the same person from the same slave chat,
-        #      within specified number of seconds away from this one.
-        #
-        # if tg_chat_assoced and join_msg_threshold_secs > 0:
-        #     last_msg = self.db.get_last_msg_from_chat(tg_dest)
-        #     if last_msg:
-        #         if last_msg.msg_type == "Text":
-        #             append_last_msg = str(last_msg.slave_origin_uid) == "%s.%s" % \
-        #                               (msg.channel_id, msg.origin['uid']) \
-        #                               and str(last_msg.master_msg_id).startswith(str(tg_dest) + ".") \
-        #                               and last_msg.sent_to == "master"
-        #             if msg.source == ChatType.Group:
-        #                 append_last_msg &= str(last_msg.slave_member_uid) == str(msg.member['uid'])
-        #             append_last_msg &= datetime.datetime.now() - last_msg.time <= datetime.timedelta(
-        #                 seconds=join_msg_threshold_secs)
-        #         else:
-        #             append_last_msg = False
-        #     else:
-        #         append_last_msg = False
-        #
-        # if append_last_msg:
-        #     self.logger.debug("[%s] Appending this message to the previous one.", msg.uid)
-        #
-        # if tg_chat_assoced and append_last_msg:
-        #     self.logger.debug("[%s] Edit telegram message id: %s.\nPrevious message: %s",
-        #                       msg.uid, last_msg.master_msg_id, last_msg.text)
-        #     msg.text = "%s\n%s" % (last_msg.text, msg.text)
-        #
-        #     tg_msg = self.bot_edit_message_text(chat_id=tg_dest,
-        #                                         message_id=last_msg.master_msg_id.split(".", 1)[1],
-        #                                         text=msg.text, prefix=msg_template,
-        #                                         parse_mode=parse_mode)
-        # else:
-        #     self.logger.debug("[%s] Sending as a new text message.", msg.uid)
-        #     tg_msg = self.bot_send_message(tg_dest,
-        #                                    text=msg.text, prefix=msg_template,
-        #                                    parse_mode=parse_mode)
-        #     self.logger.debug("[%s] New message is sent to Telegram:\n%s", msg.uid, tg_msg)
-        #
-        # self.logger.debug("[%s] Message is successfully processed as text message", msg.uid)
-        # return tg_msg, append_last_msg
-
         text = msg.text
         msg_template = html.escape(msg_template)
         
@@ -358,6 +308,16 @@ class SlaveMessageProcessor(LocaleMixin):
                                          reply_to_message_id=target_msg_id,
                                          reply_markup=reply_markup)
 
+    # Parameters to decide when to pictures as files
+    IMG_MIN_SIZE = 1600
+    """Threshold of dimension of the shorter side to send as file."""
+    IMG_MAX_SIZE = 1200
+    """Threshold of dimension of the longer side to send as file, used along with IMG_SIZE_RATIO."""
+    IMG_SIZE_RATIO = 3.5
+    """Threshold of aspect ratio (longer side to shorter side) to send as file, used along with IMG_SIZE_RATIO."""
+    IMG_SIZE_MAX_RATIO = 10
+    """Threshold of aspect ratio (longer side to shorter side) to send as file, used alone."""
+
     def slave_message_image(self, msg: EFBMsg, tg_dest: str, msg_template: str,
                             old_msg_id: Optional[Tuple[str, str]] = None,
                             target_msg_id: Optional[str] = None,
@@ -378,21 +338,53 @@ class SlaveMessageProcessor(LocaleMixin):
                     self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=msg.file)
                 return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1],
                                                      prefix=msg_template, caption=msg.text)
-            elif msg.mime == "image/gif":
-                return self.bot.send_document(tg_dest, msg.file, prefix=msg_template, caption=msg.text,
-                                              reply_to_message_id=target_msg_id,
-                                              reply_markup=reply_markup)
             else:
-                try:
-                    return self.bot.send_photo(tg_dest, msg.file, prefix=msg_template, caption=msg.text,
-                                               reply_to_message_id=target_msg_id,
-                                               reply_markup=reply_markup)
-                except telegram.error.BadRequest as e:
-                    self.logger.error('[%s] Failed to send it as image, sending as document. Reason: %s', msg.uid, e)
-                    return self.bot.send_document(tg_dest, msg.file, prefix=msg_template,
-                                                  caption=msg.text, filename=msg.filename,
+                # Send picture as file when the image file is a GIF.
+                send_as_file = msg.mime == 'image/gif'
+
+                # Avoid Telegram compression of pictures by sending high definition image messages as files
+                # Code adopted from wolfsilver's fork:
+                # https://github.com/wolfsilver/efb-telegram-master/blob/99668b60f7ff7b6363dfc87751a18281d9a74a09/efb_telegram_master/slave_message.py#L142-L163
+                #
+                # Rules:
+                # 1. If the picture is too large -- shorter side is greater than IMG_MIN_SIZE, send as file.
+                # 2. If the picture is large and thin --
+                #        longer side is greater than IMG_MAX_SIZE, and
+                #        aspect ratio (longer to shorter side ratio) is greater than IMG_SIZE_RATIO,
+                #    send as file.
+                # 3. If the picture is too thin -- aspect ratio grater than IMG_SIZE_MAX_RATIO, send as file.
+
+                if not send_as_file:
+                    try:
+                        pic_img = Image.open(msg.path)
+                        max_size = max(pic_img.size)
+                        min_size = min(pic_img.size)
+                        img_ratio = max_size / min_size
+
+                        if min_size > self.IMG_MIN_SIZE:
+                            send_as_file = True
+                        elif max_size > self.IMG_MAX_SIZE and img_ratio > self.IMG_SIZE_RATIO:
+                            send_as_file = True
+                        elif img_ratio >= self.IMG_SIZE_MAX_RATIO:
+                            send_as_file = True
+                    except IOError:  # Ignore when the image cannot be properly identified.
+                        pass
+
+                if send_as_file:
+                    return self.bot.send_document(tg_dest, msg.file, prefix=msg_template, caption=msg.text,
                                                   reply_to_message_id=target_msg_id,
                                                   reply_markup=reply_markup)
+                else:
+                    try:
+                        return self.bot.send_photo(tg_dest, msg.file, prefix=msg_template, caption=msg.text,
+                                                   reply_to_message_id=target_msg_id,
+                                                   reply_markup=reply_markup)
+                    except telegram.error.BadRequest as e:
+                        self.logger.error('[%s] Failed to send it as image, sending as document. Reason: %s', msg.uid, e)
+                        return self.bot.send_document(tg_dest, msg.file, prefix=msg_template,
+                                                      caption=msg.text, filename=msg.filename,
+                                                      reply_to_message_id=target_msg_id,
+                                                      reply_markup=reply_markup)
         finally:
             if msg.file:
                 msg.file.close()

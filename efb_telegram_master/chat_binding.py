@@ -133,9 +133,9 @@ class ChatListStorage:
     """
 
     def __init__(self, chats: List[ETMChat], offset: Optional[int] = 0):
-        self.__chats: List[ETMChat] = None
-        self.channels: Dict[str, EFBChannel] = None
-        self.chats: List[ETMChat] = chats.copy()
+        self.__chats: List[ETMChat] = []
+        self.channels: Dict[str, EFBChannel] = dict()
+        self.chats = chats.copy()  # initialize chats with setter.
         self.offset: int = offset
         self.update: Optional[telegram.Update] = None
         self.candidates: Optional[List[str]] = None
