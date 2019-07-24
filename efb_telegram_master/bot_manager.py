@@ -396,7 +396,7 @@ class TelegramBotManager(LocaleMixin):
                                  reply_to_message_id=update.effective_message.message_id)
 
     @Decorators.retry_on_timeout
-    def get_file(self, file_id):
+    def get_file(self, file_id: str) -> telegram.File:
         return self.updater.bot.get_file(file_id)
 
     @Decorators.retry_on_timeout

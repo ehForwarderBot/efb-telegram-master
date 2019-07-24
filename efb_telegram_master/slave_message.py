@@ -4,6 +4,7 @@ import html
 import itertools
 import logging
 import os
+import pickle
 import tempfile
 import traceback
 import urllib.parse
@@ -15,17 +16,17 @@ import telegram.constants
 import telegram.error
 import telegram.ext
 from PIL import Image
-from telegram import Audio
 
 from ehforwarderbot import EFBMsg, EFBStatus, coordinator
 from ehforwarderbot.constants import MsgType, ChatType
-from ehforwarderbot.exceptions import EFBMessageError
 from ehforwarderbot.message import EFBMsgLinkAttribute, EFBMsgLocationAttribute, EFBMsgCommand
 from ehforwarderbot.status import EFBChatUpdates, EFBMemberUpdates, EFBMessageRemoval
 from . import utils, ETMChat
 from .commands import ETMCommandMsgStorage
 from .constants import Emoji
 from .locale_mixin import LocaleMixin
+from .message import ETMMsg
+from .msg_type import get_msg_type
 
 if TYPE_CHECKING:
     from . import TelegramChannel
@@ -172,6 +173,9 @@ class SlaveMessageProcessor(LocaleMixin):
             self.logger.debug("[%s] Message is sent to the user with telegram message id %s.%s.",
                               xid, tg_msg.chat.id, tg_msg.message_id)
 
+            etmmsg = ETMMsg.from_efbmsg(msg)
+            etmmsg.put_telegram_file(tg_msg)
+
             msg_log = {"master_msg_id": utils.message_id_to_str(tg_msg.chat.id, tg_msg.message_id),
                        "text": msg.text or "Sent a %s." % msg.type,
                        "msg_type": msg.type,
@@ -181,33 +185,16 @@ class SlaveMessageProcessor(LocaleMixin):
                        "slave_member_uid": msg.author.chat_uid if not msg.author.is_self else None,
                        "slave_member_display_name": msg.author.chat_alias if not msg.author.is_self else None,
                        "slave_message_id": msg.uid,
-                       "update": msg.edit
+                       "update": msg.edit,
+                       "media_type": etmmsg.type_telegram.value,
+                       "file_id": etmmsg.file_id,
+                       "mime": etmmsg.mime,
+                       "pickle": pickle.dumps(etmmsg)
                        }
 
             if old_msg_id and old_msg_id != tg_msg.message_id:
                 msg_log['master_msg_id'] = utils.message_id_to_str(*old_msg_id)
                 msg_log['master_msg_id_alt'] = utils.message_id_to_str(tg_msg.chat.id, tg_msg.message_id)
-
-            # Store media related information to local database
-            for tg_media_type in ('audio', 'animation', 'document', 'video', 'voice', 'video_note'):
-                attachment = getattr(tg_msg, tg_media_type, None)
-                if attachment:
-                    msg_log.update(media_type=tg_media_type,
-                                   file_id=attachment.file_id,
-                                   mime=attachment.mime_type)
-                    break
-            if not msg_log.get('media_type', None):
-                if getattr(tg_msg, 'sticker', None):
-                    msg_log.update(
-                        media_type='sticker',
-                        file_id=tg_msg.sticker.file_id,
-                        mime='image/webp'
-                    )
-                elif getattr(tg_msg, 'photo', None):
-                    attachment = tg_msg.photo[-1]
-                    msg_log.update(media_type=tg_media_type,
-                                   file_id=attachment.file_id,
-                                   mime='image/jpeg')
 
             self.db.add_msg_log(**msg_log)
             self.logger.debug("[%s] Message inserted/updated to the database.", xid)
@@ -238,7 +225,7 @@ class SlaveMessageProcessor(LocaleMixin):
 
         text = msg.text
         msg_template = html.escape(msg_template)
-        
+
         if msg.substitutions:
             ranges = sorted(msg.substitutions.keys())
             t = ""
@@ -284,7 +271,7 @@ class SlaveMessageProcessor(LocaleMixin):
 
         msg_template = html.escape(msg_template)
 
-        assert(isinstance(msg.attributes, EFBMsgLinkAttribute))
+        assert (isinstance(msg.attributes, EFBMsgLinkAttribute))
         attributes: EFBMsgLinkAttribute = msg.attributes
 
         thumbnail = urllib.parse.quote(attributes.image or "", safe="?=&#:/")
@@ -380,7 +367,8 @@ class SlaveMessageProcessor(LocaleMixin):
                                                    reply_to_message_id=target_msg_id,
                                                    reply_markup=reply_markup)
                     except telegram.error.BadRequest as e:
-                        self.logger.error('[%s] Failed to send it as image, sending as document. Reason: %s', msg.uid, e)
+                        self.logger.error('[%s] Failed to send it as image, sending as document. Reason: %s', msg.uid,
+                                          e)
                         return self.bot.send_document(tg_dest, msg.file, prefix=msg_template,
                                                       caption=msg.text, filename=msg.filename,
                                                       reply_to_message_id=target_msg_id,
@@ -453,7 +441,7 @@ class SlaveMessageProcessor(LocaleMixin):
                                target_msg_id: Optional[str] = None,
                                reply_markup: Optional[telegram.ReplyMarkup] = None) -> telegram.Message:
         self.bot.send_chat_action(tg_dest, telegram.ChatAction.FIND_LOCATION)
-        assert(isinstance(msg.attributes, EFBMsgLocationAttribute))
+        assert (isinstance(msg.attributes, EFBMsgLocationAttribute))
         attributes: EFBMsgLocationAttribute = msg.attributes
         self.logger.info("[%s] Sending as a Telegram venue.\nlat: %s, long: %s\ntitle: %s\naddress: %s",
                          msg.uid,
@@ -521,7 +509,8 @@ class SlaveMessageProcessor(LocaleMixin):
                                             slave_chat_name=chat.chat_name,
                                             slave_chat_alias=chat.chat_alias,
                                             slave_chat_type=chat.chat_type,
-                                            slave_chat_uid=chat.chat_uid)
+                                            slave_chat_uid=chat.chat_uid,
+                                            chat_object=chat)
         elif isinstance(status, EFBMemberUpdates):
             self.logger.debug("Received member updates from channel %s about group %s",
                               status.channel, status.chat_id)
