@@ -2,12 +2,13 @@
 
 import datetime
 import logging
+import pickle
 from typing import List, Optional
 
-from peewee import Model, TextField, DateTimeField, CharField, SqliteDatabase, DoesNotExist, fn
+from peewee import Model, TextField, DateTimeField, CharField, SqliteDatabase, DoesNotExist, fn, BlobField
 from playhouse.migrate import SqliteMigrator, migrate
 
-from ehforwarderbot import utils, EFBChannel
+from ehforwarderbot import utils, EFBChannel, EFBChat, ChatType
 
 database = SqliteDatabase(None)
 
@@ -35,6 +36,7 @@ class MsgLog(BaseModel):
     mime = TextField(null=True)
     file_id = TextField(null=True)
     msg_type = TextField()
+    pickle = BlobField(null=True)
     sent_to = TextField()
     time = DateTimeField(default=datetime.datetime.now, null=True)
 
@@ -46,6 +48,7 @@ class SlaveChatInfo(BaseModel):
     slave_chat_name = TextField()
     slave_chat_alias = TextField(null=True)
     slave_chat_type = CharField()
+    pickle = BlobField(null=True)
 
 
 class DatabaseManager:
@@ -59,28 +62,32 @@ class DatabaseManager:
 
         if not ChatAssoc.table_exists():
             self._create()
-        elif "file_id" not in {i.name for i in database.get_columns("MsgLog")}:
-            self._migrate(0)
+        else:
+            msg_log_columns = {i.name for i in database.get_columns("MsgLog")}
+            if "file_id" not in msg_log_columns:
+                self._migrate(0)
+            elif "pickle" not in msg_log_columns:
+                self._migrate(1)
 
-    def _create(self):
+    @staticmethod
+    def _create():
         """
         Initializing tables.
         """
         database.execute_sql("PRAGMA journal_mode = OFF")
         database.create_tables([ChatAssoc, MsgLog, SlaveChatInfo])
 
-    def _migrate(self, i):
+    @staticmethod
+    def _migrate(i: int):
         """
         Run migrations.
 
         Args:
             i: Migration ID
-
-        Returns:
-            False: when migration ID is not found
         """
         migrator = SqliteMigrator(database)
-        if i >= 0:
+
+        if i <= 0:
             # Migration 0: Add media file ID and editable message ID
             # 2019JAN08
             migrate(
@@ -89,19 +96,12 @@ class DatabaseManager:
                 migrator.add_column("msglog", "mime", MsgLog.mime),
                 migrator.add_column("msglog", "master_msg_id_alt", MsgLog.master_msg_id_alt)
             )
-        # if i == 0:
-        #     # Migration 0: Added Time column in MsgLog table.
-        #     # 2016JUN15
-        #     migrate(migrator.add_column("msglog", "time", DateTimeField(default=datetime.datetime.now, null=True)))
-        # elif i == 1:
-        #     # Migration 1:
-        #     # Add table: SlaveChatInfo
-        #     # 2017FEB25
-        #     SlaveChatInfo.create_table()
-        #     migrate(migrator.add_column("msglog", "slave_message_id", CharField(default="__none__")))
-        #
-        # else:
-        return False
+        if i <= 1:
+            # Migration 1: Add pickle objects to MsgLog and SlaveChatInfo
+            migrate(
+                migrator.add_column("msglog", "pickle", MsgLog.pickle),
+                migrator.add_column("slavechatinfo", "pickle", SlaveChatInfo.pickle)
+            )
 
     def add_chat_assoc(self, master_uid, slave_uid, multiple_slave=False):
         """
@@ -240,19 +240,19 @@ class DatabaseManager:
             return msg_log
         else:
             return MsgLog.create(master_msg_id=master_msg_id,
-                                      slave_message_id=slave_message_id,
-                                      text=text,
-                                      slave_origin_uid=slave_origin_uid,
-                                      msg_type=msg_type,
-                                      sent_to=sent_to,
-                                      slave_origin_display_name=slave_origin_display_name,
-                                      slave_member_uid=slave_member_uid,
-                                      slave_member_display_name=slave_member_display_name,
-                                      master_msg_id_alt=master_msg_id_alt,
-                                      media_type=media_type,
-                                      file_id=file_id,
-                                      mime=mime
-                                      )
+                                 slave_message_id=slave_message_id,
+                                 text=text,
+                                 slave_origin_uid=slave_origin_uid,
+                                 msg_type=msg_type,
+                                 sent_to=sent_to,
+                                 slave_origin_display_name=slave_origin_display_name,
+                                 slave_member_uid=slave_member_uid,
+                                 slave_member_display_name=slave_member_display_name,
+                                 master_msg_id_alt=master_msg_id_alt,
+                                 media_type=media_type,
+                                 file_id=file_id,
+                                 mime=mime
+                                 )
 
     def get_msg_log(self,
                     master_msg_id: Optional[str] = None,
@@ -279,8 +279,8 @@ class DatabaseManager:
                     .order_by(MsgLog.time.desc()).first()
             else:
                 return MsgLog.select().where((MsgLog.slave_message_id == slave_msg_id) &
-                                                  (MsgLog.slave_origin_uid == slave_origin_uid)
-                                                  ).order_by(MsgLog.time.desc()).first()
+                                             (MsgLog.slave_origin_uid == slave_origin_uid)
+                                             ).order_by(MsgLog.time.desc()).first()
         except DoesNotExist:
             return None
 
@@ -305,8 +305,8 @@ class DatabaseManager:
                 MsgLog.delete().where(MsgLog.master_msg_id == master_msg_id).execute()
             else:
                 MsgLog.delete().where((MsgLog.slave_message_id == slave_msg_id) &
-                                           (MsgLog.slave_origin_uid == slave_origin_uid)
-                                           ).execute()
+                                      (MsgLog.slave_origin_uid == slave_origin_uid)
+                                      ).execute()
         except DoesNotExist:
             return
 
@@ -320,20 +320,21 @@ class DatabaseManager:
         if slave_channel_id is None or slave_chat_uid is None:
             raise ValueError("Both slave_channel_id and slave_chat_id should be provided.")
         try:
-            return SlaveChatInfo.select()\
+            return SlaveChatInfo.select() \
                 .where((SlaveChatInfo.slave_channel_id == slave_channel_id) &
                        (SlaveChatInfo.slave_chat_uid == slave_chat_uid)).first()
         except DoesNotExist:
             return None
 
     def set_slave_chat_info(self,
-                            slave_channel_id=None,
-                            slave_channel_name=None,
-                            slave_channel_emoji=None,
-                            slave_chat_uid=None,
-                            slave_chat_name=None,
-                            slave_chat_alias="",
-                            slave_chat_type=None):
+                            slave_channel_id: Optional[str] = None,
+                            slave_channel_name: Optional[str] = None,
+                            slave_channel_emoji: Optional[str] = None,
+                            slave_chat_uid: Optional[str] = None,
+                            slave_chat_name: Optional[str] = None,
+                            slave_chat_alias: Optional[str] = "",
+                            slave_chat_type: Optional[ChatType] = None,
+                            chat_object: Optional[EFBChat] = None):
         """
         Insert or update slave chat info entry
 
@@ -345,37 +346,43 @@ class DatabaseManager:
             slave_chat_name (str): Slave chat name
             slave_chat_alias (str): Slave chat alias, "" (empty string) if not available
             slave_chat_type (channel.ChatType): Slave chat type
+            chat_object (EFBChat): Chat object for pickling
 
         Returns:
             SlaveChatInfo: The inserted or updated row
         """
         if self.get_slave_chat_info(slave_channel_id=slave_channel_id, slave_chat_uid=slave_chat_uid):
-            chat_info = SlaveChatInfo.get(SlaveChatInfo.slave_channel_id == slave_channel_id,
-                                               SlaveChatInfo.slave_chat_uid == slave_chat_uid)
+            chat_info: SlaveChatInfo = SlaveChatInfo.get(
+                SlaveChatInfo.slave_channel_id == slave_channel_id,
+                SlaveChatInfo.slave_chat_uid == slave_chat_uid)
             chat_info.slave_channel_name = slave_channel_name
             chat_info.slave_channel_emoji = slave_channel_emoji
             chat_info.slave_chat_name = slave_chat_name
             chat_info.slave_chat_alias = slave_chat_alias
-            chat_info.slave_chat_type = slave_chat_type.value
+            if slave_chat_type is not None:
+                chat_info.slave_chat_type = slave_chat_type.value
+            if chat_object is not None:
+                chat_info.pickle = pickle.dumps(chat_object)
             chat_info.save()
             return chat_info
         else:
             return SlaveChatInfo.create(slave_channel_id=slave_channel_id,
-                                             slave_channel_name=slave_channel_name,
-                                             slave_channel_emoji=slave_channel_emoji,
-                                             slave_chat_uid=slave_chat_uid,
-                                             slave_chat_name=slave_chat_name,
-                                             slave_chat_alias=slave_chat_alias,
-                                             slave_chat_type=slave_chat_type.value)
+                                        slave_channel_name=slave_channel_name,
+                                        slave_channel_emoji=slave_channel_emoji,
+                                        slave_chat_uid=slave_chat_uid,
+                                        slave_chat_name=slave_chat_name,
+                                        slave_chat_alias=slave_chat_alias,
+                                        slave_chat_type=slave_chat_type and slave_chat_type.value,
+                                        pickle=pickle.dumps(chat_object))
 
     def delete_slave_chat_info(self, slave_channel_id, slave_chat_uid):
-        return SlaveChatInfo.delete()\
+        return SlaveChatInfo.delete() \
             .where((SlaveChatInfo.slave_channel_id == slave_channel_id) &
                    (SlaveChatInfo.slave_chat_uid == slave_chat_uid)).execute()
 
     @staticmethod
     def get_recent_slave_chats(master_chat_id, limit=5):
-        query = MsgLog\
+        query = MsgLog \
             .select(MsgLog.slave_origin_uid, fn.MAX(MsgLog.time)) \
             .where(MsgLog.master_msg_id.startswith("{}.".format(master_chat_id))) \
             .group_by(MsgLog.slave_origin_uid) \

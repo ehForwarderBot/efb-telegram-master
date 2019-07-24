@@ -3,6 +3,7 @@
 import logging
 import mimetypes
 import os
+import pickle
 import tempfile
 import threading
 import subprocess
@@ -24,6 +25,7 @@ from ehforwarderbot.message import EFBMsgLocationAttribute
 from ehforwarderbot.status import EFBMessageRemoval
 
 from . import utils
+from .message import ETMMsg
 from .msg_type import get_msg_type, TGMsgType
 from .locale_mixin import LocaleMixin
 
@@ -125,9 +127,6 @@ class MasterMessageProcessor(LocaleMixin):
             channel_id: Slave channel ID if specified
             chat_id: Slave chat ID if specified
             target_msg: Target slave message if specified
-
-        Returns:
-
         """
         target: Optional[str] = None
         target_channel: Optional[str] = None
@@ -224,10 +223,11 @@ class MasterMessageProcessor(LocaleMixin):
         if channel not in coordinator.slaves:
             return self.bot.reply_error(update, self._("Internal error: Channel \"{0}\" not found.").format(channel))
 
-        m = EFBMsg()
+        m = ETMMsg()
         try:
             m.uid = message_id
-            mtype = get_msg_type(message)
+            m.put_telegram_file(message)
+            mtype = m.type_telegram
             # Chat and author related stuff
             m.author = EFBChat(self.channel).self()
             m.chat = EFBChat(coordinator.slaves[channel])
@@ -239,23 +239,27 @@ class MasterMessageProcessor(LocaleMixin):
                 m.chat.chat_type = ChatType(chat_info.slave_chat_type)
             m.deliver_to = coordinator.slaves[channel]
             if target and target_channel == channel:
-                trgt_msg = EFBMsg()
-                trgt_msg.type = MsgType.Text
-                trgt_msg.text = target_log.text
-                trgt_msg.uid = target_log.slave_message_id
-                trgt_msg.chat = EFBChat(coordinator.slaves[target_channel])
-                trgt_msg.chat.chat_name = target_log.slave_origin_display_name
-                trgt_msg.chat.chat_alias = target_log.slave_origin_display_name
-                trgt_msg.chat.chat_uid = utils.chat_id_str_to_id(target_log.slave_origin_uid)[1]
-                if target_log.slave_member_uid:
-                    trgt_msg.author = EFBChat(coordinator.slaves[target_channel])
-                    trgt_msg.author.chat_name = target_log.slave_member_display_name
-                    trgt_msg.author.chat_alias = target_log.slave_member_display_name
-                    trgt_msg.author.chat_uid = target_log.slave_member_uid
-                elif target_log.sent_to == 'master':
-                    trgt_msg.author = trgt_msg.chat
+                if target_log.pickle:
+                    trgt_msg: ETMMsg = pickle.loads(target_log.pickle)
+                    trgt_msg.target = None
                 else:
-                    trgt_msg.author = EFBChat(self.channel).self()
+                    trgt_msg = ETMMsg()
+                    trgt_msg.type = MsgType.Text
+                    trgt_msg.text = target_log.text
+                    trgt_msg.uid = target_log.slave_message_id
+                    trgt_msg.chat = EFBChat(coordinator.slaves[target_channel])
+                    trgt_msg.chat.chat_name = target_log.slave_origin_display_name
+                    trgt_msg.chat.chat_alias = target_log.slave_origin_display_name
+                    trgt_msg.chat.chat_uid = utils.chat_id_str_to_id(target_log.slave_origin_uid)[1]
+                    if target_log.slave_member_uid:
+                        trgt_msg.author = EFBChat(coordinator.slaves[target_channel])
+                        trgt_msg.author.chat_name = target_log.slave_member_display_name
+                        trgt_msg.author.chat_alias = target_log.slave_member_display_name
+                        trgt_msg.author.chat_uid = target_log.slave_member_uid
+                    elif target_log.sent_to == 'master':
+                        trgt_msg.author = trgt_msg.chat
+                    else:
+                        trgt_msg.author = EFBChat(self.channel).self()
                 m.target = trgt_msg
 
                 self.logger.debug("[%s] This message replies to another message of the same channel.\n"
@@ -312,44 +316,37 @@ class MasterMessageProcessor(LocaleMixin):
                 m.text = msg_md_text
             elif mtype == TGMsgType.Photo:
                 m.text = msg_md_caption
-                m.file, m.mime, m.filename, m.path = self._download_file(message.photo[-1])
+                m.mime = "image/jpeg"
+                self._check_file_download(message.photo[-1])
             elif mtype == TGMsgType.Sticker:
                 # Convert WebP to the more common PNG
                 m.text = ""
-                m.file, m.mime, m.filename, m.path = self._download_file(message.sticker, 'image/webp')
-                self.logger.debug("[%s] Trying to convert WebP sticker (%s) to PNG.", message_id, m.path)
-                f = tempfile.NamedTemporaryFile(suffix=".png")
-                Image.open(m.file).convert("RGBA").save(f, 'png')
-                m.file.close()
-                m.file, m.mime, m.filename, m.path = f, 'image/png', os.path.basename(f.name), f.name
-                self.logger.debug("[%s] WebP sticker is converted to PNG (%s).", message_id, f.name)
+                self._check_file_download(message.sticker)
+                self.logger.debug("[%s] WebP sticker is converted to PNG.", message_id)
             elif mtype == TGMsgType.Animation:
                 m.text = ""
                 self.logger.debug("[%s] Telegram message is a \"Telegram GIF\".", message_id)
                 m.filename = getattr(message.document, "file_name", None) or None
-                m.file, m.mime, m.filename, m.path = self._download_gif(message.document, channel)
                 m.mime = message.document.mime_type or m.mime
             elif mtype == TGMsgType.Document:
                 m.text = msg_md_caption
                 self.logger.debug("[%s] Telegram message type is document.", message_id)
                 m.filename = getattr(message.document, "file_name", None) or None
-                m.file, m.mime, filename, m.path = self._download_file(message.document,
-                                                                       message.document.mime_type)
-                m.filename = m.filename or filename
-                m.mime = message.document.mime_type or m.mime
+                m.mime = message.document.mime_type
+                self._check_file_download(message.document)
             elif mtype == TGMsgType.Video:
                 m.text = msg_md_caption
-                m.file, m.mime, m.filename, m.path = self._download_file(message.video,
-                                                                         message.video.mime_type)
+                m.mime = message.video.mime_type
+                self._check_file_download(message.video)
             elif mtype == TGMsgType.Audio:
                 m.text = "%s - %s\n%s" % (
                     message.audio.title, message.audio.performer, msg_md_caption)
-                m.file, m.mime, m.filename, m.path = self._download_file(message.audio,
-                                                                         message.audio.mime_type)
+                m.mime = message.audio.mime_type
+                self._check_file_download(message.audio)
             elif mtype == TGMsgType.Voice:
                 m.text = msg_md_caption
-                m.file, m.mime, m.filename, m.path = self._download_file(message.voice,
-                                                                         message.voice.mime_type)
+                m.mime = message.voice.mime_type
+                self._check_file_download(message.voice)
             elif mtype == TGMsgType.Location:
                 # TRANSLATORS: Message body text for location messages.
                 m.text = self._("Location")
@@ -370,7 +367,6 @@ class MasterMessageProcessor(LocaleMixin):
                 )
             else:
                 raise EFBMessageTypeNotSupported(self._("Message type {0} is not supported.").format(mtype))
-                # return self.bot.reply_error(update, "Message type not supported. (MN02)")
 
             slave_msg = coordinator.send_message(m)
         except EFBChatNotFound as e:
@@ -392,29 +388,12 @@ class MasterMessageProcessor(LocaleMixin):
                     "sent_to": "slave",
                     "slave_message_id": None if m.edit else "%s.%s" % (self.FAIL_FLAG, int(time.time())),
                     # Overwritten later if slave message ID exists
-                    "update": m.edit
+                    "update": m.edit,
+                    "media_type": m.type_telegram.value,
+                    "file_id": m.file_id,
+                    "mime": m.mime,
+                    "pickle": pickle.dumps(m)
                 }
-
-                # Store media related information to local database
-                for tg_media_type in ('audio', 'animation', 'document', 'video', 'voice', 'video_note'):
-                    attachment = getattr(message, tg_media_type, None)
-                    if attachment:
-                        msg_log_d.update(media_type=tg_media_type,
-                                         file_id=attachment.file_id,
-                                         mime=attachment.mime_type)
-                        break
-                if not msg_log_d.get('media_type', None):
-                    if getattr(message, 'sticker', None):
-                        msg_log_d.update(
-                            media_type='sticker',
-                            file_id=message.sticker.file_id,
-                            mime='image/webp'
-                        )
-                    elif getattr(message, 'photo', None):
-                        attachment = message.photo[-1]
-                        msg_log_d.update(media_type=tg_media_type,
-                                         file_id=attachment.file_id,
-                                         mime='image/jpeg')
 
                 if slave_msg:
                     msg_log_d['slave_message_id'] = slave_msg.uid
@@ -422,66 +401,16 @@ class MasterMessageProcessor(LocaleMixin):
                 if m.file:
                     m.file.close()
 
-    def _download_file(self, file_obj: telegram.File, mime: Optional[str] = None) -> Tuple[IO[bytes], str, str, str]:
+    def _check_file_download(self, file_obj: telegram.File):
         """
-        Download media file from telegram platform.
+        Check if the file is available for download..
 
         Args:
             file_obj (telegram.File): PTB file object
-            mime (str): MIME type of the message
-
-        Returns:
-            Tuple[IO[bytes], str, str, str]:
-                ``tempfile`` file-like object, MIME type, proposed file name, file path
 
         Raises:
             EFBMessageError: When file exceeds the maximum download size.
         """
         size = getattr(file_obj, "file_size", None)
-        file_id = file_obj.file_id
         if size and size > telegram.constants.MAX_FILESIZE_DOWNLOAD:
             raise EFBMessageError(self._("Attachment is too large. Maximum is 20 MB. (AT01)"))
-        f = self.bot.get_file(file_id)
-        if not mime:
-            ext = os.path.splitext(f.file_path)[1]
-            mime = mimetypes.guess_type(f.file_path, strict=False)[0]
-        else:
-            ext = mimetypes.guess_extension(mime, strict=False)
-        file = tempfile.NamedTemporaryFile(suffix=ext)
-        full_path = file.name
-        f.download(out=file)
-        file.seek(0)
-        mime = getattr(file_obj, "mime_type", mime or magic.from_file(full_path, mime=True))
-        if type(mime) is bytes:
-            mime = mime.decode()
-        return file, mime, os.path.basename(full_path), full_path
-
-    def _download_gif(self, file: telegram.File, channel_id: str = "") -> Tuple[IO[bytes], str, str, str]:
-        """
-        Download and convert GIF image.
-
-        Args:
-            file: Telegram File object
-            channel_id: Destination channel ID of the message
-
-        Returns:
-            Tuple[IO[bytes], str, str, str]:
-                ``tempfile`` file-like object, MIME type, proposed file name
-        """
-        file, _, filename, path = self._download_file(file, 'video/mpeg')
-        gif_file = tempfile.NamedTemporaryFile(suffix='.gif')
-        v = VideoFileClip(path)
-        self.logger.info("Convert Telegram MP4 to GIF from "
-                         "channel %s with size %s", channel_id, v.size)
-        if channel_id == "blueset.wechat" and v.size[0] > 600:
-            # Workaround: Compress GIF for slave channel `blueset.wechat`
-            # TODO: Move this logic to `blueset.wechat` in the future
-            subprocess.Popen(
-                ["ffmpeg", "-y", "-i", path, '-vf', "scale=600:-2", gif_file.name],
-                bufsize=0
-            ).wait()
-        else:
-            v.write_gif(gif_file.name, program="ffmpeg")
-        file.close()
-        gif_file.seek(0)
-        return gif_file, "image/gif", os.path.basename(gif_file.name), gif_file.name

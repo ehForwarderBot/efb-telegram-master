@@ -375,7 +375,8 @@ class ChatBindingManager(LocaleMixin):
                                             slave_chat_uid=i.chat_uid,
                                             slave_chat_name=i.chat_name,
                                             slave_chat_alias=i.chat_alias,
-                                            slave_chat_type=i.chat_type)
+                                            slave_chat_type=i.chat_type,
+                                            chat_object=i)
         except peewee.OperationalError:
             # Suppress exception of background database update
             pass
