@@ -3,6 +3,7 @@
 import html
 import logging
 import mimetypes
+import pickle
 from gettext import NullTranslations, translation
 from typing import Optional
 from xmlrpc.server import SimpleXMLRPCServer
@@ -18,7 +19,7 @@ from pkg_resources import resource_filename
 from ehforwarderbot import EFBChannel, EFBMsg, EFBStatus, coordinator
 from ehforwarderbot import utils as efb_utils
 from ehforwarderbot.constants import MsgType, ChannelType
-from ehforwarderbot.exceptions import EFBException
+from ehforwarderbot.exceptions import EFBException, EFBOperationNotSupported
 from .__version__ import __version__
 from . import utils as etm_utils
 from .bot_manager import TelegramBotManager
@@ -41,7 +42,7 @@ class TelegramChannel(EFBChannel):
 
     Configuration file example:
         .. code-block:: yaml
-            
+
             token: "12345678:1a2b3c4d5e6g7h8i9j"
             admins:
             - 102938475
@@ -152,7 +153,7 @@ class TelegramChannel(EFBChannel):
     def load_config(self):
         """
         Load configuration from path specified by the framework.
-        
+
         Configuration file is in YAML format.
         """
         config_path = efb_utils.get_config_path(self.channel_id)
@@ -397,9 +398,17 @@ class TelegramChannel(EFBChannel):
     def send_status(self, status: EFBStatus):
         return self.slave_messages.send_status(status)
 
-    def get_message_by_id(self, msg_id: str) -> Optional['EFBMsg']:
-        # TODO: implement this method
-        pass
+    def get_message_by_id(self, chat_uid: str, msg_id: str) -> Optional['EFBMsg']:
+        msg_log = self.db.get_msg_log(slave_origin_uid=chat_uid, slave_msg_id=msg_id)
+        if msg_log is not None:
+            if msg_log.pickle:
+                return pickle.loads(msg_log.pickle)
+            else:
+                # Pickled data is not recorded.
+                raise EFBOperationNotSupported(self._("Message is not possible to be retrieved."))
+        else:
+            # Message is not found.
+            return
 
     def stop_polling(self):
         self.logger.debug("Gracefully stopping %s (%s).", self.channel_name, self.channel_id)
