@@ -27,9 +27,18 @@ class ETMMsg(EFBMsg):
 
     def __init__(self):
         super().__init__()
-        self.file = property(self.get_file)
-        self.path = property(self.get_path)
-        self.filename = property(self.get_filename, self.set_filename)
+
+    def __getstate__(self):
+        state = super().__getstate__()
+        if state.get('file', None) is not None:
+            del state['file']
+        if state.get('path', None) is not None:
+            del state['path']
+        if state.get('filename', None) is not None:
+            del state['filename']
+
+    def __setstate__(self, state: Dict[str, Any]):
+        super().__setstate__(state)
 
     def _load_file(self):
         if self.file_id:
@@ -109,6 +118,13 @@ class ETMMsg(EFBMsg):
 
     def set_filename(self, value):
         self.__filename = value
+
+    def void_setter(self, value):
+        pass
+
+    file = property(get_file, void_setter)  # type: ignore
+    path = property(get_path, void_setter)  # type: ignore
+    filename = property(get_filename, set_filename)  # type: ignore
 
     @staticmethod
     def from_efbmsg(source: EFBMsg) -> 'ETMMsg':
