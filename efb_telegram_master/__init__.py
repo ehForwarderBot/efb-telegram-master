@@ -16,6 +16,7 @@ import yaml
 from PIL import Image
 from pkg_resources import resource_filename
 
+import ehforwarderbot
 from ehforwarderbot import EFBChannel, EFBMsg, EFBStatus, coordinator
 from ehforwarderbot import utils as efb_utils
 from ehforwarderbot.constants import MsgType, ChannelType
@@ -241,12 +242,12 @@ class TelegramChannel(EFBChannel):
                              "not linked to any remote chat. ").format(group_name=chat.title,
                                                                        group_id=chat.id)
         else:  # Talking to the bot.
-            msg = self.ngettext("This is EFB Telegram Master Channel {version}.\n"
+            msg = self.ngettext("This is EFB Telegram Master Channel {version}, running on EFB {fw_version}.\n"
                                 "{count} slave channel activated:",
-                                "This is EFB Telegram Master Channel {version}.\n"
+                                "This is EFB Telegram Master Channel {version}, running on EFB {fw_version}.\n"
                                 "{count} slave channels activated:",
                                 len(coordinator.slaves)).format(
-                version=self.__version__, count=len(coordinator.slaves))
+                version=self.__version__, fw_version=ehforwarderbot.__version__, count=len(coordinator.slaves))
             for i in coordinator.slaves:
                 msg += "\n- %s %s (%s, %s)" % (coordinator.slaves[i].channel_emoji,
                                                coordinator.slaves[i].channel_name,
