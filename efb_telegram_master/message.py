@@ -49,23 +49,23 @@ class ETMMsg(EFBMsg):
             elif self.type_telegram == TGMsgType.Sticker:
                 self.mime = 'image/webp'
 
-            f = bot.get_file(self.file_id)
+            png_file = bot.get_file(self.file_id)
             if not self.mime:
-                ext = os.path.splitext(f.file_path)[1]
-                mime = mimetypes.guess_type(f.file_path, strict=False)[0]
+                ext = os.path.splitext(png_file.file_path)[1]
+                mime = mimetypes.guess_type(png_file.file_path, strict=False)[0]
             else:
                 ext = mimetypes.guess_extension(self.mime, strict=False)
                 mime = self.mime
             file = tempfile.NamedTemporaryFile(suffix=ext)
             full_path = file.name
-            f.download(out=file)
+            png_file.download(out=file)
             file.seek(0)
             mime = mime or magic.from_file(full_path, mime=True)
             if type(mime) is bytes:
                 mime = mime.decode()
             self.mime = mime
 
-            self.__file = f
+            self.__file = file
             self.__path = file.name
             self.__filename = self.__filename or os.path.basename(file.name)
 
@@ -91,12 +91,13 @@ class ETMMsg(EFBMsg):
                 self.__filename = self.__filename or os.path.basename(gif_file.name)
                 self.mime = "image/gif"
             elif self.type_telegram == TGMsgType.Sticker:
-                f = tempfile.NamedTemporaryFile(suffix=".png")
-                Image.open(file).convert("RGBA").save(f, 'png')
+                png_file = tempfile.NamedTemporaryFile(suffix=".png")
+                Image.open(file).convert("RGBA").save(png_file, 'png')
                 file.close()
-                self.__file = f
-                self.__path = f.name
-                self.__filename = self.__filename or os.path.basename(file.name)
+                png_file.seek(0)
+                self.__file = png_file
+                self.__path = png_file.name
+                self.__filename = (self.__filename or os.path.basename(file.name)) + ".png"
                 self.mime = "image/png"
 
         self.__initialized = True
@@ -133,7 +134,6 @@ class ETMMsg(EFBMsg):
         return target
 
     def put_telegram_file(self, message: telegram.Message):
-
         # Store Telegram message type
         self.type_telegram = get_msg_type(message)
 

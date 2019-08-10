@@ -322,7 +322,6 @@ class MasterMessageProcessor(LocaleMixin):
                 # Convert WebP to the more common PNG
                 m.text = ""
                 self._check_file_download(message.sticker)
-                self.logger.debug("[%s] WebP sticker is converted to PNG.", message_id)
             elif mtype == TGMsgType.Animation:
                 m.text = ""
                 self.logger.debug("[%s] Telegram message is a \"Telegram GIF\".", message_id)
@@ -377,6 +376,7 @@ class MasterMessageProcessor(LocaleMixin):
             self.bot.reply_error(update, self._("Message editing is not supported.\n\n{!s}".format(e)))
         except Exception as e:
             self.bot.reply_error(update, self._("Message is not sent.\n\n{!r}".format(e)))
+            self.logger.exception("Message is not sent. (update: %s)", update)
         finally:
             if m:
                 msg_log_d = {
