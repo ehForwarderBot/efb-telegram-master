@@ -6,7 +6,7 @@ import re
 import threading
 import urllib.parse
 import io
-from typing import Tuple, Dict, Optional, List, Pattern, TYPE_CHECKING, IO
+from typing import Tuple, Dict, Optional, List, Pattern, TYPE_CHECKING, IO, Any
 
 import peewee
 import telegram
@@ -119,6 +119,16 @@ class ETMChat(EFBChat):
         return "%s%s %s" % (self.channel_emoji,
                             Emoji.get_source_emoji(self.chat_type),
                             self.chat_alias or self.chat_name)
+
+    def __getstate__(self) -> Dict[str, Any]:
+        state = self.__dict__.copy()
+        if 'db' in state:
+            del state['db']
+        return state
+
+    def __setstate__(self, state: Dict[str, Any]):
+        self.__dict__.update(state)
+        self.db = coordinator.master.db
 
 
 class ChatListStorage:
