@@ -15,12 +15,16 @@ import telegram.ext
 import yaml
 from PIL import Image
 from pkg_resources import resource_filename
+from telegram import Message
+from telegram.ext import CommandHandler, CallbackQueryHandler
 
 import ehforwarderbot
 from ehforwarderbot import EFBChannel, EFBMsg, EFBStatus, coordinator
 from ehforwarderbot import utils as efb_utils
 from ehforwarderbot.constants import MsgType, ChannelType
-from ehforwarderbot.exceptions import EFBException, EFBOperationNotSupported
+from ehforwarderbot.exceptions import EFBException, EFBOperationNotSupported, EFBChatNotFound, \
+    EFBMessageReactionNotPossible
+from ehforwarderbot.status import EFBReactToMessage
 from .__version__ import __version__
 from . import utils as etm_utils
 from .bot_manager import TelegramBotManager
@@ -133,11 +137,14 @@ class TelegramChannel(EFBChannel):
         self.bot_manager.dispatcher.add_handler(
             GlobalCommandHandler("start", self.start, pass_args=True))
         self.bot_manager.dispatcher.add_handler(
-            telegram.ext.CommandHandler("help", self.help))
+            CommandHandler("help", self.help))
         self.bot_manager.dispatcher.add_handler(
             GlobalCommandHandler("info", self.info))
         self.bot_manager.dispatcher.add_handler(
-            telegram.ext.CallbackQueryHandler(self.bot_manager.session_expired))
+            CallbackQueryHandler(self.bot_manager.session_expired))
+        self.bot_manager.dispatcher.add_handler(
+            GlobalCommandHandler("react", self.react)
+        )
 
         self.bot_manager.dispatcher.add_error_handler(self.error)
 
@@ -160,7 +167,7 @@ class TelegramChannel(EFBChannel):
         config_path = efb_utils.get_config_path(self.channel_id)
         if not config_path.exists():
             raise FileNotFoundError(self._("Config File does not exist. ({path})").format(path=config_path))
-        with open(config_path) as f:
+        with config_path.open() as f:
             data = yaml.load(f)
 
             # Verify configuration
@@ -282,6 +289,60 @@ class TelegramChannel(EFBChannel):
                          "To learn more, please visit https://github.com/blueset/efb-telegram-master .")
             self.bot_manager.send_message(update.effective_chat.id, txt)
 
+    def react(self, bot, update):
+        """React to a message."""
+        message: Message = update.effective_message
+
+        reaction = None
+        args = message.text and message.text.split(' ', 1)
+        if args and len(args) > 1:
+            reaction = args[1]
+
+        if not message.reply_to_message or not reaction:
+            message.reply_html(self._("Reply to a message with this command and an emoji to send a reaction. "
+                                      "Ex.: <code>/react 👍</code>."))
+            return
+
+        msg_log = self.db.get_msg_log(master_msg_id=etm_utils.message_id_to_str(update))
+        if msg_log is None:
+            message.reply_text(self._("The message you replied to is not recorded in ETM database. "
+                                      "You cannot react to this message."))
+            return
+
+        message_id = msg_log.slave_message_id
+        channel_id, chat_uid = etm_utils.chat_id_str_to_id(msg_log.slave_origin_uid)
+
+        if channel_id not in coordinator.slaves:
+            message.reply_text(self._("The slave channel involved in this message ({}) is not available. "
+                                      "You cannot react to this message.").format(channel_id))
+            return
+
+        channel = coordinator.slaves[channel_id]
+
+        if channel.suggested_reactions is None:
+            message.reply_html(self._("The channel involved in this message does not accept reactions. "
+                                      "You cannot react to this message.").format(channel_id))
+            return
+
+        try:
+            chat_obj = channel.get_chat(chat_uid)
+        except EFBChatNotFound:
+            message.reply_html(self._("The chat involved in this message ({}) is not found. "
+                                      "You cannot react to this message.").format(channel_id))
+            return
+
+        try:
+            coordinator.send_status(EFBReactToMessage(chat=chat_obj, msg_id=message_id, reaction=reaction))
+        except EFBOperationNotSupported:
+            message.reply_text(self._("You cannot react anything to this message."))
+            return
+        except EFBMessageReactionNotPossible:
+            prompt = self._("{} is not accepted as a reaction to this message.").format(reaction)
+            if channel.suggested_reactions:
+                prompt += "\n" + self._("You may want to try: {}").format(", ".join(channel.suggested_reactions[:10]))
+            message.reply_text(prompt)
+            return
+
     def help(self, bot, update):
         txt = self._("EFB Telegram Master Channel\n"
                      "/link\n"
@@ -296,6 +357,8 @@ class TelegramChannel(EFBChannel):
                      "    Unlink all remote chats in this chat.\n"
                      "/info\n"
                      "    Show information of the current Telegram chat.\n"
+                     "/react <emoji>\n"
+                     "    React to a message with an emoji.\n"
                      "/update_info\n"
                      "    Update name and profile picture a linked Telegram group.\n"
                      "    Only works in singly linked group where the bot is an admin.\n"
@@ -307,7 +370,6 @@ class TelegramChannel(EFBChannel):
         """
         Message polling process.
         """
-
         self.bot_manager.polling()
 
     def error(self, bot, update, error):
