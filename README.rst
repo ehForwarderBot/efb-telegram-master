@@ -384,7 +384,7 @@ Reply ``/react`` to a message to show a list of chat members who
 have reacted to the message and what their reactions are.
 
 Reply ``/react`` followed by an emoji to react to this message, e.g.
-``/react 👍``.
+``/react 👍``. Send ``/react -`` to remove your reaction.
 
 Note that some slave channels may not accept message reactions, and
 some channels have a limited reactions you can send with. Usually
