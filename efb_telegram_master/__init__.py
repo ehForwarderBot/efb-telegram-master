@@ -33,6 +33,7 @@ from .commands import CommandsManager
 from .db import DatabaseManager
 from .global_command_handler import GlobalCommandHandler
 from .master_message import MasterMessageProcessor
+from .message import ETMMsg
 from .rpc_utils import RPCUtilities
 from .slave_message import SlaveMessageProcessor
 from .utils import ExperimentalFlagsManager
@@ -300,8 +301,9 @@ class TelegramChannel(EFBChannel):
         if args and len(args) > 1:
             reaction = args[1]
 
-        if not message.reply_to_message or not reaction:
-            message.reply_html(self._("Reply to a message with this command and an emoji to send a reaction. "
+        if not message.reply_to_message:
+            message.reply_html(self._("Reply to a message with this command and an emoji "
+                                      "to send a reaction. "
                                       "Ex.: <code>/react 👍</code>."))
             return
 
@@ -312,6 +314,30 @@ class TelegramChannel(EFBChannel):
             message.reply_text(self._("The message you replied to is not recorded in ETM database. "
                                       "You cannot react to this message."))
             return
+
+        if not reaction:
+            if msg_log.pickle is None:
+                message.reply_text(self._("Reactors of this message is not recorded in database."))
+                return
+            msg_log_obj: ETMMsg = pickle.loads(msg_log.pickle)
+            reactors = msg_log_obj.reactions
+            if not reactors:
+                message.reply_html(self._("This message has no reactions yet. "
+                                          "Reply to a message with this command and "
+                                          "an emoji to send a reaction. "
+                                          "Ex.: <code>/react 👍</code>."))
+                return
+            else:
+                text = ""
+                for key, values in reactors.items():
+                    if not values:
+                        continue
+                    text += f"{key}:\n"
+                    for j in values:
+                        text += f"    {j.display_name}\n"
+                text = text.strip()
+                message.reply_text(text)
+                return
 
         message_id = msg_log.slave_message_id
         channel_id, chat_uid = etm_utils.chat_id_str_to_id(msg_log.slave_origin_uid)
@@ -361,8 +387,8 @@ class TelegramChannel(EFBChannel):
                      "    Unlink all remote chats in this chat.\n"
                      "/info\n"
                      "    Show information of the current Telegram chat.\n"
-                     "/react <emoji>\n"
-                     "    React to a message with an emoji.\n"
+                     "/react [emoji]\n"
+                     "    React to a message with an emoji, or show a list of members reacted.\n"
                      "/update_info\n"
                      "    Update name and profile picture a linked Telegram group.\n"
                      "    Only works in singly linked group where the bot is an admin.\n"
