@@ -83,8 +83,7 @@ class SlaveMessageProcessor(LocaleMixin):
             self.logger.error("Error occurred while processing message from slave channel.\nMessage: %s\n%s\n%s",
                               repr(msg), repr(e), traceback.format_exc())
 
-    def dispatch_message(self, msg: EFBMsg, msg_template: str, old_msg_id: Optional[str], tg_dest: str,
-                         update_reactions: bool = False):
+    def dispatch_message(self, msg: EFBMsg, msg_template: str, old_msg_id: Optional[Tuple[str, str]], tg_dest: str,):
         """Dispatch with header, destination and Telegram message ID and destinations."""
 
         xid = msg.uid
@@ -678,13 +677,14 @@ class SlaveMessageProcessor(LocaleMixin):
 
         old_msg: ETMMsg = pickle.loads(old_msg_db.pickle)
         old_msg.reactions = status.reactions
+        old_msg.edit = True
 
         msg_template, _ = self.get_slave_msg_dest(old_msg)
         effective_msg = old_msg_db.master_msg_id_alt or old_msg_db.master_msg_id
         chat_id, msg_id = utils.message_id_str_to_id(effective_msg)
 
         # Go through the ordinary update process
-        self.dispatch_message(old_msg, msg_template, old_msg_id=msg_id, tg_dest=chat_id, update_reactions=True)
+        self.dispatch_message(old_msg, msg_template, old_msg_id=(chat_id, msg_id), tg_dest=chat_id)
 
     def generate_message_template(self, msg: EFBMsg, tg_chat, multi_slaves: bool) -> str:
         msg_prefix = ""  # For group member name
