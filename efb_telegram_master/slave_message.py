@@ -134,7 +134,7 @@ class SlaveMessageProcessor(LocaleMixin):
                                              reply_markup)
         elif msg.type == MsgType.Sticker:
             tg_msg = self.slave_message_sticker(msg, tg_dest, msg_template, reactions, old_msg_id, target_msg_id,
-                                              reply_markup, update_reactions)
+                                                reply_markup)
         elif msg.type == MsgType.Image:
             if self.flag("send_image_as_file"):
                 tg_msg = self.slave_message_file(msg, tg_dest, msg_template, reactions, old_msg_id, target_msg_id,
@@ -150,7 +150,7 @@ class SlaveMessageProcessor(LocaleMixin):
                                               reply_markup)
         elif msg.type == MsgType.Location:
             tg_msg = self.slave_message_location(msg, tg_dest, msg_template, reactions, old_msg_id, target_msg_id,
-                                                 reply_markup, update_reactions)
+                                                 reply_markup)
         elif msg.type == MsgType.Video:
             tg_msg = self.slave_message_video(msg, tg_dest, msg_template, reactions, old_msg_id, target_msg_id,
                                               reply_markup)
@@ -171,7 +171,7 @@ class SlaveMessageProcessor(LocaleMixin):
         self.logger.debug("[%s] Message is sent to the user with telegram message id %s.%s.",
                           xid, tg_msg.chat.id, tg_msg.message_id)
 
-        etm_msg = ETMMsg.from_efbmsg(msg)
+        etm_msg = ETMMsg.from_efbmsg(msg, self.db)
         etm_msg.put_telegram_file(tg_msg)
         msg_log = {"master_msg_id": utils.message_id_to_str(tg_msg.chat.id, tg_msg.message_id),
                    "text": msg.text or "Sent a %s." % msg.type,
@@ -351,10 +351,7 @@ class SlaveMessageProcessor(LocaleMixin):
             self.logger.debug("[%s] Size of %s is %s.", msg.uid, msg.path, os.stat(msg.path).st_size)
 
         if not msg.text:
-            if msg.type == MsgType.Image:
-                msg.text = self._("sent a picture.")
-            elif msg.type == MsgType.Sticker:
-                msg.text = self._("sent a sticker.")
+            msg.text = self._("sent a picture.")
         try:
             if old_msg_id:
                 if msg.edit_media:
@@ -376,8 +373,6 @@ class SlaveMessageProcessor(LocaleMixin):
                 #        aspect ratio (longer to shorter side ratio) is greater than IMG_SIZE_RATIO,
                 #    send as file.
                 # 3. If the picture is too thin -- aspect ratio grater than IMG_SIZE_MAX_RATIO, send as file.
-
-                # TODO: send sticker as WebP and use reply_markup to give prefix and suffix.
 
                 if not send_as_file:
                     try:
@@ -417,82 +412,70 @@ class SlaveMessageProcessor(LocaleMixin):
             if msg.file:
                 msg.file.close()
 
+    def slave_message_sticker(self, msg: EFBMsg, tg_dest: str, msg_template: str, reactions: str,
+                              old_msg_id: Optional[Tuple[str, str]] = None,
+                              target_msg_id: Optional[str] = None,
+                              reply_markup: Optional[telegram.ReplyMarkup] = None) -> telegram.Message:
 
-    def slave_message_image(self, msg: EFBMsg, tg_dest: str, msg_template: str, reactions: str,
-                            old_msg_id: Optional[Tuple[str, str]] = None,
-                            target_msg_id: Optional[str] = None,
-                            reply_markup: Optional[telegram.ReplyMarkup] = None) -> telegram.Message:
         self.bot.send_chat_action(tg_dest, telegram.ChatAction.UPLOAD_PHOTO)
+
+        sticker_reply_markup = self.build_chat_info_inline_keyboard(msg, msg_template, reactions, reply_markup)
+
         self.logger.debug("[%s] Message is of %s type; Path: %s; MIME: %s", msg.uid, msg.type, msg.path, msg.mime)
         if msg.path:
             self.logger.debug("[%s] Size of %s is %s.", msg.uid, msg.path, os.stat(msg.path).st_size)
 
-        if not msg.text:
-            if msg.type == MsgType.Image:
-                msg.text = self._("sent a picture.")
-            elif msg.type == MsgType.Sticker:
-                msg.text = self._("sent a sticker.")
         try:
+            if msg.edit_media:
+                target_msg_id = old_msg_id
+                old_msg_id = None
             if old_msg_id:
-                if msg.edit_media:
-                    self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=msg.file)
-                return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1],
-                                                     prefix=msg_template, suffix=reactions, caption=msg.text)
+                try:
+                    return self.bot.edit_message_reply_markup(chat_id=tg_dest, message_id=old_msg_id,
+                                                              reply_markup=sticker_reply_markup)
+                except telegram.TelegramError:
+                    return self.bot.send_message(chat_id=tg_dest, reply_to_message_id=old_msg_id,
+                                                 prefix=msg_template, text=msg.text, suffix=reactions,
+                                                 reply_markup=reply_markup)
+
             else:
-                # Send picture as file when the image file is a GIF.
-                send_as_file = msg.mime == 'image/gif'
+                webp_img = None
 
-                # Avoid Telegram compression of pictures by sending high definition image messages as files
-                # Code adopted from wolfsilver's fork:
-                # https://github.com/wolfsilver/efb-telegram-master/blob/99668b60f7ff7b6363dfc87751a18281d9a74a09/efb_telegram_master/slave_message.py#L142-L163
-                #
-                # Rules:
-                # 1. If the picture is too large -- shorter side is greater than IMG_MIN_SIZE, send as file.
-                # 2. If the picture is large and thin --
-                #        longer side is greater than IMG_MAX_SIZE, and
-                #        aspect ratio (longer to shorter side ratio) is greater than IMG_SIZE_RATIO,
-                #    send as file.
-                # 3. If the picture is too thin -- aspect ratio grater than IMG_SIZE_MAX_RATIO, send as file.
-
-                # TODO: send sticker as WebP and use reply_markup to give prefix and suffix.
-
-                if not send_as_file:
-                    try:
-                        pic_img = Image.open(msg.path)
-                        max_size = max(pic_img.size)
-                        min_size = min(pic_img.size)
-                        img_ratio = max_size / min_size
-
-                        if min_size > self.IMG_MIN_SIZE:
-                            send_as_file = True
-                        elif max_size > self.IMG_MAX_SIZE and img_ratio > self.IMG_SIZE_RATIO:
-                            send_as_file = True
-                        elif img_ratio >= self.IMG_SIZE_MAX_RATIO:
-                            send_as_file = True
-                    except IOError:  # Ignore when the image cannot be properly identified.
-                        pass
-
-                if send_as_file:
+                try:
+                    pic_img: Image = Image.open(msg.file)
+                    webp_img = tempfile.NamedTemporaryFile(suffix='.webp')
+                    pic_img.convert("RGBA").save(webp_img, 'webp')
+                    webp_img.seek(0)
+                    return self.bot.send_sticker(tg_dest, webp_img, reply_markup=sticker_reply_markup,
+                                                 reply_to_message_id=target_msg_id)
+                except IOError:
                     return self.bot.send_document(tg_dest, msg.file, prefix=msg_template, suffix=reactions,
-                                                  caption=msg.text,
+                                                  caption=msg.text, filename=msg.filename,
                                                   reply_to_message_id=target_msg_id,
                                                   reply_markup=reply_markup)
-                else:
-                    try:
-                        return self.bot.send_photo(tg_dest, msg.file, prefix=msg_template, suffix=reactions,
-                                                   caption=msg.text,
-                                                   reply_to_message_id=target_msg_id,
-                                                   reply_markup=reply_markup)
-                    except telegram.error.BadRequest as e:
-                        self.logger.error('[%s] Failed to send it as image, sending as document. Reason: %s',
-                                          msg.uid, e)
-                        return self.bot.send_document(tg_dest, msg.file, prefix=msg_template, suffix=reactions,
-                                                      caption=msg.text, filename=msg.filename,
-                                                      reply_to_message_id=target_msg_id,
-                                                      reply_markup=reply_markup)
+                finally:
+                    if webp_img and not webp_img.closed:
+                        webp_img.close()
         finally:
-            if msg.file:
+            if msg.file and not msg.file.closed:
                 msg.file.close()
+
+    @staticmethod
+    def build_chat_info_inline_keyboard(msg: EFBMsg, msg_template: str, reactions: str,
+                                        reply_markup: Optional[telegram.InlineKeyboardMarkup]
+                                        ) -> telegram.InlineKeyboardMarkup:
+        """
+        Build inline keyboard markup with message header and footer (reactions). Buttons are attached
+        before any other commands attached.
+        """
+        description = [[telegram.InlineKeyboardButton(msg_template, callback_data="void")]]
+        if msg.text:
+            description.append([telegram.InlineKeyboardButton(msg.text, callback_data="void")])
+        if reactions:
+            description.append([telegram.InlineKeyboardButton(reactions, callback_data="void")])
+        sticker_reply_markup = reply_markup or telegram.InlineKeyboardMarkup([])
+        sticker_reply_markup.inline_keyboard = description + sticker_reply_markup.inline_keyboard
+        return sticker_reply_markup
 
     def slave_message_file(self, msg: EFBMsg, tg_dest: str, msg_template: str, reactions: str,
                            old_msg_id: Optional[Tuple[str, str]] = None,
@@ -567,17 +550,18 @@ class SlaveMessageProcessor(LocaleMixin):
                          msg.uid,
                          attributes.latitude, attributes.longitude,
                          msg.text, msg_template)
+
+        location_reply_markup = self.build_chat_info_inline_keyboard(msg, msg_template, reactions, reply_markup)
+
         if old_msg_id and old_msg_id[0] == tg_dest:
             # TRANSLATORS: Flag for edited message, but cannot be edited on Telegram.
             msg_template += self._('[edited]')
             target_msg_id = target_msg_id or old_msg_id[1]
 
-        # TODO: Send as location and use reply_markup to show message template and reactions
         # TODO: Use live location if possible? Lift live location messages to EFB Framework?
-        return self.bot.send_venue(tg_dest, latitude=attributes.latitude,
-                                   longitude=attributes.longitude, title=msg.text or self._("Sent a location."),
-                                   address=msg_template + reactions, reply_to_message_id=target_msg_id,
-                                   reply_markup=reply_markup)
+        return self.bot.send_location(tg_dest, latitude=attributes.latitude,
+                                      longitude=attributes.longitude, reply_to_message_id=target_msg_id,
+                                      reply_markup=location_reply_markup)
 
     def slave_message_video(self, msg: EFBMsg, tg_dest: str, msg_template: str, reactions: str,
                             old_msg_id: Optional[Tuple[str, str]] = None,
@@ -683,13 +667,13 @@ class SlaveMessageProcessor(LocaleMixin):
         old_msg_db = self.db.get_msg_log(slave_msg_id=status.msg_id,
                                          slave_origin_uid=utils.chat_id_to_str(chat=status.chat))
         if old_msg_db is None:
-            self.logger.error('Trying to update reactions of message, but message is not found in database. '
-                              'Message ID %s from %s, status: %s.', status.msg_id, status.chat, status.reactions)
+            self.logger.exception('Trying to update reactions of message, but message is not found in database. '
+                                  'Message ID %s from %s, status: %s.', status.msg_id, status.chat, status.reactions)
             return
 
         if not old_msg_db.pickle:
-            self.logger.error('Trying to update reactions of message, but ETMMsg object is not found in database. '
-                              'Message ID %s from %s, status: %s.', status.msg_id, status.chat, status.reactions)
+            self.logger.exception('Trying to update reactions of message, but ETMMsg object is not found in database. '
+                                  'Message ID %s from %s, status: %s.', status.msg_id, status.chat, status.reactions)
             return
 
         old_msg: ETMMsg = pickle.loads(old_msg_db.pickle)
