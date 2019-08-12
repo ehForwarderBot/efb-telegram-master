@@ -204,6 +204,7 @@ class DatabaseManager:
                 Display name of the member, None if not available.
             update (bool): Update a previous record. Default: False.
             slave_message_id (str): the corresponding message uid from slave channel.
+            pickle (bytes): Picked ETMMsg object.
 
         Returns:
             MsgLog: The added/updated entry.
@@ -221,6 +222,7 @@ class DatabaseManager:
         media_type = kwargs.get('media_type', None)
         file_id = kwargs.get('file_id', None)
         mime = kwargs.get('mime', None)
+        pickle = kwargs.get('pickle', None)
         update = kwargs.get('update', False)
         if update:
             msg_log = MsgLog.get(MsgLog.master_msg_id == master_msg_id)
@@ -235,7 +237,8 @@ class DatabaseManager:
             msg_log.master_msg_id_alt = master_msg_id_alt
             msg_log.media_type = media_type or msg_log.media_type
             msg_log.file_id = file_id or msg_log.file_id
-            msg_log.mime = mime or msg_log.mime
+            msg_log.mime = mime or msg_log.mime,
+            msg_log.pickle = pickle or msg_log.pickle
             msg_log.save()
             return msg_log
         else:
@@ -251,7 +254,8 @@ class DatabaseManager:
                                  master_msg_id_alt=master_msg_id_alt,
                                  media_type=media_type,
                                  file_id=file_id,
-                                 mime=mime
+                                 mime=mime,
+                                 pickle=pickle
                                  )
 
     def get_msg_log(self,
