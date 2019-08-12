@@ -304,7 +304,9 @@ class TelegramChannel(EFBChannel):
         if not message.reply_to_message:
             message.reply_html(self._("Reply to a message with this command and an emoji "
                                       "to send a reaction. "
-                                      "Ex.: <code>/react 👍</code>."))
+                                      "Ex.: <code>/react 👍</code>.\n"
+                                      "Send <code>/react -</code> to remove your reaction "
+                                      "from a message."))
             return
 
         target: Message = update.message.reply_to_message
@@ -360,6 +362,9 @@ class TelegramChannel(EFBChannel):
             message.reply_html(self._("The chat involved in this message ({}) is not found. "
                                       "You cannot react to this message.").format(channel_id))
             return
+
+        if reaction == "-":
+            reaction = None
 
         try:
             coordinator.send_status(EFBReactToMessage(chat=chat_obj, msg_id=message_id, reaction=reaction))
