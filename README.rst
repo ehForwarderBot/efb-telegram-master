@@ -160,6 +160,7 @@ to BotFather for a command list::
     chat - Generate a chat head.
     extra - Access additional features from Slave Channels.
     update_info - Update the group name and profile picture.
+    react - Send a reaction to a message, or show a list of reactors.
 
 .. note::
 
@@ -375,6 +376,20 @@ This functionality is available when:
 
 Profile picture will not be set if it’s not available from the slave
 channel.
+
+``/react``: Send reactions to a message or show a list of reactors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Reply ``/react`` to a message to show a list of chat members who
+have reacted to the message and what their reactions are.
+
+Reply ``/react`` followed by an emoji to react to this message, e.g.
+``/react 👍``.
+
+Note that some slave channels may not accept message reactions, and
+some channels have a limited reactions you can send with. Usually
+when you send an unaccepted reaction, slave channels can provide
+a list of suggested reactions you may want to try instead.
 
 Telegram Channel support
 ~~~~~~~~~~~~~~~~~~~~~~~~
