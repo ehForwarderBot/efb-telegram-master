@@ -364,8 +364,20 @@ class TelegramBotManager(LocaleMixin):
         return self.updater.bot.send_chat_action(*args, **kwargs)
 
     @Decorators.retry_on_timeout
+    def edit_message_reply_markup(self, *args, **kwargs):
+        return self.updater.bot.edit_message_reply_markup(*args, **kwargs)
+
+    @Decorators.retry_on_timeout
+    def send_location(self, *args, **kwargs):
+        return self.updater.bot.send_location(*args, **kwargs)
+
+    @Decorators.retry_on_timeout
     def send_venue(self, *args, **kwargs):
         return self.updater.bot.send_venue(*args, **kwargs)
+
+    @Decorators.retry_on_timeout
+    def send_sticker(self, *args, **kwargs):
+        return self.updater.bot.send_sticker(*args, **kwargs)
 
     @Decorators.retry_on_timeout
     def get_me(self, *args, **kwargs):
@@ -402,6 +414,10 @@ class TelegramBotManager(LocaleMixin):
     @Decorators.retry_on_timeout
     def delete_message(self, chat_id, message_id):
         return self.updater.bot.delete_message(chat_id, message_id)
+
+    @Decorators.retry_on_timeout
+    def answer_callback_query(self, *args, **kwargs):
+        return self.updater.bot.answer_callback_query(*args, **kwargs)
 
     def polling(self):
         """

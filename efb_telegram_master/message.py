@@ -9,6 +9,7 @@ from PIL import Image
 from moviepy.video.io.VideoFileClip import VideoFileClip
 
 from ehforwarderbot import EFBMsg, coordinator
+from . import ETMChat
 from .msg_type import TGMsgType, get_msg_type
 
 
@@ -36,6 +37,7 @@ class ETMMsg(EFBMsg):
             del state['path']
         if state.get('filename', None) is not None:
             del state['filename']
+        return state
 
     def __setstate__(self, state: Dict[str, Any]):
         super().__setstate__(state)
@@ -128,9 +130,18 @@ class ETMMsg(EFBMsg):
     filename = property(get_filename, set_filename)  # type: ignore
 
     @staticmethod
-    def from_efbmsg(source: EFBMsg) -> 'ETMMsg':
+    def from_efbmsg(source: EFBMsg, db) -> 'ETMMsg':
         target = ETMMsg()
         target.__dict__.update(source.__dict__)
+        if not isinstance(target.chat, ETMChat):
+            target.chat = ETMChat(chat=target.chat, db=db)
+        if not isinstance(target.author, ETMChat):
+            target.author = ETMChat(chat=target.author, db=db)
+        if target.reactions:
+            for i in target.reactions.values():
+                for j in range(len(i)):
+                    if not isinstance(i[j], ETMChat):
+                        i[j] = ETMChat(chat=i[j], db=db)
         return target
 
     def put_telegram_file(self, message: telegram.Message):
