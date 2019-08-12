@@ -141,6 +141,8 @@ class TelegramChannel(EFBChannel):
         self.bot_manager.dispatcher.add_handler(
             GlobalCommandHandler("info", self.info))
         self.bot_manager.dispatcher.add_handler(
+            CallbackQueryHandler(self.void_callback_handler, pattern="void"))
+        self.bot_manager.dispatcher.add_handler(
             CallbackQueryHandler(self.bot_manager.session_expired))
         self.bot_manager.dispatcher.add_handler(
             GlobalCommandHandler("react", self.react)
@@ -303,7 +305,9 @@ class TelegramChannel(EFBChannel):
                                       "Ex.: <code>/react 👍</code>."))
             return
 
-        msg_log = self.db.get_msg_log(master_msg_id=etm_utils.message_id_to_str(update))
+        target: Message = update.message.reply_to_message
+        msg_log = self.db.get_msg_log(master_msg_id=etm_utils.message_id_to_str(chat_id=target.chat_id,
+                                                                                message_id=target.message_id))
         if msg_log is None:
             message.reply_text(self._("The message you replied to is not recorded in ETM database. "
                                       "You cannot react to this message."))
@@ -472,6 +476,11 @@ class TelegramChannel(EFBChannel):
         else:
             # Message is not found.
             return
+
+    def void_callback_handler(self, bot, update):
+        self.bot_manager.answer_callback_query(update.callback_query.id,
+                                               text=self._("This button does nothing."),
+                                               cache_time=180)
 
     def stop_polling(self):
         self.logger.debug("Gracefully stopping %s (%s).", self.channel_name, self.channel_id)
