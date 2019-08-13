@@ -1,0 +1,693 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: ehforwarderbot\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-08-13 14:36+0800\n"
+"PO-Revision-Date: 2019-08-13 06:40\n"
+"Last-Translator: Eana Hufwe (blueset)\n"
+"Language-Team: Turkish\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: crowdin.com\n"
+"X-Crowdin-Project: ehforwarderbot\n"
+"X-Crowdin-Language: tr\n"
+"X-Crowdin-File: /EFBChannels/efb-telegram-master/readme_translations/locale/README.pot\n"
+"Language: tr_TR\n"
+
+#: ../../.cache/README.rst:2
+msgid "EFB Telegram Master Channel (ETM)"
+msgstr ""
+
+#: ../../.cache/README.rst:None
+msgid ".. image:: https://img.shields.io/pypi/v/efb-telegram-master.svg\n"
+"   :alt: PyPI release"
+msgstr ""
+
+#: ../../.cache/README.rst:None
+msgid ".. image:: https://d322cqt584bo4o.cloudfront.net/ehforwarderbot/localized.svg\n"
+"   :alt: Translate this project"
+msgstr ""
+
+#: ../../.cache/README.rst:11
+msgid "`README in other languages`_."
+msgstr ""
+
+#: ../../.cache/README.rst:16
+msgid "**Channel ID**: ``blueset.telegram``"
+msgstr ""
+
+#: ../../.cache/README.rst:18
+msgid "ETM is a Telegram Master Channel for EH Forwarder Bot, based on Telegram Bot API, ``python-telegram-bot``."
+msgstr ""
+
+#: ../../.cache/README.rst:22
+msgid "Beta version"
+msgstr ""
+
+#: ../../.cache/README.rst:24
+msgid "This is an unstable beta version, and its functionality may change at any time."
+msgstr ""
+
+#: ../../.cache/README.rst:28
+msgid "Requirements"
+msgstr ""
+
+#: ../../.cache/README.rst:30
+msgid "Python >= 3.6"
+msgstr ""
+
+#: ../../.cache/README.rst:31
+msgid "EH Forwarder Bot >= 2.0.0"
+msgstr ""
+
+#: ../../.cache/README.rst:32
+msgid "ffmpeg"
+msgstr ""
+
+#: ../../.cache/README.rst:33
+msgid "libmagic"
+msgstr ""
+
+#: ../../.cache/README.rst:34
+msgid "libwebp"
+msgstr ""
+
+#: ../../.cache/README.rst:37
+msgid "Getting Started"
+msgstr ""
+
+#: ../../.cache/README.rst:39
+msgid "Install all required binary dependencies"
+msgstr ""
+
+#: ../../.cache/README.rst:40
+msgid "Install ETM"
+msgstr ""
+
+#: ../../.cache/README.rst:42
+msgid "pip3 install efb-telegram-master"
+msgstr ""
+
+#: ../../.cache/README.rst:46
+msgid "Enable ETM in the profile’s ``config.yaml``"
+msgstr ""
+
+#: ../../.cache/README.rst:48
+msgid "The path of your profile storage directory depends on your configuration."
+msgstr ""
+
+#: ../../.cache/README.rst:51
+msgid "**(As of EFB 2.0.0a1: Default profile storage directory is located at** ``~/.ehforwarderbot/profiles/default`` **)**"
+msgstr ""
+
+#: ../../.cache/README.rst:54
+msgid "Configure the channel (described as follows)"
+msgstr ""
+
+#: ../../.cache/README.rst:57
+msgid "Alternative installation methods"
+msgstr ""
+
+#: ../../.cache/README.rst:59
+msgid "ETM also has other alternative installation methods contributed by the community, including:"
+msgstr ""
+
+#: ../../.cache/README.rst:62
+msgid "`AUR package`_ maintained by KeLiu_ (``python-efb-telegram-master-git``)"
+msgstr ""
+
+#: ../../.cache/README.rst:63
+msgid "Other `installation scripts and containers (e.g. Docker)`_"
+msgstr ""
+
+#: ../../.cache/README.rst:70
+msgid "Configuration"
+msgstr ""
+
+#: ../../.cache/README.rst:73
+msgid "Set up a bot"
+msgstr ""
+
+#: ../../.cache/README.rst:75
+msgid "Create a bot with `@BotFather`_, give it a name and a username. Then you'll get a token, which will be used later. Keep this token secure, as it gives who owns it the full access to the bot."
+msgstr ""
+
+#: ../../.cache/README.rst:82
+msgid "Use ``/setjoingroups`` to allow your bot to join groups. Use ``/setprivacy`` to disable the privacy restriction of the bot, so that it can receive all messages in the group."
+msgstr ""
+
+#: ../../.cache/README.rst:88
+msgid "Complete configuration file"
+msgstr ""
+
+#: ../../.cache/README.rst:90
+msgid "Configuration file is stored at ``<profile directory>/blueset.telegram/config.yaml``."
+msgstr ""
+
+#: ../../.cache/README.rst:93
+msgid "A sample config file can be as follows:"
+msgstr ""
+
+#: ../../.cache/README.rst:95
+msgid "##################\n"
+"# Required items #\n"
+"##################\n"
+"# You are required to fill the option below,\n"
+"# or this channel will not work.\n\n"
+"# Telegram bot token.\n"
+"# This is the token you obtained from BotFather\n"
+"token: \"12345678:1a2b3c4d5e6g7h8i9j\"\n\n"
+"# List of Telegram User IDs of admins\n"
+"# ETM will only process messages and commands from users\n"
+"# listed below. This ID can be obtained from various ways\n"
+"# on Telegram.\n"
+"admins:\n"
+"- 102938475\n"
+"- 91827364\n\n"
+"# Experimental Flags\n"
+"# This section can be used to enable experimental functionality.\n"
+"# However, those features may be changed or removed at any time.\n"
+"# Options in this section is explained afterward.\n"
+"flags:\n"
+"    option_one: 10\n"
+"    option_two: false\n"
+"    option_three: \"foobar\""
+msgstr ""
+
+#: ../../.cache/README.rst:146
+msgid "Usage"
+msgstr ""
+
+#: ../../.cache/README.rst:148
+msgid "At the beginning, messages from all senders will be sent to the user directly, that means every message will be mixed in the same conversation. By linking a chat, you can redirect messages from a specific sender to an empty group for a more organized conversation."
+msgstr ""
+
+#: ../../.cache/README.rst:153
+msgid "In a nutshell, ETM offers the following commands, you can also send it to BotFather for a command list::"
+msgstr ""
+
+#: ../../.cache/README.rst:156
+msgid "help - Show commands list.\n"
+"link - Link a remote chat to a group.\n"
+"unlink_all - Unlink all remote chats from a group.\n"
+"info - Display information of the current Telegram chat.\n"
+"chat - Generate a chat head.\n"
+"extra - Access additional features from Slave Channels.\n"
+"update_info - Update the group name and profile picture.\n"
+"react - Send a reaction to a message, or show a list of reactors."
+msgstr ""
+
+#: ../../.cache/README.rst:167
+msgid "In case of multiple admins are assigned, they may all send message on your behalf, but only the 0th admin can receive direct message from the bot."
+msgstr ""
+
+#: ../../.cache/README.rst:172
+msgid "``/link``: Link a chat"
+msgstr ""
+
+#: ../../.cache/README.rst:174
+msgid "Create a new group, invite your bot to the group"
+msgstr ""
+
+#: ../../.cache/README.rst:175
+msgid "Send ``/link`` directly to the bot, then select your preferred slave chat."
+msgstr ""
+
+#: ../../.cache/README.rst:177
+msgid "Tap “Link” and select your new group. *You can also choose to unlink or relink a linked chat from this menu.*"
+msgstr ""
+
+#: ../../.cache/README.rst:180
+msgid "Tap “Start” at the bottom of your screen, and you should see a success message: “Chat linked.”"
+msgstr ""
+
+#: ../../.cache/README.rst:185
+msgid "You may introduce non-ETM admin users to the group, however, they:"
+msgstr ""
+
+#: ../../.cache/README.rst:187
+msgid "Can read all messages send from the related remote chat;"
+msgstr ""
+
+#: ../../.cache/README.rst:188
+msgid "May NOT send message on your behalf."
+msgstr ""
+
+#: ../../.cache/README.rst:190
+msgid "If the “Link” button doesn’t work for you, you may try the “Manual Link/Relink” button. To manually link a remote chat:"
+msgstr ""
+
+#: ../../.cache/README.rst:193
+msgid "Add the bot to the group you want to link to"
+msgstr ""
+
+#: ../../.cache/README.rst:194
+msgid "Copy the code provided by the bot, and send it to the group."
+msgstr ""
+
+#: ../../.cache/README.rst:195
+msgid "If the group is linked successfully, you would receive a confirmation from the bot."
+msgstr ""
+
+#: ../../.cache/README.rst:198
+msgid "Also, you can send ``/unlink_all`` to a group to unlink all remote chats from it."
+msgstr ""
+
+#: ../../.cache/README.rst:202
+#: ../../.cache/README.rst:304
+msgid "Advanced feature: Filtering"
+msgstr ""
+
+#: ../../.cache/README.rst:204
+msgid "If you have just too much chats, and being too tired for keep tapping ``Next >``, or maybe you just want to find a way to filter out what you’re looking for, now ETM has equipped ``/chat`` and ``/list`` with filtering feature. Attach your keyword behind, and you can get a filtered result."
+msgstr ""
+
+#: ../../.cache/README.rst:210
+msgid "E.g.: ``/chat Eana`` will give you all chats has the word “Eana”."
+msgstr ""
+
+#: ../../.cache/README.rst:212
+msgid "Technical Details"
+msgstr ""
+
+#: ../../.cache/README.rst:214
+msgid "The filter query is in fact a regular expression matching. We used Python’s ``re.search`` with flags ``re.DOTALL | re.IGNORECASE`` in this case, i.e.: ``.`` matches everything including line breaks, and the query is NOT case-sensitive. Each comparison is done against a specially crafted string which allows you to filter multiple criteria."
+msgstr ""
+
+#: ../../.cache/README.rst:222
+msgid "Channel: <Channel name>\n"
+"Name: <Chat name>\n"
+"Alias: <Chat Alias>\n"
+"ID: <Chat Unique ID>\n"
+"Type: (User|Group)\n"
+"Mode: [Linked]\n"
+"Other: <Python Dictionary String>"
+msgstr ""
+
+#: ../../.cache/README.rst:233
+msgid "Type can be either “User” or “Group”"
+msgstr ""
+
+#: ../../.cache/README.rst:235
+msgid "Other is the vendor specific information provided by slave channels. Format of such information is specified in their documentations respectively."
+msgstr ""
+
+#: ../../.cache/README.rst:240
+msgid "Examples:"
+msgstr ""
+
+#: ../../.cache/README.rst:242
+msgid "Look for all WeChat groups: ``Channel: WeChat.*Type: Group``"
+msgstr ""
+
+#: ../../.cache/README.rst:243
+msgid "Look for everyone who has an alias ``Name: (.*?)\\nAlias: (?!\\1)``"
+msgstr ""
+
+#: ../../.cache/README.rst:244
+msgid "Look for all entries contain “John” and “Johnny” in any order: ``(?=.*John)(?=.*Johnny)\"``"
+msgstr ""
+
+#: ../../.cache/README.rst:248
+msgid "Send a message"
+msgstr ""
+
+#: ../../.cache/README.rst:251
+msgid "Send to a linked chat"
+msgstr ""
+
+#: ../../.cache/README.rst:253
+msgid "You can send message as you do in a normal Telegram chat."
+msgstr ""
+
+#: ../../.cache/README.rst:255
+msgid "What is supported:"
+msgstr ""
+
+#: ../../.cache/README.rst:257
+msgid "Send/forward message in all supported types"
+msgstr ""
+
+#: ../../.cache/README.rst:258
+msgid "Direct reply to a message"
+msgstr ""
+
+#: ../../.cache/README.rst:259
+msgid "Send message with inline bot in supported types"
+msgstr ""
+
+#: ../../.cache/README.rst:261
+msgid "What is NOT supported:"
+msgstr ""
+
+#: ../../.cache/README.rst:263
+msgid "@ reference"
+msgstr ""
+
+#: ../../.cache/README.rst:264
+msgid "Markdown/HTML formatting"
+msgstr ""
+
+#: ../../.cache/README.rst:265
+msgid "Messages with unsupported types"
+msgstr ""
+
+#: ../../.cache/README.rst:268
+msgid "Send to a non-linked chat"
+msgstr ""
+
+#: ../../.cache/README.rst:270
+msgid "To send a message to a non-linked chat, you should “direct reply” to a message or a “chat head” that is sent from your recipient. Those messages should appear only in the bot conversation."
+msgstr ""
+
+#: ../../.cache/README.rst:274
+msgid "In a non-linked chat, direct reply will not be delivered to the remote channel, everything else is supported as it does in a linked chat."
+msgstr ""
+
+#: ../../.cache/README.rst:278
+msgid "Edit and delete message"
+msgstr ""
+
+#: ../../.cache/README.rst:280
+msgid "In EFB v2, the framework added support to message editing and removal, and so does ETM. However, due to the limitation of Telegram Bot API, although you may have selected “Delete for the bot”, or “Delete for everyone” while deleting messages, the bot would not know anything about it. Therefore, if you want your message to be removed from a remote chat, edit your message and prepend it with rm\\` (it’s R, M, and ~\\`, not single quote), so that the bot knows that you want to delete the message."
+msgstr ""
+
+#: ../../.cache/README.rst:289
+msgid "Please also notice that some channels may not support editing and/or deleting messages depends on their implementations."
+msgstr ""
+
+#: ../../.cache/README.rst:293
+msgid "``/chat``: Chat head"
+msgstr ""
+
+#: ../../.cache/README.rst:295
+msgid "If you want to send a message to a non-linked chat which has not yet sent you a message, you can ask ETM to generate a “chat head”. Chat head works similarly to an incoming message, you can reply to it to send messages to your recipient."
+msgstr ""
+
+#: ../../.cache/README.rst:300
+msgid "Send ``/chat`` to the bot, and choose a chat from the list. When you see “Reply to this message to send to from ”, it’s ready to go."
+msgstr ""
+
+#: ../../.cache/README.rst:306
+msgid "Filter is also available in ``/chat`` command. Please refer to the same chapter above, under ``/link`` for the details."
+msgstr ""
+
+#: ../../.cache/README.rst:311
+msgid "``/extra``: External commands from slave channels (“additional features”)"
+msgstr ""
+
+#: ../../.cache/README.rst:313
+msgid "Some slave channels may provide commands that allows you to remotely control those accounts, and achieve extra functionality, those commands are called “additional features”. To view the list of available extra functions, send ``/extra`` to the bot, you will receive a list of commands available."
+msgstr ""
+
+#: ../../.cache/README.rst:319
+msgid "Those commands are named like “\\ ``/<number>_<command_name>``\\ ”, and can be called like an CLI utility. (of course, advanced features like piping etc would not be supported)"
+msgstr ""
+
+#: ../../.cache/README.rst:365
+msgid "``/update_info``: Update name and profile picture of linked group"
+msgstr ""
+
+#: ../../.cache/README.rst:367
+msgid "ETM can help you to update the name and profile picture of a group to match with appearance in the remote chat."
+msgstr ""
+
+#: ../../.cache/README.rst:370
+msgid "This functionality is available when:"
+msgstr ""
+
+#: ../../.cache/README.rst:372
+msgid "This command is sent to a group"
+msgstr ""
+
+#: ../../.cache/README.rst:373
+msgid "The bot is an admin of the group"
+msgstr ""
+
+#: ../../.cache/README.rst:374
+msgid "The group is linked to **exactly** one remote chat"
+msgstr ""
+
+#: ../../.cache/README.rst:375
+msgid "The remote chat is accessible"
+msgstr ""
+
+#: ../../.cache/README.rst:377
+msgid "Profile picture will not be set if it’s not available from the slave channel."
+msgstr ""
+
+#: ../../.cache/README.rst:381
+msgid "``/react``: Send reactions to a message or show a list of reactors"
+msgstr ""
+
+#: ../../.cache/README.rst:383
+msgid "Reply ``/react`` to a message to show a list of chat members who have reacted to the message and what their reactions are."
+msgstr ""
+
+#: ../../.cache/README.rst:386
+msgid "Reply ``/react`` followed by an emoji to react to this message, e.g. ``/react 👍``. Send ``/react -`` to remove your reaction."
+msgstr ""
+
+#: ../../.cache/README.rst:389
+msgid "Note that some slave channels may not accept message reactions, and some channels have a limited reactions you can send with. Usually when you send an unaccepted reaction, slave channels can provide a list of suggested reactions you may want to try instead."
+msgstr ""
+
+#: ../../.cache/README.rst:395
+msgid "Telegram Channel support"
+msgstr ""
+
+#: ../../.cache/README.rst:397
+msgid "ETM supports linking remote chats to Telegram Channels with partial support."
+msgstr ""
+
+#: ../../.cache/README.rst:400
+msgid "The bot can:"
+msgstr ""
+
+#: ../../.cache/README.rst:402
+msgid "Link one or more remote chats to a Telegram Channel"
+msgstr ""
+
+#: ../../.cache/README.rst:403
+msgid "Check and manage link status of the channel"
+msgstr ""
+
+#: ../../.cache/README.rst:404
+msgid "Update channel title and profile pictures accordingly"
+msgstr ""
+
+#: ../../.cache/README.rst:406
+msgid "It cannot:"
+msgstr ""
+
+#: ../../.cache/README.rst:408
+msgid "Process messages sent by you or others to the channel"
+msgstr ""
+
+#: ../../.cache/README.rst:409
+msgid "Accept commands in the channel"
+msgstr ""
+
+#: ../../.cache/README.rst:411
+msgid "Currently the following commands are supported in channels:"
+msgstr ""
+
+#: ../../.cache/README.rst:413
+msgid "``/start`` for manual chat linking"
+msgstr ""
+
+#: ../../.cache/README.rst:414
+msgid "``/link`` to manage chats linked to the channel"
+msgstr ""
+
+#: ../../.cache/README.rst:415
+msgid "``/info`` to show information of the channel"
+msgstr ""
+
+#: ../../.cache/README.rst:416
+msgid "``/update_info`` to update the channel title and picture"
+msgstr ""
+
+#: ../../.cache/README.rst:418
+msgid "How to use:"
+msgstr ""
+
+#: ../../.cache/README.rst:420
+msgid "Add the bot as an administrator of the channel"
+msgstr ""
+
+#: ../../.cache/README.rst:421
+msgid "Send commands to the channel"
+msgstr ""
+
+#: ../../.cache/README.rst:422
+msgid "Forward the command message to the bot privately"
+msgstr ""
+
+#: ../../.cache/README.rst:425
+msgid "Limitations"
+msgstr ""
+
+#: ../../.cache/README.rst:427
+msgid "Due to the technical limitations of Telegram Bot API and EH Forwarder Bot framework, there are some limitations:"
+msgstr ""
+
+#: ../../.cache/README.rst:434
+msgid "Some Telegram message types are **not** supported:"
+msgstr ""
+
+#: ../../.cache/README.rst:431
+msgid "Game messages"
+msgstr ""
+
+#: ../../.cache/README.rst:432
+msgid "Invoice messages"
+msgstr ""
+
+#: ../../.cache/README.rst:433
+msgid "Payment messages"
+msgstr ""
+
+#: ../../.cache/README.rst:434
+msgid "Passport messages"
+msgstr ""
+
+#: ../../.cache/README.rst:435
+msgid "Vote messages"
+msgstr ""
+
+#: ../../.cache/README.rst:439
+msgid "Some components in Telegram messages are dropped:"
+msgstr ""
+
+#: ../../.cache/README.rst:437
+msgid "Original author and signature of forwarded messages"
+msgstr ""
+
+#: ../../.cache/README.rst:438
+msgid "Formats, links and link previews"
+msgstr ""
+
+#: ../../.cache/README.rst:439
+msgid "Buttons attached to messages"
+msgstr ""
+
+#: ../../.cache/README.rst:440
+msgid "Details about inline bot used on messages"
+msgstr ""
+
+#: ../../.cache/README.rst:441
+msgid "Some components in messages from slave channels are dropped:"
+msgstr ""
+
+#: ../../.cache/README.rst:442
+msgid "@ references."
+msgstr ""
+
+#: ../../.cache/README.rst:446
+msgid "The Telegram bot can only"
+msgstr ""
+
+#: ../../.cache/README.rst:444
+msgid "send you any file up to 50 MiB,"
+msgstr ""
+
+#: ../../.cache/README.rst:445
+msgid "receive file from you up to 20 MiB."
+msgstr ""
+
+#: ../../.cache/README.rst:449
+msgid "Experimental flags"
+msgstr ""
+
+#: ../../.cache/README.rst:451
+msgid "The following flags are experimental features, may change, break, or disappear at any time. Use at your own risk."
+msgstr ""
+
+#: ../../.cache/README.rst:454
+msgid "Flags can be enabled in the ``flags`` key of the configuration file, e.g.:"
+msgstr ""
+
+#: ../../.cache/README.rst:457
+msgid "flags:\n"
+"    flag_name: flag_value"
+msgstr ""
+
+#: ../../.cache/README.rst:462
+msgid "``no_conversion`` *(bool)* [Default: ``false``]"
+msgstr ""
+
+#: ../../.cache/README.rst:464
+msgid "Disable audio conversion, send all audio file as is, and let Telegram to handle it."
+msgstr ""
+
+#: ../../.cache/README.rst:467
+msgid "*Only works in linked chats.*"
+msgstr ""
+
+#: ../../.cache/README.rst:469
+msgid "``chats_per_page`` *(int)* [Default: ``10``]"
+msgstr ""
+
+#: ../../.cache/README.rst:471
+msgid "Number of chats shown in when choosing for ``/chat`` and ``/link`` command. An overly large value may lead to malfunction of such commands."
+msgstr ""
+
+#: ../../.cache/README.rst:475
+msgid "``network_error_prompt_interval`` *(int)* [Default: ``100``]"
+msgstr ""
+
+#: ../../.cache/README.rst:477
+msgid "Notify the user about network error every ``n`` errors received. Set to 0 to disable it."
+msgstr ""
+
+#: ../../.cache/README.rst:480
+msgid "``multiple_slave_chats`` *(bool)* [Default: ``true``]"
+msgstr ""
+
+#: ../../.cache/README.rst:482
+msgid "Link more than one remote chat to one Telegram group. Send and reply as you do with an unlinked chat. Disable to link remote chats and Telegram group one-to-one."
+msgstr ""
+
+#: ../../.cache/README.rst:486
+msgid "``prevent_message_removal`` *(bool)* [Default: ``true``]"
+msgstr ""
+
+#: ../../.cache/README.rst:488
+msgid "When a slave channel requires to remove a message, EFB will ignore the request if this value is ``true``."
+msgstr ""
+
+#: ../../.cache/README.rst:491
+msgid "``auto_locale`` *(str)* [Default: ``true``]"
+msgstr ""
+
+#: ../../.cache/README.rst:493
+msgid "Detect the locale from admin's messages automatically. Locale defined in environment variables will be used otherwise."
+msgstr ""
+
+#: ../../.cache/README.rst:496
+msgid "``retry_on_error`` *(bool)* [Default: ``false``]"
+msgstr ""
+
+#: ../../.cache/README.rst:498
+msgid "Retry infinitely when an error occurred while sending request to Telegram Bot API. Note that this may lead to repetitive message delivery, as the respond of Telegram Bot API is not reliable, and may not reflect the actual result."
+msgstr ""
+
+#: ../../.cache/README.rst:503
+msgid "``send_image_as_file`` *(bool)* [Default: ``false``]"
+msgstr ""
+
+#: ../../.cache/README.rst:505
+msgid "Send all image messages as files, in order to prevent Telegram's image compression in an aggressive way."
+msgstr ""
+
+#: ../../.cache/README.rst:509
+msgid "Experimental localization support"
+msgstr ""
+
+#: ../../.cache/README.rst:511
+msgid "ETM supports localized user interface prompts experimentally. The bot detects languages of Telegram Client of the admins from their messages, and automatically matches with a supported language on the go. Otherwise, you can set your language by turning off the ``auto_locale`` feature, and then setting the locale environmental variable (``LANGUAGE``, ``LC_ALL``, ``LC_MESSAGES`` or ``LANG``) to one of our supported languages. Meanwhile, you can help to translate this project into your languages on `our Crowdin page`_."
+msgstr ""
+
