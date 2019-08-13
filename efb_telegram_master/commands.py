@@ -111,7 +111,9 @@ class CommandsManager(LocaleMixin):
                 module_id = module.channel_id
             elif isinstance(module, EFBMiddleware):
                 module_id = module.middleware_id
-            msg = self._command_fallback(*command.args, __channel_id=module_id, __callable=command.callable_name,
+            msg = self._command_fallback(*command.args,  # type: ignore
+                                         __channel_id=module_id,
+                                         __callable=command.callable_name,
                                          **command.kwargs)
         self.msg_storage.pop(index, None)
         self.bot.edit_message_text(prefix=prefix, text=msg,
@@ -159,7 +161,7 @@ class CommandsManager(LocaleMixin):
                 msg += "\n" + self._("No command found.")
         self.bot.send_message(update.effective_chat.id, msg, parse_mode="HTML")
 
-    def extra_usage(self, bot, update, groupdict: Dict[str, str] = None):
+    def extra_usage(self, bot, update, groupdict: Dict[str, str]):
         if int(groupdict['id']) >= len(self.modules_list):
             return self.bot.reply_error(update, self._("Invalid module id ID. (XC03)"))
 
@@ -185,7 +187,7 @@ class CommandsManager(LocaleMixin):
             html.escape(command.desc.format(function_name=fn_name)))
         self.bot.send_message(update.effective_chat.id, msg, parse_mode="HTML")
 
-    def extra_call(self, bot, update, groupdict: Dict[str, str] = None):
+    def extra_call(self, bot, update, groupdict: Dict[str, str]):
         """
         Invoke an additional feature from slave channel.
 
@@ -209,7 +211,7 @@ class CommandsManager(LocaleMixin):
 
         header = "{} {}: {}\n-------\n".format(
                 channel.channel_emoji, channel.channel_name,
-                functions[groupdict['command']].name
+                functions[groupdict['command']].name  # type: ignore
         )
         msg = self.bot.send_message(update.message.chat.id,
                                     prefix=header, text=self._("Please wait..."))

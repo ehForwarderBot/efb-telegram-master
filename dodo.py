@@ -121,7 +121,7 @@ def task_bump_version():
 
 
 def task_mypy():
-    actions = ["mypy -p {}".format(PACKAGE)]
+    actions = ["mypy -p {} --ignore-missing-imports".format(PACKAGE)]
     sources = glob.glob("./{package}/**/*.py".format(package=PACKAGE), recursive=True)
     sources = [i for i in sources if "__version__.py" not in i]
     return {

@@ -37,6 +37,7 @@ class ETMChat(EFBChat):
                  channel: Optional[EFBChannel] = None,
                  chat: Optional[EFBChat] = None,
                  db: 'DatabaseManager' = None):
+        assert db
         self.db = db
         if channel:
             super().__init__(channel)
@@ -81,10 +82,10 @@ class ETMChat(EFBChat):
             mode.append("Muted")
         if self.linked:
             mode.append("Linked")
-        mode = ', '.join(mode)
+        mode_str = ', '.join(mode)
         entry_string = "Channel: %s\nName: %s\nAlias: %s\nID: %s\nType: %s\nMode: %s\nOther: %s" \
                        % (self.module_name, self.chat_name, self.chat_alias, self.chat_uid, self.chat_type,
-                          mode, self.vendor_specific)
+                          mode_str, self.vendor_specific)
         return bool(pattern.search(entry_string))
 
     def unlink(self):
@@ -128,7 +129,8 @@ class ETMChat(EFBChat):
 
     def __setstate__(self, state: Dict[str, Any]):
         self.__dict__.update(state)
-        self.db = coordinator.master.db
+        # ETMChat would only appear when ETM is the master channel
+        self.db = coordinator.master.db  # type: ignore
 
 
 class ChatListStorage:
@@ -142,7 +144,7 @@ class ChatListStorage:
         length (int): Length of chats.
     """
 
-    def __init__(self, chats: List[ETMChat], offset: Optional[int] = 0):
+    def __init__(self, chats: List[ETMChat], offset: int = 0):
         self.__chats: List[ETMChat] = []
         self.channels: Dict[str, EFBChannel] = dict()
         self.chats = chats.copy()  # initialize chats with setter.
@@ -167,8 +169,8 @@ class ChatListStorage:
                 self.channels[i.module_id] = coordinator.slaves[i.module_id]
 
     def set_chat_suggestion(self, update: telegram.Update, candidates: List[str]):
-        self.update: telegram.Update = update
-        self.candidates: List[str] = candidates
+        self.update = update
+        self.candidates = candidates
 
 
 class ChatBindingManager(LocaleMixin):
@@ -300,7 +302,7 @@ class ChatBindingManager(LocaleMixin):
             self._("{0}: Group").format(Emoji.GROUP),
         ]
 
-        chat_list: ChatListStorage = self.msg_storage.get(storage_id, None)
+        chat_list: Optional[ChatListStorage] = self.msg_storage.get(storage_id, None)
 
         if chat_list is None or chat_list.length == 0:
             # Generate the full chat list first
@@ -309,8 +311,8 @@ class ChatBindingManager(LocaleMixin):
                 self.logger.debug("Filter pattern: %s", pattern)
             chats: List[ETMChat] = []
             if source_chats:
-                for i in source_chats:
-                    channel_id, chat_uid = utils.chat_id_str_to_id(i)
+                for s_chat in source_chats:
+                    channel_id, chat_uid = utils.chat_id_str_to_id(s_chat)
                     if channel_id not in coordinator.slaves:
                         continue
                     channel = coordinator.slaves[channel_id]
@@ -318,7 +320,7 @@ class ChatBindingManager(LocaleMixin):
                         chat = ETMChat(chat=self.get_chat_from_db(channel_id, chat_uid) or channel.get_chat(chat_uid),
                                        db=self.db)
                     except EFBChatNotFound:
-                        self.logger.debug("slave_chats_pagination with chat list: Chat %s not found.", i)
+                        self.logger.debug("slave_chats_pagination with chat list: Chat %s not found.", s_chat)
                         continue
 
                     if chat.match(re_filter):
@@ -326,10 +328,10 @@ class ChatBindingManager(LocaleMixin):
             else:
                 for slave in coordinator.slaves.values():
                     slave_chats = slave.get_chats()
-                    for chat in slave_chats:
-                        chat = ETMChat(chat=chat, db=self.db)
-                        if chat.match(re_filter):
-                            chats.append(chat)
+                    for i_chat in slave_chats:
+                        etm_chat = ETMChat(chat=i_chat, db=self.db)
+                        if etm_chat.match(re_filter):
+                            chats.append(etm_chat)
             chat_list = self.msg_storage[storage_id] = ChatListStorage(chats, offset)
 
         threading.Thread(target=self._db_update_slave_chats_cache, args=(chat_list.chats,)).start()
@@ -340,8 +342,8 @@ class ChatBindingManager(LocaleMixin):
         # Build inline button list
         chat_btn_list: List[List[telegram.InlineKeyboardButton]] = []
         chats_per_page = self.channel.flag("chats_per_page")
-        for i in range(offset, min(offset + chats_per_page, chat_list.length)):
-            chat = chat_list.chats[i]
+        for idx in range(offset, min(offset + chats_per_page, chat_list.length)):
+            chat = chat_list.chats[idx]
             if chat.muted:
                 mode = Emoji.MUTED
             elif chat.linked:
@@ -352,7 +354,7 @@ class ChatBindingManager(LocaleMixin):
             chat_name = chat.chat_name if not chat.chat_alias else "%s (%s)" % (
                 chat.chat_alias, chat.chat_name)
             button_text = "%s%s%s: %s" % (chat.channel_emoji, chat_type, mode, chat_name)
-            button_callback = "chat %s" % i
+            button_callback = "chat %s" % idx
             chat_btn_list.append([telegram.InlineKeyboardButton(button_text, callback_data=button_callback)])
 
         # Pagination
@@ -391,7 +393,7 @@ class ChatBindingManager(LocaleMixin):
             # Suppress exception of background database update
             pass
 
-    def link_chat_gen_list(self, chat_id, message_id: int = None, offset=0,
+    def link_chat_gen_list(self, chat_id: int, message_id: int = None, offset=0,
                            pattern: str = "", chats: List[str] = None):
         """
         Generate the list for chat linking, and update it to a message.
@@ -407,7 +409,7 @@ class ChatBindingManager(LocaleMixin):
             int: The next state
         """
 
-        if not message_id:
+        if message_id is None:
             message_id = self.bot.send_message(chat_id, self._("Processing...")).message_id
         self.bot.send_chat_action(chat_id, telegram.ChatAction.TYPING)
         if chats:
@@ -688,7 +690,7 @@ class ChatBindingManager(LocaleMixin):
             pattern: Regex String used as a filter.
             chats: Specified list of chats to start a chat head.
         """
-        if not message_id:
+        if message_id is None:
             message_id = self.bot.send_message(chat_id, text=self._("Processing...")).message_id
         self.bot.send_chat_action(chat_id, telegram.ChatAction.TYPING)
 
@@ -790,7 +792,7 @@ class ChatBindingManager(LocaleMixin):
 
     def get_chat_from_db(self, channel_id: str, chat_id: str) -> Optional[EFBChat]:
         if channel_id not in coordinator.slaves:
-            return
+            return None
         d = self.db.get_slave_chat_info(slave_channel_id=channel_id, slave_chat_uid=chat_id)
         if d:
             chat = EFBChat(coordinator.slaves[channel_id])
@@ -833,8 +835,10 @@ class ChatBindingManager(LocaleMixin):
         storage_id = (chat_id, msg_id)
         if param.startswith("chat "):
             update = self.msg_storage[storage_id].update
-            chat = self.msg_storage[storage_id].candidates[int(param.split(' ', 1)[1])]
-            chat = ETMChat(chat=self.get_chat_from_db(*utils.chat_id_str_to_id(chat)), db=self.db)
+            candidates = self.msg_storage[storage_id].candidates
+            assert candidates is not None
+            chat_id = candidates[int(param.split(' ', 1)[1])]
+            chat = ETMChat(chat=self.get_chat_from_db(*utils.chat_id_str_to_id(chat_id)), db=self.db)
             self.channel.master_messages.process_telegram_message(bot, update, channel_id=chat.module_id,
                                                                   chat_id=chat.chat_uid)
             self.bot.edit_message_text(text=self._("Delivering the message to {0}").format(chat.full_name),
@@ -919,7 +923,7 @@ class ChatBindingManager(LocaleMixin):
             return self.bot.reply_error(update, self._('Error occurred while update chat details. \n'
                                                        '{0}'.format(e)))
         finally:
-            if getattr(picture, 'close', None):
+            if picture and getattr(picture, 'close', None):
                 picture.close()
-            if getattr(pic_resized, 'close', None):
+            if pic_resized and getattr(pic_resized, 'close', None):
                 pic_resized.close()

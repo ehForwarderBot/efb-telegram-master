@@ -57,8 +57,9 @@ class TelegramBotManager(LocaleMixin):
         config = self.channel.config
 
         req_kwargs = {'read_timeout': 15}
-        if isinstance(config.get('request_kwargs'), collections.abc.Mapping):
-            req_kwargs.update(config.get('request_kwargs'))
+        conf_req_kwargs = config.get('request_kwargs')
+        if isinstance(conf_req_kwargs, collections.abc.Mapping):
+            req_kwargs.update(conf_req_kwargs)
 
         self.updater: telegram.ext.Updater = telegram.ext.Updater(config['token'],
                                                                   request_kwargs=req_kwargs)
@@ -80,7 +81,7 @@ class TelegramBotManager(LocaleMixin):
         self.Decorators.enabled = channel.flag('retry_on_error')
 
     @Decorators.retry_on_timeout
-    def send_message(self, *args, prefix: Optional[str] = '', suffix: Optional[str] = '', **kwargs):
+    def send_message(self, *args, prefix: str = '', suffix: str = '', **kwargs):
         """
         Send text message.
         
@@ -96,7 +97,11 @@ class TelegramBotManager(LocaleMixin):
         """
         prefix = (prefix and (prefix + "\n")) or prefix
         suffix = (suffix and ("\n" + suffix)) or suffix
-        text = (args[1:] and args[1]) or kwargs.pop('text', '')
+        text: str
+        if args[1:]:
+            text = args[1]
+        else:
+            text = kwargs.pop('text')
         args = args[:1]
         if len(prefix + text + suffix) >= telegram.constants.MAX_MESSAGE_LENGTH:
             full_message = io.StringIO(prefix + text + suffix)
@@ -196,7 +201,7 @@ class TelegramBotManager(LocaleMixin):
                 raise e
 
     # @Decorator
-    def caption_affix_decorator(fn: Callable):
+    def caption_affix_decorator(fn: Callable):  # type: ignore
         def caption_affix(self, *args, **kwargs):
             prefix = kwargs.pop('prefix', '')
             suffix = kwargs.pop('suffix', '')
