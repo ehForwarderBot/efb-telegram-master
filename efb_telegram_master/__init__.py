@@ -5,7 +5,7 @@ import logging
 import mimetypes
 import pickle
 from gettext import NullTranslations, translation
-from typing import Optional
+from typing import Optional, IO, List
 from xmlrpc.server import SimpleXMLRPCServer
 
 import telegram
@@ -19,12 +19,13 @@ from telegram import Message
 from telegram.ext import CommandHandler, CallbackQueryHandler
 
 import ehforwarderbot
-from ehforwarderbot import EFBChannel, EFBMsg, EFBStatus, coordinator
+from ehforwarderbot import EFBChannel, EFBMsg, EFBStatus, coordinator, EFBChat
 from ehforwarderbot import utils as efb_utils
 from ehforwarderbot.constants import MsgType, ChannelType
 from ehforwarderbot.exceptions import EFBException, EFBOperationNotSupported, EFBChatNotFound, \
     EFBMessageReactionNotPossible
 from ehforwarderbot.status import EFBReactToMessage
+from ehforwarderbot.types import ChatID
 from .__version__ import __version__
 from . import utils as etm_utils
 from .bot_manager import TelegramBotManager
@@ -58,6 +59,15 @@ class TelegramChannel(EFBChannel):
                 multiple_slave_chats: false
     """
 
+    def get_chats(self) -> List[EFBChat]:
+        raise EFBOperationNotSupported()
+
+    def get_chat(self, chat_uid: ChatID, member_uid: Optional[ChatID] = None) -> EFBChat:
+        raise EFBOperationNotSupported()
+
+    def get_chat_picture(self, chat: EFBChat) -> IO[bytes]:
+        raise EFBOperationNotSupported()
+
     # Meta Info
     channel_name = "Telegram Master"
     channel_emoji = "✈"
@@ -69,24 +79,17 @@ class TelegramChannel(EFBChannel):
     __version__ = __version__
 
     # Data
-    msg_status = {}
-    msg_storage = {}
     _stop_polling = False
     timeout_count = 0
 
     # Constants
-    config = None
-
-    # Slave-only channels
-    get_chat = None
-    get_chats = None
-    get_chat_picture = None
+    config: dict
 
     # Translator
     translator: NullTranslations = translation("efb_telegram_master",
                                                resource_filename('efb_telegram_master', 'locale'),
                                                fallback=True)
-    locale: str = None
+    locale: Optional[str] = None
 
     # RPC server
     rpc_server: SimpleXMLRPCServer = None
@@ -506,7 +509,7 @@ class TelegramChannel(EFBChannel):
                 raise EFBOperationNotSupported(self._("Message is not possible to be retrieved."))
         else:
             # Message is not found.
-            return
+            return None
 
     def void_callback_handler(self, bot, update):
         self.bot_manager.answer_callback_query(update.callback_query.id,

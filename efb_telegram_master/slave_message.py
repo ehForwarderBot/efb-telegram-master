@@ -82,6 +82,7 @@ class SlaveMessageProcessor(LocaleMixin):
         except Exception as e:
             self.logger.error("Error occurred while processing message from slave channel.\nMessage: %s\n%s\n%s",
                               repr(msg), repr(e), traceback.format_exc())
+        return msg
 
     def dispatch_message(self, msg: EFBMsg, msg_template: str, old_msg_id: Optional[Tuple[str, str]], tg_dest: str,):
         """Dispatch with header, destination and Telegram message ID and destinations."""
@@ -162,7 +163,7 @@ class SlaveMessageProcessor(LocaleMixin):
                                            text=self._('Unknown type of message "{0}". (UT01)')
                                            .format(msg.type.name))
 
-        if tg_msg and msg.commands:
+        if tg_msg and commands:
             self.channel.commands.register_command(tg_msg, ETMCommandMsgStorage(
                 commands, coordinator.get_module_by_id(msg.author.module_id), msg_template, msg.text
             ))
@@ -205,10 +206,11 @@ class SlaveMessageProcessor(LocaleMixin):
         xid = msg.uid
 
         chat_uid = utils.chat_id_to_str(chat=msg.chat)
-        tg_chat = self.db.get_chat_assoc(slave_uid=chat_uid)
+        tg_chats = self.db.get_chat_assoc(slave_uid=chat_uid)
+        tg_chat = None
 
-        if tg_chat:
-            tg_chat = tg_chat[0]
+        if tg_chats:
+            tg_chat = tg_chats[0]
         self.logger.debug("[%s] The message should deliver to %s", xid, tg_chat)
 
         multi_slaves = False
@@ -425,8 +427,8 @@ class SlaveMessageProcessor(LocaleMixin):
             self.logger.debug("[%s] Size of %s is %s.", msg.uid, msg.path, os.stat(msg.path).st_size)
 
         try:
-            if msg.edit_media:
-                target_msg_id = old_msg_id
+            if msg.edit_media and old_msg_id is not None:
+                target_msg_id = old_msg_id[1]
                 old_msg_id = None
             if old_msg_id:
                 try:
@@ -480,12 +482,15 @@ class SlaveMessageProcessor(LocaleMixin):
                            old_msg_id: Optional[Tuple[str, str]] = None,
                            target_msg_id: Optional[str] = None,
                            reply_markup: Optional[telegram.ReplyMarkup] = None) -> telegram.Message:
+        assert msg.file is not None
+
         self.bot.send_chat_action(tg_dest, telegram.ChatAction.UPLOAD_DOCUMENT)
 
-        if not msg.filename:
+        if msg.filename is None and msg.path is not None:
             file_name = os.path.basename(msg.path)
             msg.text = self._("sent a file.")
         else:
+            assert msg.filename is not None  # mypy compliance
             file_name = msg.filename
         try:
             if old_msg_id:
@@ -507,6 +512,7 @@ class SlaveMessageProcessor(LocaleMixin):
                             old_msg_id: Optional[Tuple[str, str]] = None,
                             target_msg_id: Optional[str] = None,
                             reply_markup: Optional[telegram.ReplyMarkup] = None) -> telegram.Message:
+        assert msg.file is not None
         self.bot.send_chat_action(tg_dest, telegram.ChatAction.RECORD_AUDIO)
         msg.text = msg.text or ''
         self.logger.debug("[%s] Message is an audio file.", msg.uid)
@@ -566,6 +572,7 @@ class SlaveMessageProcessor(LocaleMixin):
                             old_msg_id: Optional[Tuple[str, str]] = None,
                             target_msg_id: Optional[str] = None,
                             reply_markup: Optional[telegram.ReplyMarkup] = None) -> telegram.Message:
+        assert msg.file is not None
         self.bot.send_chat_action(tg_dest, telegram.ChatAction.UPLOAD_VIDEO)
         if not msg.text:
             msg.text = self._("sent a video.")

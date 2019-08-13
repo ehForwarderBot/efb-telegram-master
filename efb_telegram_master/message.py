@@ -7,6 +7,7 @@ import magic
 import telegram
 from PIL import Image
 from moviepy.video.io.VideoFileClip import VideoFileClip
+from typing.io import IO
 
 from ehforwarderbot import EFBMsg, coordinator
 from . import ETMChat
@@ -114,20 +115,20 @@ class ETMMsg(EFBMsg):
             self._load_file()
         return self.__path
 
-    def get_filename(self):
+    def get_filename(self) -> Optional[str]:
         if not self.__initialized:
             self._load_file()
         return self.__filename
 
-    def set_filename(self, value):
+    def set_filename(self, value: Optional[str]):
         self.__filename = value
 
     def void_setter(self, value):
         pass
 
-    file = property(get_file, void_setter)  # type: ignore
-    path = property(get_path, void_setter)  # type: ignore
-    filename = property(get_filename, set_filename)  # type: ignore
+    file: Optional[IO[bytes]] = property(get_file, void_setter)  # type: ignore
+    path: Optional[str] = property(get_path, void_setter)  # type: ignore
+    filename: Optional[str] = property(get_filename, set_filename)  # type: ignore
 
     @staticmethod
     def from_efbmsg(source: EFBMsg, db) -> 'ETMMsg':
@@ -138,10 +139,10 @@ class ETMMsg(EFBMsg):
         if not isinstance(target.author, ETMChat):
             target.author = ETMChat(chat=target.author, db=db)
         if target.reactions:
-            for i in target.reactions.values():
-                for j in range(len(i)):
-                    if not isinstance(i[j], ETMChat):
-                        i[j] = ETMChat(chat=i[j], db=db)
+            for i in target.reactions:
+                if any(not isinstance(j, ETMChat) for j in target.reactions[i]):
+                    # noinspection PyTypeChecker
+                    target.reactions[i] = list(map(lambda a: ETMChat(chat=a, db=db), target.reactions[i]))
         return target
 
     def put_telegram_file(self, message: telegram.Message):

@@ -163,7 +163,8 @@ class MasterMessageProcessor(LocaleMixin):
                 target_log = self.db.get_msg_log(master_msg_id=target_msg)
                 if target_log:
                     target = target_log.slave_origin_uid
-                    target_channel, target_uid = utils.chat_id_str_to_id(target)
+                    if target is not None:
+                        target_channel, target_uid = utils.chat_id_str_to_id(target)
                 else:
                     return self.bot.reply_error(update,
                                                 self._("Message is not found in database. "
@@ -207,7 +208,8 @@ class MasterMessageProcessor(LocaleMixin):
                             message.reply_to_message.message_id))
                     if target_log:
                         target = target_log.slave_origin_uid
-                        target_channel, target_uid = utils.chat_id_str_to_id(target)
+                        if target is not None:
+                            target_channel, target_uid = utils.chat_id_str_to_id(target)
                     else:
                         return self.bot.reply_error(update,
                                                     self._("Message is not found in database. "
@@ -219,11 +221,13 @@ class MasterMessageProcessor(LocaleMixin):
         self.logger.debug("[%s] Telegram received. From private chat: %s; Group has multiple linked chats: %s; "
                           "Message replied to another message: %s", message_id, private_chat, multi_slaves, reply_to)
         self.logger.debug("[%s] Destination chat = %s", message_id, destination)
+        assert destination is not None
         channel, uid = utils.chat_id_str_to_id(destination)
         if channel not in coordinator.slaves:
             return self.bot.reply_error(update, self._("Internal error: Channel \"{0}\" not found.").format(channel))
 
         m = ETMMsg()
+        log_message = True
         try:
             m.uid = message_id
             m.put_telegram_file(message)
@@ -238,7 +242,7 @@ class MasterMessageProcessor(LocaleMixin):
                 m.chat.chat_alias = chat_info.slave_chat_alias
                 m.chat.chat_type = ChatType(chat_info.slave_chat_type)
             m.deliver_to = coordinator.slaves[channel]
-            if target and target_channel == channel:
+            if target and target_log is not None and target_channel == channel:
                 if target_log.pickle:
                     trgt_msg: ETMMsg = pickle.loads(target_log.pickle)
                     trgt_msg.target = None
@@ -307,7 +311,7 @@ class MasterMessageProcessor(LocaleMixin):
                         message=m
                     ))
                     self.db.delete_msg_log(master_msg_id=utils.message_id_to_str(update=update))
-                    m = None
+                    log_message = False
                     return
                 self.logger.debug('[%s] Message is edited (%s)', m.uid, m.edit)
 
@@ -378,7 +382,7 @@ class MasterMessageProcessor(LocaleMixin):
             self.bot.reply_error(update, self._("Message is not sent.\n\n{!r}".format(e)))
             self.logger.exception("Message is not sent. (update: %s)", update)
         finally:
-            if m:
+            if log_message:
                 msg_log_d = {
                     "master_msg_id": utils.message_id_to_str(update=update),
                     "text": m.text or "Sent a %s" % m.type,
