@@ -97,14 +97,12 @@ A sample config file can be as follows:
     ##################
     # Required items #
     ##################
-    # You are required to fill the option below,
-    # or this channel will not work.
 
-    # Telegram bot token.
-    # This is the token you obtained from BotFather
-    token: "12345678:1a2b3c4d5e6g7h8i9j"
+    # [Bot Token]
+    # This is the token you obtained from @BotFather
+    token: "012345678:1Aa2Bb3Vc4Dd5Ee6Gg7Hh8Ii9Jj0Kk1Ll2M"
 
-    # List of Telegram User IDs of admins
+    # [List of Admin User IDs]
     # ETM will only process messages and commands from users
     # listed below. This ID can be obtained from various ways 
     # on Telegram.
@@ -112,14 +110,21 @@ A sample config file can be as follows:
     - 102938475
     - 91827364
 
-    # Experimental Flags
-    # This section can be used to enable experimental functionality.
-    # However, those features may be changed or removed at any time.
+    ##################
+    # Optional items #
+    ##################
+    # [Experimental Flags]
+    # This section can be used to toggle experimental functionality.
+    # These features may be changed or removed at any time.
     # Options in this section is explained afterward.
     flags:
         option_one: 10
         option_two: false
         option_three: "foobar"
+
+    # [Network Configurations]
+    # [RPC Interface]
+    # Refer to relevant sections afterwards for details.
 
 ..  Removal of Speech recognition
     ##################
@@ -459,13 +464,6 @@ e.g.:
     flags:
         flag_name: flag_value
 
--  ``no_conversion`` *(bool)* [Default: ``false``]
-
-   Disable audio conversion, send all audio file as is, and let Telegram
-   to handle it.
-
-   *Only works in linked chats.*
-
 -  ``chats_per_page`` *(int)* [Default: ``10``]
 
    Number of chats shown in when choosing for ``/chat`` and ``/link``
@@ -504,6 +502,120 @@ e.g.:
 
     Send all image messages as files, in order to prevent Telegram's
     image compression in an aggressive way.
+
+Network configuration: timeout tweaks
+-------------------------------------
+
+   This chapter is adapted from `Python Telegram Bot wiki`__, licensed
+   under CC-BY 3.0.
+
+__ https://github.com/python-telegram-bot/python-telegram-bot/wiki/Handling-network-errors#tweaking-ptb
+
+``python-telegram-bot`` performs HTTPS requests using ``urllib3``.
+``urllib3`` provides control over ``connect_timeout`` & ``read_timeout``.
+``urllib3`` does not separate between what would be considered read &
+write timeout, so ``read_timeout`` serves for both. The defaults chosen
+for each of these parameters is 5 seconds.
+
+The ``connect_timeout`` value controls the timeout for establishing a
+connection to the Telegram server(s).
+
+Changing the defaults of ``read_timeout`` & ``connet_timeout`` can be
+done by adjusting values ``request_kwargs`` section in ETM's
+``config.yaml``.
+
+.. code:: yaml
+
+   # ...
+   request_kwargs:
+       read_timeout: 6
+       connect_timeout: 7
+
+Run ETM behind a proxy
+----------------------
+
+   This chapter is adapted from `Python Telegram Bot
+   wiki`__, licensed under CC-BY 3.0.
+
+__ https://github.com/python-telegram-bot/python-telegram-bot/wiki/Working-Behind-a-Proxy
+
+You can appoint proxy specifically for ETM without affecting other
+channels running in together in the same EFB instance. This can also be
+done by adjusting values ``request_kwargs`` section in ETM's
+``config.yaml``.
+
+HTTP proxy server
+~~~~~~~~~~~~~~~~~
+
+.. code:: yaml
+
+   request_kwargs:
+       # ...
+       proxy_url: http://PROXY_HOST:PROXY_PORT/
+       # Optional, if you need authentication:
+       username: PROXY_USER
+       password: PROXY_PASS
+
+SOCKS5 proxy server
+~~~~~~~~~~~~~~~~~~~
+
+This is configuration is supported, but requires an optional/extra
+python package. To install:
+
+.. code:: shell
+
+   pip install python-telegram-bot[socks]
+
+.. code:: yaml
+
+   request_kwargs:
+       # ...
+       proxy_url: socks5://URL_OF_THE_PROXY_SERVER:PROXY_PORT
+       # Optional, if you need authentication:
+       urllib3_proxy_kwargs:
+           username: PROXY_USER
+           password: PROXY_PASS
+
+RPC interface
+-------------
+
+A standard `Python XML RPC server`__ is implemented in ETM 2. It can be
+enabled by adding a ``rpc`` section in ETM's ``config.yml`` file.
+
+__ https://docs.python.org/3/library/xmlrpc.html
+
+.. code:: yaml
+
+   rpc:
+       server: 127.0.0.1
+       port: 8000
+
+..
+
+.. warning::
+   The ``xmlrpc`` module is not secure against maliciously
+   constructed data. Do not expose the interface to untrusted parties or
+   the public internet, and turn off after use.
+
+Exposed functions
+~~~~~~~~~~~~~~~~~
+
+Functions in `the db (database manager) class`_ and
+`the RPCUtilities class`_ are exposed. Refer to the source code
+for their documentations.
+
+How to use
+~~~~~~~~~~
+
+Set up a ``SimpleXMLRPCClient`` in any Python script and call any of the
+exposed functions directly. For details, please consult `Python
+documentation on xmlrpc`__.
+
+__ https://docs.python.org/3/library/xmlrpc.html
+
+.. _the db (database manager) class: https://github.com/blueset/efb-telegram-master/blob/master/efb_telegram_master/db.py
+.. _the RPCUtilities class: https://github.com/blueset/efb-telegram-master/blob/master/efb_telegram_master/rpc_utilities.py
+
 
 Experimental localization support
 ---------------------------------

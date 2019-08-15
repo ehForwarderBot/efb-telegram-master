@@ -15,7 +15,6 @@ if TYPE_CHECKING:
 class ExperimentalFlagsManager(LocaleMixin):
 
     DEFAULT_VALUES = {
-        "no_conversion": False,
         "chats_per_page": 10,
         "multiple_slave_chats": True,
         "network_error_prompt_interval": 100,

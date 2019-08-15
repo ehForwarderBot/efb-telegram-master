@@ -543,30 +543,17 @@ class SlaveMessageProcessor(LocaleMixin):
         self.bot.send_chat_action(tg_dest, telegram.ChatAction.RECORD_AUDIO)
         msg.text = msg.text or ''
         self.logger.debug("[%s] Message is an audio file.", msg.uid)
-        no_conversion = self.flag("no_conversion")
         try:
             if old_msg_id:
                 if msg.edit_media:
                     self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=msg.file)
                 return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1],
                                                      prefix=msg_template, suffix=reactions, caption=msg.text)
-            if no_conversion:
-                self.logger.debug('[%s] This audio file is sent as a document without converting to OPUS.', msg.uid)
-                self.logger.debug("[%s] MIME type reported by the message: %s", msg.uid, msg.mime)
-                if msg.mime == "audio/mpeg":
-                    tg_msg = self.bot.send_audio(tg_dest, msg.file, prefix=msg_template, suffix=reactions,
-                                                 caption=msg.text, reply_to_message_id=target_msg_id,
-                                                 reply_markup=reply_markup)
-                else:
-                    tg_msg = self.bot.send_document(tg_dest, msg.file, prefix=msg_template, suffix=reactions,
-                                                    caption=msg.text, reply_to_message_id=target_msg_id,
-                                                    reply_markup=reply_markup)
-            else:
-                with tempfile.NamedTemporaryFile() as f:
-                    pydub.AudioSegment.from_file(msg.file).export(f, format="ogg", codec="libopus",
-                                                                  parameters=['-vbr', 'on'])
-                    tg_msg = self.bot.send_voice(tg_dest, f, prefix=msg_template, suffix=reactions, caption=msg.text,
-                                                 reply_to_message_id=target_msg_id, reply_markup=reply_markup)
+            with tempfile.NamedTemporaryFile() as f:
+                pydub.AudioSegment.from_file(msg.file).export(f, format="ogg", codec="libopus",
+                                                              parameters=['-vbr', 'on'])
+                tg_msg = self.bot.send_voice(tg_dest, f, prefix=msg_template, suffix=reactions, caption=msg.text,
+                                             reply_to_message_id=target_msg_id, reply_markup=reply_markup)
             return tg_msg
         finally:
             msg.file.close()
