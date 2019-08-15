@@ -12,11 +12,11 @@ import telegram
 import telegram.constants
 import telegram.error
 import telegram.ext
-import yaml
 from PIL import Image
 from pkg_resources import resource_filename
 from telegram import Message
 from telegram.ext import CommandHandler, CallbackQueryHandler
+from ruamel.yaml import YAML
 
 import ehforwarderbot
 from ehforwarderbot import EFBChannel, EFBMsg, EFBStatus, coordinator, EFBChat
@@ -174,7 +174,7 @@ class TelegramChannel(EFBChannel):
         if not config_path.exists():
             raise FileNotFoundError(self._("Config File does not exist. ({path})").format(path=config_path))
         with config_path.open() as f:
-            data = yaml.load(f)
+            data = YAML().load(f)
 
             # Verify configuration
             if not isinstance(data.get('token', None), str):

@@ -46,12 +46,13 @@ setup(
         "peewee",
         "requests",
         "pydub",
-        "PyYaml",
+        "ruamel.yaml",
         "pillow",
         "language-tags",
         "retrying",
     ],
     entry_points={
-        "ehforwarderbot.master": "blueset.telegram = efb_telegram_master:TelegramChannel"
+        "ehforwarderbot.master": "blueset.telegram = efb_telegram_master:TelegramChannel",
+        "ehforwarderbot.wizard": "blueset.telegram = efb_telegram_master.wizard:wizard"
     }
 )
