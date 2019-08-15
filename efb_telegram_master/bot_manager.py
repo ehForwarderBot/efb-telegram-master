@@ -348,6 +348,24 @@ class TelegramBotManager(LocaleMixin):
 
     @Decorators.retry_on_timeout
     @caption_affix_decorator
+    def send_animation(self, *args, **kwargs):
+        """
+        Send a document.
+
+        Takes exactly same parameters as telegram.bot.send_document,
+        plus the following.
+
+        Args:
+            prefix (str, optional): Prefix of the caption. Default: ""
+            suffix (str, optional): Suffix of the caption. Default: ""
+
+        Returns:
+            telegram.Message
+        """
+        return self.updater.bot.send_animation(*args, **kwargs)
+
+    @Decorators.retry_on_timeout
+    @caption_affix_decorator
     def send_photo(self, *args, **kwargs):
         """
         Send a document.

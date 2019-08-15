@@ -54,7 +54,7 @@ class MasterMessageProcessor(LocaleMixin):
         TGMsgType.Voice: MsgType.Audio,
         TGMsgType.Location: MsgType.Location,
         TGMsgType.Venue: MsgType.Location,
-        TGMsgType.Animation: MsgType.Image,
+        TGMsgType.Animation: MsgType.Animation,
         TGMsgType.Contact: MsgType.Text
     }
 
@@ -282,7 +282,7 @@ class MasterMessageProcessor(LocaleMixin):
                 self.logger.info("[%s] Message type %s is not supported by channel %s",
                                  message_id, m.type.name, channel)
                 raise EFBMessageTypeNotSupported("Message type %s is not supported by channel %s" % (
-                    m.type, coordinator.slaves[channel].channel_name
+                    m.type.value, coordinator.slaves[channel].channel_name
                 ))
 
             # Parse message text and caption to markdown

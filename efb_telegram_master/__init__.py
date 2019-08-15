@@ -75,7 +75,7 @@ class TelegramChannel(EFBChannel):
     channel_type = ChannelType.Master
     supported_message_types = {MsgType.Text, MsgType.File, MsgType.Audio,
                                MsgType.Image, MsgType.Link, MsgType.Location,
-                               MsgType.Sticker, MsgType.Video}
+                               MsgType.Sticker, MsgType.Video, MsgType.Animation}
     __version__ = __version__
 
     # Data

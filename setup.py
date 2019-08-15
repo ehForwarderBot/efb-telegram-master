@@ -39,7 +39,7 @@ setup(
         "Topic :: Utilities"
     ],
     install_requires=[
-        "ehforwarderbot>=2.0.0b15",
+        "ehforwarderbot>=2.0.0b18",
         "python-telegram-bot>=10.0.0,<12.0.0",
         "python-magic",
         "moviepy",
