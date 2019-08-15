@@ -84,7 +84,7 @@ class SlaveMessageProcessor(LocaleMixin):
                               repr(msg), repr(e), traceback.format_exc())
         return msg
 
-    def dispatch_message(self, msg: EFBMsg, msg_template: str, old_msg_id: Optional[Tuple[str, str]], tg_dest: str,):
+    def dispatch_message(self, msg: EFBMsg, msg_template: str, old_msg_id: Optional[Tuple[str, str]], tg_dest: str, ):
         """Dispatch with header, destination and Telegram message ID and destinations."""
 
         xid = msg.uid
@@ -141,6 +141,9 @@ class SlaveMessageProcessor(LocaleMixin):
                                                  reply_markup)
             else:
                 tg_msg = self.slave_message_image(msg, tg_dest, msg_template, reactions, old_msg_id, target_msg_id,
+                                                  reply_markup)
+        elif msg.type == MsgType.Animation:
+            tg_msg = self.slave_message_animation(msg, tg_dest, msg_template, reactions, old_msg_id, target_msg_id,
                                                   reply_markup)
         elif msg.type == MsgType.File:
             tg_msg = self.slave_message_file(msg, tg_dest, msg_template, reactions, old_msg_id, target_msg_id,
@@ -360,8 +363,6 @@ class SlaveMessageProcessor(LocaleMixin):
                 return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1],
                                                      prefix=msg_template, suffix=reactions, caption=msg.text)
             else:
-                # Send picture as file when the image file is a GIF.
-                send_as_file = msg.mime == 'image/gif'
 
                 # Avoid Telegram compression of pictures by sending high definition image messages as files
                 # Code adopted from wolfsilver's fork:
@@ -375,21 +376,22 @@ class SlaveMessageProcessor(LocaleMixin):
                 #    send as file.
                 # 3. If the picture is too thin -- aspect ratio grater than IMG_SIZE_MAX_RATIO, send as file.
 
-                if not send_as_file:
-                    try:
-                        pic_img = Image.open(msg.path)
-                        max_size = max(pic_img.size)
-                        min_size = min(pic_img.size)
-                        img_ratio = max_size / min_size
+                try:
+                    pic_img = Image.open(msg.path)
+                    max_size = max(pic_img.size)
+                    min_size = min(pic_img.size)
+                    img_ratio = max_size / min_size
 
-                        if min_size > self.IMG_MIN_SIZE:
-                            send_as_file = True
-                        elif max_size > self.IMG_MAX_SIZE and img_ratio > self.IMG_SIZE_RATIO:
-                            send_as_file = True
-                        elif img_ratio >= self.IMG_SIZE_MAX_RATIO:
-                            send_as_file = True
-                    except IOError:  # Ignore when the image cannot be properly identified.
-                        pass
+                    if min_size > self.IMG_MIN_SIZE:
+                        send_as_file = True
+                    elif max_size > self.IMG_MAX_SIZE and img_ratio > self.IMG_SIZE_RATIO:
+                        send_as_file = True
+                    elif img_ratio >= self.IMG_SIZE_MAX_RATIO:
+                        send_as_file = True
+                    else:
+                        send_as_file = False
+                except IOError:  # Ignore when the image cannot be properly identified.
+                    send_as_file = False
 
                 if send_as_file:
                     return self.bot.send_document(tg_dest, msg.file, prefix=msg_template, suffix=reactions,
@@ -409,6 +411,31 @@ class SlaveMessageProcessor(LocaleMixin):
                                                       caption=msg.text, filename=msg.filename,
                                                       reply_to_message_id=target_msg_id,
                                                       reply_markup=reply_markup)
+        finally:
+            if msg.file:
+                msg.file.close()
+
+    def slave_message_animation(self, msg: EFBMsg, tg_dest: str, msg_template: str, reactions: str,
+                                old_msg_id: Optional[Tuple[str, str]] = None,
+                                target_msg_id: Optional[str] = None,
+                                reply_markup: Optional[telegram.ReplyMarkup] = None) -> telegram.Message:
+        self.bot.send_chat_action(tg_dest, telegram.ChatAction.UPLOAD_PHOTO)
+
+        self.logger.debug("[%s] Message is an Animation; Path: %s; MIME: %s", msg.uid, msg.path, msg.mime)
+        if msg.path:
+            self.logger.debug("[%s] Size of %s is %s.", msg.uid, msg.path, os.stat(msg.path).st_size)
+
+        try:
+            if old_msg_id:
+                if msg.edit_media:
+                    self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=msg.file)
+                return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1],
+                                                     prefix=msg_template, suffix=reactions, caption=msg.text)
+            else:
+                return self.bot.send_animation(tg_dest, msg.file, prefix=msg_template, suffix=reactions,
+                                               caption=msg.text,
+                                               reply_to_message_id=target_msg_id,
+                                               reply_markup=reply_markup)
         finally:
             if msg.file:
                 msg.file.close()
