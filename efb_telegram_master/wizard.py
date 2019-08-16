@@ -55,7 +55,7 @@ class DataModel:
         self.data = {
             "token": "",
             "admins": [],
-            "flags": []
+            "flags": {}
         }
 
         self.building_default = True
@@ -210,7 +210,7 @@ def setup_telegram_bot(data):
             print_wrapped(_(
                 "Follow this guide to create your first ETM Telegram Bot.\n"
                 "\n"
-                "Step 1: Search @BotFather on Telegram, or follow the "
+                ">>> Step 1: Search @BotFather on Telegram, or follow the "
                 "link below. You should be able to see a bot named "
                 "“BotFather”."
             ))
@@ -219,7 +219,7 @@ def setup_telegram_bot(data):
             input(_("Press ENTER/RETURN to continue..."))
             print()
             print_wrapped(_(
-                "Step 2: Send /newbot to BotFather to create a new bot. "
+                ">>> Step 2: Send /newbot to BotFather to create a new bot. "
                 "Follow its prompts to give it a name and a username. "
                 "Note that its username must end with “bot”.\n"
                 "\n"
@@ -231,7 +231,7 @@ def setup_telegram_bot(data):
             input(_("Press ENTER/RETURN to continue..."))
             print()
             print_wrapped(_(
-                "Step 3: Get the bot ready for ETM.\n"
+                ">>> Step 3: Get the bot ready for ETM.\n"
                 "Send /setjoingroups to BotFather, choose the bot you "
                 "just created, then choose “Enable”. This will allow your bot "
                 "to join groups.\n"
@@ -280,12 +280,13 @@ def input_admin_ids(default=None):
                 values = [int(i.strip()) for i in ans.split(",")]
             except ValueError:
                 print_wrapped(_("{input} is not a valid input. "
-                                "Please try again.").format(ans))
+                                "Please try again.").format(input=ans))
                 continue
             return values
 
 
 def setup_admins(data):
+    print()
     print_wrapped(_(
         "2. Set up Bot administrators\n"
         "----------------------------\n"
@@ -304,7 +305,7 @@ def setup_admins(data):
         answer = choices.launch()
 
         if answer == prompt_yes:
-            print(_("Starting ID bot..."), end="")
+            print(_("Starting ID bot..."), end="", flush=True)
 
             updater = Updater(token=data.data['token'])
             updater.dispatcher.add_handler(
@@ -331,9 +332,11 @@ def setup_admins(data):
             print()
             data.data['admins'] = input_admin_ids(default=data.data['admins'])
             print()
-            print(_("Stopping ID bot..."), end="")
+            print(_("Stopping ID bot..."), end="", flush=True)
             updater.stop()
             print(_("OK"))
+        else:
+            data.data['admins'] = input_admin_ids(default=data.data['admins'])
 
 
 flags_settings = {
@@ -381,7 +384,7 @@ flags_settings = {
 
 def setup_experimental_flags(data):
     print()
-    widget = YesNo(prompt=_("Do you want to config experimental features?"),
+    widget = YesNo(prompt=_("Do you want to config experimental features? "),
                    prompt_prefix="[yN] ")
     if not widget.launch(default="n"):
         return
@@ -391,7 +394,7 @@ def setup_experimental_flags(data):
         if data.data['flags'].get(key) is not None:
             default = data.data['flags'].get(key)
         if cat == 'bool':
-            prompt_prefix = '[Yn] ' if default else '[yN]'
+            prompt_prefix = '[Yn] ' if default else '[yN] '
             print()
             print(key)
             print_wrapped(desc)
@@ -420,7 +423,7 @@ def setup_experimental_flags(data):
 def setup_network_configurations(data):
     print()
     proceed = YesNo(prompt=_("Do you want to adjust network configurations? "
-                             "(connection timeout and proxy)"),
+                             "(connection timeout and proxy) "),
                     prompt_prefix="[yN] ").launch(default='n')
     if not proceed:
         return
@@ -433,7 +436,7 @@ def setup_network_configurations(data):
     print("https://github.com/blueset/efb-telegram-master/")
     print()
 
-    if YesNo(prompt=_("Do you want to change timeout settings?"),
+    if YesNo(prompt=_("Do you want to change timeout settings? "),
              prompt_prefix="[yN] ").launch(default='n'):
         if data.data.get('request_kwargs') is None:
             data.data['request_kwargs'] = {}
@@ -442,7 +445,7 @@ def setup_network_configurations(data):
         data.data['request_kwargs']['connect_timeout'] = \
             Numbers(prompt=_("connect_timeout (in seconds): ")).launch()
 
-    if YesNo(prompt=_("Do you want to run ETM behind a proxy?"),
+    if YesNo(prompt=_("Do you want to run ETM behind a proxy? "),
              prompt_prefix="[yN] ").launch(default='n'):
         if data.data.get('request_kwargs') is None:
             data.data['request_kwargs'] = {}
@@ -481,7 +484,7 @@ def setup_network_configurations(data):
 
 
 def setup_rpc(data):
-
+    print()
     print_wrapped(_(
         "To learn about what RPC is and what it does, please "
         "visit the module documentations."
@@ -491,7 +494,7 @@ def setup_rpc(data):
     print()
 
     proceed = YesNo(prompt=_("Do you want to enable RPC interface? "
-                             "(connection timeout and proxy)"),
+                             "(connection timeout and proxy) "),
                     prompt_prefix="[yN] ").launch(default='n')
     if not proceed:
         return
@@ -513,14 +516,14 @@ def setup_rpc(data):
 
 
 def prerequisites_check():
-    print(_("Checking ffmpeg installation..."), end="")
+    print(_("Checking ffmpeg installation..."), end="", flush=True)
     if shutil.which('ffmpeg') is None:
         print(_("FAILED"))
         print_wrapped(_("ffmpeg is not found in current $PATH."))
         exit(1)
     print(_("OK"))
 
-    print(_("Checking libmagic installation..."), end="")
+    print(_("Checking libmagic installation..."), end="", flush=True)
     try:
         import magic
     except ImportError:
@@ -529,7 +532,7 @@ def prerequisites_check():
         exit(1)
     print(_("OK"))
 
-    print(_("Checking libwebp installation..."), end="")
+    print(_("Checking libwebp installation..."), end="", flush=True)
     Image.init()
     if 'WEBP' not in Image.ID:
         print(_("FAILED"))
@@ -560,7 +563,7 @@ def wizard(profile, instance_id):
     setup_network_configurations(data)
     setup_rpc(data)
 
-    print(_("Saving configurations..."), end="")
+    print(_("Saving configurations..."), end="", flush=True)
     data.save()
     print(_("OK"))
 
