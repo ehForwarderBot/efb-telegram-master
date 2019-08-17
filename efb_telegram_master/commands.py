@@ -100,7 +100,10 @@ class CommandsManager(LocaleMixin):
         command_storage = self.msg_storage[index]
         module = command_storage.module
         command = command_storage.commands[callback]
-        prefix = f"{command_storage.prefix}\n{command_storage.body}\n--------"
+        prefix = command_storage.prefix
+
+        # Clear inline buttons.
+        update.callback_query.edit_message_reply_markup()
 
         fn = getattr(module, command.callable_name, None)
         if fn is not None:
@@ -116,8 +119,15 @@ class CommandsManager(LocaleMixin):
                                          __callable=command.callable_name,
                                          **command.kwargs)
         self.msg_storage.pop(index, None)
-        self.bot.edit_message_text(prefix=prefix, text=msg,
-                                   chat_id=chat_id, message_id=message_id)
+        # self.bot.edit_message_text(prefix=prefix, text=msg,
+        #                            chat_id=chat_id, message_id=message_id)
+        if msg is None:
+            return ConversationHandler.END
+        self.bot.answer_callback_query(
+            prefix=prefix, text=msg,
+            chat_id=chat_id, message_id=message_id,
+            callback_query_id=update.callback_query.id
+        )
         return ConversationHandler.END
 
     def extra_listing(self, bot, update):
