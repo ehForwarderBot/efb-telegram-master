@@ -19,6 +19,9 @@ if TYPE_CHECKING:
     from . import TelegramChannel
 
 
+MAX_CALLBACK_QUERY_ANSWER_LENGTH = 200
+
+
 class TelegramBotManager(LocaleMixin):
     """
     This is a wrapper of Telegram's message sending and editing methods.
@@ -439,7 +442,30 @@ class TelegramBotManager(LocaleMixin):
         return self.updater.bot.delete_message(chat_id, message_id)
 
     @Decorators.retry_on_timeout
-    def answer_callback_query(self, *args, **kwargs):
+    def answer_callback_query(self, *args, prefix="", suffix="",
+                              message_id=None, **kwargs):
+        prefix = (prefix and (prefix + "\n")) or prefix
+        suffix = (suffix and ("\n" + suffix)) or suffix
+        text: str
+
+        if args[1:]:
+            text = args[1]
+        else:
+            text = kwargs.pop('text')
+        args = args[:1]
+
+        chat_id = kwargs.get('chat_id')
+
+        if len(prefix + text + suffix) >= MAX_CALLBACK_QUERY_ANSWER_LENGTH:
+            full_message = io.StringIO(prefix + text + suffix)
+            truncated = prefix + text[:25] + "\n...\n" + text[-25:] + suffix
+            result = self.updater.bot.answer_callback_query(*args, text=truncated, **kwargs)
+            filename = f"{chat_id}_{message_id}.txt"
+            self.updater.bot.send_document(args[0], full_message, filename,
+                                           reply_to_message_id=message_id,
+                                           caption=self._("Response is truncated due to its length. "
+                                                          "Full message is sent as attachment."))
+            return result
         return self.updater.bot.answer_callback_query(*args, **kwargs)
 
     def polling(self):
