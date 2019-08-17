@@ -617,10 +617,10 @@ __ https://docs.python.org/3/library/xmlrpc.html
 .. _the RPCUtilities class: https://github.com/blueset/efb-telegram-master/blob/master/efb_telegram_master/rpc_utilities.py
 
 
-Experimental localization support
----------------------------------
+Experimental translation support
+--------------------------------
 
-ETM supports localized user interface prompts experimentally.
+ETM supports translated user interface prompts experimentally.
 The bot detects languages of Telegram Client of the admins
 from their messages, and automatically matches with a supported
 language on the go. Otherwise, you can set your language by
