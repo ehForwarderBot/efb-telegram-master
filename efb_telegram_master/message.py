@@ -36,6 +36,10 @@ class ETMMsg(EFBMsg):
             del state['file']
         if state.get('path', None) is not None:
             del state['path']
+        if state.get('_ETMMsg__file', None) is not None:
+            del state['_ETMMsg__file']
+        if state.get('_ETMMsg__path', None) is not None:
+            del state['_ETMMsg__path']
         if state.get('filename', None) is not None:
             del state['filename']
         return state
@@ -52,16 +56,16 @@ class ETMMsg(EFBMsg):
             elif self.type_telegram == TGMsgType.Sticker:
                 self.mime = 'image/webp'
 
-            png_file = bot.get_file(self.file_id)
+            file_meta = bot.get_file(self.file_id)
             if not self.mime:
-                ext = os.path.splitext(png_file.file_path)[1]
-                mime = mimetypes.guess_type(png_file.file_path, strict=False)[0]
+                ext = os.path.splitext(file_meta.file_path)[1]
+                mime = mimetypes.guess_type(file_meta.file_path, strict=False)[0]
             else:
                 ext = mimetypes.guess_extension(self.mime, strict=False)
                 mime = self.mime
             file = tempfile.NamedTemporaryFile(suffix=ext)
             full_path = file.name
-            png_file.download(out=file)
+            file_meta.download(out=file)
             file.seek(0)
             mime = mime or magic.from_file(full_path, mime=True)
             if type(mime) is bytes:
