@@ -379,6 +379,24 @@ flags_settings = {
          _('Send all image messages as files, in order to prevent Telegram’s '
            'image compression in an aggressive way.')
          ),
+    "message_muted_on_slave":
+        ('normal', 'choices', ['normal', 'silent', 'mute'],
+         _('Behavior when a message received is muted on slave channel '
+           'platform.\n'
+           '\n'
+           '- normal: send to Telegram as normal message\n'
+           '- silent: send to Telegram as normal message, but without '
+           'notification sound\n'
+           '- mute: do not send to Telegram')),
+    "your_message_on_slave":
+        ('silent', 'choices', ['normal', 'silent', 'mute'],
+         _('Behavior when a message received is from you on slave channel '
+           'platform. This overrides settings from message_muted_on_slave.\n'
+           '\n'
+           '- normal: send to Telegram as normal message\n'
+           '- silent: send to Telegram as normal message, but without '
+           'notification sound\n'
+           '- mute: do not send to Telegram'))
 }
 
 
