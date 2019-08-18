@@ -546,7 +546,8 @@ class SlaveMessageProcessor(LocaleMixin):
     def slave_message_file(self, msg: EFBMsg, tg_dest: str, msg_template: str, reactions: str,
                            old_msg_id: Optional[Tuple[str, str]] = None,
                            target_msg_id: Optional[str] = None,
-                           reply_markup: Optional[telegram.ReplyMarkup] = None) -> telegram.Message:
+                           reply_markup: Optional[telegram.ReplyMarkup] = None,
+                           silent: bool = False) -> telegram.Message:
         assert msg.file is not None
 
         self.bot.send_chat_action(tg_dest, telegram.ChatAction.UPLOAD_DOCUMENT)
