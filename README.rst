@@ -503,6 +503,25 @@ e.g.:
     Send all image messages as files, in order to prevent Telegram's
     image compression in an aggressive way.
 
+- ``message_muted_on_slave`` *(str)* [Default: ``normal``]
+
+    Behavior when a message received is muted on slave channel platform.
+
+    - ``normal``: send to Telegram as normal message
+    - ``silent``: send to Telegram as normal message, but without notification
+        sound
+    - ``mute``: do not send to Telegram
+
+- ``your_message_on_slave`` *(str)* [Default: ``silent``]
+
+    Behavior when a message received is from you on slave channel platform.
+    This overrides settings from ``message_muted_on_slave``.
+
+    - ``normal``: send to Telegram as normal message
+    - ``silent``: send to Telegram as normal message, but without notification
+        sound
+    - ``mute``: do not send to Telegram
+
 Network configuration: timeout tweaks
 -------------------------------------
 
