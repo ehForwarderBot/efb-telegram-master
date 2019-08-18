@@ -269,7 +269,7 @@ class SlaveMessageProcessor(LocaleMixin):
                            silent: bool = False) -> telegram.Message:
         """
         Send message as text to Telegram.
-        
+
         Args:
             msg: Message
             tg_dest: Telegram Chat ID

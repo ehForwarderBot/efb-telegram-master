@@ -67,12 +67,12 @@ ETM also has other alternative installation methods contributed by the
 community, including:
 
 * `AUR package
-   <https://aur.archlinux.org/packages/python-efb-telegram-master-git>`_
-   maintained by `KeLiu <https://github.com/specter119>`_
-   (``python-efb-telegram-master-git``)
+  <https://aur.archlinux.org/packages/python-efb-telegram-master-git>`_
+  maintained by `KeLiu <https://github.com/specter119>`_
+  (``python-efb-telegram-master-git``)
 
 * Other `installation scripts and containers (e.g. Docker)
-   <https://github.com/blueset/ehForwarderBot/wiki/Channels-Repository#scripts-and-containers-eg-docker>`_
+  <https://github.com/blueset/ehForwarderBot/wiki/Channels-Repository#scripts-and-containers-eg-docker>`_
 
 
 Configuration
