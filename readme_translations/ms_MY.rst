@@ -105,14 +105,12 @@ A sample config file can be as follows:
    ##################
    # Required items #
    ##################
-   # You are required to fill the option below,
-   # or this channel will not work.
 
-   # Telegram bot token.
-   # This is the token you obtained from BotFather
-   token: "12345678:1a2b3c4d5e6g7h8i9j"
+   # [Bot Token]
+   # This is the token you obtained from @BotFather
+   token: "012345678:1Aa2Bb3Vc4Dd5Ee6Gg7Hh8Ii9Jj0Kk1Ll2M"
 
-   # List of Telegram User IDs of admins
+   # [List of Admin User IDs]
    # ETM will only process messages and commands from users
    # listed below. This ID can be obtained from various ways
    # on Telegram.
@@ -120,14 +118,21 @@ A sample config file can be as follows:
    - 102938475
    - 91827364
 
-   # Experimental Flags
-   # This section can be used to enable experimental functionality.
-   # However, those features may be changed or removed at any time.
+   ##################
+   # Optional items #
+   ##################
+   # [Experimental Flags]
+   # This section can be used to toggle experimental functionality.
+   # These features may be changed or removed at any time.
    # Options in this section is explained afterward.
    flags:
        option_one: 10
        option_two: false
        option_three: "foobar"
+
+   # [Network Configurations]
+   # [RPC Interface]
+   # Refer to relevant sections afterwards for details.
 
 
 Usage
@@ -152,9 +157,33 @@ to BotFather for a command list:
    update_info - Update the group name and profile picture.
    react - Send a reaction to a message, or show a list of reactors.
 
-Note: In case of multiple admins are assigned, they may all send message
-   on your behalf, but only the 0th admin can receive direct message
-   from the bot.
+Note: In
+   case
+   of
+   multiple
+   admins
+   are
+   assigned,
+   they
+   may
+   all
+   send
+   message
+   on
+   your
+   behalf,
+   but
+   only
+   the
+   0th
+   admin
+   can
+   receive
+   direct
+   message
+   from
+   the
+   bot.
 
 
 ``/link``: Link a chat
@@ -171,7 +200,16 @@ Note: In case of multiple admins are assigned, they may all send message
 4. Tap “Start” at the bottom of your screen, and you should see a
     success message: “Chat linked.”
 
-Note: You may introduce non-ETM admin users to the group, however, they:
+Note: You
+   may
+   introduce
+   non-ETM
+   admin
+   users
+   to the
+   group,
+   however,
+   they:
 
    * Can read all messages send from the related remote chat;
 
@@ -219,9 +257,30 @@ multiple criteria.
    Mode: [Linked]
    Other: <Python Dictionary String>
 
-Note: Type can be either “User” or “Group”Other is the vendor specific
-   information provided by slave channels. Format of such information
-   is specified in their documentations respectively.
+Note: Type
+   can be
+   either
+   “User”
+   or
+   “Group”Other
+   is the
+   vendor
+   specific
+   information
+   provided
+   by
+   slave
+   channels.
+   Format
+   of
+   such
+   information
+   is
+   specified
+   in
+   their
+   documentations
+   respectively.
 
 Examples:
 
@@ -295,7 +354,7 @@ head works similarly to an incoming message, you can reply to it to
 send messages to your recipient.
 
 Send ``/chat`` to the bot, and choose a chat from the list. When you
-see “Reply to this message to send to from ”, it’s ready to go.
+see “Reply to this message to chat with ...”, it’s ready to go.
 
 
 Advanced feature: Filtering
@@ -442,13 +501,6 @@ e.g.:
    flags:
        flag_name: flag_value
 
-* ``no_conversion`` *(bool)* [Default: ``false``]
-
-   Disable audio conversion, send all audio file as is, and let
-   Telegram to handle it.
-
-   *Only works in linked chats.*
-
 * ``chats_per_page`` *(int)* [Default: ``10``]
 
    Number of chats shown in when choosing for ``/chat`` and ``/link``
@@ -491,11 +543,174 @@ e.g.:
       Send all image messages as files, in order to prevent Telegram's
       image compression in an aggressive way.
 
+* ``message_muted_on_slave`` *(str)* [Default: ``normal``]
 
-Experimental localization support
-=================================
+   ..
+      Behavior when a message received is muted on slave channel
+      platform.
 
-ETM supports localized user interface prompts experimentally. The bot
+      * ``normal``: send to Telegram as normal message
+
+      * ``silent``: send to Telegram as normal message, but without
+         notification sound
+
+      * ``mute``: do not send to Telegram
+
+* ``your_message_on_slave`` *(str)* [Default: ``silent``]
+
+   ..
+      Behavior when a message received is from you on slave channel
+      platform. This overrides settings from
+      ``message_muted_on_slave``.
+
+      * ``normal``: send to Telegram as normal message
+
+      * ``silent``: send to Telegram as normal message, but without
+         notification sound
+
+      * ``mute``: do not send to Telegram
+
+
+Network configuration: timeout tweaks
+=====================================
+
+..
+
+   This chapter is adapted from `Python Telegram Bot wiki
+   <https://github.com/python-telegram-bot/python-telegram-bot/wiki/Handling-network-errors#tweaking-ptb>`_,
+   licensed under CC-BY 3.0.
+
+``python-telegram-bot`` performs HTTPS requests using ``urllib3``.
+``urllib3`` provides control over ``connect_timeout`` &
+``read_timeout``. ``urllib3`` does not separate between what would be
+considered read & write timeout, so ``read_timeout`` serves for both.
+The defaults chosen for each of these parameters is 5 seconds.
+
+The ``connect_timeout`` value controls the timeout for establishing a
+connection to the Telegram server(s).
+
+Changing the defaults of ``read_timeout`` & ``connet_timeout`` can be
+done by adjusting values ``request_kwargs`` section in ETM's
+``config.yaml``.
+
+::
+
+   # ...
+   request_kwargs:
+       read_timeout: 6
+       connect_timeout: 7
+
+
+Run ETM behind a proxy
+======================
+
+..
+
+   This chapter is adapted from `Python Telegram Bot wiki
+   <https://github.com/python-telegram-bot/python-telegram-bot/wiki/Working-Behind-a-Proxy>`_,
+   licensed under CC-BY 3.0.
+
+You can appoint proxy specifically for ETM without affecting other
+channels running in together in the same EFB instance. This can also
+be done by adjusting values ``request_kwargs`` section in ETM's
+``config.yaml``.
+
+
+HTTP proxy server
+-----------------
+
+::
+
+   request_kwargs:
+       # ...
+       proxy_url: http://PROXY_HOST:PROXY_PORT/
+       # Optional, if you need authentication:
+       username: PROXY_USER
+       password: PROXY_PASS
+
+
+SOCKS5 proxy server
+-------------------
+
+This is configuration is supported, but requires an optional/extra
+python package. To install:
+
+::
+
+   pip install python-telegram-bot[socks]
+
+::
+
+   request_kwargs:
+       # ...
+       proxy_url: socks5://URL_OF_THE_PROXY_SERVER:PROXY_PORT
+       # Optional, if you need authentication:
+       urllib3_proxy_kwargs:
+           username: PROXY_USER
+           password: PROXY_PASS
+
+
+RPC interface
+=============
+
+A standard `Python XML RPC server
+<https://docs.python.org/3/library/xmlrpc.html>`_ is implemented in
+ETM 2. It can be enabled by adding a ``rpc`` section in ETM's
+``config.yml`` file.
+
+::
+
+   rpc:
+       server: 127.0.0.1
+       port: 8000
+
+Warning: The
+   ``xmlrpc``
+   module is
+   not
+   secure
+   against
+   maliciously
+   constructed
+   data. Do
+   not
+   expose
+   the
+   interface
+   to
+   untrusted
+   parties
+   or the
+   public
+   internet,
+   and turn
+   off after
+   use.
+
+
+Exposed functions
+-----------------
+
+Functions in `the db (database manager) class
+<https://github.com/blueset/efb-telegram-master/blob/master/efb_telegram_master/db.py>`_
+and `the RPCUtilities class
+<https://github.com/blueset/efb-telegram-master/blob/master/efb_telegram_master/rpc_utilities.py>`_
+are exposed. Refer to the source code for their documentations.
+
+
+How to use
+----------
+
+Set up a ``SimpleXMLRPCClient`` in any Python script and call any of
+the exposed functions directly. For details, please consult `Python
+documentation on xmlrpc
+<https://docs.python.org/3/library/xmlrpc.html>`_.
+
+
+Experimental translation support
+================================
+
+ETM supports translated user interface prompts experimentally. The bot
 detects languages of Telegram Client of the admins from their
 messages, and automatically matches with a supported language on the
 go. Otherwise, you can set your language by turning off the

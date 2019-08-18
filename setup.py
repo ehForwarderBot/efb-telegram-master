@@ -51,6 +51,8 @@ setup(
         "pillow",
         "language-tags",
         "retrying",
+        "bullet",
+        "cjkwrap"
     ],
     entry_points={
         "ehforwarderbot.master": "blueset.telegram = efb_telegram_master:TelegramChannel",
