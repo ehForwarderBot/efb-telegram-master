@@ -303,7 +303,7 @@ works similarly to an incoming message, you can reply to it to send
 messages to your recipient.
 
 Send ``/chat`` to the bot, and choose a chat from the list. When you see
-“Reply to this message to send to from ”, it’s ready to go.
+“Reply to this message to chat with ...”, it’s ready to go.
 
 Advanced feature: Filtering
 '''''''''''''''''''''''''''
@@ -509,7 +509,7 @@ e.g.:
 
     - ``normal``: send to Telegram as normal message
     - ``silent``: send to Telegram as normal message, but without notification
-        sound
+      sound
     - ``mute``: do not send to Telegram
 
 - ``your_message_on_slave`` *(str)* [Default: ``silent``]
@@ -519,7 +519,7 @@ e.g.:
 
     - ``normal``: send to Telegram as normal message
     - ``silent``: send to Telegram as normal message, but without notification
-        sound
+      sound
     - ``mute``: do not send to Telegram
 
 Network configuration: timeout tweaks
