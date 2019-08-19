@@ -107,7 +107,8 @@ class TelegramBotManager(LocaleMixin):
             text = kwargs.pop('text')
         args = args[:1]
         if len(prefix + text + suffix) >= telegram.constants.MAX_MESSAGE_LENGTH:
-            full_message = io.StringIO(prefix + text + suffix)
+            full_message = io.BytesIO((prefix + text + suffix).encode('utf-8'))
+            full_message.seek(0)
             truncated = prefix + text[:100] + "\n...\n" + text[-100:] + suffix
             msg = self._bot_send_message_fallback(args[0], text=truncated, **kwargs)
             filename = "%s_%s" % (args[0], msg.message_id)
@@ -119,7 +120,7 @@ class TelegramBotManager(LocaleMixin):
                 filename += ".html"
             else:
                 filename += ".txt"
-            self.updater.bot.send_document(args[0], full_message, filename,
+            self.updater.bot.send_document(args[0], full_message, filename=filename,
                                            reply_to_message_id=msg.message_id,
                                            caption=self._("Message is truncated due to its length. "
                                                           "Full message is sent as attachment."))

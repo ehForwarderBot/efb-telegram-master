@@ -837,8 +837,8 @@ class ChatBindingManager(LocaleMixin):
             update = self.msg_storage[storage_id].update
             candidates = self.msg_storage[storage_id].candidates
             assert candidates is not None
-            chat_id = candidates[int(param.split(' ', 1)[1])]
-            chat = ETMChat(chat=self.get_chat_from_db(*utils.chat_id_str_to_id(chat_id)), db=self.db)
+            slave_chat_id = candidates[int(param.split(' ', 1)[1])]
+            chat = ETMChat(chat=self.get_chat_from_db(*utils.chat_id_str_to_id(slave_chat_id)), db=self.db)
             self.channel.master_messages.process_telegram_message(bot, update, channel_id=chat.module_id,
                                                                   chat_id=chat.chat_uid)
             self.bot.edit_message_text(text=self._("Delivering the message to {0}").format(chat.full_name),
