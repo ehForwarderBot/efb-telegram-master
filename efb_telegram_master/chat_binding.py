@@ -889,8 +889,8 @@ class ChatBindingManager(LocaleMixin):
                                                               len(chats)).format(len(chats)))
         picture: Optional[IO] = None
         pic_resized: Optional[IO] = None
+        channel_id, chat_uid = utils.chat_id_str_to_id(chats[0])
         try:
-            channel_id, chat_uid = utils.chat_id_str_to_id(chats[0])
             channel = coordinator.slaves[channel_id]
             chat = channel.get_chat(chat_uid)
             if chat is None:
@@ -916,7 +916,9 @@ class ChatBindingManager(LocaleMixin):
             bot.set_chat_photo(tg_chat, pic_resized or picture)
             update.message.reply_text(self._('Chat details updated.'))
         except KeyError:
-            return self.bot.reply_error(update, self._('Channel linked is not found.'))
+            self.logger.exception(f"Channel linked ({channel_id}) is not found.")
+            return self.bot.reply_error(update, self._('Channel linked ({channel}) is not found.')
+                                        .format(channel=channel_id))
         except EFBChatNotFound:
             self.logger.exception("Chat linked is not found in channel.")
             return self.bot.reply_error(update, self._('Chat linked is not found in channel.'))
