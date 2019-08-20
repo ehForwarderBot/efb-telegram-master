@@ -16,6 +16,7 @@ from telegram.ext import ConversationHandler, CommandHandler, CallbackQueryHandl
 from ehforwarderbot import coordinator, EFBChat, EFBChannel
 from ehforwarderbot.constants import ChatType
 from ehforwarderbot.exceptions import EFBChatNotFound, EFBOperationNotSupported
+from ehforwarderbot.types import ModuleID, ChatID
 from . import utils
 from .constants import Emoji, Flags
 from .global_command_handler import GlobalCommandHandler
@@ -99,7 +100,7 @@ class ETMChat(EFBChat):
     #     self.db.add_chat_assoc(slave_uid=utils.chat_id_to_str(self.channel_id, self.chat_uid),
     #                            master_uid=ETMChat.MUTE_CHAT_ID, multiple_slave=True)
 
-    def link(self, channel_id: str, chat_id: str, multiple_slave: bool):
+    def link(self, channel_id: ModuleID, chat_id: ChatID, multiple_slave: bool):
         self.db.add_chat_assoc(master_uid=utils.chat_id_to_str(channel_id, chat_id),
                                slave_uid=utils.chat_id_to_str(self.module_id, self.chat_uid),
                                multiple_slave=multiple_slave)
@@ -107,19 +108,18 @@ class ETMChat(EFBChat):
     @property
     def full_name(self):
         chat_display_name = self.display_name
-        return "'%s' @ '%s %s'" % (chat_display_name, self.channel_emoji, self.module_name) \
-            if self.module_name else "'%s'" % chat_display_name
+        return f"'{chat_display_name}' @ '{self.channel_emoji} {self.module_name}'" \
+            if self.module_name else f"'{chat_display_name}'"
 
     @property
     def display_name(self):
         return self.chat_name if not self.chat_alias \
-            else "%s (%s)" % (self.chat_alias, self.chat_name)
+            else f"{self.chat_alias} ({self.chat_name})"
 
     @property
     def chat_title(self):
-        return "%s%s %s" % (self.channel_emoji,
-                            Emoji.get_source_emoji(self.chat_type),
-                            self.chat_alias or self.chat_name)
+        return f"{self.channel_emoji}{Emoji.get_source_emoji(self.chat_type)} " \
+               f"{self.chat_alias or self.chat_name}"
 
     def __getstate__(self) -> Dict[str, Any]:
         state = self.__dict__.copy()
@@ -790,7 +790,7 @@ class ChatBindingManager(LocaleMixin):
         self.bot.edit_message_text(text=txt, chat_id=tg_chat_id, message_id=tg_msg_id)
         return ConversationHandler.END
 
-    def get_chat_from_db(self, channel_id: str, chat_id: str) -> Optional[EFBChat]:
+    def get_chat_from_db(self, channel_id: ModuleID, chat_id: ChatID) -> Optional[EFBChat]:
         if channel_id not in coordinator.slaves:
             return None
         d = self.db.get_slave_chat_info(slave_channel_id=channel_id, slave_chat_uid=chat_id)

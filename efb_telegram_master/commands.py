@@ -7,6 +7,7 @@ from telegram.ext import CommandHandler, ConversationHandler, RegexHandler, Call
 
 from ehforwarderbot import coordinator, EFBChannel, EFBMiddleware
 from ehforwarderbot.message import EFBMsgCommand
+from ehforwarderbot.types import ExtraCommandName
 from .constants import Flags
 from .locale_mixin import LocaleMixin
 
@@ -216,6 +217,8 @@ class CommandsManager(LocaleMixin):
         channel = slaves[sorted(slaves)[int(groupdict['id'])]]
         functions = channel.get_extra_functions()
 
+        command_name = ExtraCommandName(groupdict['command'])
+
         if groupdict['command'] not in functions:
             return self.bot.reply_error(update, self._("Command not found in selected module. (XC02)"))
 
@@ -226,7 +229,8 @@ class CommandsManager(LocaleMixin):
         msg = self.bot.send_message(update.message.chat.id,
                                     prefix=header, text=self._("Please wait..."))
 
-        result = functions[groupdict['command']](" ".join(update.message.text.split(' ', 1)[1:]))
+        result = functions[ExtraCommandName(groupdict['command'])](
+            " ".join(update.message.text.split(' ', 1)[1:]))
 
         self.bot.edit_message_text(prefix=header, text=result,
                                    chat_id=update.message.chat.id, message_id=msg.message_id)

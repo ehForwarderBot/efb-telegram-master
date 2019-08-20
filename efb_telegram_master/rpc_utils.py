@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, KeysView, Optional, Iterable
 from xmlrpc.server import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
 
 from ehforwarderbot import coordinator, EFBChannel, EFBChat
+from ehforwarderbot.types import ModuleID
 
 if TYPE_CHECKING:
     from . import TelegramChannel
@@ -50,7 +51,7 @@ class RPCUtilities:
         return coordinator.slaves.keys()
 
     @staticmethod
-    def get_slave_channel_by_id(channel_id: str) -> Optional[EFBChannel]:
+    def get_slave_channel_by_id(channel_id: ModuleID) -> Optional[EFBChannel]:
         """
         Get the slave channel instance if available. Otherwise return None.
 
@@ -62,7 +63,7 @@ class RPCUtilities:
         return None
 
     @staticmethod
-    def get_chats_from_channel_by_id(channel_id: str) -> Optional[Iterable[EFBChat]]:
+    def get_chats_from_channel_by_id(channel_id: ModuleID) -> Optional[Iterable[EFBChat]]:
         """
         Get a list of chats from a specific slave channel if available.
         Otherwise return None.

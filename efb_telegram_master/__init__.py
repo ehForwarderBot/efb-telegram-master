@@ -25,7 +25,7 @@ from ehforwarderbot.constants import MsgType, ChannelType
 from ehforwarderbot.exceptions import EFBException, EFBOperationNotSupported, EFBChatNotFound, \
     EFBMessageReactionNotPossible
 from ehforwarderbot.status import EFBReactToMessage
-from ehforwarderbot.types import ChatID
+from ehforwarderbot.types import ChatID, ModuleID, InstanceID
 from .__version__ import __version__
 from . import utils as etm_utils
 from .bot_manager import TelegramBotManager
@@ -72,7 +72,7 @@ class TelegramChannel(EFBChannel):
     # Meta Info
     channel_name = "Telegram Master"
     channel_emoji = "✈"
-    channel_id = "blueset.telegram"
+    channel_id = ModuleID("blueset.telegram")
     channel_type = ChannelType.Master
     supported_message_types = {MsgType.Text, MsgType.File, MsgType.Audio,
                                MsgType.Image, MsgType.Link, MsgType.Location,
@@ -95,7 +95,7 @@ class TelegramChannel(EFBChannel):
     # RPC server
     rpc_server: SimpleXMLRPCServer = None
 
-    def __init__(self, instance_id: str = None):
+    def __init__(self, instance_id: InstanceID = None):
         """
         Initialization.
         """

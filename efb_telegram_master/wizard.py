@@ -14,6 +14,7 @@ from telegram.ext.filters import Filters
 from telegram.ext import MessageHandler, Updater
 
 from ehforwarderbot import coordinator, utils
+from ehforwarderbot.types import ModuleID
 
 from . import TelegramChannel
 
@@ -43,7 +44,7 @@ class DataModel:
         self.channel_id = TelegramChannel.channel_id
 
         if instance_id:
-            self.channel_id += "#" + instance_id
+            self.channel_id = ModuleID(self.channel_id + "#" + instance_id)
         self.config_path = utils.get_config_path(self.channel_id)
         self.yaml = YAML()
         if not self.config_path.exists():
