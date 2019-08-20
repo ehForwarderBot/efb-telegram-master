@@ -21,6 +21,7 @@ from . import utils
 from .constants import Emoji, Flags
 from .global_command_handler import GlobalCommandHandler
 from .locale_mixin import LocaleMixin
+from .utils import EFBChannelChatIDStr
 
 if TYPE_CHECKING:
     from . import TelegramChannel
@@ -54,7 +55,10 @@ class ETMChat(EFBChat):
             self.members = chat.members.copy()
             self.chat = chat.group
             self.vendor_specific = chat.vendor_specific.copy()
-        self.linked: List[str] = self.db.get_chat_assoc(slave_uid=utils.chat_id_to_str(self.module_id, self.chat_uid))
+        self.linked: List[utils.EFBChannelChatIDStr] = \
+            self.db.get_chat_assoc(
+                slave_uid=utils.chat_id_to_str(self.module_id, self.chat_uid)
+            )
         self.muted: bool = self.MUTE_CHAT_ID in self.linked
 
     def match(self, pattern: Optional[Pattern]) -> bool:
@@ -146,11 +150,11 @@ class ChatListStorage:
 
     def __init__(self, chats: List[ETMChat], offset: int = 0):
         self.__chats: List[ETMChat] = []
-        self.channels: Dict[str, EFBChannel] = dict()
+        self.channels: Dict[ModuleID, EFBChannel] = dict()
         self.chats = chats.copy()  # initialize chats with setter.
         self.offset: int = offset
         self.update: Optional[telegram.Update] = None
-        self.candidates: Optional[List[str]] = None
+        self.candidates: Optional[List[EFBChannelChatIDStr]] = None
 
     @property
     def length(self) -> int:
@@ -168,7 +172,8 @@ class ChatListStorage:
             if i.module_id not in self.channels:
                 self.channels[i.module_id] = coordinator.slaves[i.module_id]
 
-    def set_chat_suggestion(self, update: telegram.Update, candidates: List[str]):
+    def set_chat_suggestion(self, update: telegram.Update,
+                            candidates: List[EFBChannelChatIDStr]):
         self.update = update
         self.candidates = candidates
 
@@ -273,7 +278,7 @@ class ChatBindingManager(LocaleMixin):
     def slave_chats_pagination(self, storage_id: Tuple[int, int],
                                offset: int = 0,
                                pattern: Optional[str] = "",
-                               source_chats: Optional[List[str]] = None) \
+                               source_chats: Optional[List[EFBChannelChatIDStr]] = None) \
             -> Tuple[List[str], List[List[telegram.InlineKeyboardButton]]]:
         """
         Generate a list of (list of) `InlineKeyboardButton`s of chats in slave channels,
@@ -394,7 +399,7 @@ class ChatBindingManager(LocaleMixin):
             pass
 
     def link_chat_gen_list(self, chat_id: int, message_id: int = None, offset=0,
-                           pattern: str = "", chats: List[str] = None):
+                           pattern: str = "", chats: List[EFBChannelChatIDStr] = None):
         """
         Generate the list for chat linking, and update it to a message.
 
@@ -678,7 +683,8 @@ class ChatBindingManager(LocaleMixin):
         return self.chat_head_req_generate(bot, target, pattern=" ".join(args), chats=chats)
 
     def chat_head_req_generate(self, bot, chat_id: int, message_id: int = None,
-                               offset: int = 0, pattern: str = "", chats: List[str] = None):
+                               offset: int = 0, pattern: str = "",
+                               chats: List[EFBChannelChatIDStr] = None):
         """
         Generate the list for chat head, and update it to a message.
 
@@ -811,7 +817,9 @@ class ChatBindingManager(LocaleMixin):
             except EFBChatNotFound:
                 return None
 
-    def register_suggestions(self, update: telegram.Update, candidates: List[str], chat_id: int, message_id: int):
+    def register_suggestions(self, update: telegram.Update,
+                             candidates: List[EFBChannelChatIDStr],
+                             chat_id: int, message_id: int):
         storage_id = (chat_id, message_id)
         legends, buttons = self.channel.chat_binding.slave_chats_pagination(
             storage_id, 0, source_chats=candidates)

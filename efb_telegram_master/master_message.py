@@ -21,6 +21,7 @@ from . import utils
 from .locale_mixin import LocaleMixin
 from .message import ETMMsg
 from .msg_type import TGMsgType
+from .utils import EFBChannelChatIDStr
 
 if TYPE_CHECKING:
     from . import TelegramChannel
@@ -121,14 +122,14 @@ class MasterMessageProcessor(LocaleMixin):
             chat_id: Slave chat ID if specified
             target_msg: Target slave message if specified
         """
-        target: Optional[str] = None
+        target: Optional[EFBChannelChatIDStr] = None
         target_channel: Optional[ModuleID] = None
         target_log: Optional['MsgLog'] = None
         # Message ID for logging
         message_id = utils.message_id_to_str(update=update)
 
         multi_slaves: bool = False
-        destination: Optional[str] = None
+        destination: Optional[EFBChannelChatIDStr] = None
         slave_msg: Optional[EFBMsg] = None
 
         message: telegram.Message = update.effective_message
