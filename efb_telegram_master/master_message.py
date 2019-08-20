@@ -1,20 +1,13 @@
 # coding=utf-8
 
 import logging
-import mimetypes
-import os
 import pickle
-import tempfile
 import threading
-import subprocess
-from typing import Tuple, IO, Optional, TYPE_CHECKING
-
-import magic
-import telegram
 import time
-from moviepy.video.io.VideoFileClip import VideoFileClip
+from typing import Optional, TYPE_CHECKING
+
+import telegram
 from telegram.ext import MessageHandler, Filters
-from PIL import Image
 from telegram.utils.helpers import escape_markdown
 
 from ehforwarderbot import EFBChat, EFBMsg, coordinator
@@ -23,11 +16,11 @@ from ehforwarderbot.exceptions import EFBMessageTypeNotSupported, EFBChatNotFoun
     EFBMessageError, EFBMessageNotFound, EFBOperationNotSupported
 from ehforwarderbot.message import EFBMsgLocationAttribute
 from ehforwarderbot.status import EFBMessageRemoval
-
+from ehforwarderbot.types import ModuleID, ChatID, MessageID
 from . import utils
-from .message import ETMMsg
-from .msg_type import get_msg_type, TGMsgType
 from .locale_mixin import LocaleMixin
+from .message import ETMMsg
+from .msg_type import TGMsgType
 
 if TYPE_CHECKING:
     from . import TelegramChannel
@@ -69,7 +62,7 @@ class MasterMessageProcessor(LocaleMixin):
         ))
         self.logger: logging.Logger = logging.getLogger(__name__)
 
-        self.channel_id: str = self.channel.channel_id
+        self.channel_id: ModuleID = self.channel.channel_id
 
     def msg_thread_creator(self, bot, update):
         """Process message in a thread, to ensure it doesn't block the main thread."""
@@ -115,9 +108,9 @@ class MasterMessageProcessor(LocaleMixin):
 
     def process_telegram_message(self, bot: telegram.Bot,
                                  update: telegram.Update,
-                                 channel_id: Optional[str] = None,
-                                 chat_id: Optional[str] = None,
-                                 target_msg: Optional[str] = None):
+                                 channel_id: Optional[ModuleID] = None,
+                                 chat_id: Optional[ChatID] = None,
+                                 target_msg: Optional[utils.TgChatMsgIDStr] = None):
         """
         Process messages came from Telegram.
 
@@ -129,7 +122,7 @@ class MasterMessageProcessor(LocaleMixin):
             target_msg: Target slave message if specified
         """
         target: Optional[str] = None
-        target_channel: Optional[str] = None
+        target_channel: Optional[ModuleID] = None
         target_log: Optional['MsgLog'] = None
         # Message ID for logging
         message_id = utils.message_id_to_str(update=update)
@@ -159,7 +152,7 @@ class MasterMessageProcessor(LocaleMixin):
         # Process predefined target (slave) chat.
         if channel_id and chat_id:
             destination = utils.chat_id_to_str(channel_id, chat_id)
-            if target_msg:
+            if target_msg is not None:
                 target_log = self.db.get_msg_log(master_msg_id=target_msg)
                 if target_log:
                     target = target_log.slave_origin_uid
@@ -229,7 +222,7 @@ class MasterMessageProcessor(LocaleMixin):
         m = ETMMsg()
         log_message = True
         try:
-            m.uid = message_id
+            m.uid = MessageID(message_id)
             m.put_telegram_file(message)
             mtype = m.type_telegram
             # Chat and author related stuff

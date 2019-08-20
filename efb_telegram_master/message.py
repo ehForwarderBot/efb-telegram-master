@@ -142,7 +142,7 @@ class ETMMsg(EFBMsg):
             target.chat = ETMChat(chat=target.chat, db=db)
         if not isinstance(target.author, ETMChat):
             target.author = ETMChat(chat=target.author, db=db)
-        if target.reactions:
+        if isinstance(target.reactions, dict):
             for i in target.reactions:
                 if any(not isinstance(j, ETMChat) for j in target.reactions[i]):
                     # noinspection PyTypeChecker

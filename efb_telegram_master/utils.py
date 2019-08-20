@@ -2,14 +2,23 @@
 
 import base64
 from typing import Any, Dict, Optional, Tuple, Union, TYPE_CHECKING
+from typing_extensions import NewType
 
 import telegram
 
 from ehforwarderbot import EFBChat, EFBChannel
+from ehforwarderbot.types import ChatID, ModuleID
 from .locale_mixin import LocaleMixin
 
 if TYPE_CHECKING:
     from . import TelegramChannel
+
+# TelegramChatID = NewType('TelegramChatID', Union[str, int])
+# TelegramMessageID = NewType('TelegramMessageID', Union[str, int])
+TelegramChatID = Union[str, int]
+TelegramMessageID = Union[str, int]
+TgChatMsgIDStr = str
+EFBChannelChatIDStr = str
 
 
 class ExperimentalFlagsManager(LocaleMixin):
@@ -36,17 +45,17 @@ class ExperimentalFlagsManager(LocaleMixin):
         return self.config[flag_key]
 
 
-def b64en(s):
+def b64en(s: str) -> str:
     return base64.b64encode(s.encode(), b"-_").decode().rstrip("=")
 
 
-def b64de(s):
+def b64de(s: str) -> str:
     return base64.b64decode((s + '=' * (- len(s) % 4)).encode(), b"-_").decode()
 
 
-def message_id_to_str(chat_id: Optional[Union[int, str]] = None,
-                      message_id: Optional[Union[int, str]] = None,
-                      update: Optional[telegram.Update] = None) -> str:
+def message_id_to_str(chat_id: Optional[TelegramChatID] = None,
+                      message_id: Optional[TelegramMessageID] = None,
+                      update: Optional[telegram.Update] = None) -> TgChatMsgIDStr:
     """
     Convert an unique identifier to telegram message to a string.
 
@@ -68,7 +77,7 @@ def message_id_to_str(chat_id: Optional[Union[int, str]] = None,
     return "%s.%s" % (chat_id, message_id)
 
 
-def message_id_str_to_id(s: str) -> Tuple[str, str]:
+def message_id_str_to_id(s: TgChatMsgIDStr) -> Tuple[TelegramChatID, TelegramMessageID]:
     """
     Reverse of message_id_to_str.
     Returns:
@@ -78,8 +87,8 @@ def message_id_str_to_id(s: str) -> Tuple[str, str]:
     return msg_ids[0], msg_ids[1]
 
 
-def chat_id_to_str(channel_id: Optional[str] = None, chat_uid: Optional[str] = None,
-                   chat: Optional[EFBChat] = None, channel: Optional[EFBChannel] = None) -> str:
+def chat_id_to_str(channel_id: Optional[ModuleID] = None, chat_uid: Optional[ChatID] = None,
+                   chat: Optional[EFBChat] = None, channel: Optional[EFBChannel] = None) -> EFBChannelChatIDStr:
     """
     Convert an unique identifier to EFB chat to a string.
 
@@ -105,11 +114,11 @@ def chat_id_to_str(channel_id: Optional[str] = None, chat_uid: Optional[str] = N
     return f"{channel_id} {chat_uid}"
 
 
-def chat_id_str_to_id(s: str) -> Tuple[str, str]:
+def chat_id_str_to_id(s: EFBChannelChatIDStr) -> Tuple[ModuleID, ChatID]:
     """
     Reverse of chat_id_to_str.
     Returns:
         channel_id, chat_uid
     """
     chat_ids = s.split(" ", 1)
-    return chat_ids[0], chat_ids[1]
+    return ModuleID(chat_ids[0]), ChatID(chat_ids[1])
