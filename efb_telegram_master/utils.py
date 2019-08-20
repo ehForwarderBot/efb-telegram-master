@@ -13,12 +13,14 @@ from .locale_mixin import LocaleMixin
 if TYPE_CHECKING:
     from . import TelegramChannel
 
-# TelegramChatID = NewType('TelegramChatID', Union[str, int])
-# TelegramMessageID = NewType('TelegramMessageID', Union[str, int])
-TelegramChatID = Union[str, int]
-TelegramMessageID = Union[str, int]
-TgChatMsgIDStr = str
-EFBChannelChatIDStr = str
+TelegramChatID = NewType('TelegramChatID', str)
+TelegramMessageID = NewType('TelegramMessageID', str)
+TgChatMsgIDStr = NewType('TgChatMsgIDStr', str)
+EFBChannelChatIDStr = NewType('EFBChannelChatIDStr', str)
+# TelegramChatID = Union[str, int]
+# TelegramMessageID = Union[str, int]
+# TgChatMsgIDStr = str
+# EFBChannelChatIDStr = str
 
 
 class ExperimentalFlagsManager(LocaleMixin):
@@ -74,7 +76,7 @@ def message_id_to_str(chat_id: Optional[TelegramChatID] = None,
     if update:
         chat_id = update.effective_chat.id
         message_id = update.effective_message.message_id
-    return "%s.%s" % (chat_id, message_id)
+    return TgChatMsgIDStr(f"{chat_id}.{message_id}")
 
 
 def message_id_str_to_id(s: TgChatMsgIDStr) -> Tuple[TelegramChatID, TelegramMessageID]:
@@ -84,7 +86,7 @@ def message_id_str_to_id(s: TgChatMsgIDStr) -> Tuple[TelegramChatID, TelegramMes
         chat_id, message_id
     """
     msg_ids = s.split(".", 1)
-    return msg_ids[0], msg_ids[1]
+    return TelegramChatID(msg_ids[0]), TelegramMessageID(msg_ids[1])
 
 
 def chat_id_to_str(channel_id: Optional[ModuleID] = None, chat_uid: Optional[ChatID] = None,
@@ -111,7 +113,7 @@ def chat_id_to_str(channel_id: Optional[ModuleID] = None, chat_uid: Optional[Cha
     if channel:
         channel_id = channel.channel_id
 
-    return f"{channel_id} {chat_uid}"
+    return EFBChannelChatIDStr(f"{channel_id} {chat_uid}")
 
 
 def chat_id_str_to_id(s: EFBChannelChatIDStr) -> Tuple[ModuleID, ChatID]:

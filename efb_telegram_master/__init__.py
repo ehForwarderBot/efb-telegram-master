@@ -25,7 +25,7 @@ from ehforwarderbot.constants import MsgType, ChannelType
 from ehforwarderbot.exceptions import EFBException, EFBOperationNotSupported, EFBChatNotFound, \
     EFBMessageReactionNotPossible
 from ehforwarderbot.status import EFBReactToMessage
-from ehforwarderbot.types import ChatID, ModuleID, InstanceID
+from ehforwarderbot.types import ChatID, ModuleID, InstanceID, MessageID
 from .__version__ import __version__
 from . import utils as etm_utils
 from .bot_manager import TelegramBotManager
@@ -38,7 +38,7 @@ from .message import ETMMsg
 from .monkey_patch import load_monkey_patches
 from .rpc_utils import RPCUtilities
 from .slave_message import SlaveMessageProcessor
-from .utils import ExperimentalFlagsManager
+from .utils import ExperimentalFlagsManager, EFBChannelChatIDStr
 
 
 class TelegramChannel(EFBChannel):
@@ -502,8 +502,11 @@ class TelegramChannel(EFBChannel):
     def send_status(self, status: EFBStatus):
         return self.slave_messages.send_status(status)
 
-    def get_message_by_id(self, chat_uid: str, msg_id: str) -> Optional['EFBMsg']:
-        msg_log = self.db.get_msg_log(slave_origin_uid=chat_uid, slave_msg_id=msg_id)
+    def get_message_by_id(self, chat: EFBChat,
+                          msg_id: MessageID) -> Optional['EFBMsg']:
+        origin_uid = etm_utils.chat_id_to_str(chat=chat)
+        msg_log = self.db.get_msg_log(slave_origin_uid=origin_uid,
+                                      slave_msg_id=msg_id)
         if msg_log is not None:
             if msg_log.pickle:
                 return pickle.loads(msg_log.pickle)

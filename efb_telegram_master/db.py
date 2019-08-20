@@ -9,7 +9,7 @@ from peewee import Model, TextField, DateTimeField, CharField, SqliteDatabase, D
 from playhouse.migrate import SqliteMigrator, migrate
 
 from ehforwarderbot import utils, EFBChannel, EFBChat, ChatType
-from ehforwarderbot.types import ModuleID, ChatID
+from ehforwarderbot.types import ModuleID, ChatID, MessageID
 from .utils import TelegramMessageID, TelegramChatID, EFBChannelChatIDStr, TgChatMsgIDStr
 
 database = SqliteDatabase(None)
@@ -252,7 +252,7 @@ class DatabaseManager:
 
     def get_msg_log(self,
                     master_msg_id: Optional[TgChatMsgIDStr] = None,
-                    slave_msg_id: Optional[EFBChannelChatIDStr] = None,
+                    slave_msg_id: Optional[MessageID] = None,
                     slave_origin_uid: Optional[EFBChannelChatIDStr] = None) -> Optional['MsgLog']:
         """Get message log by message ID.
 
@@ -281,7 +281,7 @@ class DatabaseManager:
             return None
 
     def delete_msg_log(self,
-                       master_msg_id: Optional[EFBChannelChatIDStr] = None,
+                       master_msg_id: Optional[TgChatMsgIDStr] = None,
                        slave_msg_id: Optional[EFBChannelChatIDStr] = None,
                        slave_origin_uid: Optional[EFBChannelChatIDStr] = None):
         """Remove a message log by message ID.
