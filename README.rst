@@ -76,7 +76,7 @@ Set up a bot
 ~~~~~~~~~~~~
 
 Create a bot with `@BotFather`_, give it a name and a username.
-Then you'll get a token, which will be used later. Keep this
+Then you’ll get a token, which will be used later. Keep this
 token secure, as it gives who owns it the full access to the
 bot.
 
@@ -250,7 +250,7 @@ Examples:
 -  Look for all WeChat groups: ``Channel: WeChat.*Type: Group``
 -  Look for everyone who has an alias ``Name: (.*?)\nAlias: (?!\1)``
 -  Look for all entries contain “John” and “Johnny” in any order:
-   ``(?=.*John)(?=.*Johnny)"``
+   ``(?=.*John)(?=.*Johnny)``
 
 Send a message
 ~~~~~~~~~~~~~~
@@ -279,8 +279,9 @@ To send a message to a non-linked chat, you should “direct reply” to a
 message or a “chat head” that is sent from your recipient. Those
 messages should appear only in the bot conversation.
 
-In a non-linked chat, direct reply will not be delivered to the remote
-channel, everything else is supported as it does in a linked chat.
+In a non-linked chat, quotation in direct replies will not be delivered
+to the remote channel, everything else is supported as it does in a
+linked chat.
 
 Edit and delete message
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -491,7 +492,7 @@ e.g.:
 
 - ``auto_locale`` *(str)* [Default: ``true``]
 
-   Detect the locale from admin's messages automatically. Locale
+   Detect the locale from admin’s messages automatically. Locale
    defined in environment variables will be used otherwise.
 
 - ``retry_on_error`` *(bool)* [Default: ``false``]
@@ -503,7 +504,7 @@ e.g.:
 
 - ``send_image_as_file`` *(bool)* [Default: ``false``]
 
-    Send all image messages as files, in order to prevent Telegram's
+    Send all image messages as files, in order to prevent Telegram’s
     image compression in an aggressive way.
 
 - ``message_muted_on_slave`` *(str)* [Default: ``normal``]
@@ -543,7 +544,7 @@ The ``connect_timeout`` value controls the timeout for establishing a
 connection to the Telegram server(s).
 
 Changing the defaults of ``read_timeout`` & ``connet_timeout`` can be
-done by adjusting values ``request_kwargs`` section in ETM's
+done by adjusting values ``request_kwargs`` section in ETM’s
 ``config.yaml``.
 
 .. code:: yaml
@@ -563,7 +564,7 @@ __ https://github.com/python-telegram-bot/python-telegram-bot/wiki/Working-Behin
 
 You can appoint proxy specifically for ETM without affecting other
 channels running in together in the same EFB instance. This can also be
-done by adjusting values ``request_kwargs`` section in ETM's
+done by adjusting values ``request_kwargs`` section in ETM’s
 ``config.yaml``.
 
 HTTP proxy server
@@ -602,7 +603,7 @@ RPC interface
 -------------
 
 A standard `Python XML RPC server`__ is implemented in ETM 2. It can be
-enabled by adding a ``rpc`` section in ETM's ``config.yml`` file.
+enabled by adding a ``rpc`` section in ETM’s ``config.yml`` file.
 
 __ https://docs.python.org/3/library/xmlrpc.html
 
