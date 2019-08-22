@@ -429,6 +429,14 @@ How to use:
 2. Send commands to the channel
 3. Forward the command message to the bot privately
 
+.. admonition:: Technical Details
+
+    Telegram Bot API prevents bot from knowing who actually sent a message
+    in a channel (not including signatures as that doesn't reflect the numeric
+    ID of the sender). In fact, that is the same for normal users in a channel
+    too, even admins. Thus, we think that it is not safe to process messages
+    directly from a channel.
+
 Limitations
 -----------
 
