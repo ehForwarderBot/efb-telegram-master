@@ -14,8 +14,8 @@ import telegram.error
 import telegram.ext
 from PIL import Image
 from pkg_resources import resource_filename
-from telegram import Message
-from telegram.ext import CommandHandler, CallbackQueryHandler
+from telegram import Message, Update
+from telegram.ext import CommandHandler, CallbackQueryHandler, CallbackContext, Filters
 from ruamel.yaml import YAML
 
 import ehforwarderbot
@@ -32,7 +32,6 @@ from .bot_manager import TelegramBotManager
 from .chat_binding import ChatBindingManager, ETMChat
 from .commands import CommandsManager
 from .db import DatabaseManager
-from .global_command_handler import GlobalCommandHandler
 from .master_message import MasterMessageProcessor
 from .message import ETMMsg
 from .monkey_patch import load_monkey_patches
@@ -129,7 +128,6 @@ class TelegramChannel(EFBChannel):
         self.flag: ExperimentalFlagsManager = ExperimentalFlagsManager(self)
         self.db: DatabaseManager = DatabaseManager(self)
         self.bot_manager: TelegramBotManager = TelegramBotManager(self)
-        # self.voice_recognition: VoiceRecognitionManager = VoiceRecognitionManager(self)
         self.chat_binding: ChatBindingManager = ChatBindingManager(self)
         self.commands: CommandsManager = CommandsManager(self)
         self.master_messages: MasterMessageProcessor = MasterMessageProcessor(self)
@@ -141,18 +139,19 @@ class TelegramChannel(EFBChannel):
                                           fallback=True)
 
         # Basic message handlers
+        non_edit_filter = Filters.update.message & Filters.update.channel_post
         self.bot_manager.dispatcher.add_handler(
-            GlobalCommandHandler("start", self.start, pass_args=True))
+            CommandHandler("start", self.start, filters=non_edit_filter))
         self.bot_manager.dispatcher.add_handler(
-            CommandHandler("help", self.help))
+            CommandHandler("help", self.help, filters=non_edit_filter))
         self.bot_manager.dispatcher.add_handler(
-            GlobalCommandHandler("info", self.info))
+            CommandHandler("info", self.info, filters=non_edit_filter))
         self.bot_manager.dispatcher.add_handler(
             CallbackQueryHandler(self.void_callback_handler, pattern="void"))
         self.bot_manager.dispatcher.add_handler(
             CallbackQueryHandler(self.bot_manager.session_expired))
         self.bot_manager.dispatcher.add_handler(
-            GlobalCommandHandler("react", self.react)
+            CommandHandler("react", self.react, filters=non_edit_filter)
         )
 
         self.bot_manager.dispatcher.add_error_handler(self.error)
@@ -197,14 +196,10 @@ class TelegramChannel(EFBChannel):
 
             self.config = data.copy()
 
-    def info(self, bot, update):
+    def info(self, update: Update, context: CallbackContext):
         """
         Show info of the current telegram conversation.
         Triggered by `/info`.
-
-        Args:
-            bot: Telegram Bot instance
-            update: Message update
         """
         if update.message.chat.type != telegram.Chat.PRIVATE:  # Group message
             links = self.db.get_chat_assoc(master_uid=etm_utils.chat_id_to_str(self.channel_id, update.message.chat_id))
@@ -276,20 +271,15 @@ class TelegramChannel(EFBChannel):
 
         update.message.reply_text(msg)
 
-    def start(self, bot, update, args=None):
+    def start(self, update: Update, context: CallbackContext):
         """
         Process bot command `/start`.
-
-        Args:
-            bot: Telegram Bot instance
-            update (telegram.Update): Message update
-            args: Arguments from message
         """
-        if args:  # Group binding command
+        if context.args:  # Group binding command
             if update.effective_message.chat.type != telegram.Chat.PRIVATE or \
                     (update.effective_message.forward_from_chat and
                      update.effective_message.forward_from_chat.type == telegram.Chat.CHANNEL):
-                self.chat_binding.link_chat(update, args)
+                self.chat_binding.link_chat(update, context.args)
             else:
                 self.bot_manager.send_message(update.effective_chat.id,
                                               self._('You cannot link remote chats to here. Please try again.'))
@@ -298,7 +288,7 @@ class TelegramChannel(EFBChannel):
                          "To learn more, please visit https://github.com/blueset/efb-telegram-master .")
             self.bot_manager.send_message(update.effective_chat.id, txt)
 
-    def react(self, bot, update):
+    def react(self, update: Update, context: CallbackContext):
         """React to a message."""
         message: Message = update.effective_message
 
@@ -325,7 +315,7 @@ class TelegramChannel(EFBChannel):
 
         if not reaction:
             if msg_log.pickle is None:
-                message.reply_text(self._("Reactors of this message is not recorded in database."))
+                message.reply_text(self._("Reactors of this message are not recorded in database."))
                 return
             msg_log_obj: ETMMsg = pickle.loads(msg_log.pickle)
             reactors = msg_log_obj.reactions
@@ -384,7 +374,7 @@ class TelegramChannel(EFBChannel):
             message.reply_text(prompt)
             return
 
-    def help(self, bot, update):
+    def help(self, update: Update, context: CallbackContext):
         txt = self._("EFB Telegram Master Channel\n"
                      "/link\n"
                      "    Link a remote chat to an empty Telegram group.\n"
@@ -405,7 +395,7 @@ class TelegramChannel(EFBChannel):
                      "    Only works in singly linked group where the bot is an admin.\n"
                      "/help\n"
                      "    Print this command list.")
-        bot.send_message(update.message.from_user.id, txt)
+        self.bot_manager.send_message(update.message.from_user.id, txt)
 
     def poll(self):
         """
@@ -413,11 +403,12 @@ class TelegramChannel(EFBChannel):
         """
         self.bot_manager.polling()
 
-    def error(self, bot, update, error):
+    def error(self, update: Update, context: CallbackContext):
         """
         Print error to console, and send error message to first admin.
         Triggered by python-telegram-bot error callback.
         """
+        error = context.error
         if "(409)" in str(error):
             msg = self._('Conflicted polling detected. If this error persists, '
                          'please ensure you are running only one instance of this Telegram bot.')
@@ -444,7 +435,7 @@ class TelegramChannel(EFBChannel):
         except (telegram.error.TimedOut, telegram.error.NetworkError):
             self.timeout_count += 1
             self.logger.error("Poor internet connection detected.\n"
-                              "Number of network error occurred since last startup: %s\n\%s\nUpdate: %s",
+                              "Number of network error occurred since last startup: %s\n%s\nUpdate: %s",
                               self.timeout_count, str(error), str(update))
             if update is not None and isinstance(getattr(update, "message", None), telegram.Message):
                 update.message.reply_text(self._("This message is not processed due to poor internet environment "
@@ -476,19 +467,23 @@ class TelegramChannel(EFBChannel):
                 self.db.remove_chat_assoc(slave_uid=i)
                 self.db.add_chat_assoc(master_uid=etm_utils.chat_id_to_str(self.channel_id, new_id), slave_uid=i)
                 count += 1
-            bot.send_message(new_id, self.ngettext("Chat migration detected.\n"
-                                                   "All {count} remote chat are now linked to this new group.",
-                                                   "Chat migration detected.\n"
-                                                   "All {count} remote chats are now linked to this new group.",
-                                                   count).format(count=count))
+            self.bot_manager.send_message(
+                new_id, self.ngettext("Chat migration detected.\n"
+                                      "All {count} remote chat are now linked to this new group.",
+                                      "Chat migration detected.\n"
+                                      "All {count} remote chats are now linked to this new group.",
+                                      count).format(count=count))
         except Exception as e:
             try:
-                bot.send_message(self.config['admins'][0],
-                                 self._("EFB Telegram Master channel encountered error <code>{error}</code> "
-                                        "caused by update <code>{update}</code>.").format(error=html.escape(str(error)),
-                                                                                          update=html.escape(
-                                                                                              str(update))),
-                                 parse_mode="HTML")
+                self.bot_manager.send_message(
+                    self.config['admins'][0],
+                    self._(
+                        "EFB Telegram Master channel encountered error <code>{error}</code> "
+                        "caused by update <code>{update}</code>.").format(
+                        error=html.escape(str(error)),
+                        update=html.escape(
+                            str(update))),
+                    parse_mode="HTML")
             except Exception as ex:
                 self.logger.exception("Failed to send error message through Telegram: %s", ex)
 
@@ -517,7 +512,7 @@ class TelegramChannel(EFBChannel):
             # Message is not found.
             return None
 
-    def void_callback_handler(self, bot, update):
+    def void_callback_handler(self, update: Update, context: CallbackContext):
         self.bot_manager.answer_callback_query(update.callback_query.id,
                                                text=self._("This button does nothing."),
                                                cache_time=180)

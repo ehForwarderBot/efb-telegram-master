@@ -19,7 +19,7 @@ class WhitelistHandler(Handler):
     """
 
     def __init__(self, whitelist: List[int], pass_update_queue: bool=False):
-        def void_function(bot, update):
+        def void_function(update, context):
             pass
 
         self.whitelist = list(map(lambda i: int(i), whitelist))

@@ -7,7 +7,8 @@ import time
 from typing import Optional, TYPE_CHECKING
 
 import telegram
-from telegram.ext import MessageHandler, Filters
+from telegram import Update
+from telegram.ext import MessageHandler, Filters, CallbackContext
 from telegram.utils.helpers import escape_markdown
 
 from ehforwarderbot import EFBChat, EFBMsg, coordinator
@@ -57,29 +58,25 @@ class MasterMessageProcessor(LocaleMixin):
         self.bot: 'TelegramBotManager' = channel.bot_manager
         self.db: 'DatabaseManager' = channel.db
         self.bot.dispatcher.add_handler(MessageHandler(
-            Filters.text | Filters.photo | Filters.sticker | Filters.document |
-            Filters.venue | Filters.location | Filters.audio | Filters.voice | Filters.video,
+            (Filters.text | Filters.photo | Filters.sticker | Filters.document |
+             Filters.venue | Filters.location | Filters.audio | Filters.voice | Filters.video) &
+            Filters.update,
             self.msg_thread_creator, edited_updates=True
         ))
         self.logger: logging.Logger = logging.getLogger(__name__)
 
         self.channel_id: ModuleID = self.channel.channel_id
 
-    def msg_thread_creator(self, bot, update):
+    def msg_thread_creator(self, update: Update, context: CallbackContext):
         """Process message in a thread, to ensure it doesn't block the main thread."""
-        threading.Thread(target=self.msg, args=(bot, update)).run()
+        threading.Thread(target=self.msg, args=(update, context)).run()
 
-    def msg(self, bot, update: telegram.Update):
+    def msg(self, update: Update, context: CallbackContext):
         """
         Process, wrap and dispatch messages from user.
-
-        Args:
-            bot: Telegram Bot instance
-            update: Message update
         """
 
-        message: telegram.Message = update.message or update.edited_message or \
-                                    update.channel_post or update.edited_channel_post
+        message: telegram.Message = update.effective_message
 
         self.logger.debug("Received message from Telegram: %s", message.to_dict())
         multi_slaves = False
@@ -105,10 +102,9 @@ class MasterMessageProcessor(LocaleMixin):
                 message.reply_text(self._("Error: No recipient specified.\n"
                                           "Please reply to a previous message. (MS02)"), quote=True)
         else:
-            return self.process_telegram_message(bot, update)
+            return self.process_telegram_message(update, context)
 
-    def process_telegram_message(self, bot: telegram.Bot,
-                                 update: telegram.Update,
+    def process_telegram_message(self, update: Update, context: CallbackContext,
                                  channel_id: Optional[ModuleID] = None,
                                  chat_id: Optional[ChatID] = None,
                                  target_msg: Optional[utils.TgChatMsgIDStr] = None):
@@ -116,8 +112,8 @@ class MasterMessageProcessor(LocaleMixin):
         Process messages came from Telegram.
 
         Args:
-            bot: Telegram bot
             update: Telegram message update
+            context: PTB update context
             channel_id: Slave channel ID if specified
             chat_id: Slave chat ID if specified
             target_msg: Target slave message if specified
