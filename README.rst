@@ -498,24 +498,24 @@ e.g.:
    When a slave channel requires to remove a message, EFB will ignore
    the request if this value is ``true``.
 
-- ``auto_locale`` *(str)* [Default: ``true``]
+-  ``auto_locale`` *(str)* [Default: ``true``]
 
    Detect the locale from admin’s messages automatically. Locale
    defined in environment variables will be used otherwise.
 
-- ``retry_on_error`` *(bool)* [Default: ``false``]
+-   ``retry_on_error`` *(bool)* [Default: ``false``]
 
     Retry infinitely when an error occurred while sending request
     to Telegram Bot API. Note that this may lead to repetitive
     message delivery, as the respond of Telegram Bot API is
     not reliable, and may not reflect the actual result.
 
-- ``send_image_as_file`` *(bool)* [Default: ``false``]
+-   ``send_image_as_file`` *(bool)* [Default: ``false``]
 
     Send all image messages as files, in order to prevent Telegram’s
     image compression in an aggressive way.
 
-- ``message_muted_on_slave`` *(str)* [Default: ``normal``]
+-   ``message_muted_on_slave`` *(str)* [Default: ``normal``]
 
     Behavior when a message received is muted on slave channel platform.
 
@@ -524,7 +524,7 @@ e.g.:
       sound
     - ``mute``: do not send to Telegram
 
-- ``your_message_on_slave`` *(str)* [Default: ``silent``]
+-   ``your_message_on_slave`` *(str)* [Default: ``silent``]
 
     Behavior when a message received is from you on slave channel platform.
     This overrides settings from ``message_muted_on_slave``.
