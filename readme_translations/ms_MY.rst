@@ -10,6 +10,9 @@ EFB Telegram Master Channel (ETM)
    :target: https://crowdin.com/project/ehforwarderbot/
    :alt: Translate this project
 
+.. image:: https://github.com/blueset/efb-telegram-master/blob/master/banner.png
+   :alt: Banner
+
 `README in other languages <./readme_translations>`_.
 
 **Channel ID**: ``blueset.telegram``
@@ -83,7 +86,7 @@ Set up a bot
 ------------
 
 Create a bot with `@BotFather <https://t.me/botfather>`_, give it a
-name and a username. Then you'll get a token, which will be used
+name and a username. Then you’ll get a token, which will be used
 later. Keep this token secure, as it gives who owns it the full access
 to the bot.
 
@@ -289,7 +292,7 @@ Examples:
 * Look for everyone who has an alias ``Name: (.*?)\nAlias: (?!\1)``
 
 * Look for all entries contain “John” and “Johnny” in any order:
-   ``(?=.*John)(?=.*Johnny)"``
+   ``(?=.*John)(?=.*Johnny)``
 
 
 Send a message
@@ -325,8 +328,9 @@ To send a message to a non-linked chat, you should “direct reply” to a
 message or a “chat head” that is sent from your recipient. Those
 messages should appear only in the bot conversation.
 
-In a non-linked chat, direct reply will not be delivered to the remote
-channel, everything else is supported as it does in a linked chat.
+In a non-linked chat, quotation in direct replies will not be
+delivered to the remote channel, everything else is supported as it
+does in a linked chat.
 
 
 Edit and delete message
@@ -451,6 +455,12 @@ How to use:
 
 3. Forward the command message to the bot privately
 
+Technical Details: Telegram Bot API prevents bot from knowing who
+actually sent a message in a channel (not including signatures as that
+doesn't reflect the numeric ID of the sender). In fact, that is the
+same for normal users in a channel too, even admins. Thus, we think
+that it is not safe to process messages directly from a channel.
+
 
 Limitations
 ===========
@@ -526,7 +536,7 @@ e.g.:
 * ``auto_locale`` *(str)* [Default: ``true``]
 
    ..
-      Detect the locale from admin's messages automatically. Locale
+      Detect the locale from admin’s messages automatically. Locale
       defined in environment variables will be used otherwise.
 
 * ``retry_on_error`` *(bool)* [Default: ``false``]
@@ -540,7 +550,7 @@ e.g.:
 * ``send_image_as_file`` *(bool)* [Default: ``false``]
 
    ..
-      Send all image messages as files, in order to prevent Telegram's
+      Send all image messages as files, in order to prevent Telegram’s
       image compression in an aggressive way.
 
 * ``message_muted_on_slave`` *(str)* [Default: ``normal``]
@@ -590,7 +600,7 @@ The ``connect_timeout`` value controls the timeout for establishing a
 connection to the Telegram server(s).
 
 Changing the defaults of ``read_timeout`` & ``connet_timeout`` can be
-done by adjusting values ``request_kwargs`` section in ETM's
+done by adjusting values ``request_kwargs`` section in ETM’s
 ``config.yaml``.
 
 ::
@@ -612,7 +622,7 @@ Run ETM behind a proxy
 
 You can appoint proxy specifically for ETM without affecting other
 channels running in together in the same EFB instance. This can also
-be done by adjusting values ``request_kwargs`` section in ETM's
+be done by adjusting values ``request_kwargs`` section in ETM’s
 ``config.yaml``.
 
 
@@ -655,7 +665,7 @@ RPC interface
 
 A standard `Python XML RPC server
 <https://docs.python.org/3/library/xmlrpc.html>`_ is implemented in
-ETM 2. It can be enabled by adding a ``rpc`` section in ETM's
+ETM 2. It can be enabled by adding a ``rpc`` section in ETM’s
 ``config.yml`` file.
 
 ::
