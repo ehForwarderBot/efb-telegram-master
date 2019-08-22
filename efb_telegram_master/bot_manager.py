@@ -2,7 +2,9 @@
 import collections
 import io
 import logging
+import operator
 import os
+from functools import reduce
 
 import telegram
 import telegram.ext
@@ -13,7 +15,7 @@ from retrying import retry
 from typing import Optional, List, TYPE_CHECKING, Callable
 
 from telegram import Update
-from telegram.ext import CallbackContext
+from telegram.ext import CallbackContext, Filters, MessageHandler
 
 from .whitelisthandler import WhitelistHandler
 from .locale_handler import LocaleHandler
@@ -39,6 +41,7 @@ class TelegramBotManager(LocaleMixin):
     """
 
     webhook = False
+    logger = logging.getLogger(__name__)
 
     class Decorators:
         logger = logging.getLogger(__name__)
@@ -84,7 +87,10 @@ class TelegramBotManager(LocaleMixin):
         self.me: telegram.User = self.updater.bot.get_me()
         self.admins: List[int] = config['admins']
         self.dispatcher: telegram.ext.Dispatcher = self.updater.dispatcher
-        self.dispatcher.add_handler(WhitelistHandler(self.admins))
+        # New whitelist handler
+        whitelist_filter = ~Filters.user(user_id=self.admins)
+        self.dispatcher.add_handler(
+            MessageHandler(whitelist_filter, lambda update, context: ...))
         self.dispatcher.add_handler(LocaleHandler(channel))
         self.Decorators.enabled = channel.flag('retry_on_error')
 

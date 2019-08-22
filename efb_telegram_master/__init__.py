@@ -139,7 +139,7 @@ class TelegramChannel(EFBChannel):
                                           fallback=True)
 
         # Basic message handlers
-        non_edit_filter = Filters.update.message & Filters.update.channel_post
+        non_edit_filter = Filters.update.message | Filters.update.channel_post
         self.bot_manager.dispatcher.add_handler(
             CommandHandler("start", self.start, filters=non_edit_filter))
         self.bot_manager.dispatcher.add_handler(
