@@ -190,7 +190,7 @@ class ChatBindingManager(LocaleMixin):
         self.db: 'DatabaseManager' = channel.db
 
         # Link handler
-        non_edit_filter = Filters.update.message & Filters.update.channel_post
+        non_edit_filter = Filters.update.message | Filters.update.channel_post
         self.bot.dispatcher.add_handler(
             CommandHandler("link", self.link_chat_show_list, filters=non_edit_filter))
         self.link_handler = ConversationHandler(
