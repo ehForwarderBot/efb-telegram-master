@@ -11,6 +11,10 @@ import telegram.constants
 from retrying import retry
 
 from typing import Optional, List, TYPE_CHECKING, Callable
+
+from telegram import Update
+from telegram.ext import CallbackContext
+
 from .whitelisthandler import WhitelistHandler
 from .locale_handler import LocaleHandler
 from .locale_mixin import LocaleMixin
@@ -65,7 +69,8 @@ class TelegramBotManager(LocaleMixin):
             req_kwargs.update(conf_req_kwargs)
 
         self.updater: telegram.ext.Updater = telegram.ext.Updater(config['token'],
-                                                                  request_kwargs=req_kwargs)
+                                                                  request_kwargs=req_kwargs,
+                                                                  use_context=True)
 
         if isinstance(config.get('webhook'), dict):
             self.webhook = True
@@ -410,7 +415,7 @@ class TelegramBotManager(LocaleMixin):
     def get_me(self, *args, **kwargs):
         return self.updater.bot.get_me(*args, **kwargs)
 
-    def session_expired(self, bot, update):
+    def session_expired(self, update: Update, context: CallbackContext):
         self.edit_message_text(text=self._("Session expired. Please try again. (SE01)"),
                                chat_id=update.effective_chat.id,
                                message_id=update.effective_message.message_id)
@@ -468,6 +473,14 @@ class TelegramBotManager(LocaleMixin):
                                                           "Full message is sent as attachment."))
             return result
         return self.updater.bot.answer_callback_query(*args, **kwargs)
+
+    @Decorators.retry_on_timeout
+    def set_chat_title(self, *args, **kwargs):
+        return self.updater.bot.set_chat_title(*args, **kwargs)
+
+    @Decorators.retry_on_timeout
+    def set_chat_photo(self, *args, **kwargs):
+        return self.updater.bot.set_chat_photo(*args, **kwargs)
 
     def polling(self):
         """

@@ -40,7 +40,7 @@ setup(
     ],
     install_requires=[
         "ehforwarderbot>=2.0.0b18",
-        "python-telegram-bot>=10.0.0,<12.0.0",
+        "python-telegram-bot>=12.0.0b1",
         "urllib3>=1.25.3",  # for monkey patching PTB
         "python-magic",
         "moviepy",
