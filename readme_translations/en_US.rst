@@ -10,6 +10,9 @@ EFB Telegram Master Channel (ETM)
    :target: https://crowdin.com/project/ehforwarderbot/
    :alt: Translate this project
 
+.. image:: https://github.com/blueset/efb-telegram-master/blob/master/banner.png
+   :alt: Banner
+
 `README in other languages <./readme_translations>`_.
 
 **Channel ID**: ``blueset.telegram``
@@ -289,7 +292,7 @@ Examples:
 * Look for everyone who has an alias ``Name: (.*?)\nAlias: (?!\1)``
 
 * Look for all entries contain “John” and “Johnny” in any order:
-   ``(?=.*John)(?=.*Johnny)"``
+   ``(?=.*John)(?=.*Johnny)``
 
 
 Send a message
@@ -325,8 +328,9 @@ To send a message to a non-linked chat, you should “direct reply” to a
 message or a “chat head” that is sent from your recipient. Those
 messages should appear only in the bot conversation.
 
-In a non-linked chat, direct reply will not be delivered to the remote
-channel, everything else is supported as it does in a linked chat.
+In a non-linked chat, quotation in direct replies will not be
+delivered to the remote channel, everything else is supported as it
+does in a linked chat.
 
 
 Edit and delete message
@@ -450,6 +454,12 @@ How to use:
 2. Send commands to the channel
 
 3. Forward the command message to the bot privately
+
+Technical Details: Telegram Bot API prevents bot from knowing who
+actually sent a message in a channel (not including signatures as that
+doesn’t reflect the numeric ID of the sender). In fact, that is the
+same for normal users in a channel too, even admins. Thus, we think
+that it is not safe to process messages directly from a channel.
 
 
 Limitations

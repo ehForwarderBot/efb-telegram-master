@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ehforwarderbot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-18 12:22+0800\n"
-"PO-Revision-Date: 2019-08-18 14:05\n"
+"POT-Creation-Date: 2019-08-22 15:44+0800\n"
+"PO-Revision-Date: 2019-08-22 12:18\n"
 "Last-Translator: Eana Hufwe (blueset)\n"
 "Language-Team: Chinese Simplified\n"
 "Language: zh_CN\n"
@@ -16,34 +16,34 @@ msgstr ""
 "X-Crowdin-Language: zh-CN\n"
 "X-Crowdin-File: /EFBChannels/efb-telegram-master/efb_telegram_master/locale/efb_telegram_master.pot\n"
 
-#: efb_telegram_master/slave_message.py:190
+#: efb_telegram_master/slave_message.py:193
 #, python-brace-format
 msgid "Unknown type of message \"{0}\". (UT01)"
-msgstr ""
+msgstr "未知类型的消息「{0}」。(UT01)"
 
-#: efb_telegram_master/slave_message.py:387
+#: efb_telegram_master/slave_message.py:391
 msgid "sent a picture."
-msgstr ""
+msgstr "发送图片。"
 
-#: efb_telegram_master/slave_message.py:557
+#: efb_telegram_master/slave_message.py:561
 msgid "sent a file."
-msgstr ""
+msgstr "发送文件。"
 
 #. TRANSLATORS: Flag for edited message, but cannot be edited on Telegram.
-#: efb_telegram_master/slave_message.py:620
+#: efb_telegram_master/slave_message.py:624
 msgid "[edited]"
 msgstr "[已编辑]"
 
-#: efb_telegram_master/slave_message.py:637
+#: efb_telegram_master/slave_message.py:641
 msgid "sent a video."
-msgstr ""
+msgstr "发送视频。"
 
-#: efb_telegram_master/slave_message.py:661
-#: efb_telegram_master/slave_message.py:669
+#: efb_telegram_master/slave_message.py:665
+#: efb_telegram_master/slave_message.py:673
 msgid "(unsupported)"
 msgstr "(不支持)"
 
-#: efb_telegram_master/slave_message.py:714
+#: efb_telegram_master/slave_message.py:718
 msgid "Message removed in remote chat."
 msgstr "消息已从远端会话中移除。"
 
@@ -114,7 +114,8 @@ msgid "This is EFB Telegram Master Channel {version}, running on EFB {fw_version
 "{count} slave channel activated:"
 msgid_plural "This is EFB Telegram Master Channel {version}, running on EFB {fw_version}.\n"
 "{count} slave channels activated:"
-msgstr[0] ""
+msgstr[0] "这是 EFB Telegram 主端 {version}，运行在 EFB {fw_version}。\n"
+"已激活 {count} 个从端："
 
 #: efb_telegram_master/__init__.py:272
 #, python-brace-format
@@ -138,11 +139,12 @@ msgstr "这里是 EFB Telegram主端. \n\n"
 #: efb_telegram_master/__init__.py:311
 msgid "Reply to a message with this command and an emoji to send a reaction. Ex.: <code>/react 👍</code>.\n"
 "Send <code>/react -</code> to remove your reaction from a message."
-msgstr ""
+msgstr "使用此命令后加一个 emoji 回复消息来对此消息作出回应。例如：<code>/react 👍</code>。\n"
+"发送 <code>/react -</code> 从消息中删除您的回应。"
 
 #: efb_telegram_master/__init__.py:322
 msgid "The message you replied to is not recorded in ETM database. You cannot react to this message."
-msgstr ""
+msgstr "您回复的消息未被记录在 ETM 数据库中。您不能对此消息作出回应。"
 
 #: efb_telegram_master/__init__.py:328
 msgid "Reactors of this message is not recorded in database."
@@ -150,31 +152,31 @@ msgstr ""
 
 #: efb_telegram_master/__init__.py:333
 msgid "This message has no reactions yet. Reply to a message with this command and an emoji to send a reaction. Ex.: <code>/react 👍</code>."
-msgstr ""
+msgstr "此消息尚未有回应。回复此命令和 emoji 作出回应。例如：<code>/react 👍</code>."
 
 #: efb_telegram_master/__init__.py:354
 msgid "The slave channel involved in this message ({}) is not available. You cannot react to this message."
-msgstr ""
+msgstr "此消息涉及的从端（{}）不可用。您不能对此消息作出回应。"
 
 #: efb_telegram_master/__init__.py:361
 msgid "The channel involved in this message does not accept reactions. You cannot react to this message."
-msgstr ""
+msgstr "此消息涉及的信道不支持回应功能。您不能对此消息作出回应。"
 
 #: efb_telegram_master/__init__.py:368
 msgid "The chat involved in this message ({}) is not found. You cannot react to this message."
-msgstr ""
+msgstr "未找到此消息涉及的会话（{}）。您不能对此消息作出回应。"
 
 #: efb_telegram_master/__init__.py:378
 msgid "You cannot react anything to this message."
-msgstr ""
+msgstr "您不能对此消息作出回应。"
 
 #: efb_telegram_master/__init__.py:381
 msgid "{} is not accepted as a reaction to this message."
-msgstr ""
+msgstr "{} 不能接收对此消息的回应。"
 
 #: efb_telegram_master/__init__.py:383
 msgid "You may want to try: {}"
-msgstr ""
+msgstr "您可以尝试：{}"
 
 #: efb_telegram_master/__init__.py:388
 msgid "EFB Telegram Master Channel\n"
@@ -197,7 +199,26 @@ msgid "EFB Telegram Master Channel\n"
 "    Only works in singly linked group where the bot is an admin.\n"
 "/help\n"
 "    Print this command list."
-msgstr ""
+msgstr "EFB Telegram 主端 \n"
+"/link\n"
+"     将一个远端会话与一个空 Telegram 群组绑定。\n"
+"     通过附加正则表达式来筛选结果。\n"
+" /chat\n"
+"     生成一个会话头以开始会话。\n"
+"     通过附加正则表达式来筛选结果。\n"
+"/extra\n"
+"     列出所有由从端提供的附加功能。\n"
+" /unlink_all\n"
+"     断开该会话中的所有远程会话。\n"
+" /info\n"
+"     显示该 Telegram 会话的相关信息。\n"
+"/react [emoji]\n"
+"     使用 emoji 对一条消息进行回应，或者列出所有组员做出过的回应。\n"
+" /update_info\n"
+"     更新一个被绑定的 Telegram 群组的名称及头像。\n"
+"     只对被单独绑定且 Bot 为管理员的群组有效。\n"
+" /help\n"
+"     显示本帮助信息。"
 
 #: efb_telegram_master/__init__.py:422
 msgid "Conflicted polling detected. If this error persists, please ensure you are running only one instance of this Telegram bot."
@@ -246,15 +267,15 @@ msgid "EFB Telegram Master channel encountered error <code>{error}</code> caused
 msgstr "EFB Telegram 主端遇到错误 <code>{error}</code>。\n"
 "来自状态：<code>{update}</code>。"
 
-#: efb_telegram_master/__init__.py:512
+#: efb_telegram_master/__init__.py:515
 msgid "Message is not possible to be retrieved."
-msgstr ""
+msgstr "无法获取消息。"
 
-#: efb_telegram_master/__init__.py:519
+#: efb_telegram_master/__init__.py:522
 msgid "This button does nothing."
-msgstr ""
+msgstr "此按钮没有功能。"
 
-#: efb_telegram_master/wizard.py:68
+#: efb_telegram_master/wizard.py:69
 msgid "# ======================================\n"
 "# EFB Telegram Master Configuration file\n"
 "# ======================================\n"
@@ -268,16 +289,28 @@ msgid "# ======================================\n"
 "# [Bot Token]\n"
 "# The bot token obtained from @BotFather, in the format of numbers-colon-\n"
 "# alphanumerals.\n"
-msgstr ""
+msgstr "# =========================\n"
+"# EFB Telegram 主端配置文件\n"
+"# =========================\n"
+"#\n"
+"# 此文件用于配置 EFB Telegram 主端（ETM）的工作方式及其所属。\n"
+"#\n"
+"# 必填项目\n"
+"# --------\n"
+"#\n"
+"# [Bot 令牌]\n"
+"# 通过 @BotFather 获得的 bot 令牌，格式为 数字-冒号-字母数字。\n"
 
-#: efb_telegram_master/wizard.py:87
+#: efb_telegram_master/wizard.py:88
 msgid "# [List of Admin User IDs]\n"
 "# ETM will only process messages and commands from users\n"
 "# listed below.  This ID can be obtained from various ways \n"
 "# on Telegram.\n"
-msgstr ""
+msgstr "# [管理员用户ID列表]\n"
+"# ETM 仅将处理来自下列用户的消息和命令。\n"
+"# 此 ID 可以通过多种方式从 Telegram 获取。\n"
 
-#: efb_telegram_master/wizard.py:97
+#: efb_telegram_master/wizard.py:98
 msgid "# Optional items\n"
 "# --------------\n"
 "#\n"
@@ -287,78 +320,102 @@ msgid "# Optional items\n"
 "# Refer to the project documentation for details.\n"
 "#\n"
 "# https://github.com/blueset/efb-telegram-master\n"
-msgstr ""
+msgstr "# 可选项目\n"
+"# --------\n"
+"#\n"
+"# [实验功能]\n"
+"# 此部分可用来启用实验功能。\n"
+"# 这些功能随时可能会被更改或删除。\n"
+"# 详细内容请参考项目文档。\n"
+"#\n"
+"# https://github.com/blueset/efb-telegram-master\n"
 
-#: efb_telegram_master/wizard.py:113
+#: efb_telegram_master/wizard.py:114
 msgid "# [Network configurations]\n"
 "# Timeout tweaks, Proxy, etc.\n"
 "# Refer to the project documentation for details.\n"
 "#\n"
 "# https://github.com/blueset/efb-telegram-master\n"
-msgstr ""
+msgstr "# [网络配置]\n"
+"# 超时调整，代理等。\n"
+"# 详细内容请参考项目文档。\n"
+"#\n"
+"# https://github.com/blueset/efb-telegram-master\n"
 
-#: efb_telegram_master/wizard.py:140
+#: efb_telegram_master/wizard.py:141
 msgid "# [RPC interface]\n"
 "# Enable RPC interface of ETM where you can use scripts to manage data stored\n"
-"# the ETM message database or make queries.\n"
+"# in the ETM message database or make queries.\n"
 "# Refer to the project documentation for details.\n"
 "#\n"
 "# https://github.com/blueset/efb-telegram-master\n"
-msgstr ""
+msgstr "# [RPC 接口]\n"
+"# 启用 ETM 的 RPC 接口，您可以通过此接口使用脚本来管理\n"
+"# 或查询存储在 ETM 消息数据库中的数据。\n"
+"# 详细内容请参考项目文档。\n"
+"#\n"
+"# https://github.com/blueset/efb-telegram-master\n"
 
-#: efb_telegram_master/wizard.py:166
+#: efb_telegram_master/wizard.py:167
 msgid "Your Telegram Bot token: "
-msgstr ""
+msgstr "您的 Telegram Bot 令牌： "
 
-#: efb_telegram_master/wizard.py:175
+#: efb_telegram_master/wizard.py:176
 msgid "Bot token is required. Please try again."
-msgstr ""
+msgstr "必须输入 Bot 令牌。请再试一次。"
 
-#: efb_telegram_master/wizard.py:182
+#: efb_telegram_master/wizard.py:183
 msgid "Please try again."
-msgstr ""
+msgstr "请再试一次。"
 
-#: efb_telegram_master/wizard.py:189
+#: efb_telegram_master/wizard.py:190
 msgid "1. Set up your Telegram Bot\n"
 "---------------------------\n"
 "ETM requires you to have a Telegram bot ready with you to start with."
-msgstr ""
-
-#: efb_telegram_master/wizard.py:202
-msgid "Yes, please tell me how to make one."
-msgstr ""
+msgstr "1. 设置您的 Telegram Bot\n"
+"------------------------\n"
+"为了启动 ETM，您需要准备一个 Telegram 机器人。"
 
 #: efb_telegram_master/wizard.py:203
+msgid "Yes, please tell me how to make one."
+msgstr "不，请告诉我如何该如何创建。"
+
+#: efb_telegram_master/wizard.py:204
 msgid "No, I have already made one according to the docs."
-msgstr ""
+msgstr "是的，我已经依照文档创建完成了。"
 
-#: efb_telegram_master/wizard.py:205
+#: efb_telegram_master/wizard.py:206
 msgid "Do you need help creating a bot?"
-msgstr ""
+msgstr "您了解如何创建 Telegram bot 吗？"
 
-#: efb_telegram_master/wizard.py:211
+#: efb_telegram_master/wizard.py:212
 msgid "Follow this guide to create your first ETM Telegram Bot.\n\n"
 ">>> Step 1: Search @BotFather on Telegram, or follow the link below. You should be able to see a bot named “BotFather”."
-msgstr ""
+msgstr "跟随此指南来创建您的第一个 ETM Telegram bot。\n\n"
+">>> 第一步：在 Telegram 上搜索 @BotFather，或点击下面的链接。您应该可以看到一个名为「BotFather」的 bot。"
 
-#: efb_telegram_master/wizard.py:219 efb_telegram_master/wizard.py:231
-#: efb_telegram_master/wizard.py:260
+#: efb_telegram_master/wizard.py:220 efb_telegram_master/wizard.py:232
+#: efb_telegram_master/wizard.py:261
 msgid "Press ENTER/RETURN to continue..."
-msgstr ""
+msgstr "按回车键继续..."
 
-#: efb_telegram_master/wizard.py:222
+#: efb_telegram_master/wizard.py:223
 msgid ">>> Step 2: Send /newbot to BotFather to create a new bot. Follow its prompts to give it a name and a username. Note that its username must end with “bot”.\n\n"
 "After setting its username, you should receive a long line of code called “token”. Keep it with you securely, we will need that later on."
-msgstr ""
+msgstr ">>> 第二步：向 BotFather 发送 /newbot 以创建一个新的 bot。跟随提示给它设定一个名称和用户名。注意，用户名必须以「bot」结束。\n\n"
+"设置用户名后，您应该收到一个被称为「令牌（token）」的长串代码。请妥善保管，我们稍后会用到它。"
 
-#: efb_telegram_master/wizard.py:234
+#: efb_telegram_master/wizard.py:235
 msgid ">>> Step 3: Get the bot ready for ETM.\n"
 "Send /setjoingroups to BotFather, choose the bot you just created, then choose “Enable”. This will allow your bot to join groups.\n\n"
 "Send /setprivacy to BotFather, choose the bot you just created, then choose “Disable”. This will allow your bot to process all messages in groups it joined, not just commands.\n\n"
 "Send /setcommands to BotFather, choose the bot you just created, then copy and paste the following few lines to BotFather. This will allow your bot to give you a list of commands when you need them."
-msgstr ""
+msgstr ">>> 第三步：为 ETM 做好准备\n"
+"向 BotFather 发送 /setjoingroups，选择您刚刚创建的 bot，然后选择「启用（Enable）」。这将允许您的 bot 加入群组。\n\n"
+"向 BotFather 发送 /setprivacy，选择您刚刚创建的 bot，然后选择「禁用（Disable）」。这将允许你的 bot 处理群组中的所有信息，而不仅仅是命令。\n\n"
+"向 BotFather 发送 /setcommands，选择您刚刚创建的 bot，然后复制并粘贴下面几行内容给 BotFather。 这可以让您的 bot 在需要时为您提供一个命令列表。"
 
-#: efb_telegram_master/wizard.py:250
+#: efb_telegram_master/wizard.py:251
 msgid "help - Show commands list.\n"
 "link - Link a remote chat to a group.\n"
 "unlink_all - Unlink all remote chats from a group.\n"
@@ -367,409 +424,427 @@ msgid "help - Show commands list.\n"
 "extra - Access additional features from Slave Channels.\n"
 "update_info - Update the group name and profile picture.\n"
 "react - Send a reaction to a message, or show a list of reactors."
-msgstr ""
+msgstr "help - 显示命令列表\n"
+"link - 将一个远程会话绑定至一个群组\n"
+"unlink_all - 将一个群组中的所有远程会话解绑\n"
+"info - 显示当前 Telegram 会话的详细信息\n"
+"chat - 生成一个会话头\n"
+"extra - 访问来自从端的附加功能\n"
+"update_info - 更新群组名称及头像\n"
+"react - 向一条消息作出回应，或列出回应者列表"
 
-#: efb_telegram_master/wizard.py:266
+#: efb_telegram_master/wizard.py:267
 msgid "List of Admin User IDs, separated with comma: "
-msgstr ""
+msgstr "管理员用户 ID 列表，用逗号隔开： "
 
-#: efb_telegram_master/wizard.py:276
+#: efb_telegram_master/wizard.py:277
 msgid "Admin IDs are required. Please try again."
-msgstr ""
+msgstr "管理员 ID 为必填项。请再试一次。"
 
-#: efb_telegram_master/wizard.py:282
+#: efb_telegram_master/wizard.py:283
 #, python-brace-format
 msgid "{input} is not a valid input. Please try again."
-msgstr ""
+msgstr "{input} 不是一个有效的输入。请再试一次。"
 
-#: efb_telegram_master/wizard.py:291
+#: efb_telegram_master/wizard.py:292
 msgid "2. Set up Bot administrators\n"
 "----------------------------\n"
 "To protect your data privacy and security, you need to provide a list of users who can interact with this Telegram Bot."
-msgstr ""
-
-#: efb_telegram_master/wizard.py:300
-msgid "Yes, I want to know how to get my ID."
-msgstr ""
+msgstr "2. 设置机器人管理员\n"
+"-------------------\n"
+"为了保护您的数据隐私和安全，您需要提供一个可以与此 Telegram 机器人交互的用户列表。"
 
 #: efb_telegram_master/wizard.py:301
+msgid "Yes, I want to know how to get my ID."
+msgstr "不，我想知道如何获取我的 ID。"
+
+#: efb_telegram_master/wizard.py:302
 msgid "No, I already know my ID."
-msgstr ""
+msgstr "是的，我已知道我的 ID。"
 
-#: efb_telegram_master/wizard.py:303
+#: efb_telegram_master/wizard.py:304
 msgid "Do you need help getting your ID?"
-msgstr ""
+msgstr "您了解如何获取您的 Telegram 数字 ID 吗？"
 
-#: efb_telegram_master/wizard.py:308
+#: efb_telegram_master/wizard.py:309
 msgid "Starting ID bot..."
-msgstr ""
+msgstr "正在启动 ID bot..."
 
-#: efb_telegram_master/wizard.py:316
+#: efb_telegram_master/wizard.py:317
 #, python-brace-format
 msgid "Your Telegram user ID is {id}."
-msgstr ""
+msgstr "您的 Telegram 用户 ID 是 {id}。"
 
-#: efb_telegram_master/wizard.py:324 efb_telegram_master/wizard.py:337
+#: efb_telegram_master/wizard.py:325 efb_telegram_master/wizard.py:338
 #: efb_telegram_master/wizard.py:542 efb_telegram_master/wizard.py:551
 #: efb_telegram_master/wizard.py:559 efb_telegram_master/wizard.py:586
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
-#: efb_telegram_master/wizard.py:328
+#: efb_telegram_master/wizard.py:329
 msgid "Now, send any message to the bot you just created. You should be able to get a numerical ID. That is your Telegram user ID. Enter that below to set yourself as an admin."
-msgstr ""
+msgstr "现在，请向您刚刚创建的 bot 发送任意消息。您应该能够获得一个数字 ID。这就是您的 Telegram 用户 ID。请在下面输入您的 ID 以将您自己设置为管理员。"
 
-#: efb_telegram_master/wizard.py:335
+#: efb_telegram_master/wizard.py:336
 msgid "Stopping ID bot..."
-msgstr ""
+msgstr "正在停止 ID bot..."
 
-#: efb_telegram_master/wizard.py:345
+#: efb_telegram_master/wizard.py:346
 msgid "Number of chats shown in when choosing for /chat and /link command. An overly large value may lead to malfunction of such commands."
-msgstr ""
+msgstr "在触发 /chat 和 /link 指令时每页显示的条目数。 过大的数值可能会导致该功能失效。"
 
-#: efb_telegram_master/wizard.py:351
+#: efb_telegram_master/wizard.py:352
 msgid "Link more than one remote chat to one Telegram group. Send and reply as you do with an unlinked chat. Disable to link remote chats and Telegram group one-to-one."
-msgstr ""
+msgstr "绑定多个会话到一个 Telegram 群组。 消息发送方式与未绑定群组相同。 禁用后 ETM 会强制远端会话与 Telegram 群组一对一绑定。"
 
-#: efb_telegram_master/wizard.py:357
+#: efb_telegram_master/wizard.py:358
 msgid "Notify the user about network error every n errors received. Set to 0 to disable it."
-msgstr ""
+msgstr "每发生 n 次网络连接错误时通知用户一次。 设置为 0 即可禁用。"
 
-#: efb_telegram_master/wizard.py:362
+#: efb_telegram_master/wizard.py:363
 msgid "When a slave channel requires to remove a message, EFB will ignore the request if this value is true."
-msgstr ""
+msgstr "当从端要求删除特定消息时，ETM 将以通知替代删除操作。"
 
-#: efb_telegram_master/wizard.py:367
+#: efb_telegram_master/wizard.py:368
 msgid "Detect the locale from admin’s messages automatically. Locale defined in environment variables will be used otherwise."
-msgstr ""
+msgstr "从 bot 管理员的语言设定中自动设定 ETM 语言。当该值为 false 时，ETM 会从系统的环境变量中读取语言设定。"
 
-#: efb_telegram_master/wizard.py:372
+#: efb_telegram_master/wizard.py:373
 msgid "Retry infinitely when an error occurred while sending request to Telegram Bot API. Note that this may lead to repetitive message delivery, as the respond of Telegram Bot API is not reliable, and may not reflect the actual result."
-msgstr ""
+msgstr "当向 Telegram Bot API 发送请求出错时，一直重试请求。 注意：由于 Telegram Bot API 的应答可能不稳定，这可能导致重复的消息传送出现重复，且可能导致您看到的结果与实际不符。"
 
-#: efb_telegram_master/wizard.py:379
+#: efb_telegram_master/wizard.py:380
 msgid "Send all image messages as files, in order to prevent Telegram’s image compression in an aggressive way."
-msgstr ""
+msgstr "将所有图片消息以文件发送，以积极避免 Telegram 对于图片的压缩。"
 
-#: efb_telegram_master/wizard.py:384
+#: efb_telegram_master/wizard.py:385
 msgid "Behavior when a message received is muted on slave channel platform.\n\n"
 "- normal: send to Telegram as normal message\n"
 "- silent: send to Telegram as normal message, but without notification sound\n"
 "- mute: do not send to Telegram"
-msgstr ""
+msgstr "当收到在从端设置为免打扰的消息时的行为。\n\n"
+"- normal：作为正常消息发送到 Telegram\n"
+"- silent：作为正常消息发送到 Telegram，但没有声音通知\n"
+"- mute：不发送到 Telegram"
 
-#: efb_telegram_master/wizard.py:393
+#: efb_telegram_master/wizard.py:394
 msgid "Behavior when a message received is from you on slave channel platform. This overrides settings from message_muted_on_slave.\n\n"
 "- normal: send to Telegram as normal message\n"
 "- silent: send to Telegram as normal message, but without notification sound\n"
 "- mute: do not send to Telegram"
-msgstr ""
+msgstr "当收到由你在从端发送的消息时的行为。这项设置将覆盖 message_muted_on_slave。\n\n"
+"- normal：作为正常消息发送到 Telegram\n"
+"- silent：作为正常消息发送到 Telegram，但没有声音通知\n"
+"- mute：不发送到 Telegram"
 
-#: efb_telegram_master/wizard.py:405
+#: efb_telegram_master/wizard.py:406
 msgid "Do you want to config experimental features? "
-msgstr ""
+msgstr "您想要配置实验性功能吗？ "
 
-#: efb_telegram_master/wizard.py:443
+#: efb_telegram_master/wizard.py:444
 msgid "Do you want to adjust network configurations? (connection timeout and proxy) "
-msgstr ""
+msgstr "您想调整网络配置吗？（连接超时和代理）"
 
-#: efb_telegram_master/wizard.py:450
+#: efb_telegram_master/wizard.py:451
 msgid "For meanings and significances of the following values, please consult the module documentations."
-msgstr ""
+msgstr "关于以下数值的含义和作用，请查阅组件文档。"
 
-#: efb_telegram_master/wizard.py:457
+#: efb_telegram_master/wizard.py:458
 msgid "Do you want to change timeout settings? "
-msgstr ""
+msgstr "是否更改超时设置？ "
 
-#: efb_telegram_master/wizard.py:462
+#: efb_telegram_master/wizard.py:463
 msgid "read_timeout (in seconds): "
-msgstr ""
+msgstr "超时（秒）："
 
-#: efb_telegram_master/wizard.py:464
+#: efb_telegram_master/wizard.py:465
 msgid "connect_timeout (in seconds): "
-msgstr ""
+msgstr "连接超时（秒）："
 
-#: efb_telegram_master/wizard.py:466
+#: efb_telegram_master/wizard.py:467
 msgid "Do you want to run ETM behind a proxy? "
-msgstr ""
+msgstr "是否通过代理运行 ETM？ "
 
-#: efb_telegram_master/wizard.py:470
+#: efb_telegram_master/wizard.py:471
 msgid "Select proxy type"
-msgstr ""
+msgstr "选择代理服务类型"
 
-#: efb_telegram_master/wizard.py:472
+#: efb_telegram_master/wizard.py:473
 msgid "Proxy host (domain/IP): "
-msgstr ""
+msgstr "代理主机（域名/IP）："
 
-#: efb_telegram_master/wizard.py:473 efb_telegram_master/wizard.py:528
+#: efb_telegram_master/wizard.py:474 efb_telegram_master/wizard.py:528
 msgid "Proxy port: "
-msgstr ""
+msgstr "代理服务器端口："
 
-#: efb_telegram_master/wizard.py:476
+#: efb_telegram_master/wizard.py:477
 msgid "Does it require authentication?"
-msgstr ""
-
-#: efb_telegram_master/wizard.py:478
-msgid "Username: "
-msgstr ""
+msgstr "此代理是否需要认证？"
 
 #: efb_telegram_master/wizard.py:479
+msgid "Username: "
+msgstr "用户名："
+
+#: efb_telegram_master/wizard.py:480
 msgid "Password: "
-msgstr ""
+msgstr "密码："
 
-#: efb_telegram_master/wizard.py:489
+#: efb_telegram_master/wizard.py:490
 msgid "You have not installed required extra package to use SOCKS5 proxy, please install with the following command:"
-msgstr ""
+msgstr "您尚未安装 SOCKS5 代理所需的额外软件包。请用以下命令进行安装："
 
-#: efb_telegram_master/wizard.py:507
+#: efb_telegram_master/wizard.py:508
 msgid "To learn about what RPC is and what it does, please visit the module documentations."
-msgstr ""
+msgstr "若要了解 RPC 是什么以及它能够做什么，请访问组件文档。"
 
-#: efb_telegram_master/wizard.py:514
-msgid "Do you want to enable RPC interface? (connection timeout and proxy) "
+#: efb_telegram_master/wizard.py:515
+msgid "Do you want to enable RPC interface? "
 msgstr ""
 
 #: efb_telegram_master/wizard.py:527
 msgid "RPC server: "
-msgstr ""
+msgstr "RPC 服务器： "
 
 #: efb_telegram_master/wizard.py:537
 msgid "Checking ffmpeg installation..."
-msgstr ""
+msgstr "正在检查 ffmpeg 安装..."
 
 #: efb_telegram_master/wizard.py:539 efb_telegram_master/wizard.py:548
 #: efb_telegram_master/wizard.py:556
 msgid "FAILED"
-msgstr ""
+msgstr "失败"
 
 #: efb_telegram_master/wizard.py:540
 msgid "ffmpeg is not found in current $PATH."
-msgstr ""
+msgstr "无法在当前 $PATH 找到 ffmpeg。"
 
 #: efb_telegram_master/wizard.py:544
 msgid "Checking libmagic installation..."
-msgstr ""
+msgstr "正在检查 libmagic 安装..."
 
 #: efb_telegram_master/wizard.py:549
 msgid "libmagic is not found in your system."
-msgstr ""
+msgstr "您的系统中没有找到 libmagic。"
 
 #: efb_telegram_master/wizard.py:553
 msgid "Checking libwebp installation..."
-msgstr ""
+msgstr "正在检查 libwebp 安装..."
 
 #: efb_telegram_master/wizard.py:557
 msgid "libwebp plugin is not detected by Pillow."
-msgstr ""
+msgstr "Pillow 未检测到 libwebp 插件。"
 
 #: efb_telegram_master/wizard.py:570
 msgid "================================\n"
 "EFB Telegram Master Setup Wizard\n"
 "================================\n\n"
 "This wizard will guide you to setup your EFB Telegram Master channel (ETM). This would be really fast and simple."
-msgstr ""
+msgstr "=========================\n"
+"EFB Telegram 主端设置向导\n"
+"=========================\n\n"
+"这个向导将会帮助你设置 EFB Telegram 主端 (ETM)。这个过程会很简单快速。"
 
 #: efb_telegram_master/wizard.py:584
 msgid "Saving configurations..."
-msgstr ""
+msgstr "正在保存配置..."
 
 #: efb_telegram_master/wizard.py:590
 msgid "Congratulations! You have finished the setup wizard for EFB Telegram Master Channel."
-msgstr ""
+msgstr "恭喜！您已完成了 EFB Telegram 主端的设置向导。"
 
-#: efb_telegram_master/utils.py:35
+#: efb_telegram_master/utils.py:46
 #, python-brace-format
 msgid "{0} is not a valid experimental flag"
 msgstr "{0} 不是有效的实验性开关"
 
-#: efb_telegram_master/master_message.py:105
+#: efb_telegram_master/master_message.py:99
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message. (MS01)"
 msgstr "错误: 未指定消息接收者。\n"
 "请回复一条过去的消息。(MS01)"
 
-#: efb_telegram_master/master_message.py:111
+#: efb_telegram_master/master_message.py:105
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message. (MS02)"
 msgstr "错误: 未指定消息接收者。\n"
 "请回复一条过去的消息。(MS02)"
 
-#: efb_telegram_master/master_message.py:170
-#: efb_telegram_master/master_message.py:215
+#: efb_telegram_master/master_message.py:164
+#: efb_telegram_master/master_message.py:209
 msgid "Message is not found in database. Please try with another message. (UC07)"
 msgstr "无法在数据库中找到该消息。\n"
 "请对另一条消息重试。(UC07)"
 
-#: efb_telegram_master/master_message.py:181
+#: efb_telegram_master/master_message.py:175
 msgid "Message is not found in database. Please try with another one. (UC03)"
 msgstr "无法在数据库中找到该消息。\n"
 "请对另一条消息重试。(UC03)"
 
-#: efb_telegram_master/master_message.py:185
+#: efb_telegram_master/master_message.py:179
 msgid "Please reply to an incoming message. (UC04)"
 msgstr "只能回复收到的消息。(UC04)"
 
-#: efb_telegram_master/master_message.py:196
+#: efb_telegram_master/master_message.py:190
 msgid "Message is not found in database. Please try with another one. (UC05)"
 msgstr "无法在数据库中找到该消息。请对另一条消息重试。(UC05)"
 
-#: efb_telegram_master/master_message.py:200
+#: efb_telegram_master/master_message.py:194
 msgid "This group is linked to multiple remote chats. Please reply to an incoming message. To unlink all remote chats, please send /unlink_all . (UC06)"
 msgstr "此群组绑定到到多个远程会话。请回复收到的消息。要取消所有远程会话的绑定，请发送 /unlink_all 。(UC06)"
 
-#: efb_telegram_master/master_message.py:219
+#: efb_telegram_master/master_message.py:213
 msgid "This group is not linked to any chat. (UC06)"
 msgstr "此群组未绑定到任何会话。(UC06)"
 
-#: efb_telegram_master/master_message.py:227
+#: efb_telegram_master/master_message.py:221
 #, python-brace-format
 msgid "Internal error: Channel \"{0}\" not found."
 msgstr "内部错误：找不到信道「{0}」。"
 
 #. TRANSLATORS: Message body text for location messages.
-#: efb_telegram_master/master_message.py:355
+#: efb_telegram_master/master_message.py:349
 msgid "Location"
 msgstr "位置"
 
-#: efb_telegram_master/master_message.py:368
+#: efb_telegram_master/master_message.py:362
 #, python-brace-format
 msgid "Shared a contact: {first_name} {last_name}\n"
 "{phone_number}"
 msgstr "分享了联系人: {first_name} {last_name}\n"
 "{phone_number}"
 
-#: efb_telegram_master/master_message.py:372
+#: efb_telegram_master/master_message.py:366
 #, python-brace-format
 msgid "Message type {0} is not supported."
 msgstr "不支持的消息类型：{0}"
 
-#: efb_telegram_master/master_message.py:376
+#: efb_telegram_master/master_message.py:370
 msgid "Chat is not found."
 msgstr "聊天会话未找到。"
 
-#: efb_telegram_master/master_message.py:378
+#: efb_telegram_master/master_message.py:372
 msgid "Message type is not supported."
 msgstr "不支持该消息类型。"
 
-#: efb_telegram_master/master_message.py:380
+#: efb_telegram_master/master_message.py:374
 msgid "Message editing is not supported.\n\n"
 "{!s}"
 msgstr "不支持编辑该消息。 \n\n"
 "{!s}"
 
-#: efb_telegram_master/master_message.py:382
+#: efb_telegram_master/master_message.py:376
 msgid "Message is not sent.\n\n"
 "{!r}"
 msgstr "消息未发送。 \n\n"
 "{!r}"
 
-#: efb_telegram_master/master_message.py:420
+#: efb_telegram_master/master_message.py:414
 msgid "Attachment is too large. Maximum is 20 MB. (AT01)"
 msgstr "附件过大。请确保附件小于 20MB。(AT01)"
 
-#: efb_telegram_master/bot_manager.py:124
-#: efb_telegram_master/bot_manager.py:161
+#: efb_telegram_master/bot_manager.py:125
+#: efb_telegram_master/bot_manager.py:162
 msgid "Message is truncated due to its length. Full message is sent as attachment."
 msgstr "消息由于过长而被截取。完整的消息将以附件发送。"
 
-#: efb_telegram_master/bot_manager.py:233
+#: efb_telegram_master/bot_manager.py:234
 msgid "Caption is truncated due to its length. Full message is sent as attachment."
 msgstr "文字由于过长而被截取。完整内容将以附件发送。"
 
-#: efb_telegram_master/bot_manager.py:413
+#: efb_telegram_master/bot_manager.py:414
 msgid "Session expired. Please try again. (SE01)"
 msgstr "消息已过期。请重试。(SE01)"
 
-#: efb_telegram_master/bot_manager.py:466
+#: efb_telegram_master/bot_manager.py:467
 msgid "Response is truncated due to its length. Full message is sent as attachment."
-msgstr ""
+msgstr "返回内容因长度过长而被截断。完整消息会作为附件发送。"
 
-#: efb_telegram_master/bot_manager.py:496
+#: efb_telegram_master/bot_manager.py:497
 msgid "Empty attachment detected."
 msgstr "发现了空附件。"
 
-#: efb_telegram_master/chat_binding.py:299
+#: efb_telegram_master/chat_binding.py:307
 #, python-brace-format
 msgid "{0}: Linked"
 msgstr "{0}: 绑定"
 
-#: efb_telegram_master/chat_binding.py:300
+#: efb_telegram_master/chat_binding.py:308
 #, python-brace-format
 msgid "{0}: Muted"
 msgstr "{0}: 屏蔽"
 
-#: efb_telegram_master/chat_binding.py:301
+#: efb_telegram_master/chat_binding.py:309
 #, python-brace-format
 msgid "{0}: User"
 msgstr "{0}：用户"
 
-#: efb_telegram_master/chat_binding.py:302
+#: efb_telegram_master/chat_binding.py:310
 #, python-brace-format
 msgid "{0}: Group"
 msgstr "{0}：群组"
 
-#: efb_telegram_master/chat_binding.py:364
+#: efb_telegram_master/chat_binding.py:372
 msgid "< Prev"
 msgstr "< 上一页"
 
-#: efb_telegram_master/chat_binding.py:366
-#: efb_telegram_master/chat_binding.py:566
+#: efb_telegram_master/chat_binding.py:374
+#: efb_telegram_master/chat_binding.py:574
 msgid "Cancel"
 msgstr "取消"
 
-#: efb_telegram_master/chat_binding.py:368
+#: efb_telegram_master/chat_binding.py:376
 msgid "Next >"
 msgstr "下一页 >"
 
-#: efb_telegram_master/chat_binding.py:413
-#: efb_telegram_master/chat_binding.py:694
+#: efb_telegram_master/chat_binding.py:421
+#: efb_telegram_master/chat_binding.py:703
 msgid "Processing..."
 msgstr "处理中…"
 
-#: efb_telegram_master/chat_binding.py:416
+#: efb_telegram_master/chat_binding.py:424
 msgid "This Telegram group is currently linked with..."
 msgstr "该 Telegram 群组已绑定至…"
 
-#: efb_telegram_master/chat_binding.py:418
+#: efb_telegram_master/chat_binding.py:426
 msgid "Please choose the chat you want to link with..."
 msgstr "请选择要绑定的会话…"
 
-#: efb_telegram_master/chat_binding.py:419
-#: efb_telegram_master/chat_binding.py:729
+#: efb_telegram_master/chat_binding.py:427
+#: efb_telegram_master/chat_binding.py:738
 msgid "\n\n"
 "Legend:\n"
 msgstr "\n\n"
 "图例:\n"
 
-#: efb_telegram_master/chat_binding.py:458
-#: efb_telegram_master/chat_binding.py:534
-#: efb_telegram_master/chat_binding.py:758
+#: efb_telegram_master/chat_binding.py:466
+#: efb_telegram_master/chat_binding.py:542
+#: efb_telegram_master/chat_binding.py:767
 msgid "Cancelled."
 msgstr "已取消。"
 
-#: efb_telegram_master/chat_binding.py:467
+#: efb_telegram_master/chat_binding.py:475
 #, python-brace-format
 msgid "Invalid parameter ({0}). (IP01)"
 msgstr "无效的参数：({0})。(IP01)"
 
-#: efb_telegram_master/chat_binding.py:480
+#: efb_telegram_master/chat_binding.py:488
 #, python-brace-format
 msgid "You've selected chat {0}."
 msgstr "你选择了会话 {0} 。"
 
-#: efb_telegram_master/chat_binding.py:482
+#: efb_telegram_master/chat_binding.py:490
 msgid "\n"
 "This chat is currently muted."
 msgstr "\n"
 "该会话已处于免打扰中。"
 
-#: efb_telegram_master/chat_binding.py:484
+#: efb_telegram_master/chat_binding.py:492
 msgid "\n"
 "This chat has already linked to Telegram."
 msgstr "\n"
 "该会话已被绑定至 Telegram。"
 
-#: efb_telegram_master/chat_binding.py:485
+#: efb_telegram_master/chat_binding.py:493
 msgid "\n"
 "What would you like to do?\n\n"
 "<i>* If the link button doesn't work for you, please try to link manually.</i>"
@@ -777,29 +852,29 @@ msgstr "\n"
 "接下来要做什么？\n\n"
 "<i>* 如果你无法使用绑定按钮，请尝试手动绑定。</i>"
 
-#: efb_telegram_master/chat_binding.py:494
+#: efb_telegram_master/chat_binding.py:502
 msgid "Relink"
 msgstr "重新绑定"
 
-#: efb_telegram_master/chat_binding.py:496
+#: efb_telegram_master/chat_binding.py:504
 msgid "Restore"
 msgstr "还原"
 
-#: efb_telegram_master/chat_binding.py:498
-#: efb_telegram_master/chat_binding.py:501
+#: efb_telegram_master/chat_binding.py:506
+#: efb_telegram_master/chat_binding.py:509
 msgid "Link"
 msgstr "绑定"
 
-#: efb_telegram_master/chat_binding.py:499
+#: efb_telegram_master/chat_binding.py:507
 msgid "Unmute"
 msgstr "解除免打扰"
 
-#: efb_telegram_master/chat_binding.py:505
+#: efb_telegram_master/chat_binding.py:513
 #, python-brace-format
 msgid "Manual {link_or_relink}"
 msgstr "手动{link_or_relink}"
 
-#: efb_telegram_master/chat_binding.py:552
+#: efb_telegram_master/chat_binding.py:560
 #, python-brace-format
 msgid "To link {chat_display_name} manually, please:\n\n"
 "1. Add me to the Telegram Group you want to link to.\n"
@@ -814,76 +889,76 @@ msgstr "若要手动对 {chat_display_name} 进行链接，请按以下步骤进
 "3. 若链接成功，你将会收到提示。\n\n"
 "<i>* 若要绑定频道，请把上面的代码发送至你的频道，然后将该消息转发给 Bot。请注意，Bot 不会接收任何人发送至频道的消息。</i>"
 
-#: efb_telegram_master/chat_binding.py:571
+#: efb_telegram_master/chat_binding.py:579
 #, python-brace-format
 msgid "Command '{command}' ({query}) is not recognised, please try again"
 msgstr "未能成功识别命令 '{command}' ({query}) ，请重试。"
 
-#: efb_telegram_master/chat_binding.py:583
+#: efb_telegram_master/chat_binding.py:591
 msgid "Session expired or unknown parameter. (SE02)"
 msgstr "会话过期或未知参数。(SE02)"
 
-#: efb_telegram_master/chat_binding.py:595
+#: efb_telegram_master/chat_binding.py:603
 #, python-brace-format
 msgid "Trying to link chat {0}..."
 msgstr "正在尝试绑定会话 {0}…"
 
-#: efb_telegram_master/chat_binding.py:603
+#: efb_telegram_master/chat_binding.py:611
 #, python-brace-format
 msgid "Chat {0} is now linked."
 msgstr "会话 {0} 已成功绑定。"
 
-#: efb_telegram_master/chat_binding.py:624
+#: efb_telegram_master/chat_binding.py:632
 msgid "No chat is linked to the group."
 msgstr "尚无会话被绑定至该群组。"
 
-#: efb_telegram_master/chat_binding.py:630
+#: efb_telegram_master/chat_binding.py:638
 #, python-brace-format
 msgid "All {0} chat has been unlinked from this group."
 msgid_plural "All {0} chats has been unlinked from this group."
 msgstr[0] "所有 {0} 个会话已从该群组解绑。"
 
-#: efb_telegram_master/chat_binding.py:642
+#: efb_telegram_master/chat_binding.py:650
 msgid "No chat is linked to the channel."
 msgstr "尚无会话被绑定至该频道。"
 
-#: efb_telegram_master/chat_binding.py:647
+#: efb_telegram_master/chat_binding.py:655
 #, python-brace-format
 msgid "All {0} chat has been unlinked from this channel."
 msgid_plural "All {0} chats has been unlinked from this channel."
 msgstr[0] "所有 {0} 个会话已从该频道解绑。"
 
-#: efb_telegram_master/chat_binding.py:653
+#: efb_telegram_master/chat_binding.py:661
 msgid "Send `/unlink_all` to a group to unlink all remote chats from it."
 msgstr "将 \"/unlink_all\" 发送至一个群组, 以解绑所有绑定到该群组的会话。"
 
-#: efb_telegram_master/chat_binding.py:704
+#: efb_telegram_master/chat_binding.py:713
 #, python-brace-format
 msgid "This group is linked to {0}Send a message to this group to deliver it to the chat.\n"
 "Do NOT reply to this system message."
 msgstr "该群组已与 {0} 绑定，向该群组发送消息以将其传至该会话中。\n"
 "请 不要 回复该系统消息。"
 
-#: efb_telegram_master/chat_binding.py:710
+#: efb_telegram_master/chat_binding.py:719
 #, python-brace-format
 msgid "This group is linked to an unknown chat ({chat_id}) on channel {channel_emoji} {channel_name}. Possibly you can no longer reach this chat. Send /unlink_all to unlink all chats from this group."
 msgstr "该群组绑定到了来自 {channel_emoji} {channel_name} 的未知会话（{chat_id}）。或许该会话已不再存在。发送 /unlink_all 以解绑所有绑定至此的会话。"
 
-#: efb_telegram_master/chat_binding.py:721
+#: efb_telegram_master/chat_binding.py:730
 msgid "This Telegram group is linked to the following chats, choose one to start a conversation with."
 msgstr "此 Telegram 群组已被绑定至以下会话，请选择其中一个来开始聊天。"
 
-#: efb_telegram_master/chat_binding.py:767
+#: efb_telegram_master/chat_binding.py:776
 #, python-brace-format
 msgid "Invalid command. ({0})"
 msgstr "无效命令。({0})"
 
-#: efb_telegram_master/chat_binding.py:779
+#: efb_telegram_master/chat_binding.py:788
 #, python-brace-format
 msgid "Reply to this message to chat with {0}."
 msgstr "回复该消息以与 {0} 对话。"
 
-#: efb_telegram_master/chat_binding.py:824
+#: efb_telegram_master/chat_binding.py:835
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message, or choose a recipient:\n\n"
 "Legend:\n"
@@ -891,18 +966,18 @@ msgstr "错误：未指定消息接收者。\n"
 "请回复一条过去的消息，或选择一个收件人：\n\n"
 "图例：\n"
 
-#: efb_telegram_master/chat_binding.py:844
+#: efb_telegram_master/chat_binding.py:855
 #, python-brace-format
 msgid "Delivering the message to {0}"
 msgstr "发送消息至 {0}"
 
-#: efb_telegram_master/chat_binding.py:848
+#: efb_telegram_master/chat_binding.py:859
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message."
 msgstr "错误：未指定消息接收者。\n"
 "请回复一条过去的消息。"
 
-#: efb_telegram_master/chat_binding.py:853
+#: efb_telegram_master/chat_binding.py:864
 #, python-brace-format
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message.\n\n"
@@ -911,83 +986,86 @@ msgstr "错误：未指定消息接收者。\n"
 "请回复一条过去的消息。\n\n"
 "参数无效 ({0}) 。"
 
-#: efb_telegram_master/chat_binding.py:867
+#: efb_telegram_master/chat_binding.py:878
 msgid "Send /update_info in a group where this bot is a group admin to update group title and profile picture"
 msgstr "将本 bot 设置为群组管理员，发送 /update_info 以更新群组名称和头像。"
 
-#: efb_telegram_master/chat_binding.py:877
+#: efb_telegram_master/chat_binding.py:888
 #, python-brace-format
 msgid "This only works in a group linked with one chat. Currently {0} chat linked to this group."
 msgid_plural "This only works in a group linked with one chat. Currently {0} chats linked to this group."
 msgstr[0] "该指令只适用于单一绑定的群组。目前该群组已绑定了 {0} 个会话。"
 
-#: efb_telegram_master/chat_binding.py:909
-msgid "Chat details updated."
-msgstr ""
-
-#: efb_telegram_master/chat_binding.py:911
-msgid "Channel linked is not found."
-msgstr "绑定的从端不存在。"
-
-#: efb_telegram_master/chat_binding.py:914
-msgid "Chat linked is not found in channel."
-msgstr "从端中未找到绑定的会话。"
-
-#: efb_telegram_master/chat_binding.py:917
-#, python-brace-format
-msgid "Error occurred while update chat details.\n"
-"{0}"
-msgstr ""
-
 #: efb_telegram_master/chat_binding.py:920
-msgid "No profile picture provided from this chat."
-msgstr "该会话没有头像。"
+msgid "Chat details updated."
+msgstr "会话详情已更新。"
 
 #: efb_telegram_master/chat_binding.py:923
 #, python-brace-format
+msgid "Channel linked ({channel}) is not found."
+msgstr "绑定的从端（{channel}）不存在。"
+
+#: efb_telegram_master/chat_binding.py:927
+msgid "Chat linked is not found in channel."
+msgstr "从端中未找到绑定的会话。"
+
+#: efb_telegram_master/chat_binding.py:930
+#, python-brace-format
+msgid "Error occurred while update chat details.\n"
+"{0}"
+msgstr "更新会话详情时出错。\n"
+"{0}"
+
+#: efb_telegram_master/chat_binding.py:933
+msgid "No profile picture provided from this chat."
+msgstr "该会话没有头像。"
+
+#: efb_telegram_master/chat_binding.py:936
+#, python-brace-format
 msgid "Error occurred while update chat details. \n"
 "{0}"
-msgstr ""
+msgstr "更新会话详情时出错。 \n"
+"{0}"
 
-#: efb_telegram_master/commands.py:89
+#: efb_telegram_master/commands.py:90
 #, python-brace-format
 msgid "Invalid parameter: {0}. (CE01)"
 msgstr "参数无效: {0}。(CE01)"
 
-#: efb_telegram_master/commands.py:94
+#: efb_telegram_master/commands.py:95
 #, python-brace-format
 msgid "Index out of bound: {0}. (CE02)"
 msgstr "索引越界：{0} (CE02)"
 
-#: efb_telegram_master/commands.py:142
+#: efb_telegram_master/commands.py:143
 msgid "<i>Click the link next to the name for usage.</i>\n"
 msgstr "<i>点击名称旁的链接以查看用法</i>\n"
 
-#: efb_telegram_master/commands.py:171
+#: efb_telegram_master/commands.py:172
 msgid "No command found."
 msgstr "找不到命令。"
 
-#: efb_telegram_master/commands.py:176
+#: efb_telegram_master/commands.py:177
 msgid "Invalid module id ID. (XC03)"
 msgstr "无效的组件 ID。(XC03)"
 
-#: efb_telegram_master/commands.py:182
+#: efb_telegram_master/commands.py:183
 msgid "Command not found in selected module. (XC04)"
 msgstr "该指令在指定的组件中不存在。(XC04)"
 
-#: efb_telegram_master/commands.py:212
+#: efb_telegram_master/commands.py:213
 msgid "Invalid module ID. (XC01)"
 msgstr "无效的组件 ID。(XC01)"
 
-#: efb_telegram_master/commands.py:220
+#: efb_telegram_master/commands.py:223
 msgid "Command not found in selected module. (XC02)"
 msgstr "该指令在指定的组件中不存在。(XC02)"
 
-#: efb_telegram_master/commands.py:227
+#: efb_telegram_master/commands.py:230
 msgid "Please wait..."
 msgstr "请稍等..."
 
-#: efb_telegram_master/commands.py:235
+#: efb_telegram_master/commands.py:239
 msgid "Error: Command is not found in the channel.\n"
 "Function: {channel_id}.{callable}\n"
 "Arguments: {args!r}\n"
