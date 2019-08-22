@@ -140,7 +140,7 @@ class DataModel:
                 f.write(_(
                     "# [RPC interface]\n"
                     "# Enable RPC interface of ETM where you can use scripts to manage data stored\n"
-                    "# the ETM message database or make queries.\n"
+                    "# in the ETM message database or make queries.\n"
                     "# Refer to the project documentation for details.\n"
                     "#\n"
                     "# https://github.com/blueset/efb-telegram-master\n"
@@ -512,8 +512,7 @@ def setup_rpc(data):
     print("https://github.com/blueset/efb-telegram-master/")
     print()
 
-    proceed = YesNo(prompt=_("Do you want to enable RPC interface? "
-                             "(connection timeout and proxy) "),
+    proceed = YesNo(prompt=_("Do you want to enable RPC interface? "),
                     prompt_prefix="[yN] ").launch(default='n')
     if not proceed:
         return
