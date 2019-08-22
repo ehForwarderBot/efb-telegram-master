@@ -38,7 +38,7 @@ def task_gettext():
 def task_msgfmt():
     languages = [i[i.rfind('/')+1:i.rfind('.')] for i in glob.glob("./readme_translations/locale/*.po")]
 
-    sources = glob.glob("./{package}/**/*.po".format(package=PACKAGE), recursive=True)
+    sources = glob.glob("./**/*.po", recursive=True)
     dests = [i[:-3] + ".mo" for i in sources]
     actions = [["msgfmt", sources[i], "-o", dests[i]] for i in range(len(sources))]
 
