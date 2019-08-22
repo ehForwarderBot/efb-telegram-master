@@ -11,7 +11,7 @@ from typing import Tuple, Dict, Optional, List, Pattern, TYPE_CHECKING, IO, Any
 import peewee
 import telegram
 from PIL import Image
-from telegram.ext import ConversationHandler, CommandHandler, CallbackQueryHandler
+from telegram.ext import ConversationHandler, CommandHandler, CallbackQueryHandler, MessageHandler, Filters
 
 from ehforwarderbot import coordinator, EFBChat, EFBChannel
 from ehforwarderbot.constants import ChatType
@@ -242,6 +242,9 @@ class ChatBindingManager(LocaleMixin):
 
         # Update group title and profile picture
         self.bot.dispatcher.add_handler(CommandHandler('update_info', self.update_group_info))
+
+        self.bot.dispatcher.add_handler(
+            MessageHandler(Filters.status_update.migrate, self.chat_migration))
 
     def link_chat_show_list(self, bot, update, args=None):
         """
@@ -937,3 +940,13 @@ class ChatBindingManager(LocaleMixin):
                 picture.close()
             if pic_resized and getattr(pic_resized, 'close', None):
                 pic_resized.close()
+
+    def chat_migration(self, bot: telegram.Bot, update: telegram.Update):
+        message = update.effective_message
+        from_id = ChatID(message.migrate_from_chat_id)
+        to_id = ChatID(message.migrate_to_chat_id)
+        from_str = utils.chat_id_to_str(self.channel.channel_id, from_id)
+        to_str = utils.chat_id_to_str(self.channel.channel_id, to_id)
+        for i in self.db.get_chat_assoc(master_uid=from_str):
+            self.db.add_chat_assoc(master_uid=from_str, slave_uid=to_str)
+        self.db.remove_chat_assoc(master_uid=from_str)
