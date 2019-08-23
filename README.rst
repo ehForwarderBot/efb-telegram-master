@@ -206,6 +206,10 @@ Link/Relink” button. To manually link a remote chat:
 Also, you can send ``/unlink_all`` to a group to unlink all remote chats
 from it.
 
+Also, if you want to link a chat which you just used, you can simply reply
+``/link`` quoting a previous message from that chat without choosing from
+the long chat list.
+
 Advanced feature: Filtering
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
