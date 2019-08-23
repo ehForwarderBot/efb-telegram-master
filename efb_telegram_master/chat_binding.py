@@ -438,10 +438,6 @@ class ChatBindingManager(LocaleMixin):
 
         A part of ``/link`` conversation handler.
 
-        Args:
-            bot: Telegram Bot instance
-            update: The update
-
         Returns:
             int: Next status
         """
@@ -520,10 +516,6 @@ class ChatBindingManager(LocaleMixin):
     def link_chat_exec(self, update: Update, context: CallbackContext) -> int:
         """
         Action to link a chat. Triggered by callback message with status `Flags.EXEC_LINK`.
-
-        Args:
-            bot: Telegram Bot instance
-            update: The update
         """
 
         tg_chat_id = update.effective_chat.id
