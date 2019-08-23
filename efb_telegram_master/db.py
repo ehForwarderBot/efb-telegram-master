@@ -256,7 +256,7 @@ class DatabaseManager:
     @staticmethod
     def get_msg_log(master_msg_id: Optional[TgChatMsgIDStr] = None,
                     slave_msg_id: Optional[MessageID] = None,
-                    slave_origin_uid: Optional[EFBChannelChatIDStr] = None) -> Optional['MsgLog']:
+                    slave_origin_uid: Optional[EFBChannelChatIDStr] = None) -> Optional[MsgLog]:
         """Get message log by message ID.
 
         Args:
@@ -265,7 +265,7 @@ class DatabaseManager:
             slave_origin_uid: Slave chat identifier in string
 
         Returns:
-            MsgLog|None: The queried entry, None if not exist.
+            Optional[MsgLog]: The queried entry, None if not exist.
         """
         if (master_msg_id and (slave_msg_id or slave_origin_uid)) \
                 or not (master_msg_id or (slave_msg_id or slave_origin_uid)):
