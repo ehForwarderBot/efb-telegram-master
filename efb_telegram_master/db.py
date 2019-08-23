@@ -122,7 +122,8 @@ class DatabaseManager:
         self.remove_chat_assoc(slave_uid=slave_uid)
         return ChatAssoc.create(master_uid=master_uid, slave_uid=slave_uid)
 
-    def remove_chat_assoc(self, master_uid: Optional[EFBChannelChatIDStr] = None,
+    @staticmethod
+    def remove_chat_assoc(master_uid: Optional[EFBChannelChatIDStr] = None,
                           slave_uid: Optional[EFBChannelChatIDStr] = None):
         """
         Remove chat associations (chat links).
@@ -142,7 +143,8 @@ class DatabaseManager:
         except DoesNotExist:
             return 0
 
-    def get_chat_assoc(self, master_uid: Optional[EFBChannelChatIDStr] = None,
+    @staticmethod
+    def get_chat_assoc(master_uid: Optional[EFBChannelChatIDStr] = None,
                        slave_uid: Optional[EFBChannelChatIDStr] = None
                        ) -> List[EFBChannelChatIDStr]:
         """
@@ -176,7 +178,8 @@ class DatabaseManager:
         except DoesNotExist:
             return []
 
-    def add_msg_log(self, **kwargs):
+    @staticmethod
+    def add_msg_log(**kwargs):
         """
         Add an entry to message log.
 
@@ -250,8 +253,8 @@ class DatabaseManager:
                                  pickle=pickle
                                  )
 
-    def get_msg_log(self,
-                    master_msg_id: Optional[TgChatMsgIDStr] = None,
+    @staticmethod
+    def get_msg_log(master_msg_id: Optional[TgChatMsgIDStr] = None,
                     slave_msg_id: Optional[MessageID] = None,
                     slave_origin_uid: Optional[EFBChannelChatIDStr] = None) -> Optional['MsgLog']:
         """Get message log by message ID.
@@ -280,8 +283,8 @@ class DatabaseManager:
         except DoesNotExist:
             return None
 
-    def delete_msg_log(self,
-                       master_msg_id: Optional[TgChatMsgIDStr] = None,
+    @staticmethod
+    def delete_msg_log(master_msg_id: Optional[TgChatMsgIDStr] = None,
                        slave_msg_id: Optional[EFBChannelChatIDStr] = None,
                        slave_origin_uid: Optional[EFBChannelChatIDStr] = None):
         """Remove a message log by message ID.
@@ -306,9 +309,10 @@ class DatabaseManager:
         except DoesNotExist:
             return
 
-    def get_slave_chat_info(self, slave_channel_id: Optional[ModuleID] = None,
+    @staticmethod
+    def get_slave_chat_info(slave_channel_id: Optional[ModuleID] = None,
                             slave_chat_uid: Optional[ChatID] = None
-                            ) -> Optional['SlaveChatInfo']:
+                            ) -> Optional[SlaveChatInfo]:
         """
         Get cached slave chat info from database.
 
@@ -332,7 +336,7 @@ class DatabaseManager:
                             slave_chat_name: Optional[str] = None,
                             slave_chat_alias: Optional[str] = "",
                             slave_chat_type: Optional[ChatType] = None,
-                            chat_object: Optional[EFBChat] = None):
+                            chat_object: Optional[EFBChat] = None) -> SlaveChatInfo:
         """
         Insert or update slave chat info entry
 
@@ -373,13 +377,14 @@ class DatabaseManager:
                                         slave_chat_type=slave_chat_type and slave_chat_type.value,
                                         pickle=pickle.dumps(chat_object))
 
-    def delete_slave_chat_info(self, slave_channel_id: ModuleID, slave_chat_uid: ChatID):
+    @staticmethod
+    def delete_slave_chat_info(slave_channel_id: ModuleID, slave_chat_uid: ChatID):
         return SlaveChatInfo.delete() \
             .where((SlaveChatInfo.slave_channel_id == slave_channel_id) &
                    (SlaveChatInfo.slave_chat_uid == slave_chat_uid)).execute()
 
     @staticmethod
-    def get_recent_slave_chats(master_chat_id: TelegramChatID, limit=5):
+    def get_recent_slave_chats(master_chat_id: TelegramChatID, limit=5) -> List[EFBChannelChatIDStr]:
         query = MsgLog \
             .select(MsgLog.slave_origin_uid, fn.MAX(MsgLog.time)) \
             .where(MsgLog.master_msg_id.startswith("{}.".format(master_chat_id))) \
@@ -387,4 +392,13 @@ class DatabaseManager:
             .order_by(fn.MAX(MsgLog.time).desc()) \
             .limit(limit)
 
-        return [i.slave_origin_uid for i in query]
+        return [EFBChannelChatIDStr(i.slave_origin_uid) for i in query]
+
+    @staticmethod
+    def get_last_message(slave_chat_id: EFBChannelChatIDStr) -> Optional[MsgLog]:
+        try:
+            return MsgLog.select().where(
+                MsgLog.slave_origin_uid == slave_chat_id
+            ).order_by(MsgLog.time.desc()).limit(1).first()
+        except DoesNotExist:
+            return None
