@@ -6,6 +6,7 @@ import re
 import threading
 import urllib.parse
 import io
+from datetime import datetime
 from typing import Tuple, Dict, Optional, List, Pattern, TYPE_CHECKING, IO, Any
 
 import peewee
@@ -35,6 +36,8 @@ __all__ = ['ChatBindingManager', 'ETMChat']
 class ETMChat(EFBChat):
     # Constant
     MUTE_CHAT_ID = "__muted__"
+
+    _last_message_time: Optional[datetime] = None
 
     def __init__(self,
                  channel: Optional[EFBChannel] = None,
@@ -118,6 +121,19 @@ class ETMChat(EFBChat):
     def chat_title(self):
         return f"{self.channel_emoji}{Emoji.get_source_emoji(self.chat_type)} " \
                f"{self.chat_alias or self.chat_name}"
+
+    @property
+    def last_message_time(self) -> datetime:
+        """Time of the last recorded message from this chat.
+        Returns ``datetime.min`` when no recorded message is found.
+        """
+        if self._last_message_time is None:
+            msg_log = self.db.get_last_message(slave_chat_id=utils.chat_id_to_str(chat=self))
+            if msg_log is None:
+                self._last_message_time = datetime.min
+            else:
+                self._last_message_time = msg_log.time
+        return self._last_message_time
 
     def __getstate__(self) -> Dict[str, Any]:
         state = self.__dict__.copy()
@@ -332,6 +348,8 @@ class ChatBindingManager(LocaleMixin):
                         etm_chat = ETMChat(chat=i_chat, db=self.db)
                         if etm_chat.match(re_filter):
                             chats.append(etm_chat)
+
+            chats.sort(key=lambda a: a.last_message_time, reverse=True)
             chat_list = self.msg_storage[storage_id] = ChatListStorage(chats, offset)
 
         threading.Thread(target=self._db_update_slave_chats_cache, args=(chat_list.chats,)).start()
@@ -719,15 +737,11 @@ class ChatBindingManager(LocaleMixin):
 
         self.chat_head_handler.conversations[(chat_id, message_id)] = Flags.CHAT_HEAD_CONFIRM
 
-    def make_chat_head(self, bot, update) -> int:
+    def make_chat_head(self, update: Update, context: CallbackContext) -> int:
         """
         Create a chat head. Triggered by callback message with status `Flags.START_CHOOSE_CHAT`.
 
         This message is a part of the ``/chat`` conversation handler.
-
-        Args:
-            bot: Telegram Bot instance
-            update: The update
         """
         tg_chat_id = update.effective_chat.id
         tg_msg_id = update.effective_message.message_id

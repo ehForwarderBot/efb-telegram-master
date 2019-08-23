@@ -12,12 +12,11 @@ import telegram.error
 import telegram.constants
 from retrying import retry
 
-from typing import Optional, List, TYPE_CHECKING, Callable
+from typing import List, TYPE_CHECKING, Callable
 
 from telegram import Update
 from telegram.ext import CallbackContext, Filters, MessageHandler
 
-from .whitelisthandler import WhitelistHandler
 from .locale_handler import LocaleHandler
 from .locale_mixin import LocaleMixin
 
