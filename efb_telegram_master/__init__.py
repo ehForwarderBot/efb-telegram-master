@@ -34,7 +34,6 @@ from .commands import CommandsManager
 from .db import DatabaseManager
 from .master_message import MasterMessageProcessor
 from .message import ETMMsg
-from .monkey_patch import load_monkey_patches
 from .rpc_utils import RPCUtilities
 from .slave_message import SlaveMessageProcessor
 from .utils import ExperimentalFlagsManager, EFBChannelChatIDStr
@@ -112,8 +111,6 @@ class TelegramChannel(EFBChannel):
         logging.getLogger('urllib3').setLevel(logging.CRITICAL)
         logging.getLogger('telegram.bot').setLevel(logging.CRITICAL)
         logging.getLogger('telegram.vendor.ptb_urllib3.urllib3.connectionpool').setLevel(logging.CRITICAL)
-
-        load_monkey_patches()
 
         # Set up logger
         self.logger: logging.Logger = logging.getLogger(__name__)
