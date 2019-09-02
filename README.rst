@@ -617,10 +617,10 @@ __ https://docs.python.org/3/library/xmlrpc.html
 .. _the RPCUtilities class: https://github.com/blueset/efb-telegram-master/blob/master/efb_telegram_master/rpc_utilities.py
 
 
-Experimental translation support
---------------------------------
+Translation support
+-------------------
 
-ETM supports translated user interface prompts experimentally.
+ETM supports translated user interface with the help of community.
 The bot detects languages of Telegram Client of the admins
 from their messages, and automatically matches with a supported
 language on the go. Otherwise, you can set your language by
@@ -631,3 +631,9 @@ supported languages. Meanwhile, you can help to translate
 this project into your languages on `our Crowdin page`_.
 
 .. _our Crowdin page: https://crowdin.com/project/ehforwarderbot/
+
+.. note::
+
+    If your are installing from source code, you will not get translations
+    of the user interface without manual compile of message catalogs (``.mo``)
+    prior to installation.
