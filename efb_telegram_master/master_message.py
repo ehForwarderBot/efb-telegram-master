@@ -2,9 +2,10 @@
 
 import logging
 import pickle
-import threading
 import time
-from typing import Optional, TYPE_CHECKING
+from queue import Queue
+from threading import Thread
+from typing import Optional, TYPE_CHECKING, Tuple
 
 import telegram
 from telegram import Update
@@ -61,15 +62,32 @@ class MasterMessageProcessor(LocaleMixin):
             (Filters.text | Filters.photo | Filters.sticker | Filters.document |
              Filters.venue | Filters.location | Filters.audio | Filters.voice | Filters.video) &
             Filters.update,
-            self.msg_thread_creator, edited_updates=True
+            self.enqueue_message
         ))
         self.logger: logging.Logger = logging.getLogger(__name__)
 
         self.channel_id: ModuleID = self.channel.channel_id
 
-    def msg_thread_creator(self, update: Update, context: CallbackContext):
-        """Process message in a thread, to ensure it doesn't block the main thread."""
-        threading.Thread(target=self.msg, args=(update, context)).run()
+        self.message_queue: 'Queue[Optional[Tuple[Update, CallbackContext]]]' = Queue()
+        self.message_worker_thread = Thread(target=self.message_worker)
+        self.message_worker_thread.run()
+
+    def message_worker(self):
+        while True:
+            content = self.message_queue.get()
+            if content is None:
+                self.message_queue.task_done()
+                break
+            update, context = content
+            self.msg(update, context)
+            self.message_queue.task_done()
+
+    def stop_worker(self):
+        self.message_queue.put(None)
+        self.message_queue.join()
+
+    def enqueue_message(self, update: Update, context: CallbackContext):
+        self.message_queue.put((update, context))
 
     def msg(self, update: Update, context: CallbackContext):
         """
@@ -234,7 +252,7 @@ class MasterMessageProcessor(LocaleMixin):
             m.deliver_to = coordinator.slaves[channel]
             if target and target_log is not None and target_channel == channel:
                 if target_log.pickle:
-                    trgt_msg: ETMMsg = pickle.loads(target_log.pickle)
+                    trgt_msg: ETMMsg = ETMMsg.unpickle(target_log.pickle, self.db)
                     trgt_msg.target = None
                 else:
                     trgt_msg = ETMMsg()
@@ -373,12 +391,14 @@ class MasterMessageProcessor(LocaleMixin):
             self.logger.exception("Message is not sent. (update: %s)", update)
         finally:
             if log_message:
+                pickled_msg = m.pickle(self.db)
+                self.logger.debug("[%s] Pickle size: %s", message_id, len(pickled_msg))
                 msg_log_d = {
                     "master_msg_id": utils.message_id_to_str(update=update),
-                    "text": m.text or "Sent a %s" % m.type,
+                    "text": m.text or "Sent a %s" % m.type.name,
                     "slave_origin_uid": utils.chat_id_to_str(chat=m.chat),
                     "slave_origin_display_name": "__chat__",
-                    "msg_type": m.type,
+                    "msg_type": m.type.name,
                     "sent_to": "slave",
                     "slave_message_id": None if m.edit else "%s.%s" % (self.FAIL_FLAG, int(time.time())),
                     # Overwritten later if slave message ID exists
@@ -386,12 +406,13 @@ class MasterMessageProcessor(LocaleMixin):
                     "media_type": m.type_telegram.value,
                     "file_id": m.file_id,
                     "mime": m.mime,
-                    "pickle": pickle.dumps(m)
+                    "pickle": pickled_msg
                 }
 
                 if slave_msg:
                     msg_log_d['slave_message_id'] = slave_msg.uid
-                self.db.add_msg_log(**msg_log_d)
+                # self.db.add_msg_log(**msg_log_d)
+                self.db.add_task(self.db.add_msg_log, tuple(), msg_log_d)
                 if m.file:
                     m.file.close()
 

@@ -14,7 +14,7 @@ from retrying import retry
 
 from typing import List, TYPE_CHECKING, Callable
 
-from telegram import Update
+from telegram import Update, InputFile
 from telegram.ext import CallbackContext, Filters, MessageHandler
 
 from .locale_handler import LocaleHandler
@@ -436,7 +436,7 @@ class TelegramBotManager(LocaleMixin):
 
     def reply_error(self, update, errmsg):
         """
-        A wrap that directly reply a message with error details.
+        A wrap that quote-reply a message with error details.
 
         Returns:
             telegram.Message: Message sent
@@ -511,6 +511,8 @@ class TelegramBotManager(LocaleMixin):
                 file.seek(0, 2)
                 empty = file.tell() == 0
                 file.seek(0, 0)
+        elif isinstance(file, InputFile):
+            empty = not bool(len(file.input_file_content))
         if empty:
             return self.send_message(chat, prefix=self._("Empty attachment detected.") + prefix,
                                      text=caption, suffix=suffix)

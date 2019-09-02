@@ -314,7 +314,7 @@ class TelegramChannel(EFBChannel):
             if msg_log.pickle is None:
                 message.reply_text(self._("Reactors of this message are not recorded in database."))
                 return
-            msg_log_obj: ETMMsg = pickle.loads(msg_log.pickle)
+            msg_log_obj: ETMMsg = ETMMsg.unpickle(msg_log.pickle, self.db)
             reactors = msg_log_obj.reactions
             if not reactors:
                 message.reply_html(self._("This message has no reactions yet. "
@@ -501,7 +501,7 @@ class TelegramChannel(EFBChannel):
                                       slave_msg_id=msg_id)
         if msg_log is not None:
             if msg_log.pickle:
-                return pickle.loads(msg_log.pickle)
+                return ETMMsg.unpickle(msg_log.pickle, self.db)
             else:
                 # Pickled data is not recorded.
                 raise EFBOperationNotSupported(self._("Message is not possible to be retrieved."))
@@ -518,4 +518,6 @@ class TelegramChannel(EFBChannel):
         self.logger.debug("Gracefully stopping %s (%s).", self.channel_name, self.channel_id)
         self.rpc_utilities.shutdown()
         self.bot_manager.graceful_stop()
+        self.master_messages.stop_worker()
+        self.db.stop_worker()
         self.logger.debug("%s (%s) gracefully stopped.", self.channel_name, self.channel_id)
