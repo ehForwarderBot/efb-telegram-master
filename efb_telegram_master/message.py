@@ -1,7 +1,8 @@
 import mimetypes
 import os
+import pickle
 import tempfile
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, TYPE_CHECKING
 
 import magic
 import telegram
@@ -10,8 +11,11 @@ from moviepy.video.io.VideoFileClip import VideoFileClip
 from typing.io import IO
 
 from ehforwarderbot import EFBMsg, coordinator
-from . import ETMChat
+from . import ETMChat, utils
 from .msg_type import TGMsgType, get_msg_type
+
+if TYPE_CHECKING:
+    from .db import DatabaseManager
 
 
 class ETMMsg(EFBMsg):
@@ -42,13 +46,38 @@ class ETMMsg(EFBMsg):
             del state['_ETMMsg__path']
         if state.get('filename', None) is not None:
             del state['filename']
+        # Store author and chat as database key to prevent
+        # redundant storage.
+        if state.get('chat', None) is not None:
+            state['chat'] = utils.chat_id_to_str(chat=state['chat'])
+        if state.get('author', None) is not None:
+            state['author'] = utils.chat_id_to_str(chat=state['author'])
         return state
 
     def __setstate__(self, state: Dict[str, Any]):
         super().__setstate__(state)
 
+    def pickle(self, db: 'DatabaseManager') -> bytes:
+        db.add_task(db.set_slave_chat_info, (self.chat,), {})
+        if self.chat != self.author and not self.author.is_self:
+            db.add_task(db.set_slave_chat_info, (self.author,), {})
+        return pickle.dumps(self)
+
+    @staticmethod
+    def unpickle(data: bytes, db: 'DatabaseManager') -> 'ETMMsg':
+        obj = pickle.loads(data)
+        c_module, c_id = utils.chat_id_str_to_id(obj.chat)
+        a_module, a_id = utils.chat_id_str_to_id(obj.author)
+        obj.chat = ETMChat.from_db_record(c_module, c_id, db)
+        if a_module == c_module and a_id == c_id:
+            obj.author = obj.chat
+        else:
+            obj.author = ETMChat.from_db_record(a_module, a_id, db)
+        return obj
+
     def _load_file(self):
         if self.file_id:
+            # noinspection PyUnresolvedReferences
             bot = coordinator.master.bot_manager
 
             if self.type_telegram == TGMsgType.Animation:

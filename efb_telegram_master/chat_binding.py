@@ -17,6 +17,7 @@ from telegram import Update, Message
 from telegram.ext import ConversationHandler, CommandHandler, CallbackQueryHandler, CallbackContext, Filters, \
     MessageHandler
 
+from efb_telegram_master import ETMMsg
 from ehforwarderbot import coordinator, EFBChat, EFBChannel
 from ehforwarderbot.constants import ChatType
 from ehforwarderbot.exceptions import EFBChatNotFound, EFBOperationNotSupported
@@ -57,7 +58,7 @@ class ETMChat(EFBChat):
             self.chat_alias = chat.chat_alias
             self.chat_uid = chat.chat_uid
             self.is_chat = chat.is_chat
-            self.members = chat.members.copy()
+            self.members = [ETMChat(chat=i, db=db) for i in chat.members]
             self.chat = chat.group
             self.vendor_specific = chat.vendor_specific.copy()
 
@@ -83,9 +84,6 @@ class ETMChat(EFBChat):
         if pattern is None:
             return True
         mode = []
-        # TODO: Remove code for muted chats.
-        if self.muted:
-            mode.append("Muted")
         if self.linked:
             mode.append("Linked")
         mode_str = ', '.join(mode)
@@ -114,18 +112,18 @@ class ETMChat(EFBChat):
         return self.MUTE_CHAT_ID in self.linked
 
     @property
-    def full_name(self):
+    def full_name(self) -> str:
         chat_display_name = self.display_name
         return f"'{chat_display_name}' @ '{self.channel_emoji} {self.module_name}'" \
             if self.module_name else f"'{chat_display_name}'"
 
     @property
-    def display_name(self):
+    def display_name(self) -> str:
         return self.chat_name if not self.chat_alias \
             else f"{self.chat_alias} ({self.chat_name})"
 
     @property
-    def chat_title(self):
+    def chat_title(self) -> str:
         return f"{self.channel_emoji}{Emoji.get_source_emoji(self.chat_type)} " \
                f"{self.chat_alias or self.chat_name}"
 
@@ -142,6 +140,28 @@ class ETMChat(EFBChat):
                 self._last_message_time = msg_log.time
         return self._last_message_time
 
+    @property
+    def pickle(self) -> bytes:
+        return pickle.dumps(self)
+
+    @staticmethod
+    def unpickle(data: bytes, db: 'DatabaseManager') -> 'ETMChat':
+        obj = pickle.loads(data)
+        obj.db = db
+        return obj
+
+    @staticmethod
+    def from_db_record(module_id: ModuleID, chat_id: ChatID, db: 'DatabaseManager') -> 'ETMChat':
+        c_log = db.get_slave_chat_info(module_id, chat_id)
+        if c_log is not None:
+            c_pickle = c_log.pickle
+            obj = ETMChat.unpickle(c_pickle, db)
+        else:
+            obj = ETMChat(db=db)
+            obj.module_id = module_id
+            obj.chat_uid = chat_id
+        return obj
+
     def __getstate__(self) -> Dict[str, Any]:
         state = self.__dict__.copy()
         if 'db' in state:
@@ -150,9 +170,6 @@ class ETMChat(EFBChat):
 
     def __setstate__(self, state: Dict[str, Any]):
         self.__dict__.update(state)
-        # ETMChat would only appear when ETM is the master channel
-        # Performing check is not possible due to recursive import
-        self.db = coordinator.master.db  # type: ignore
 
 
 class ChatListStorage:
@@ -287,7 +304,7 @@ class ChatBindingManager(LocaleMixin):
                 master_msg_id=utils.message_id_to_str(
                     chat_id=rtm.chat_id, message_id=rtm.message_id))
             if msg_log and msg_log.pickle:
-                chat = pickle.loads(msg_log.pickle).chat
+                chat = ETMMsg.unpickle(msg_log.pickle, db=self.db).chat
                 tg_chat_id = message.chat_id
                 tg_msg_id = message.reply_text(self._("Processing...")).message_id
                 storage_id = (tg_chat_id, tg_msg_id)
@@ -375,7 +392,7 @@ class ChatBindingManager(LocaleMixin):
             chats.sort(key=lambda a: a.last_message_time, reverse=True)
             chat_list = self.msg_storage[storage_id] = ChatListStorage(chats, offset)
 
-        threading.Thread(target=self._db_update_slave_chats_cache, args=(chat_list.chats,)).start()
+        self._db_update_slave_chats_cache(chat_list.chats)
 
         for ch in chat_list.channels.values():
             legend.append("%s: %s" % (ch.channel_emoji, ch.channel_name))
@@ -421,19 +438,8 @@ class ChatBindingManager(LocaleMixin):
         Args:
             chats: List of chats generated
         """
-        try:
-            for i in chats:
-                self.db.set_slave_chat_info(slave_channel_id=i.module_id,
-                                            slave_channel_name=i.module_name,
-                                            slave_channel_emoji=i.channel_emoji,
-                                            slave_chat_uid=i.chat_uid,
-                                            slave_chat_name=i.chat_name,
-                                            slave_chat_alias=i.chat_alias,
-                                            slave_chat_type=i.chat_type,
-                                            chat_object=i)
-        except peewee.OperationalError:
-            # Suppress exception of background database update
-            pass
+        for i in chats:
+            self.db.add_task(self.db.set_slave_chat_info, tuple(), {'chat_object': i})
 
     def link_chat_gen_list(self, chat_id: TelegramChatID,
                            message_id: TelegramMessageID = None, offset=0,
