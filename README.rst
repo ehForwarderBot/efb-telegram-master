@@ -267,7 +267,7 @@ You can send message as you do in a normal Telegram chat.
 What is supported:
 
 -  Send/forward message in all supported types
--  Direct reply to a message
+-  Quote-reply to a message
 -  Send message with inline bot in supported types
 
 What is NOT supported:
@@ -279,11 +279,11 @@ What is NOT supported:
 Send to a non-linked chat
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To send a message to a non-linked chat, you should “direct reply” to a
+To send a message to a non-linked chat, you should “quote-reply” to a
 message or a “chat head” that is sent from your recipient. Those
 messages should appear only in the bot conversation.
 
-In a non-linked chat, direct reply will not be delivered to the remote
+In a non-linked chat, quote-reply will not be passed on to the remote
 channel, everything else is supported as it does in a linked chat.
 
 Edit and delete message
@@ -332,46 +332,6 @@ Those commands are named like “\ ``/<number>_<command_name>``\ ”, and can be
 called like an CLI utility. (of course, advanced features like
 piping etc would not be supported)
 
-.. Deprecated feature
-    .
-    ``/recog``: Speech recognition
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    .
-    If you have entered a speech recognition service API keys, you can use
-    it to convert speech in voice messages into text.
-    .
-    Reply any voice messages in a conversation with the bot, with the
-    command ``/recog``, and the bot will try to convert it to text using
-    those speech recognition services enabled.
-    .
-    If you know the language used in this message, you can also attach the
-    language code to the command for a more precise conversion.
-    .
-    Supported language codes:
-    .
-    +-----------+-----------+---------------------------+
-    | Code      | Baidu     | Bing                      |
-    +===========+===========+===========================+
-    | en, en-US | English   | English (US)              |
-    +-----------+-----------+---------------------------+
-    | zh, zh-CN | Mandarin  | Mandarin (China Mainland) |
-    +-----------+-----------+---------------------------+
-    | ct        | Cantonese | \-                        |
-    +-----------+-----------+---------------------------+
-    | de-DE     | \-        | German                    |
-    +-----------+-----------+---------------------------+
-    | ru-RU     | \-        | Russian                   |
-    +-----------+-----------+---------------------------+
-    | ja-JP     | \-        | Japanese                  |
-    +-----------+-----------+---------------------------+
-    | ar-EG     | \-        | Arabic                    |
-    +-----------+-----------+---------------------------+
-    | es-ES     | \-        | Spanish (Spain)           |
-    +-----------+-----------+---------------------------+
-    | pt-BR     | \-        | Portuguese (Brazil)       |
-    +-----------+-----------+---------------------------+
-    | fr-FR     | \-        | French (France)           |
-    +-----------+-----------+---------------------------+
 
 ``/update_info``: Update name and profile picture of linked group
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -438,14 +398,19 @@ How to use:
     Telegram Bot API prevents bot from knowing who actually sent a message
     in a channel (not including signatures as that doesn't reflect the numeric
     ID of the sender). In fact, that is the same for normal users in a channel
-    too, even admins. Thus, we think that it is not safe to process messages
-    directly from a channel.
+    too, even admins.
+
+    If messages from channels are to be processed unconditionally, not only
+    that other admins in existing channels can add malicious admins to it,
+    anyone on Telegram, once knows your bot username, can add it to a channel
+    and use the bot on your behalf. Thus, we think that it is not safe to
+    process messages directly from a channel.
 
 Limitations
 -----------
 
-Due to the technical limitations of Telegram Bot API and EH Forwarder
-Bot framework, there are some limitations:
+Due to the technical constraints of both Telegram Bot API and EH Forwarder
+Bot framework, ETM has the following limitations:
 
 - Some Telegram message types are **not** supported:
     - Game messages
@@ -453,13 +418,14 @@ Bot framework, there are some limitations:
     - Payment messages
     - Passport messages
     - Vote messages
+- ETM cannot process any message from another Telegram bot.
 - Some components in Telegram messages are dropped:
     - Original author and signature of forwarded messages
     - Formats, links and link previews
     - Buttons attached to messages
     - Details about inline bot used on messages
 - Some components in messages from slave channels are dropped:
-    - @ references.
+    - @ references not referring to you.
 - The Telegram bot can only
     - send you any file up to 50 MiB,
     - receive file from you up to 20 MiB.
