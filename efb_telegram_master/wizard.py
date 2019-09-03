@@ -512,8 +512,7 @@ def setup_rpc(data):
     print("https://github.com/blueset/efb-telegram-master/")
     print()
 
-    proceed = YesNo(prompt=_("Do you want to enable RPC interface? "
-                             "(connection timeout and proxy) "),
+    proceed = YesNo(prompt=_("Do you want to enable RPC interface? "),
                     prompt_prefix="[yN] ").launch(default='n')
     if not proceed:
         return
