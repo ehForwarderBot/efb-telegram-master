@@ -24,7 +24,7 @@ from ehforwarderbot.message import EFBMsgLinkAttribute, EFBMsgLocationAttribute,
 from ehforwarderbot.status import EFBChatUpdates, EFBMemberUpdates, EFBMessageRemoval, EFBMessageReactionsUpdate
 from ehforwarderbot.types import ChatID
 
-from . import utils, ETMChat
+from . import utils, ETMChat, cache
 from .commands import ETMCommandMsgStorage
 from .constants import Emoji
 from .locale_mixin import LocaleMixin
@@ -263,6 +263,10 @@ class SlaveMessageProcessor(LocaleMixin):
         msg_template = self.generate_message_template(msg, tg_chat, multi_slaves)
         self.logger.debug("[%s] Message is sent to Telegram chat %s, with header \"%s\".",
                           xid, tg_dest, msg_template)
+
+        if cache.get(tg_dest) and cache.get(tg_dest) != chat_uid:
+            cache.remove(tg_dest)
+
         return msg_template, tg_dest
 
     def slave_message_text(self, msg: EFBMsg, tg_dest: TelegramChatID, msg_template: str, reactions: str,

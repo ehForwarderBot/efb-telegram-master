@@ -17,7 +17,7 @@ from ehforwarderbot.exceptions import EFBMessageTypeNotSupported, EFBChatNotFoun
 from ehforwarderbot.message import EFBMsgLocationAttribute
 from ehforwarderbot.status import EFBMessageRemoval
 from ehforwarderbot.types import ModuleID, ChatID, MessageID
-from . import utils
+from . import utils, cache
 from .locale_mixin import LocaleMixin
 from .message import ETMMsg
 from .msg_type import TGMsgType
@@ -64,7 +64,6 @@ class MasterMessageProcessor(LocaleMixin):
         self.logger: logging.Logger = logging.getLogger(__name__)
 
         self.channel_id: ModuleID = self.channel.channel_id
-        self.CHAT_CACHE = {}
 
     def msg_thread_creator(self, bot, update):
         """Process message in a thread, to ensure it doesn't block the main thread."""
@@ -93,7 +92,7 @@ class MasterMessageProcessor(LocaleMixin):
         reply_to = bool(getattr(message, "reply_to_message", None))
         private_chat = message.chat.id == message.from_user.id
 
-        if (private_chat or multi_slaves) and not reply_to and not self.CHAT_CACHE.get(message.chat.id):
+        if (private_chat or multi_slaves) and not reply_to and not cache.get(message.chat.id):
             candidates = self.db.get_recent_slave_chats(message.chat.id) or \
                          self.db.get_chat_assoc(master_uid=utils.chat_id_to_str(self.channel_id, message.chat.id))[:5]
             if candidates:
@@ -171,13 +170,13 @@ class MasterMessageProcessor(LocaleMixin):
                     message.reply_to_message.message_id))
                 if dest_msg:
                     destination = dest_msg.slave_origin_uid
-                    self.CHAT_CACHE[message.chat.id] = destination
+                    cache.set(message.chat.id, destination)
                 else:
                     return self.bot.reply_error(update,
                                                 self._("Message is not found in database. "
                                                        "Please try with another one. (UC03)"))
-            elif self.CHAT_CACHE.get(message.chat.id):
-                destination = self.CHAT_CACHE.get(message.chat.id)
+            elif cache.get(message.chat.id):
+                destination = cache.get(message.chat.id)
             else:
                 return self.bot.reply_error(update,
                                             self._("Please reply to an incoming message. (UC04)"))
@@ -189,13 +188,13 @@ class MasterMessageProcessor(LocaleMixin):
                         message.reply_to_message.message_id))
                     if dest_msg:
                         destination = dest_msg.slave_origin_uid
-                        self.CHAT_CACHE[message.chat.id] = destination
+                        cache.set(message.chat.id, destination)
                     else:
                         return self.bot.reply_error(update,
                                                     self._("Message is not found in database. "
                                                            "Please try with another one. (UC05)"))
-                elif self.CHAT_CACHE.get(message.chat.id):
-                    destination = self.CHAT_CACHE.get(message.chat.id)
+                elif cache.get(message.chat.id):
+                    destination = cache.get(message.chat.id)
                 else:
                     return self.bot.reply_error(update,
                                                 self._("This group is linked to multiple remote chats. "
