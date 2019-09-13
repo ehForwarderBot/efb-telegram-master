@@ -68,7 +68,7 @@ class DatabaseManager:
 
         self.task_queue: 'Queue[Optional[Tuple[Callable, Sequence[Any], Dict[str, Any]]]]' = Queue()
         self.worker_thread = Thread(target=self.task_worker)
-        self.worker_thread.run()
+        self.worker_thread.start()
 
         if not ChatAssoc.table_exists():
             self._create()
@@ -381,7 +381,7 @@ class DatabaseManager:
             chat_info.slave_chat_name = slave_chat_name
             chat_info.slave_chat_alias = slave_chat_alias
             if slave_chat_type is not None:
-                chat_info.slave_chat_type = slave_chat_type.value
+                chat_info.slave_chat_type = slave_chat_type
             if chat_object is not None:
                 if not isinstance(chat_object, ETMChat):
                     chat_object = ETMChat(chat=chat_object, db=self)
@@ -395,7 +395,7 @@ class DatabaseManager:
                                         slave_chat_uid=slave_chat_uid,
                                         slave_chat_name=slave_chat_name,
                                         slave_chat_alias=slave_chat_alias,
-                                        slave_chat_type=slave_chat_type and slave_chat_type.value,
+                                        slave_chat_type=slave_chat_type,
                                         pickle=pickle.dumps(chat_object))
 
     @staticmethod
