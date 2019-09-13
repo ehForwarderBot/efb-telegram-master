@@ -11,7 +11,8 @@ from moviepy.video.io.VideoFileClip import VideoFileClip
 from typing.io import IO
 
 from ehforwarderbot import EFBMsg, coordinator
-from . import ETMChat, utils
+from . import utils
+from .chat_binding import ETMChat
 from .msg_type import TGMsgType, get_msg_type
 
 if TYPE_CHECKING:

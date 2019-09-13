@@ -26,10 +26,11 @@ from ehforwarderbot.exceptions import EFBException, EFBOperationNotSupported, EF
     EFBMessageReactionNotPossible
 from ehforwarderbot.status import EFBReactToMessage
 from ehforwarderbot.types import ChatID, ModuleID, InstanceID, MessageID
-from .__version__ import __version__
 from . import utils as etm_utils
+from .__version__ import __version__
 from .bot_manager import TelegramBotManager
-from .chat_binding import ChatBindingManager, ETMChat
+from .chat_binding import ChatBindingManager
+from .chat import ETMChat
 from .commands import CommandsManager
 from .db import DatabaseManager
 from .master_message import MasterMessageProcessor

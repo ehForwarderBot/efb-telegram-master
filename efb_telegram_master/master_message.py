@@ -70,7 +70,7 @@ class MasterMessageProcessor(LocaleMixin):
 
         self.message_queue: 'Queue[Optional[Tuple[Update, CallbackContext]]]' = Queue()
         self.message_worker_thread = Thread(target=self.message_worker)
-        self.message_worker_thread.run()
+        self.message_worker_thread.start()
 
     def message_worker(self):
         while True:
