@@ -10,9 +10,9 @@ from PIL import Image
 from moviepy.video.io.VideoFileClip import VideoFileClip
 from typing.io import IO
 
-from ehforwarderbot import EFBMsg, coordinator
+from ehforwarderbot import EFBMsg, coordinator, MsgType
 from . import utils
-from .chat_binding import ETMChat
+from .chat import ETMChat
 from .msg_type import TGMsgType, get_msg_type
 
 if TYPE_CHECKING:
@@ -81,11 +81,6 @@ class ETMMsg(EFBMsg):
             # noinspection PyUnresolvedReferences
             bot = coordinator.master.bot_manager
 
-            if self.type_telegram == TGMsgType.Animation:
-                self.mime = 'video/mpeg'
-            elif self.type_telegram == TGMsgType.Sticker:
-                self.mime = 'image/webp'
-
             file_meta = bot.get_file(self.file_id)
             if not self.mime:
                 ext = os.path.splitext(file_meta.file_path)[1]
@@ -128,14 +123,30 @@ class ETMMsg(EFBMsg):
                 self.__filename = self.__filename or os.path.basename(gif_file.name)
                 self.mime = "image/gif"
             elif self.type_telegram == TGMsgType.Sticker:
-                png_file = tempfile.NamedTemporaryFile(suffix=".png")
-                Image.open(file).convert("RGBA").save(png_file, 'png')
+                out_file = tempfile.NamedTemporaryFile(suffix=".png")
+                Image.open(file).convert("RGBA").save(out_file, 'png')
                 file.close()
-                png_file.seek(0)
-                self.__file = png_file
-                self.__path = png_file.name
-                self.__filename = (self.__filename or os.path.basename(file.name)) + ".png"
+                out_file.seek(0)
                 self.mime = "image/png"
+                self.__filename = (self.__filename or os.path.basename(file.name)) + ".png"
+                self.__file = out_file
+                self.__path = out_file.name
+            elif self.type_telegram == TGMsgType.AnimatedSticker:
+                out_file = tempfile.NamedTemporaryFile(suffix=".gif")
+                if utils.convert_tgs_to_gif(file, out_file):
+                    file.close()
+                    out_file.seek(0)
+                    self.mime = "image/gif"
+                    self.__filename = (self.__filename or os.path.basename(file.name)) + ".gif"
+                else:
+                    # Conversion failed, send file as is.
+                    out_file.close()
+                    file.seek(0)
+                    out_file = file
+                    self.mime = "application/json"
+                    self.__filename = (self.__filename or os.path.basename(file.name)) + ".json"
+                self.__file = out_file
+                self.__path = out_file.name
 
         self.__initialized = True
 
@@ -195,9 +206,13 @@ class ETMMsg(EFBMsg):
                 break
 
         if not is_common_file:
-            if getattr(message, 'sticker', None):
+            if self.type_telegram == TGMsgType.Sticker:
                 self.file_id = message.sticker.file_id
                 self.mime = 'image/webp'
+            elif self.type_telegram == TGMsgType.AnimatedSticker:
+                self.file_id = message.sticker.file_id
+                self.mime = 'application/json+tgs'
+                self.type = MsgType.Animation
             elif getattr(message, 'photo', None):
                 attachment = message.photo[-1]
                 self.file_id = attachment.file_id

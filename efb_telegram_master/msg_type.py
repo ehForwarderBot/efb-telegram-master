@@ -10,6 +10,7 @@ class TGMsgType(Enum):
     Document = "Document"
     Photo = "Photo"
     Sticker = "Sticker"
+    AnimatedSticker = "AnimatedSticker"
     Video = "Video"
     Voice = "Voice"
     Contact = "Contact"
@@ -50,5 +51,8 @@ def get_msg_type(msg: telegram.Message) -> TGMsgType:
              'video_note']
     for i in types:
         if getattr(msg, i, False):
-            return TGMsgType(i.capitalize())
+            tg_type = TGMsgType(i.capitalize())
+            if tg_type == TGMsgType.Sticker and msg.sticker.is_animated:
+                tg_type = TGMsgType.AnimatedSticker
+            return tg_type
     return TGMsgType.Text

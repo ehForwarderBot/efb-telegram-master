@@ -46,6 +46,7 @@ class MasterMessageProcessor(LocaleMixin):
         TGMsgType.Document: MsgType.File,
         TGMsgType.Photo: MsgType.Image,
         TGMsgType.Sticker: MsgType.Sticker,
+        TGMsgType.AnimatedSticker: MsgType.Animation,
         TGMsgType.Video: MsgType.Video,
         TGMsgType.Voice: MsgType.Audio,
         TGMsgType.Location: MsgType.Location,
@@ -330,7 +331,7 @@ class MasterMessageProcessor(LocaleMixin):
                 m.text = msg_md_caption
                 m.mime = "image/jpeg"
                 self._check_file_download(message.photo[-1])
-            elif mtype == TGMsgType.Sticker:
+            elif mtype in (TGMsgType.Sticker, TGMsgType.AnimatedSticker):
                 # Convert WebP to the more common PNG
                 m.text = ""
                 self._check_file_download(message.sticker)
