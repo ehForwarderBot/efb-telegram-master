@@ -1,6 +1,6 @@
 
-EFB Telegram Master Channel (ETM)
-*********************************
+EFB Telegram 主端（ETM）
+************************
 
 .. image:: https://img.shields.io/pypi/v/efb-telegram-master.svg
    :target: https://pypi.org/project/efb-telegram-master/
@@ -13,23 +13,22 @@ EFB Telegram Master Channel (ETM)
 .. image:: https://github.com/blueset/efb-telegram-master/blob/master/banner.png
    :alt: Banner
 
-`README in other languages <./readme_translations>`_.
+`其他语言的 README <./readme_translations>`_。
 
-**Channel ID**: ``blueset.telegram``
+**信道 ID**: ``blueset.telegram``
 
-ETM is a Telegram Master Channel for EH Forwarder Bot, based on
-Telegram Bot API, ``python-telegram-bot``.
-
-
-Beta version
-============
-
-This is an unstable beta version, and its functionality may change at
-any time.
+ETM 是一个用于 EH Forwarder Bot 的 Telegram 主端，基于 Telegram Bot
+API，``python-telegram-bot`` 建立。
 
 
-Requirements
-============
+测试版
+======
+
+该从端非稳定版本，且其功能随时可能会被更改。
+
+
+依赖
+====
 
 * Python >= 3.6
 
@@ -42,66 +41,60 @@ Requirements
 * libwebp
 
 
-Getting Started
-===============
+使用步骤
+========
 
-1. Install all required binary dependencies
+1. 安装所需的依赖
 
-2. Install ETM
+2. 安装 ETM
 
     ::
        pip3 install efb-telegram-master
 
-3. Enable ETM in the profile’s ``config.yaml``
+3. 在配置档案中的 ``config.yaml`` 中启用 ETM。
 
-    The path of your profile storage directory depends on your
-    configuration.
+    根据您的个人配置档案，目录路径可能有所不同。
 
-    **(As of EFB 2.0.0a1: Default profile storage directory is located
-    at** ``~/.ehforwarderbot/profiles/default`` **)**
+    **（在 EFB 2.0.0a1 中: 默认的配置档案储存目录位于**
+    ``~/.ehforwarderbot/profiles/default`` **）**
 
-1. Configure the channel (described as follows)
-
-
-Alternative installation methods
---------------------------------
-
-ETM also has other alternative installation methods contributed by the
-community, including:
-
-* `AUR package
-   <https://aur.archlinux.org/packages/python-efb-telegram-master-git>`_
-   maintained by `KeLiu <https://github.com/specter119>`_
-   (``python-efb-telegram-master-git``)
-
-* Other `installation scripts and containers (e.g. Docker)
-   <https://github.com/blueset/ehForwarderBot/wiki/Channels-Repository#scripts-and-containers-eg-docker>`_
+1. 配置信道（步骤如下）
 
 
-Configuration
-=============
-
-
-Set up a bot
+其他安装方式
 ------------
 
-Create a bot with `@BotFather <https://t.me/botfather>`_, give it a
-name and a username. Then you’ll get a token, which will be used
-later. Keep this token secure, as it gives who owns it the full access
-to the bot.
+社区也贡献了其他的 ETM 安装方式，包括：
 
-Use ``/setjoingroups`` to allow your bot to join groups. Use
-``/setprivacy`` to disable the privacy restriction of the bot, so that
-it can receive all messages in the group.
+* `KeLiu <https://github.com/specter119>`_ 维护的 `AUR 软件包
+  <https://aur.archlinux.org/packages/python-efb-telegram-master-git>`_
+  (``python-efb-telegram-master-git``)
+
+* 其他\ `安装脚本和容器（Docker 等）
+  <https://github.com/blueset/ehForwarderBot/wiki/Channels-Repository#scripts-and-containers-eg-docker>`_
 
 
-Complete configuration file
----------------------------
+配置
+====
 
-Configuration file is stored at ``<profile
-directory>/blueset.telegram/config.yaml``.
 
-A sample config file can be as follows:
+设置机器人
+----------
+
+使用 `@BotFather <https://t.me/botfather>`_ 创建一个
+bot，并给它起个名字及用户名。此后您会获得一个令牌（token）。此令牌稍后将会用到。请妥善保管该令牌，泄露该令牌相当于泄露 bot
+的完整控制权限。
+
+使用 ``/setjoingroups`` 来允许您的 bot 加入群组。使用 ``/setprivacy``
+来禁用隐私限制，以使其能读取群组内的所有消息。
+
+
+编写配置文件
+------------
+
+配置文件存储在 ``<配置档案目录>/blueset.telegram/config.yaml`` 上。
+
+配置范例：
 
 ::
 
@@ -138,16 +131,12 @@ A sample config file can be as follows:
    # Refer to relevant sections afterwards for details.
 
 
-Usage
-=====
+用法
+====
 
-At the beginning, messages from all senders will be sent to the user
-directly, that means every message will be mixed in the same
-conversation. By linking a chat, you can redirect messages from a
-specific sender to an empty group for a more organized conversation.
+开始时，来自任意发送者的消息将被直接发往用户，也就是说，所有消息都会被混到一起。通过绑定会话，您可以将来自特定发送者的消息导向至一个空群组中，以更好地管理消息。
 
-In a nutshell, ETM offers the following commands, you can also send it
-to BotFather for a command list:
+总而言之，ETM 提供了以下命令，您也可以将它们发送给 BotFather 以生成一个命令列表:
 
 ::
 
@@ -160,96 +149,50 @@ to BotFather for a command list:
    update_info - Update the group name and profile picture.
    react - Send a reaction to a message, or show a list of reactors.
 
-備註: In
-   case
-   of
-   multiple
-   admins
-   are
-   assigned,
-   they
-   may
-   all
-   send
-   message
-   on
-   your
-   behalf,
-   but
-   only
-   the
-   0th
-   admin
-   can
-   receive
-   direct
-   message
-   from
-   the
-   bot.
+備註: 当指定了多个管理员时，所有管理员皆可以您的身份发送消息。但只有第 0 个管理员可以收到 bot 的私信。
 
 
-``/link``: Link a chat
-----------------------
+``/link``：绑定会话
+-------------------
 
-1. Create a new group, invite your bot to the group
+1. 创建一个新群组，将您的 bot 邀请至群组中
 
-2. Send ``/link`` directly to the bot, then select your preferred
-    slave chat.
+2. 向 bot 直接发送 ``/link`` 命令，接着选择您想绑定的从端会话。
 
-3. Tap “Link” and select your new group. *You can also choose to
-    unlink or relink a linked chat from this menu.*
+3. 点击「绑定」并选择您的新群组。*您也可以在该菜单中选择解绑或重绑会话*
 
-4. Tap “Start” at the bottom of your screen, and you should see a
-    success message: “Chat linked.”
+4. 点击屏幕底部的「开始」按钮，接着你会看到一条「绑定成功」提示。
 
-備註: You
-   may
-   introduce
-   non-ETM
-   admin
-   users
-   to
-   the
-   group,
-   however,
-   they:
+備註: 您可以邀请非 ETM 管理员加入群组中，但是：
 
-   * Can read all messages send from the related remote chat;
+   * 他/她们可以看到所有从相关远端会话发来的消息；
 
-   * May NOT send message on your behalf.
+   * 他/她们不能够以您的名义发送消息。
 
-If the “Link” button doesn’t work for you, you may try the “Manual
-Link/Relink” button. To manually link a remote chat:
+如果「绑定」按钮无法工作，您可以尝试使用「手动绑定/重新绑定」按钮。手动绑定远程会话的步骤：
 
-1. Add the bot to the group you want to link to
+1. 将 bot 添加到您想要绑定至的群组
 
-2. Copy the code provided by the bot, and send it to the group.
+2. 复制由 bot 提供的代码，并将其发送至目标群组。
 
-3. If the group is linked successfully, you would receive a
-    confirmation from the bot.
+3. 如果绑定成功，您将从 bot 处收到一条成功提示。
 
-Also, you can send ``/unlink_all`` to a group to unlink all remote
-chats from it.
+此外，您也可以将 ``/unlink_all`` 发送至一个群组中以解绑其中的所有会话。
+
+此外，如果您想要绑定您之前使用的会话，您可以简单地回复 ``/link`` 引用一条以往来自该消息，而不从漫长的会话列表中选择。
 
 
-Advanced feature: Filtering
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+高级功能：筛选
+~~~~~~~~~~~~~~
 
-If you have just too much chats, and being too tired for keep tapping
-``Next >``, or maybe you just want to find a way to filter out what
-you’re looking for, now ETM has equipped ``/chat`` and ``/list`` with
-filtering feature. Attach your keyword behind, and you can get a
-filtered result.
+如果你的会话太多，不想在一次次点击 ``下一页 >`` 按钮，亦或是你想要一个更直接的方式筛选你的会话，ETM 为 ``/chat`` 和
+``/list`` 指令搭载了筛选功能。在指令后面追加关联词，即可获得筛选后的会话列表。
 
-E.g.: ``/chat Eana`` will give you all chats has the word “Eana”.
+例如：``/chat Eana`` 指令能够筛选出所有包含「Eana」的会话。
 
-Technical Details: The filter query is in fact a regular expression
-matching. We used Python’s ``re.search`` with flags ``re.DOTALL |
-re.IGNORECASE`` in this case, i.e.: ``.`` matches everything including
-line breaks, and the query is NOT case-sensitive. Each comparison is
-done against a specially crafted string which allows you to filter
-multiple criteria.
+技术细节: 筛选的关键词实际上是一个正则表达式。 筛选过程中使用了 Python 的 ``re.search``，并开启了
+``re.DOTALL | re.IGNORECASE`` 开关。即：``.`` 匹配包括换行符在内的所有字符、并且不区分大小写。
+正则表达式在匹配时参照了以下格式的字符串，以便筛选多重条件。
 
 ::
 
@@ -261,350 +204,272 @@ multiple criteria.
    Mode: [Linked]
    Other: <Python Dictionary String>
 
-備註: Type
-   can
-   be
-   either
-   “User”
-   or
-   “Group”Other
-   is
-   the
-   vendor
-   specific
-   information
-   provided
-   by
-   slave
-   channels.
-   Format
-   of
-   such
-   information
-   is
-   specified
-   in
-   their
-   documentations
-   respectively.
+備註: Type（类型）可以是「User」（私聊）或「Group」（群组）。Other（其他）对应的是从端提供的「供应商特定」信息。相关数据的具体格式请参照相应项目的文档。
 
-Examples:
+示例：
 
-* Look for all WeChat groups: ``Channel: WeChat.*Type: Group``
+* 筛选所有微信（WeChat）群组：``Channel: WeChat.*Type: Group``
 
-* Look for everyone who has an alias ``Name: (.*?)\nAlias: (?!\1)``
+* 筛选所有具有别名的会话：``Name: (.*?)\nAlias: (?!\1)``
 
-* Look for all entries contain “John” and “Johnny” in any order:
-   ``(?=.*John)(?=.*Johnny)``
+* 搜索所有同时包含「John」和「Johnny」的条目，不分先后：``(?=.*John)(?=.*Johnny)``
 
 
-Send a message
---------------
+发送消息
+--------
 
 
-Send to a linked chat
-~~~~~~~~~~~~~~~~~~~~~
+发送至已绑定的会话
+~~~~~~~~~~~~~~~~~~
 
-You can send message as you do in a normal Telegram chat.
+您可以像在普通 Telegram 会话中一样地发送消息。
 
-What is supported:
+支持的消息类型：
 
-* Send/forward message in all supported types
+* 以任何受支持的格式发送/转发消息
 
-* Direct reply to a message
+* 引用回复消息
 
-* Send message with inline bot in supported types
+* 使用 inline bot 以任何受支持的格式发送消息
 
-What is NOT supported:
+不支持的消息类型：
 
-* @ reference
+* @ 引用
 
-* Markdown/HTML formatting
+* Markdown/HTML 格式
 
-* Messages with unsupported types
+* 发送不受支持类型的消息
 
 
-Send to a non-linked chat
-~~~~~~~~~~~~~~~~~~~~~~~~~
+发送至未绑定的会话
+~~~~~~~~~~~~~~~~~~
 
-To send a message to a non-linked chat, you should “direct reply” to a
-message or a “chat head” that is sent from your recipient. Those
-messages should appear only in the bot conversation.
+若要发送消息到未绑定的会话中，您必须「引用回复」以前的消息。或相应的「会话头」消息。 这些消息只会出现在您与 bot 的会话中。
 
-In a non-linked chat, quotation in direct replies will not be
-delivered to the remote channel, everything else is supported as it
-does in a linked chat.
+在未绑定的会话中，回复中的引用将不会被发送至远端信道，除此之外，受支持的内容皆与已绑定会话类似。
 
 
-Edit and delete message
-~~~~~~~~~~~~~~~~~~~~~~~
+编辑和删除消息
+~~~~~~~~~~~~~~
 
-In EFB v2, the framework added support to message editing and removal,
-and so does ETM. However, due to the limitation of Telegram Bot API,
-although you may have selected “Delete for the bot”, or “Delete for
-everyone” while deleting messages, the bot would not know anything
-about it. Therefore, if you want your message to be removed from a
-remote chat, edit your message and prepend it with rm` (it’s R, M, and
-~`, not single quote), so that the bot knows that you want to delete
-the message.
+在 EFB v2 中，框架与 ETM 皆添加了对编辑和删除信息的支持。但由于 Telegram Bot API
+的限制，即使您在删除消息时选择「从 bot 处撤回」或是「从所有成员的记录中撤回」，bot
+也无法收到相关通知。因此，如果您想要删除您发送到远端会话中的某条消息，请编辑您的消息，并在开头加上 rm`（注意，是 R，M 和
+~`，不是单引号），由此让 bot 知道您想要删除这条消息。
 
-Please also notice that some channels may not support editing and/or
-deleting messages depends on their implementations.
+请注意：由于平台不同，部分信道可能不支持编辑或删除已发送的消息。
 
 
-``/chat``: Chat head
-~~~~~~~~~~~~~~~~~~~~
+``/chat``：会话头
+~~~~~~~~~~~~~~~~~
 
-If you want to send a message to a non-linked chat which has not yet
-sent you a message, you can ask ETM to generate a “chat head”. Chat
-head works similarly to an incoming message, you can reply to it to
-send messages to your recipient.
+如果您想要将消息发送至一个无会话记录的未绑定的会话中，您可以让 ETM 生成一个「会话头」。
+会话头的使用方式和您平时接收到的消息类似，只需对其回复便可向目标发送消息。
 
-Send ``/chat`` to the bot, and choose a chat from the list. When you
-see “Reply to this message to chat with …”, it’s ready to go.
+向 bot 发送 ``/chat`` 命令，接着在列表中选择一个会话。当您看见「回复该消息以与…对话。」字样时，就可以使用了。
 
 
-Advanced feature: Filtering
-"""""""""""""""""""""""""""
+高级功能：筛选
+""""""""""""""
 
-Filter is also available in ``/chat`` command. Please refer to the
-same chapter above, under ``/link`` for the details.
+筛选也可以在 ``/chat`` 指令上使用。 请参阅前述章节 ``/link`` 的内容以获取详情。
 
 
-``/extra``: External commands from slave channels (“additional features”)
--------------------------------------------------------------------------
+``/extra``：从端提供的指令（附加功能）
+--------------------------------------
 
-Some slave channels may provide commands that allows you to remotely
-control those accounts, and achieve extra functionality, those
-commands are called “additional features”. To view the list of
-available extra functions, send ``/extra`` to the bot, you will
-receive a list of commands available.
+部分从端会提供各种指令来操纵从端账号，并达成各种其他功能。这些指令被称为「附加功能」。您可以发送 ``/extra``
+来查看从端提供的附加功能一览表。
 
-Those commands are named like “``/<number>_<command_name>``”, and can
-be called like an CLI utility. (of course, advanced features like
-piping etc would not be supported)
+附加功能的指令名称形如「``/<数字>_<指令名称>``」，且能够像 CLI 工具一样调用。（当然，管道 (piping)
+等高级功能不会被支持）
 
 
-``/update_info``: Update name and profile picture of linked group
------------------------------------------------------------------
+``/update_info``：更新绑定群组的名称与头像
+------------------------------------------
 
-ETM can help you to update the name and profile picture of a group to
-match with appearance in the remote chat.
+ETM 可以一键更新群组的名称和头像，和其所绑定的会话一致。
 
-This functionality is available when:
+此功能仅在满足以下条件的情况下可用：
 
-* This command is sent to a group
+* 该命令发送于群组
 
-* The bot is an admin of the group
+* Bot 是该群组的管理员。
 
-* The group is linked to **exactly** one remote chat
+* 该群组\ **仅绑定到了一个**\ 远端会话
 
-* The remote chat is accessible
+* 远端会话当前可用
 
-Profile picture will not be set if it’s not available from the slave
-channel.
+从端如果没有提供会话的头像，群组的头像将不会被改变。
 
 
-``/react``: Send reactions to a message or show a list of reactors
-------------------------------------------------------------------
+``/react``：向一条消息作出回应，或列出回应者列表
+------------------------------------------------
 
-Reply ``/react`` to a message to show a list of chat members who have
-reacted to the message and what their reactions are.
+向一条消息回复 ``/react`` 来显示对此消息做出过回应的成员列表，及所有回应的列表。
 
-Reply ``/react`` followed by an emoji to react to this message, e.g.
-``/react 👍``. Send ``/react -`` to remove your reaction.
+向一条消息回复跟有 emoji 的 ``/react`` 可以对此消息作出回应，例如 ``/react 👍``。发送 ``/react
+-`` 可以删除您的回应。
 
-Note that some slave channels may not accept message reactions, and
-some channels have a limited reactions you can send with. Usually when
-you send an unaccepted reaction, slave channels can provide a list of
-suggested reactions you may want to try instead.
+注意，一些从端可能不支持对消息的回应，而一些从端可能会限定您可以发送的回应。通常当您发送一个未被支持的回应时，从端可以提供一个回应列表供您选择尝试。
 
 
-Telegram Channel support
-------------------------
+Telegram 频道支持
+-----------------
 
-ETM supports linking remote chats to Telegram Channels with partial
-support.
+ETM 提供了不完整的 Telegram 频道绑定支持。
 
-The bot can:
+ETM 可以：
 
-* Link one or more remote chats to a Telegram Channel
+* 绑定一个或多个远端会话到 Telegram 频道
 
-* Check and manage link status of the channel
+* 查看和管理频道的绑定状态
 
-* Update channel title and profile pictures accordingly
+* 一键更换频道的头像与名称
 
-It cannot:
+ETM 不能：
 
-* Process messages sent by you or others to the channel
+* 处理您或其他人发送给频道的消息
 
-* Accept commands in the channel
+* 在频道中接受命令
 
-Currently the following commands are supported in channels:
+目前，ETM 仅对以下的指令提供频道支持：
 
-* ``/start`` for manual chat linking
+* ``/start`` 用于手动会话绑定
 
-* ``/link`` to manage chats linked to the channel
+* ``/link`` 用于管理频道上绑定的会话
 
-* ``/info`` to show information of the channel
+* ``/info`` 用于展示频道相关信息
 
-* ``/update_info`` to update the channel title and picture
+* ``/update_info`` 用于更新频道名称与头像
 
-How to use:
+使用方法：
 
-1. Add the bot as an administrator of the channel
+1. 将 bot 添加到频道管理员列表
 
-2. Send commands to the channel
+2. 在频道中发送指令
 
-3. Forward the command message to the bot privately
+3. 将发送的指令转发到 bot 私信会话
 
-Technical Details: Telegram Bot API prevents bot from knowing who
-actually sent a message in a channel (not including signatures as that
-doesn’t reflect the numeric ID of the sender). In fact, that is the
-same for normal users in a channel too, even admins. Thus, we think
-that it is not safe to process messages directly from a channel.
+技术细节: Telegram Bot API
+阻止机器人获知在频道内实际发送消息的用户信息。（不包括签名，因为签名不能反映发送者的数字ID）事实上，对于一个频道中的普通用户（包括管理员）来说亦是如此。如果要无条件处理来自频道的消息，不仅现有频道中的其他管理员可以向其添加恶意管理员，Telegram
+上的任何人一旦知道您的 bot 用户名，就可以将其添加到频道并以您的身份使用该 bot。因此，我们认为直接从频道处理消息是不安全的。
 
 
-Limitations
-===========
+局限性
+======
 
-Due to the technical limitations of Telegram Bot API and EH Forwarder
-Bot framework, there are some limitations:
+由于 Telegram Bot API 和 EH Forwarder Bot 的技术局限，ETM 存在一些限制：
 
-* Some Telegram message types are **not** supported:
-      * Game messages
+* **不支持**\ 部分 Telegram 消息类型：
+     * 游戏消息
 
-      * Invoice messages
+     * 发票（invoice，又译「账单」、「订单」）消息
 
-      * Payment messages
+     * 支付消息
 
-      * Passport messages
+     * 「通行证」（Passport）消息
 
-      * Vote messages
+     * 投票消息
 
-* Some components in Telegram messages are dropped:
-      * Original author and signature of forwarded messages
+* ETM 无法处理来自另一个 Telegram bot 的任何消息。
 
-      * Formats, links and link previews
+* Telegram 消息中的部分细节被忽略：
+     * 转发消息的原作者与签名
 
-      * Buttons attached to messages
+     * 消息格式、链接和消息预览
 
-      * Details about inline bot used on messages
+     * 消息附带的按钮
 
-* Some components in messages from slave channels are dropped:
-      * @ references.
+     * 消息所使用的 inline bot
 
-* The Telegram bot can only
-      * send you any file up to 50 MiB,
+* 来自从端消息部分细节被忽略：
+     * 没有提及您的 @ 引用。
 
-      * receive file from you up to 20 MiB.
+* 本 Telegram bot 只能够：
+     * 向您发送最大 50 MiB 的文件
 
+     * 接受您发来的最大 20 MiB 的文件
 
-Experimental flags
-==================
 
-The following flags are experimental features, may change, break, or
-disappear at any time. Use at your own risk.
+实验性功能
+==========
 
-Flags can be enabled in the ``flags`` key of the configuration file,
-e.g.:
+以下的实验性功能随时可能被更改或被删除，请自行承担相关风险。
+
+使用功能可以在配置文件的 ``flags`` 一节中启用，例如：
 
 ::
 
    flags:
        flag_name: flag_value
 
-* ``chats_per_page`` *(int)* [Default: ``10``]
+* ``chats_per_page`` *(int)* [默认: ``10``]
 
-   Number of chats shown in when choosing for ``/chat`` and ``/link``
-   command. An overly large value may lead to malfunction of such
-   commands.
+  在触发 ``/chat`` 和 ``/link`` 指令是每页显示的条目数。 过大的数值可能会导致该功能失效。
 
-* ``network_error_prompt_interval`` *(int)* [Default: ``100``]
+* ``network_error_prompt_interval`` *(int)* [默认: ``100``]
 
-   Notify the user about network error every ``n`` errors received.
-   Set to 0 to disable it.
+  每发生 ``n`` 次网络连接错误时通知用户一次。 设置为 0 即可禁用。
 
-* ``multiple_slave_chats`` *(bool)* [Default: ``true``]
+* ``multiple_slave_chats`` *(bool)* [默认: ``true``]
 
-   Link more than one remote chat to one Telegram group. Send and
-   reply as you do with an unlinked chat. Disable to link remote chats
-   and Telegram group one-to-one.
+  绑定多个会话到一个 Telegram 群组。 消息发送方式与未绑定群组相同。 禁用后 ETM 会强制远端回话与 Telegram
+  群组一对一绑定。
 
-* ``prevent_message_removal`` *(bool)* [Default: ``true``]
+* ``prevent_message_removal`` *(bool)* [默认: ``true``]
 
-   When a slave channel requires to remove a message, EFB will ignore
-   the request if this value is ``true``.
+  当从端要求删除特定消息时，ETM 将以通知替代删除操作。
 
-* ``auto_locale`` *(str)* [Default: ``true``]
+* ``auto_locale`` *(str)* [默认: ``true``]
 
-   ..
-      Detect the locale from admin’s messages automatically. Locale
-      defined in environment variables will be used otherwise.
+  从 bot 管理员的语言设定中自动设定 ETM 语言。 当该值为 ``false`` 时，ETM 会从系统的环境变量中读取语言设定。
 
-* ``retry_on_error`` *(bool)* [Default: ``false``]
+* ``retry_on_error`` *(bool)* [默认: ``false``]
 
-   ..
-      Retry infinitely when an error occurred while sending request to
-      Telegram Bot API. Note that this may lead to repetitive message
-      delivery, as the respond of Telegram Bot API is not reliable,
-      and may not reflect the actual result.
+  当向 Telegram Bot API 发送请求出错时，一直重试请求。 注意：由于 Telegram Bot API
+  的应答可能不稳定，这可能导致重复的消息传送出现重复，且可能导致您看到的结果与实际不符。
 
-* ``send_image_as_file`` *(bool)* [Default: ``false``]
+* ``send_image_as_file`` *(bool)* [默认: ``false``]
 
-   ..
-      Send all image messages as files, in order to prevent Telegram’s
-      image compression in an aggressive way.
+  将所有图片消息以文件发送，以积极避免 Telegram 对于图片的压缩。
 
-* ``message_muted_on_slave`` *(str)* [Default: ``normal``]
+* ``message_muted_on_slave`` *(str)* [默认值：``normal``]
 
-   ..
-      Behavior when a message received is muted on slave channel
-      platform.
+  当收到在从端平台上被静音的消息时的行为。
 
-      * ``normal``: send to Telegram as normal message
+  * ``normal``：作为普通消息发送到 Telegram
 
-      * ``silent``: send to Telegram as normal message, but without
-         notification sound
+  * ``silent``：作为普通消息发送到 Telegram，但没有通知声音
 
-      * ``mute``: do not send to Telegram
+  * ``mute``：不要发送到 Telegram
 
-* ``your_message_on_slave`` *(str)* [Default: ``silent``]
+* ``your_message_on_slave`` *(str)* [默认值：``silent``]
 
-   ..
-      Behavior when a message received is from you on slave channel
-      platform. This overrides settings from
-      ``message_muted_on_slave``.
+  当收到由你在从端平台发送的消息时的行为。这项设置将覆盖 ``message_muted_on_slave`` 选项
 
-      * ``normal``: send to Telegram as normal message
+  * ``normal``：作为普通消息发送到 Telegram
 
-      * ``silent``: send to Telegram as normal message, but without
-         notification sound
+  * ``silent``：作为普通消息发送到 Telegram，但没有通知声音
 
-      * ``mute``: do not send to Telegram
+  * ``mute``：不要发送到 Telegram
 
 
-Network configuration: timeout tweaks
-=====================================
+网络配置：超时调整
+==================
 
-..
+   本章内容修改自 `Python Telegram Bot wiki
+   <https://github.com/python-telegram-bot/python-telegram-bot/wiki/Handling-network-errors#tweaking-ptb>`_，遵从
+   CC-BY 3.0 许可。
 
-   This chapter is adapted from `Python Telegram Bot wiki
-   <https://github.com/python-telegram-bot/python-telegram-bot/wiki/Handling-network-errors#tweaking-ptb>`_,
-   licensed under CC-BY 3.0.
+``python-telegram-bot`` 使用 ``urllib3`` 执行 HTTPS 请求。``urlllib3``\ 提供了对
+``connect_timeout`` 和 ``read_timeout`` 的控制。``urllib3`` 不回区别读超时和写超时，所以
+``read_timeout`` 同时对读写超时生效。各个参数的默认值均为 5 秒。
 
-``python-telegram-bot`` performs HTTPS requests using ``urllib3``.
-``urllib3`` provides control over ``connect_timeout`` &
-``read_timeout``. ``urllib3`` does not separate between what would be
-considered read & write timeout, so ``read_timeout`` serves for both.
-The defaults chosen for each of these parameters is 5 seconds.
+``connect_timeout`` 控制连接到 Telegram 服务器的超时时长 。
 
-The ``connect_timeout`` value controls the timeout for establishing a
-connection to the Telegram server(s).
-
-Changing the defaults of ``read_timeout`` & ``connet_timeout`` can be
-done by adjusting values ``request_kwargs`` section in ETM’s
-``config.yaml``.
+可以通过调整 ETM 的 ``config.yaml`` 中的 ``request_kwargs`` 来更改
+``read_timeout`` 和 ``connet_timeout`` 的默认值。
 
 ::
 
@@ -614,23 +479,19 @@ done by adjusting values ``request_kwargs`` section in ETM’s
        connect_timeout: 7
 
 
-Run ETM behind a proxy
-======================
+通过代理运行 ETM
+================
 
-..
+   本章内容修改自 `Python Telegram Bot wiki
+   <https://github.com/python-telegram-bot/python-telegram-bot/wiki/Working-Behind-a-Proxy>`_，遵从
+   CC-BY 3.0 许可。
 
-   This chapter is adapted from `Python Telegram Bot wiki
-   <https://github.com/python-telegram-bot/python-telegram-bot/wiki/Working-Behind-a-Proxy>`_,
-   licensed under CC-BY 3.0.
-
-You can appoint proxy specifically for ETM without affecting other
-channels running in together in the same EFB instance. This can also
-be done by adjusting values ``request_kwargs`` section in ETM’s
-``config.yaml``.
+您可以为 ETM 单独指定代理，而不会影响相同 EFB 实例下的其他信道。您也可以通过调整 ETM 的 ``config.yaml`` 中的
+``request_kwargs`` 选项来完成此操作。
 
 
-HTTP proxy server
------------------
+HTTP 代理服务器
+---------------
 
 ::
 
@@ -642,11 +503,10 @@ HTTP proxy server
        password: PROXY_PASS
 
 
-SOCKS5 proxy server
--------------------
+SOCKS5 代理服务器
+-----------------
 
-This is configuration is supported, but requires an optional/extra
-python package. To install:
+此设置已被支持，但需要安装一个可选的/额外的 python 包。安装方法：
 
 ::
 
@@ -663,13 +523,12 @@ python package. To install:
            password: PROXY_PASS
 
 
-RPC interface
-=============
+RPC 接口
+========
 
-A standard `Python XML RPC server
-<https://docs.python.org/3/library/xmlrpc.html>`_ is implemented in
-ETM 2. It can be enabled by adding a ``rpc`` section in ETM’s
-``config.yml`` file.
+在 ETM 2 中实现了一个标准的 `Python XML RPC 服务器
+<https://docs.python.org/3/library/xmlrpc.html>`_。您可以通过在ETM 的
+``config.yml`` 文件中添加 ``rpc`` 选项来启用它。
 
 ::
 
@@ -677,63 +536,60 @@ ETM 2. It can be enabled by adding a ``rpc`` section in ETM’s
        server: 127.0.0.1
        port: 8000
 
-警告: The
-   ``xmlrpc``
-   module
-   is
-   not
-   secure
-   against
-   maliciously
-   constructed
-   data.
-   Do
-   not
-   expose
-   the
-   interface
-   to
-   untrusted
-   parties
-   or
-   the
-   public
-   internet,
-   and
-   turn
-   off
-   after
-   use.
+警告: ``xmlrpc`` 模块对恶意构建的数据是不安全的。不要将此接口暴露给不被信任的当事方或公共网络，并在使用后应该关闭此接口。
 
 
-Exposed functions
------------------
-
-Functions in `the db (database manager) class
-<https://github.com/blueset/efb-telegram-master/blob/master/efb_telegram_master/db.py>`_
-and `the RPCUtilities class
-<https://github.com/blueset/efb-telegram-master/blob/master/efb_telegram_master/rpc_utilities.py>`_
-are exposed. Refer to the source code for their documentations.
-
-
-How to use
+提供的函数
 ----------
 
-Set up a ``SimpleXMLRPCClient`` in any Python script and call any of
-the exposed functions directly. For details, please consult `Python
-documentation on xmlrpc
-<https://docs.python.org/3/library/xmlrpc.html>`_.
+我们提供了 `db（数据库管理器）类
+<https://github.com/blueset/efb-telegram-master/blob/master/efb_telegram_master/rpc_utilities.py>`_\
+和 `RPCUtilities 类
+<https://github.com/blueset/efb-telegram-master/blob/master/efb_telegram_master/db.py>`_\
+中的函数。详细文档请参考源代码。
 
 
-Experimental translation support
-================================
+使用方法
+--------
 
-ETM supports translated user interface prompts experimentally. The bot
-detects languages of Telegram Client of the admins from their
-messages, and automatically matches with a supported language on the
-go. Otherwise, you can set your language by turning off the
-``auto_locale`` feature, and then setting the locale environmental
-variable (``LANGUAGE``, ``LC_ALL``, ``LC_MESSAGES`` or ``LANG``) to
-one of our supported languages. Meanwhile, you can help to translate
-this project into your languages on `our Crowdin page
-<https://crowdin.com/project/ehforwarderbot/>`_.
+您可以在任意 Python 脚本中设置一个 ``SimpleXMLRPCClient``，并可以直接调用任何被暴露的函数。详情请查阅
+`Python 文档的 xmlrpc 章节
+<https://docs.python.org/3/library/xmlrpc.html>`_。
+
+
+License
+=======
+
+ETM is licensed under `GNU Affero General Public License 3.0
+<https://www.gnu.org/licenses/agpl-3.0.txt>`_ or later versions:
+
+::
+
+   EFB Telegram Master Channel: An slave channel for EH Forwarder Bot.
+   Copyright (C) 2016 - 2019 Eana Hufwe, and the EFB Telegram Master Channel contributors
+   All rights reserved.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+翻译支持
+========
+
+ETM 启用了由社区支持的本地化翻译。本 bot 能够从管理员的语言设定中自动检测，并设置为一种已支持的语言。如果您不希望使用测功能，您可以
+关闭 ``auto_locale`` 功能，并将语言环境变量
+(``LANGUAGE``、``LC_ALL``、``LC_MESSAGES`` 或 ``LANG``) 设置为一种设为一种已支持的语言。
+同时，您也可以在我们的 `Crowdin 项目
+<https://crowdin.com/project/ehforwarderbot/>`_\ 里面将 EWS 翻译为您的语言。
+
+備註: 如果您使用源代码安装，您需要手动编译翻译字符串文件（``.mo``）才可启用翻译后的界面。

@@ -1,10 +1,14 @@
 # coding=utf-8
 
 import base64
-from typing import Any, Dict, Optional, Tuple, Union, TYPE_CHECKING
+import logging
+from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, IO
+
 from typing_extensions import NewType
 
 import telegram
+from tgs.parsers.tgs import parse_tgs
+from tgs.exporters.gif import export_gif
 
 from ehforwarderbot import EFBChat, EFBChannel
 from ehforwarderbot.types import ChatID, ModuleID
@@ -34,7 +38,8 @@ class ExperimentalFlagsManager(LocaleMixin):
         "retry_on_error": False,
         "send_image_as_file": False,
         "message_muted_on_slave": "normal",
-        "your_message_on_slave": "silent"
+        "your_message_on_slave": "silent",
+        "animated_stickers": False,
     }
 
     def __init__(self, channel: 'TelegramChannel'):
@@ -124,3 +129,17 @@ def chat_id_str_to_id(s: EFBChannelChatIDStr) -> Tuple[ModuleID, ChatID]:
     """
     chat_ids = s.split(" ", 1)
     return ModuleID(chat_ids[0]), ChatID(chat_ids[1])
+
+
+def convert_tgs_to_gif(tgs_file: IO[bytes], gif_file: IO[bytes]):
+    # noinspection PyBroadException
+    try:
+        animation = parse_tgs(tgs_file)
+        # heavy_strip(animation)
+        # heavy_strip(animation)
+        # animation.tgs_sanitize()
+        export_gif(animation, gif_file)  # , {"skip_frames": 5})
+        return True
+    except Exception:
+        logging.exception("Error occurred while converting TGS to GIF.")
+        return False

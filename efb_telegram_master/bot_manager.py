@@ -2,7 +2,9 @@
 import collections
 import io
 import logging
+import operator
 import os
+from functools import reduce
 
 import telegram
 import telegram.ext
@@ -10,8 +12,11 @@ import telegram.error
 import telegram.constants
 from retrying import retry
 
-from typing import Optional, List, TYPE_CHECKING, Callable
-from .whitelisthandler import WhitelistHandler
+from typing import List, TYPE_CHECKING, Callable
+
+from telegram import Update, InputFile
+from telegram.ext import CallbackContext, Filters, MessageHandler
+
 from .locale_handler import LocaleHandler
 from .locale_mixin import LocaleMixin
 
@@ -35,6 +40,7 @@ class TelegramBotManager(LocaleMixin):
     """
 
     webhook = False
+    logger = logging.getLogger(__name__)
 
     class Decorators:
         logger = logging.getLogger(__name__)
@@ -65,7 +71,8 @@ class TelegramBotManager(LocaleMixin):
             req_kwargs.update(conf_req_kwargs)
 
         self.updater: telegram.ext.Updater = telegram.ext.Updater(config['token'],
-                                                                  request_kwargs=req_kwargs)
+                                                                  request_kwargs=req_kwargs,
+                                                                  use_context=True)
 
         if isinstance(config.get('webhook'), dict):
             self.webhook = True
@@ -79,7 +86,10 @@ class TelegramBotManager(LocaleMixin):
         self.me: telegram.User = self.updater.bot.get_me()
         self.admins: List[int] = config['admins']
         self.dispatcher: telegram.ext.Dispatcher = self.updater.dispatcher
-        self.dispatcher.add_handler(WhitelistHandler(self.admins))
+        # New whitelist handler
+        whitelist_filter = ~Filters.user(user_id=self.admins)
+        self.dispatcher.add_handler(
+            MessageHandler(whitelist_filter, lambda update, context: ...))
         self.dispatcher.add_handler(LocaleHandler(channel))
         self.Decorators.enabled = channel.flag('retry_on_error')
 
@@ -410,7 +420,7 @@ class TelegramBotManager(LocaleMixin):
     def get_me(self, *args, **kwargs):
         return self.updater.bot.get_me(*args, **kwargs)
 
-    def session_expired(self, bot, update):
+    def session_expired(self, update: Update, context: CallbackContext):
         self.edit_message_text(text=self._("Session expired. Please try again. (SE01)"),
                                chat_id=update.effective_chat.id,
                                message_id=update.effective_message.message_id)
@@ -426,7 +436,7 @@ class TelegramBotManager(LocaleMixin):
 
     def reply_error(self, update, errmsg):
         """
-        A wrap that directly reply a message with error details.
+        A wrap that quote-reply a message with error details.
 
         Returns:
             telegram.Message: Message sent
@@ -469,6 +479,14 @@ class TelegramBotManager(LocaleMixin):
             return result
         return self.updater.bot.answer_callback_query(*args, **kwargs)
 
+    @Decorators.retry_on_timeout
+    def set_chat_title(self, *args, **kwargs):
+        return self.updater.bot.set_chat_title(*args, **kwargs)
+
+    @Decorators.retry_on_timeout
+    def set_chat_photo(self, *args, **kwargs):
+        return self.updater.bot.set_chat_photo(*args, **kwargs)
+
     def polling(self):
         """
         Poll message from Telegram Bot API. Can be used to extend for web hook.
@@ -493,6 +511,8 @@ class TelegramBotManager(LocaleMixin):
                 file.seek(0, 2)
                 empty = file.tell() == 0
                 file.seek(0, 0)
+        elif isinstance(file, InputFile):
+            empty = not bool(len(file.input_file_content))
         if empty:
             return self.send_message(chat, prefix=self._("Empty attachment detected.") + prefix,
                                      text=caption, suffix=suffix)

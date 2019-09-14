@@ -179,6 +179,8 @@ bot，并给它起个名字及用户名。此后您会获得一个令牌（token
 
 此外，您也可以将 ``/unlink_all`` 发送至一个群组中以解绑其中的所有会话。
 
+此外，如果您想要绑定您之前使用的会话，您可以简单地回复 ``/link`` 引用一条以往来自该消息，而不从漫长的会话列表中选择。
+
 
 高级功能：筛选
 ~~~~~~~~~~~~~~
@@ -226,7 +228,7 @@ bot，并给它起个名字及用户名。此后您会获得一个令牌（token
 
 * 以任何受支持的格式发送/转发消息
 
-* 直接回复消息
+* 引用回复消息
 
 * 使用 inline bot 以任何受支持的格式发送消息
 
@@ -242,9 +244,9 @@ bot，并给它起个名字及用户名。此后您会获得一个令牌（token
 发送至未绑定的会话
 ~~~~~~~~~~~~~~~~~~
 
-若要发送消息到未绑定的会话中，您必须「直接回复」以前的消息。或相应的「会话头」消息。 这些消息只会出现在您与 bot 的会话中。
+若要发送消息到未绑定的会话中，您必须「引用回复」以前的消息。或相应的「会话头」消息。 这些消息只会出现在您与 bot 的会话中。
 
-在未绑定的会话中，直接回复的引用将不会被发送至远端信道，除此之外，受支持的内容皆与已绑定会话类似。
+在未绑定的会话中，回复中的引用将不会被发送至远端信道，除此之外，受支持的内容皆与已绑定会话类似。
 
 
 编辑和删除消息
@@ -304,12 +306,12 @@ ETM 可以一键更新群组的名称和头像，和其所绑定的会话一致�
 ``/react``：向一条消息作出回应，或列出回应者列表
 ------------------------------------------------
 
-向一条消息回复\ ``/react``\ 来显示对此消息做出过反应的成员列表，及所有反应的列表。
+向一条消息回复 ``/react`` 来显示对此消息做出过回应的成员列表，及所有回应的列表。
 
-向一条消息回复跟有 emoji 的\ ``/react``\ 可以对此消息作出反应，例如\ ``/react 👍``。发送\
-``/react -``\ 可以删除您的反应。
+向一条消息回复跟有 emoji 的 ``/react`` 可以对此消息作出回应，例如 ``/react 👍``。发送 ``/react
+-`` 可以删除您的回应。
 
-注意，一些从端可能不支持对消息的反应，而一些频道可能会限定您可以发送的反应。通常当您发送一个未被支持的反应时，从端可以提供一个反应列表供您选择尝试。
+注意，一些从端可能不支持对消息的回应，而一些从端可能会限定您可以发送的回应。通常当您发送一个未被支持的回应时，从端可以提供一个回应列表供您选择尝试。
 
 
 Telegram 频道支持
@@ -349,17 +351,15 @@ ETM 不能：
 
 3. 将发送的指令转发到 bot 私信会话
 
-技术细节: Telegram Bot API prevents bot from knowing who actually sent a
-message in a channel (not including signatures as that doesn’t reflect
-the numeric ID of the sender). In fact, that is the same for normal
-users in a channel too, even admins. Thus, we think that it is not
-safe to process messages directly from a channel.
+技术细节: Telegram Bot API
+阻止机器人获知在频道内实际发送消息的用户信息。（不包括签名，因为签名不能反映发送者的数字ID）事实上，对于一个频道中的普通用户（包括管理员）来说亦是如此。如果要无条件处理来自频道的消息，不仅现有频道中的其他管理员可以向其添加恶意管理员，Telegram
+上的任何人一旦知道您的 bot 用户名，就可以将其添加到频道并以您的身份使用该 bot。因此，我们认为直接从频道处理消息是不安全的。
 
 
 局限性
 ======
 
-由于 Telegram Bot API 和 EH Forwarder Bot 的技术限制，ETM 存在一些限制：
+由于 Telegram Bot API 和 EH Forwarder Bot 的技术局限，ETM 存在一些限制：
 
 * **不支持**\ 部分 Telegram 消息类型：
      * 游戏消息
@@ -372,6 +372,8 @@ safe to process messages directly from a channel.
 
      * 投票消息
 
+* ETM 无法处理来自另一个 Telegram bot 的任何消息。
+
 * Telegram 消息中的部分细节被忽略：
      * 转发消息的原作者与签名
 
@@ -382,7 +384,7 @@ safe to process messages directly from a channel.
      * 消息所使用的 inline bot
 
 * 来自从端消息部分细节被忽略：
-     * @ 引用。
+     * 没有提及您的 @ 引用。
 
 * 本 Telegram bot 只能够：
      * 向您发送最大 50 MiB 的文件
@@ -418,46 +420,6 @@ safe to process messages directly from a channel.
 * ``prevent_message_removal`` *(bool)* [默认: ``true``]
 
   当从端要求删除特定消息时，ETM 将以通知替代删除操作。
-
-* ``auto_locale`` *(str)* [默认: ``true``]
-
-  从 bot 管理员的语言设定中自动设定 ETM 语言。 当该值为 ``false`` 时，ETM 会从系统的环境变量中读取语言设定。
-
-* ``retry_on_error`` *(bool)* [默认: ``false``]
-
-  当向 Telegram Bot API 发送请求出错时，一直重试请求。 注意：由于 Telegram Bot API
-  的应答可能不稳定，这可能导致重复的消息传送出现重复，且可能导致您看到的结果与实际不符。
-
-* ``send_image_as_file`` *(bool)* [默认: ``false``]
-
-  将所有图片消息以文件发送，以积极避免 Telegram 对于图片的压缩。
-
-* ``message_muted_on_slave`` *(str)* [Default: ``normal``]
-
-  Behavior when a message received is muted on slave channel platform.
-
-  * ``normal``: send to Telegram as normal message
-
-  * ``silent``: send to Telegram as normal message, but without
-    notification sound
-
-  * ``mute``: do not send to Telegram
-
-* ``your_message_on_slave`` *(str)* [Default: ``silent``]
-
-  Behavior when a message received is from you on slave channel
-  platform. This overrides settings from ``message_muted_on_slave``.
-
-  * ``normal``: send to Telegram as normal message
-
-  * ``silent``: send to Telegram as normal message, but without
-    notification sound
-
-  * ``mute``: do not send to Telegram
-
-
-Network configuration: timeout tweaks
-=====================================
 
    This chapter is adapted from `Python Telegram Bot wiki
    <https://github.com/python-telegram-bot/python-telegram-bot/wiki/Handling-network-errors#tweaking-ptb>`_,
@@ -577,3 +539,177 @@ ETM 启用了实验性的本地化翻译。本 bot 能够从管理员的语言�
 (``LANGUAGE``、``LC_ALL``、``LC_MESSAGES`` 或 ``LANG``) 设置为一种设为一种已支持的语言。
 同时，您也可以在我们的 `Crowdin 项目
 <https://crowdin.com/project/ehforwarderbot/>`_\ 里面将 EWS 翻译为您的语言。
+=======
+
+* ``auto_locale`` *(str)* [默认: ``true``]
+
+  从 bot 管理员的语言设定中自动设定 ETM 语言。 当该值为 ``false`` 时，ETM 会从系统的环境变量中读取语言设定。
+
+* ``retry_on_error`` *(bool)* [默认: ``false``]
+
+  当向 Telegram Bot API 发送请求出错时，一直重试请求。 注意：由于 Telegram Bot API
+  的应答可能不稳定，这可能导致重复的消息传送出现重复，且可能导致您看到的结果与实际不符。
+
+* ``send_image_as_file`` *(bool)* [默认: ``false``]
+
+  将所有图片消息以文件发送，以积极避免 Telegram 对于图片的压缩。
+
+* ``message_muted_on_slave`` *(str)* [默认值：``normal``]
+
+  当收到在从端平台上被静音的消息时的行为。
+
+  * ``normal``：作为普通消息发送到 Telegram
+
+  * ``silent``：作为普通消息发送到 Telegram，但没有通知声音
+
+  * ``mute``：不要发送到 Telegram
+
+* ``your_message_on_slave`` *(str)* [默认值：``silent``]
+
+  当收到由你在从端平台发送的消息时的行为。这项设置将覆盖 ``message_muted_on_slave`` 选项
+
+  * ``normal``：作为普通消息发送到 Telegram
+
+  * ``silent``：作为普通消息发送到 Telegram，但没有通知声音
+
+  * ``mute``：不要发送到 Telegram
+
+
+网络配置：超时调整
+==================
+
+   本章内容修改自 `Python Telegram Bot wiki
+   <https://github.com/python-telegram-bot/python-telegram-bot/wiki/Handling-network-errors#tweaking-ptb>`_，遵从
+   CC-BY 3.0 许可。
+
+``python-telegram-bot`` 使用 ``urllib3`` 执行 HTTPS 请求。``urlllib3``\ 提供了对
+``connect_timeout`` 和 ``read_timeout`` 的控制。``urllib3`` 不回区别读超时和写超时，所以
+``read_timeout`` 同时对读写超时生效。各个参数的默认值均为 5 秒。
+
+``connect_timeout`` 控制连接到 Telegram 服务器的超时时长 。
+
+可以通过调整 ETM 的 ``config.yaml`` 中的 ``request_kwargs`` 来更改
+``read_timeout`` 和 ``connet_timeout`` 的默认值。
+
+::
+
+   # ...
+   request_kwargs:
+       read_timeout: 6
+       connect_timeout: 7
+
+
+通过代理运行 ETM
+================
+
+   本章内容修改自 `Python Telegram Bot wiki
+   <https://github.com/python-telegram-bot/python-telegram-bot/wiki/Working-Behind-a-Proxy>`_，遵从
+   CC-BY 3.0 许可。
+
+您可以为 ETM 单独指定代理，而不会影响相同 EFB 实例下的其他信道。您也可以通过调整 ETM 的 ``config.yaml`` 中的
+``request_kwargs`` 选项来完成此操作。
+
+
+HTTP 代理服务器
+---------------
+
+::
+
+   request_kwargs:
+       # ...
+       proxy_url: http://PROXY_HOST:PROXY_PORT/
+       # Optional, if you need authentication:
+       username: PROXY_USER
+       password: PROXY_PASS
+
+
+SOCKS5 代理服务器
+-----------------
+
+此设置已被支持，但需要安装一个可选的/额外的 python 包。安装方法：
+
+::
+
+   pip install python-telegram-bot[socks]
+
+::
+
+   request_kwargs:
+       # ...
+       proxy_url: socks5://URL_OF_THE_PROXY_SERVER:PROXY_PORT
+       # Optional, if you need authentication:
+       urllib3_proxy_kwargs:
+           username: PROXY_USER
+           password: PROXY_PASS
+
+
+RPC 接口
+========
+
+在 ETM 2 中实现了一个标准的 `Python XML RPC 服务器
+<https://docs.python.org/3/library/xmlrpc.html>`_。您可以通过在ETM 的
+``config.yml`` 文件中添加 ``rpc`` 选项来启用它。
+
+::
+
+   rpc:
+       server: 127.0.0.1
+       port: 8000
+
+警告: ``xmlrpc`` 模块对恶意构建的数据是不安全的。不要将此接口暴露给不被信任的当事方或公共网络，并在使用后应该关闭此接口。
+
+
+提供的函数
+----------
+
+我们提供了 `db（数据库管理器）类
+<https://github.com/blueset/efb-telegram-master/blob/master/efb_telegram_master/db.py>`_\
+和 `RPCUtilities 类
+<https://github.com/blueset/efb-telegram-master/blob/master/efb_telegram_master/rpc_utilities.py>`_\
+中的函数。详细文档请参考源代码。
+
+
+使用方法
+--------
+
+您可以在任意 Python 脚本中设置一个 ``SimpleXMLRPCClient``，并可以直接调用任何被暴露的函数。详情请查阅
+`Python 文档的 xmlrpc 章节
+<https://docs.python.org/3/library/xmlrpc.html>`_。
+
+
+License
+=======
+
+ETM is licensed under `GNU Affero General Public License 3.0
+<https://www.gnu.org/licenses/agpl-3.0.txt>`_ or later versions:
+
+::
+
+   EFB Telegram Master Channel: An slave channel for EH Forwarder Bot.
+   Copyright (C) 2016 - 2019 Eana Hufwe, and the EFB Telegram Master Channel contributors
+   All rights reserved.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+翻译支持
+========
+
+ETM 启用了由社区支持的本地化翻译。本 bot 能够从管理员的语言设定中自动检测，并设置为一种已支持的语言。如果您不希望使用测功能，您可以
+关闭 ``auto_locale`` 功能，并将语言环境变量
+(``LANGUAGE``、``LC_ALL``、``LC_MESSAGES`` 或 ``LANG``) 设置为一种设为一种已支持的语言。
+同时，您也可以在我们的 `Crowdin 项目
+<https://crowdin.com/project/ehforwarderbot/>`_\ 里面将 EWS 翻译为您的语言。
+
+注解: 如果您使用源代码安装，您需要手动编译翻译字符串文件（``.mo``）才可启用翻译后的界面。
