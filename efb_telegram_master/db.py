@@ -3,13 +3,17 @@
 import datetime
 import logging
 import pickle
-from typing import List, Optional, overload
+from queue import Queue
+from threading import Thread
+from typing import List, Optional, overload, Tuple, Callable, Sequence, Any, Dict
 
-from peewee import Model, TextField, DateTimeField, CharField, SqliteDatabase, DoesNotExist, fn, BlobField
+from peewee import Model, TextField, DateTimeField, CharField, SqliteDatabase, DoesNotExist, fn, BlobField, \
+    OperationalError
 from playhouse.migrate import SqliteMigrator, migrate
 
 from ehforwarderbot import utils, EFBChannel, EFBChat, ChatType
 from ehforwarderbot.types import ModuleID, ChatID, MessageID
+from . import ETMChat
 from .utils import TelegramMessageID, TelegramChatID, EFBChannelChatIDStr, TgChatMsgIDStr
 
 database = SqliteDatabase(None)
@@ -62,6 +66,10 @@ class DatabaseManager:
         database.init(str(base_path / 'tgdata.db'))
         database.connect()
 
+        self.task_queue: 'Queue[Optional[Tuple[Callable, Sequence[Any], Dict[str, Any]]]]' = Queue()
+        self.worker_thread = Thread(target=self.task_worker)
+        self.worker_thread.start()
+
         if not ChatAssoc.table_exists():
             self._create()
         else:
@@ -70,6 +78,26 @@ class DatabaseManager:
                 self._migrate(0)
             elif "pickle" not in msg_log_columns:
                 self._migrate(1)
+
+    def task_worker(self):
+        while True:
+            task = self.task_queue.get()
+            if task is None:
+                self.task_queue.task_done()
+                break
+            method, args, kwargs = task
+            try:
+                method(*args, **kwargs)
+            except OperationalError as e:
+                self.logger.exception("Operational error occurred when running %s(%s, %s)", method.__name__, args, kwargs)
+            self.task_queue.task_done()
+
+    def stop_worker(self):
+        self.task_queue.put(None)
+        self.task_queue.join()
+
+    def add_task(self, method: Callable, args: Sequence[Any], kwargs: Dict[str, Any]):
+        self.task_queue.put((method, args, kwargs))
 
     @staticmethod
     def _create():
@@ -122,7 +150,8 @@ class DatabaseManager:
         self.remove_chat_assoc(slave_uid=slave_uid)
         return ChatAssoc.create(master_uid=master_uid, slave_uid=slave_uid)
 
-    def remove_chat_assoc(self, master_uid: Optional[EFBChannelChatIDStr] = None,
+    @staticmethod
+    def remove_chat_assoc(master_uid: Optional[EFBChannelChatIDStr] = None,
                           slave_uid: Optional[EFBChannelChatIDStr] = None):
         """
         Remove chat associations (chat links).
@@ -142,7 +171,8 @@ class DatabaseManager:
         except DoesNotExist:
             return 0
 
-    def get_chat_assoc(self, master_uid: Optional[EFBChannelChatIDStr] = None,
+    @staticmethod
+    def get_chat_assoc(master_uid: Optional[EFBChannelChatIDStr] = None,
                        slave_uid: Optional[EFBChannelChatIDStr] = None
                        ) -> List[EFBChannelChatIDStr]:
         """
@@ -176,7 +206,8 @@ class DatabaseManager:
         except DoesNotExist:
             return []
 
-    def add_msg_log(self, **kwargs):
+    @staticmethod
+    def add_msg_log(**kwargs):
         """
         Add an entry to message log.
 
@@ -250,10 +281,10 @@ class DatabaseManager:
                                  pickle=pickle
                                  )
 
-    def get_msg_log(self,
-                    master_msg_id: Optional[TgChatMsgIDStr] = None,
+    @staticmethod
+    def get_msg_log(master_msg_id: Optional[TgChatMsgIDStr] = None,
                     slave_msg_id: Optional[MessageID] = None,
-                    slave_origin_uid: Optional[EFBChannelChatIDStr] = None) -> Optional['MsgLog']:
+                    slave_origin_uid: Optional[EFBChannelChatIDStr] = None) -> Optional[MsgLog]:
         """Get message log by message ID.
 
         Args:
@@ -262,7 +293,7 @@ class DatabaseManager:
             slave_origin_uid: Slave chat identifier in string
 
         Returns:
-            MsgLog|None: The queried entry, None if not exist.
+            Optional[MsgLog]: The queried entry, None if not exist.
         """
         if (master_msg_id and (slave_msg_id or slave_origin_uid)) \
                 or not (master_msg_id or (slave_msg_id or slave_origin_uid)):
@@ -280,8 +311,8 @@ class DatabaseManager:
         except DoesNotExist:
             return None
 
-    def delete_msg_log(self,
-                       master_msg_id: Optional[TgChatMsgIDStr] = None,
+    @staticmethod
+    def delete_msg_log(master_msg_id: Optional[TgChatMsgIDStr] = None,
                        slave_msg_id: Optional[EFBChannelChatIDStr] = None,
                        slave_origin_uid: Optional[EFBChannelChatIDStr] = None):
         """Remove a message log by message ID.
@@ -306,9 +337,10 @@ class DatabaseManager:
         except DoesNotExist:
             return
 
-    def get_slave_chat_info(self, slave_channel_id: Optional[ModuleID] = None,
+    @staticmethod
+    def get_slave_chat_info(slave_channel_id: Optional[ModuleID] = None,
                             slave_chat_uid: Optional[ChatID] = None
-                            ) -> Optional['SlaveChatInfo']:
+                            ) -> Optional[SlaveChatInfo]:
         """
         Get cached slave chat info from database.
 
@@ -324,43 +356,36 @@ class DatabaseManager:
         except DoesNotExist:
             return None
 
-    def set_slave_chat_info(self,
-                            slave_channel_id: Optional[ModuleID] = None,
-                            slave_channel_name: Optional[str] = None,
-                            slave_channel_emoji: Optional[str] = None,
-                            slave_chat_uid: Optional[ChatID] = None,
-                            slave_chat_name: Optional[str] = None,
-                            slave_chat_alias: Optional[str] = "",
-                            slave_chat_type: Optional[ChatType] = None,
-                            chat_object: Optional[EFBChat] = None):
+    def set_slave_chat_info(self, chat_object: EFBChat) -> SlaveChatInfo:
         """
         Insert or update slave chat info entry
 
         Args:
-            slave_channel_id (str): Slave channel ID
-            slave_channel_name (str): Slave channel name
-            slave_channel_emoji (str): Slave channel emoji
-            slave_chat_uid (str): Slave chat UID
-            slave_chat_name (str): Slave chat name
-            slave_chat_alias (str): Slave chat alias, "" (empty string) if not available
-            slave_chat_type (channel.ChatType): Slave chat type
             chat_object (EFBChat): Chat object for pickling
 
         Returns:
             SlaveChatInfo: The inserted or updated row
         """
-        if self.get_slave_chat_info(slave_channel_id=slave_channel_id, slave_chat_uid=slave_chat_uid):
-            chat_info: SlaveChatInfo = SlaveChatInfo.get(
-                SlaveChatInfo.slave_channel_id == slave_channel_id,
-                SlaveChatInfo.slave_chat_uid == slave_chat_uid)
+        slave_channel_id = chat_object.module_id
+        slave_channel_name = chat_object.module_name
+        slave_channel_emoji = chat_object.channel_emoji
+        slave_chat_uid = chat_object.chat_uid
+        slave_chat_name = chat_object.chat_name
+        slave_chat_alias = chat_object.chat_alias
+        slave_chat_type = chat_object.chat_type.value
+
+        chat_info = self.get_slave_chat_info(slave_channel_id=slave_channel_id, slave_chat_uid=slave_chat_uid)
+        if chat_info is not None:
             chat_info.slave_channel_name = slave_channel_name
             chat_info.slave_channel_emoji = slave_channel_emoji
             chat_info.slave_chat_name = slave_chat_name
             chat_info.slave_chat_alias = slave_chat_alias
             if slave_chat_type is not None:
-                chat_info.slave_chat_type = slave_chat_type.value
+                chat_info.slave_chat_type = slave_chat_type
             if chat_object is not None:
-                chat_info.pickle = pickle.dumps(chat_object)
+                if not isinstance(chat_object, ETMChat):
+                    chat_object = ETMChat(chat=chat_object, db=self)
+                chat_info.pickle = chat_object.pickle
             chat_info.save()
             return chat_info
         else:
@@ -370,16 +395,17 @@ class DatabaseManager:
                                         slave_chat_uid=slave_chat_uid,
                                         slave_chat_name=slave_chat_name,
                                         slave_chat_alias=slave_chat_alias,
-                                        slave_chat_type=slave_chat_type and slave_chat_type.value,
+                                        slave_chat_type=slave_chat_type,
                                         pickle=pickle.dumps(chat_object))
 
-    def delete_slave_chat_info(self, slave_channel_id: ModuleID, slave_chat_uid: ChatID):
+    @staticmethod
+    def delete_slave_chat_info(slave_channel_id: ModuleID, slave_chat_uid: ChatID):
         return SlaveChatInfo.delete() \
             .where((SlaveChatInfo.slave_channel_id == slave_channel_id) &
                    (SlaveChatInfo.slave_chat_uid == slave_chat_uid)).execute()
 
     @staticmethod
-    def get_recent_slave_chats(master_chat_id: TelegramChatID, limit=5):
+    def get_recent_slave_chats(master_chat_id: TelegramChatID, limit=5) -> List[EFBChannelChatIDStr]:
         query = MsgLog \
             .select(MsgLog.slave_origin_uid, fn.MAX(MsgLog.time)) \
             .where(MsgLog.master_msg_id.startswith("{}.".format(master_chat_id))) \
@@ -387,4 +413,13 @@ class DatabaseManager:
             .order_by(fn.MAX(MsgLog.time).desc()) \
             .limit(limit)
 
-        return [i.slave_origin_uid for i in query]
+        return [EFBChannelChatIDStr(i.slave_origin_uid) for i in query]
+
+    @staticmethod
+    def get_last_message(slave_chat_id: EFBChannelChatIDStr) -> Optional[MsgLog]:
+        try:
+            return MsgLog.select().where(
+                MsgLog.slave_origin_uid == slave_chat_id
+            ).order_by(MsgLog.time.desc()).limit(1).first()
+        except DoesNotExist:
+            return None

@@ -397,7 +397,11 @@ flags_settings = {
            '- normal: send to Telegram as normal message\n'
            '- silent: send to Telegram as normal message, but without '
            'notification sound\n'
-           '- mute: do not send to Telegram'))
+           '- mute: do not send to Telegram')),
+    "animated_stickers":
+        (False, 'bool', None,
+         _('Enable experimental support to animated stickers.')
+         )
 }
 
 

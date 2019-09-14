@@ -8,7 +8,9 @@ import pickle
 import tempfile
 import traceback
 import urllib.parse
-from typing import Tuple, Optional, TYPE_CHECKING, List
+from queue import Queue
+from threading import Thread
+from typing import Tuple, Optional, TYPE_CHECKING, List, Union
 
 import pydub
 import telegram
@@ -16,6 +18,7 @@ import telegram.constants
 import telegram.error
 import telegram.ext
 from PIL import Image
+from telegram import InputFile
 
 from ehforwarderbot import EFBMsg, EFBStatus, coordinator
 from ehforwarderbot.chat import EFBChatNotificationState
@@ -203,9 +206,11 @@ class SlaveMessageProcessor(LocaleMixin):
 
         etm_msg = ETMMsg.from_efbmsg(msg, self.db)
         etm_msg.put_telegram_file(tg_msg)
+        pickled_msg = etm_msg.pickle(self.db)
+        self.logger.debug("[%s] Pickle size: %s", xid, len(pickled_msg))
         msg_log = {"master_msg_id": utils.message_id_to_str(tg_msg.chat.id, tg_msg.message_id),
-                   "text": msg.text or "Sent a %s." % msg.type,
-                   "msg_type": msg.type,
+                   "text": msg.text or "Sent a %s." % msg.type.name,
+                   "msg_type": msg.type.name,
                    "sent_to": "master" if msg.author.is_self else 'slave',
                    "slave_origin_uid": utils.chat_id_to_str(chat=msg.chat),
                    "slave_origin_display_name": msg.chat.chat_alias,
@@ -216,15 +221,16 @@ class SlaveMessageProcessor(LocaleMixin):
                    "media_type": etm_msg.type_telegram.value,
                    "file_id": etm_msg.file_id,
                    "mime": etm_msg.mime,
-                   "pickle": pickle.dumps(etm_msg)
+                   "pickle": pickled_msg
                    }
 
         if old_msg_id and old_msg_id != tg_msg.message_id:
             msg_log['master_msg_id'] = utils.message_id_to_str(*old_msg_id)
             msg_log['master_msg_id_alt'] = utils.message_id_to_str(tg_msg.chat.id, tg_msg.message_id)
 
-        self.db.add_msg_log(**msg_log)
-        self.logger.debug("[%s] Message inserted/updated to the database.", xid)
+        # self.db.add_msg_log(**msg_log)
+        self.db.add_task(self.db.add_msg_log, tuple(), msg_log)
+        # self.logger.debug("[%s] Message inserted/updated to the database.", xid)
 
     def get_slave_msg_dest(self, msg: EFBMsg) -> Tuple[str, Optional[TelegramChatID]]:
         """Get the Telegram destination of a message with its header.
@@ -469,7 +475,8 @@ class SlaveMessageProcessor(LocaleMixin):
                 return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1],
                                                      prefix=msg_template, suffix=reactions, caption=msg.text)
             else:
-                return self.bot.send_animation(tg_dest, msg.file, prefix=msg_template, suffix=reactions,
+                return self.bot.send_animation(tg_dest, InputFile(msg.file, filename=msg.filename),
+                                               prefix=msg_template, suffix=reactions,
                                                caption=msg.text,
                                                reply_to_message_id=target_msg_id,
                                                reply_markup=reply_markup,
@@ -684,14 +691,7 @@ class SlaveMessageProcessor(LocaleMixin):
                 self.db.delete_slave_chat_info(status.channel.channel_id, i)
             for i in itertools.chain(status.new_chats, status.modified_chats):
                 chat = status.channel.get_chat(i)
-                self.db.set_slave_chat_info(slave_channel_name=status.channel.channel_name,
-                                            slave_channel_emoji=status.channel.channel_emoji,
-                                            slave_channel_id=status.channel.channel_id,
-                                            slave_chat_name=chat.chat_name,
-                                            slave_chat_alias=chat.chat_alias,
-                                            slave_chat_type=chat.chat_type,
-                                            slave_chat_uid=chat.chat_uid,
-                                            chat_object=chat)
+                self.db.set_slave_chat_info(chat_object=chat)
         elif isinstance(status, EFBMemberUpdates):
             self.logger.debug("Received member updates from channel %s about group %s",
                               status.channel, status.chat_id)
@@ -748,7 +748,7 @@ class SlaveMessageProcessor(LocaleMixin):
                                   'Message ID %s from %s, status: %s.', status.msg_id, status.chat, status.reactions)
             return
 
-        old_msg: ETMMsg = pickle.loads(old_msg_db.pickle)
+        old_msg: ETMMsg = ETMMsg.unpickle(old_msg_db.pickle, db=self.db)
         old_msg.reactions = status.reactions
         old_msg.edit = True
 

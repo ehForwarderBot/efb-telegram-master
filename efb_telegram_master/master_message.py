@@ -2,12 +2,14 @@
 
 import logging
 import pickle
-import threading
 import time
-from typing import Optional, TYPE_CHECKING
+from queue import Queue
+from threading import Thread
+from typing import Optional, TYPE_CHECKING, Tuple
 
 import telegram
-from telegram.ext import MessageHandler, Filters
+from telegram import Update
+from telegram.ext import MessageHandler, Filters, CallbackContext
 from telegram.utils.helpers import escape_markdown
 
 from ehforwarderbot import EFBChat, EFBMsg, coordinator
@@ -44,6 +46,7 @@ class MasterMessageProcessor(LocaleMixin):
         TGMsgType.Document: MsgType.File,
         TGMsgType.Photo: MsgType.Image,
         TGMsgType.Sticker: MsgType.Sticker,
+        # TGMsgType.AnimatedSticker: MsgType.Animation,
         TGMsgType.Video: MsgType.Video,
         TGMsgType.Voice: MsgType.Audio,
         TGMsgType.Location: MsgType.Location,
@@ -57,29 +60,45 @@ class MasterMessageProcessor(LocaleMixin):
         self.bot: 'TelegramBotManager' = channel.bot_manager
         self.db: 'DatabaseManager' = channel.db
         self.bot.dispatcher.add_handler(MessageHandler(
-            Filters.text | Filters.photo | Filters.sticker | Filters.document |
-            Filters.venue | Filters.location | Filters.audio | Filters.voice | Filters.video,
-            self.msg_thread_creator, edited_updates=True
+            (Filters.text | Filters.photo | Filters.sticker | Filters.document |
+             Filters.venue | Filters.location | Filters.audio | Filters.voice | Filters.video) &
+            Filters.update,
+            self.enqueue_message
         ))
         self.logger: logging.Logger = logging.getLogger(__name__)
 
         self.channel_id: ModuleID = self.channel.channel_id
 
-    def msg_thread_creator(self, bot, update):
-        """Process message in a thread, to ensure it doesn't block the main thread."""
-        threading.Thread(target=self.msg, args=(bot, update)).run()
+        if self.channel.flag("animated_stickers"):
+            self.TYPE_DICT[TGMsgType.AnimatedSticker] = MsgType.Animation
 
-    def msg(self, bot, update: telegram.Update):
+        self.message_queue: 'Queue[Optional[Tuple[Update, CallbackContext]]]' = Queue()
+        self.message_worker_thread = Thread(target=self.message_worker)
+        self.message_worker_thread.start()
+
+    def message_worker(self):
+        while True:
+            content = self.message_queue.get()
+            if content is None:
+                self.message_queue.task_done()
+                break
+            update, context = content
+            self.msg(update, context)
+            self.message_queue.task_done()
+
+    def stop_worker(self):
+        self.message_queue.put(None)
+        self.message_queue.join()
+
+    def enqueue_message(self, update: Update, context: CallbackContext):
+        self.message_queue.put((update, context))
+
+    def msg(self, update: Update, context: CallbackContext):
         """
         Process, wrap and dispatch messages from user.
-
-        Args:
-            bot: Telegram Bot instance
-            update: Message update
         """
 
-        message: telegram.Message = update.message or update.edited_message or \
-                                    update.channel_post or update.edited_channel_post
+        message: telegram.Message = update.effective_message
 
         self.logger.debug("Received message from Telegram: %s", message.to_dict())
         multi_slaves = False
@@ -105,10 +124,9 @@ class MasterMessageProcessor(LocaleMixin):
                 message.reply_text(self._("Error: No recipient specified.\n"
                                           "Please reply to a previous message. (MS02)"), quote=True)
         else:
-            return self.process_telegram_message(bot, update)
+            return self.process_telegram_message(update, context)
 
-    def process_telegram_message(self, bot: telegram.Bot,
-                                 update: telegram.Update,
+    def process_telegram_message(self, update: Update, context: CallbackContext,
                                  channel_id: Optional[ModuleID] = None,
                                  chat_id: Optional[ChatID] = None,
                                  target_msg: Optional[utils.TgChatMsgIDStr] = None):
@@ -116,8 +134,8 @@ class MasterMessageProcessor(LocaleMixin):
         Process messages came from Telegram.
 
         Args:
-            bot: Telegram bot
             update: Telegram message update
+            context: PTB update context
             channel_id: Slave channel ID if specified
             chat_id: Slave chat ID if specified
             target_msg: Target slave message if specified
@@ -238,7 +256,7 @@ class MasterMessageProcessor(LocaleMixin):
             m.deliver_to = coordinator.slaves[channel]
             if target and target_log is not None and target_channel == channel:
                 if target_log.pickle:
-                    trgt_msg: ETMMsg = pickle.loads(target_log.pickle)
+                    trgt_msg: ETMMsg = ETMMsg.unpickle(target_log.pickle, self.db)
                     trgt_msg.target = None
                 else:
                     trgt_msg = ETMMsg()
@@ -270,14 +288,13 @@ class MasterMessageProcessor(LocaleMixin):
                 self.logger.debug("[%s] EFB message type: %s", message_id, mtype)
             else:
                 self.logger.info("[%s] Message type %s is not supported by ETM", message_id, mtype)
-                raise EFBMessageTypeNotSupported("Message type %s is not supported by ETM" % mtype)
+                raise EFBMessageTypeNotSupported(self._("Message type {} is not supported by ETM.").format(mtype.name))
 
             if m.type not in coordinator.slaves[channel].supported_message_types:
                 self.logger.info("[%s] Message type %s is not supported by channel %s",
                                  message_id, m.type.name, channel)
-                raise EFBMessageTypeNotSupported("Message type %s is not supported by channel %s" % (
-                    m.type.value, coordinator.slaves[channel].channel_name
-                ))
+                raise EFBMessageTypeNotSupported(self._("Message type {0} is not supported by channel {1}.")
+                                                 .format(m.type.name, coordinator.slaves[channel].channel_name))
 
             # Parse message text and caption to markdown
             msg_md_text = message.text and message.text_markdown
@@ -316,7 +333,7 @@ class MasterMessageProcessor(LocaleMixin):
                 m.text = msg_md_caption
                 m.mime = "image/jpeg"
                 self._check_file_download(message.photo[-1])
-            elif mtype == TGMsgType.Sticker:
+            elif mtype in (TGMsgType.Sticker, TGMsgType.AnimatedSticker):
                 # Convert WebP to the more common PNG
                 m.text = ""
                 self._check_file_download(message.sticker)
@@ -377,12 +394,14 @@ class MasterMessageProcessor(LocaleMixin):
             self.logger.exception("Message is not sent. (update: %s)", update)
         finally:
             if log_message:
+                pickled_msg = m.pickle(self.db)
+                self.logger.debug("[%s] Pickle size: %s", message_id, len(pickled_msg))
                 msg_log_d = {
                     "master_msg_id": utils.message_id_to_str(update=update),
-                    "text": m.text or "Sent a %s" % m.type,
+                    "text": m.text or "Sent a %s" % m.type.name,
                     "slave_origin_uid": utils.chat_id_to_str(chat=m.chat),
                     "slave_origin_display_name": "__chat__",
-                    "msg_type": m.type,
+                    "msg_type": m.type.name,
                     "sent_to": "slave",
                     "slave_message_id": None if m.edit else "%s.%s" % (self.FAIL_FLAG, int(time.time())),
                     # Overwritten later if slave message ID exists
@@ -390,12 +409,13 @@ class MasterMessageProcessor(LocaleMixin):
                     "media_type": m.type_telegram.value,
                     "file_id": m.file_id,
                     "mime": m.mime,
-                    "pickle": pickle.dumps(m)
+                    "pickle": pickled_msg
                 }
 
                 if slave_msg:
                     msg_log_d['slave_message_id'] = slave_msg.uid
-                self.db.add_msg_log(**msg_log_d)
+                # self.db.add_msg_log(**msg_log_d)
+                self.db.add_task(self.db.add_msg_log, tuple(), msg_log_d)
                 if m.file:
                     m.file.close()
 
@@ -411,4 +431,11 @@ class MasterMessageProcessor(LocaleMixin):
         """
         size = getattr(file_obj, "file_size", None)
         if size and size > telegram.constants.MAX_FILESIZE_DOWNLOAD:
-            raise EFBMessageError(self._("Attachment is too large. Maximum is 20 MB. (AT01)"))
+            size_str = None
+            for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
+                if abs(size) < 1024.0:
+                    size_str = f"{size:3.1f}{unit}B"
+                size /= 1024.0
+            if size_str is None:
+                size_str = f"{size:.1f}YiB"
+            raise EFBMessageError(self._("Attachment is too large ({size}). Maximum allowed by Telegram is 20 MB. (AT01)").format(size=size_str))

@@ -1,7 +1,8 @@
 import mimetypes
 import os
+import pickle
 import tempfile
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, TYPE_CHECKING
 
 import magic
 import telegram
@@ -9,9 +10,13 @@ from PIL import Image
 from moviepy.video.io.VideoFileClip import VideoFileClip
 from typing.io import IO
 
-from ehforwarderbot import EFBMsg, coordinator
-from . import ETMChat
+from ehforwarderbot import EFBMsg, coordinator, MsgType
+from . import utils
+from .chat import ETMChat
 from .msg_type import TGMsgType, get_msg_type
+
+if TYPE_CHECKING:
+    from .db import DatabaseManager
 
 
 class ETMMsg(EFBMsg):
@@ -42,19 +47,39 @@ class ETMMsg(EFBMsg):
             del state['_ETMMsg__path']
         if state.get('filename', None) is not None:
             del state['filename']
+        # Store author and chat as database key to prevent
+        # redundant storage.
+        if state.get('chat', None) is not None:
+            state['chat'] = utils.chat_id_to_str(chat=state['chat'])
+        if state.get('author', None) is not None:
+            state['author'] = utils.chat_id_to_str(chat=state['author'])
         return state
 
     def __setstate__(self, state: Dict[str, Any]):
         super().__setstate__(state)
 
+    def pickle(self, db: 'DatabaseManager') -> bytes:
+        db.add_task(db.set_slave_chat_info, (self.chat,), {})
+        if self.chat != self.author and not self.author.is_self:
+            db.add_task(db.set_slave_chat_info, (self.author,), {})
+        return pickle.dumps(self)
+
+    @staticmethod
+    def unpickle(data: bytes, db: 'DatabaseManager') -> 'ETMMsg':
+        obj = pickle.loads(data)
+        c_module, c_id = utils.chat_id_str_to_id(obj.chat)
+        a_module, a_id = utils.chat_id_str_to_id(obj.author)
+        obj.chat = ETMChat.from_db_record(c_module, c_id, db)
+        if a_module == c_module and a_id == c_id:
+            obj.author = obj.chat
+        else:
+            obj.author = ETMChat.from_db_record(a_module, a_id, db)
+        return obj
+
     def _load_file(self):
         if self.file_id:
+            # noinspection PyUnresolvedReferences
             bot = coordinator.master.bot_manager
-
-            if self.type_telegram == TGMsgType.Animation:
-                self.mime = 'video/mpeg'
-            elif self.type_telegram == TGMsgType.Sticker:
-                self.mime = 'image/webp'
 
             file_meta = bot.get_file(self.file_id)
             if not self.mime:
@@ -98,14 +123,30 @@ class ETMMsg(EFBMsg):
                 self.__filename = self.__filename or os.path.basename(gif_file.name)
                 self.mime = "image/gif"
             elif self.type_telegram == TGMsgType.Sticker:
-                png_file = tempfile.NamedTemporaryFile(suffix=".png")
-                Image.open(file).convert("RGBA").save(png_file, 'png')
+                out_file = tempfile.NamedTemporaryFile(suffix=".png")
+                Image.open(file).convert("RGBA").save(out_file, 'png')
                 file.close()
-                png_file.seek(0)
-                self.__file = png_file
-                self.__path = png_file.name
-                self.__filename = (self.__filename or os.path.basename(file.name)) + ".png"
+                out_file.seek(0)
                 self.mime = "image/png"
+                self.__filename = (self.__filename or os.path.basename(file.name)) + ".png"
+                self.__file = out_file
+                self.__path = out_file.name
+            elif self.type_telegram == TGMsgType.AnimatedSticker:
+                out_file = tempfile.NamedTemporaryFile(suffix=".gif")
+                if utils.convert_tgs_to_gif(file, out_file):
+                    file.close()
+                    out_file.seek(0)
+                    self.mime = "image/gif"
+                    self.__filename = (self.__filename or os.path.basename(file.name)) + ".gif"
+                else:
+                    # Conversion failed, send file as is.
+                    out_file.close()
+                    file.seek(0)
+                    out_file = file
+                    self.mime = "application/json"
+                    self.__filename = (self.__filename or os.path.basename(file.name)) + ".json"
+                self.__file = out_file
+                self.__path = out_file.name
 
         self.__initialized = True
 
@@ -165,9 +206,13 @@ class ETMMsg(EFBMsg):
                 break
 
         if not is_common_file:
-            if getattr(message, 'sticker', None):
+            if self.type_telegram == TGMsgType.Sticker:
                 self.file_id = message.sticker.file_id
                 self.mime = 'image/webp'
+            elif self.type_telegram == TGMsgType.AnimatedSticker:
+                self.file_id = message.sticker.file_id
+                self.mime = 'application/json+tgs'
+                self.type = MsgType.Animation
             elif getattr(message, 'photo', None):
                 attachment = message.photo[-1]
                 self.file_id = attachment.file_id

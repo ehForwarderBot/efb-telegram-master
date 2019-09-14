@@ -3,7 +3,8 @@ import html
 from typing import Tuple, Dict, TYPE_CHECKING, List, Any, Union
 
 from telegram import Message, Update
-from telegram.ext import CommandHandler, ConversationHandler, RegexHandler, CallbackQueryHandler
+from telegram.ext import CommandHandler, ConversationHandler, CallbackQueryHandler, MessageHandler, CallbackContext
+from telegram.ext.filters import Filters
 
 from ehforwarderbot import coordinator, EFBChannel, EFBMiddleware
 from ehforwarderbot.message import EFBMsgCommand
@@ -38,11 +39,13 @@ class CommandsManager(LocaleMixin):
         self.bot.dispatcher.add_handler(
             CommandHandler("extra", self.extra_listing))
         self.bot.dispatcher.add_handler(
-            RegexHandler(r"^/h_(?P<id>[0-9]+)_(?P<command>[a-z0-9_-]+)", self.extra_usage,
-                         pass_groupdict=True))
+            MessageHandler(
+                Filters.regex(r"^/h_(?P<id>[0-9]+)_(?P<command>[a-z0-9_-]+)"),
+                self.extra_usage))
         self.bot.dispatcher.add_handler(
-            RegexHandler(r"^/(?P<id>[0-9]+)_(?P<command>[a-z0-9_-]+)", self.extra_call,
-                         pass_groupdict=True))
+            MessageHandler(
+                Filters.regex(r"^/(?P<id>[0-9]+)_(?P<command>[a-z0-9_-]+)"),
+                self.extra_call))
 
         self.command_conv = ConversationHandler(
             entry_points=[],
@@ -65,16 +68,12 @@ class CommandsManager(LocaleMixin):
         self.command_conv.conversations[message_identifier] = Flags.COMMAND_PENDING
         self.msg_storage[message_identifier] = commands
 
-    def command_exec(self, bot, update: Update) -> int:
+    def command_exec(self, update: Update, context: CallbackContext) -> int:
         """
         Run a command from a command message.
         Triggered by callback message with status `Flags.COMMAND_PENDING`.
 
         This method is a part of the command message conversation handler.
-
-        Args:
-            bot: Telegram Bot instance
-            update: The update
 
         Returns:
             The next state
@@ -131,14 +130,10 @@ class CommandsManager(LocaleMixin):
         )
         return ConversationHandler.END
 
-    def extra_listing(self, bot, update):
+    def extra_listing(self, update: Update, context: CallbackContext):
         """
         Show list of additional features and their usage.
         Triggered by `/extra`.
-
-        Args:
-            bot: Telegram Bot instance
-            update: Message update
         """
         msg = self._("<i>Click the link next to the name for usage.</i>\n")
         for idx, i in enumerate(self.modules_list):
@@ -172,7 +167,8 @@ class CommandsManager(LocaleMixin):
                 msg += "\n" + self._("No command found.")
         self.bot.send_message(update.effective_chat.id, msg, parse_mode="HTML")
 
-    def extra_usage(self, bot, update, groupdict: Dict[str, str]):
+    def extra_usage(self, update: Update, context: CallbackContext):
+        groupdict = context.match.groupdict()
         if int(groupdict['id']) >= len(self.modules_list):
             return self.bot.reply_error(update, self._("Invalid module id ID. (XC03)"))
 
@@ -198,17 +194,11 @@ class CommandsManager(LocaleMixin):
             html.escape(command.desc.format(function_name=fn_name)))
         self.bot.send_message(update.effective_chat.id, msg, parse_mode="HTML")
 
-    def extra_call(self, bot, update, groupdict: Dict[str, str]):
+    def extra_call(self, update: Update, context: CallbackContext):
         """
         Invoke an additional feature from slave channel.
-
-        Args:
-            bot: Telegram Bot instance
-            update: Message update
-            groupdict: Parameters offered by the message
-                'id': Index of channel sorted by ``channel_id`` in lexicographical order.
-                'command': Name of the command.
         """
+        groupdict = context.match.groupdict()
         if int(groupdict['id']) >= len(coordinator.slaves):
             return self.bot.reply_error(update, self._("Invalid module ID. (XC01)"))
 
