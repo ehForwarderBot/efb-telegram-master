@@ -503,6 +503,10 @@ e.g.:
       sound
     - ``mute``: do not send to Telegram
 
+-   ``animated_stickers`` *(bool)* [Default: ``false``]
+
+    Enable experimental support to animated stickers.
+
 Network configuration: timeout tweaks
 -------------------------------------
 

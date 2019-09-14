@@ -46,7 +46,7 @@ class MasterMessageProcessor(LocaleMixin):
         TGMsgType.Document: MsgType.File,
         TGMsgType.Photo: MsgType.Image,
         TGMsgType.Sticker: MsgType.Sticker,
-        TGMsgType.AnimatedSticker: MsgType.Animation,
+        # TGMsgType.AnimatedSticker: MsgType.Animation,
         TGMsgType.Video: MsgType.Video,
         TGMsgType.Voice: MsgType.Audio,
         TGMsgType.Location: MsgType.Location,
@@ -68,6 +68,9 @@ class MasterMessageProcessor(LocaleMixin):
         self.logger: logging.Logger = logging.getLogger(__name__)
 
         self.channel_id: ModuleID = self.channel.channel_id
+
+        if self.channel.flag("animated_stickers"):
+            self.TYPE_DICT[TGMsgType.AnimatedSticker] = MsgType.Animation
 
         self.message_queue: 'Queue[Optional[Tuple[Update, CallbackContext]]]' = Queue()
         self.message_worker_thread = Thread(target=self.message_worker)
@@ -285,14 +288,13 @@ class MasterMessageProcessor(LocaleMixin):
                 self.logger.debug("[%s] EFB message type: %s", message_id, mtype)
             else:
                 self.logger.info("[%s] Message type %s is not supported by ETM", message_id, mtype)
-                raise EFBMessageTypeNotSupported("Message type %s is not supported by ETM" % mtype)
+                raise EFBMessageTypeNotSupported(self._("Message type {} is not supported by ETM.").format(mtype.name))
 
             if m.type not in coordinator.slaves[channel].supported_message_types:
                 self.logger.info("[%s] Message type %s is not supported by channel %s",
                                  message_id, m.type.name, channel)
-                raise EFBMessageTypeNotSupported("Message type %s is not supported by channel %s" % (
-                    m.type.value, coordinator.slaves[channel].channel_name
-                ))
+                raise EFBMessageTypeNotSupported(self._("Message type {0} is not supported by channel {1}.")
+                                                 .format(m.type.name, coordinator.slaves[channel].channel_name))
 
             # Parse message text and caption to markdown
             msg_md_text = message.text and message.text_markdown
@@ -429,4 +431,11 @@ class MasterMessageProcessor(LocaleMixin):
         """
         size = getattr(file_obj, "file_size", None)
         if size and size > telegram.constants.MAX_FILESIZE_DOWNLOAD:
-            raise EFBMessageError(self._("Attachment is too large. Maximum is 20 MB. (AT01)"))
+            size_str = None
+            for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
+                if abs(size) < 1024.0:
+                    size_str = f"{size:3.1f}{unit}B"
+                size /= 1024.0
+            if size_str is None:
+                size_str = f"{size:.1f}YiB"
+            raise EFBMessageError(self._("Attachment is too large ({size}). Maximum allowed by Telegram is 20 MB. (AT01)").format(size=size_str))
