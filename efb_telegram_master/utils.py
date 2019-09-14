@@ -38,7 +38,8 @@ class ExperimentalFlagsManager(LocaleMixin):
         "retry_on_error": False,
         "send_image_as_file": False,
         "message_muted_on_slave": "normal",
-        "your_message_on_slave": "silent"
+        "your_message_on_slave": "silent",
+        "animated_stickers": False,
     }
 
     def __init__(self, channel: 'TelegramChannel'):
