@@ -52,6 +52,7 @@ setup(
         "retrying",
         "bullet",
         "cjkwrap",
+        "humanize",
         "tgs",
         "cairosvg",  # required by ``tgs`` to export GIF
     ],

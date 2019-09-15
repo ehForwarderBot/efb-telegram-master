@@ -7,6 +7,7 @@ from queue import Queue
 from threading import Thread
 from typing import Optional, TYPE_CHECKING, Tuple
 
+import humanize
 import telegram
 from telegram import Update
 from telegram.ext import MessageHandler, Filters, CallbackContext
@@ -431,11 +432,8 @@ class MasterMessageProcessor(LocaleMixin):
         """
         size = getattr(file_obj, "file_size", None)
         if size and size > telegram.constants.MAX_FILESIZE_DOWNLOAD:
-            size_str = None
-            for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
-                if abs(size) < 1024.0:
-                    size_str = f"{size:3.1f}{unit}B"
-                size /= 1024.0
-            if size_str is None:
-                size_str = f"{size:.1f}YiB"
-            raise EFBMessageError(self._("Attachment is too large ({size}). Maximum allowed by Telegram is 20 MB. (AT01)").format(size=size_str))
+            size_str = humanize.naturalsize(size, binary=True)
+            max_size_str = humanize.naturalsize(telegram.constants.MAX_FILESIZE_DOWNLOAD, binary=True)
+            raise EFBMessageError(
+                self._("Attachment is too large ({size}). Maximum allowed by Telegram is {max_size}. (AT01)").format(
+                    size=size_str, max_size=max_size_str))
