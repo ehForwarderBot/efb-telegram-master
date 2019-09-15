@@ -38,6 +38,7 @@ if TYPE_CHECKING:
     from . import TelegramChannel
     from .bot_manager import TelegramBotManager
     from .db import DatabaseManager
+    from .cache import LocalCache
 
 OldMsgID = Tuple[TelegramChatID, TelegramMessageID]
 
@@ -51,6 +52,7 @@ class SlaveMessageProcessor(LocaleMixin):
         self.logger: logging.Logger = logging.getLogger(__name__)
         self.flag: utils.ExperimentalFlagsManager = self.channel.flag
         self.db: 'DatabaseManager' = channel.db
+        self.cache: 'LocalCache' = channel.cache
 
     def send_message(self, msg: EFBMsg) -> EFBMsg:
         """
@@ -269,6 +271,10 @@ class SlaveMessageProcessor(LocaleMixin):
         msg_template = self.generate_message_template(msg, tg_chat, multi_slaves)
         self.logger.debug("[%s] Message is sent to Telegram chat %s, with header \"%s\".",
                           xid, tg_dest, msg_template)
+
+        if self.cache.get(tg_dest) != chat_uid:
+            self.cache.remove(tg_dest)
+
         return msg_template, tg_dest
 
     def slave_message_text(self, msg: EFBMsg, tg_dest: TelegramChatID, msg_template: str, reactions: str,

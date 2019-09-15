@@ -38,6 +38,7 @@ from .message import ETMMsg
 from .rpc_utils import RPCUtilities
 from .slave_message import SlaveMessageProcessor
 from .utils import ExperimentalFlagsManager, EFBChannelChatIDStr
+from .cache import LocalCache
 
 
 class TelegramChannel(EFBChannel):
@@ -125,6 +126,7 @@ class TelegramChannel(EFBChannel):
         # Initialize managers
         self.flag: ExperimentalFlagsManager = ExperimentalFlagsManager(self)
         self.db: DatabaseManager = DatabaseManager(self)
+        self.cache: LocalCache = LocalCache()
         self.bot_manager: TelegramBotManager = TelegramBotManager(self)
         self.chat_binding: ChatBindingManager = ChatBindingManager(self)
         self.commands: CommandsManager = CommandsManager(self)
