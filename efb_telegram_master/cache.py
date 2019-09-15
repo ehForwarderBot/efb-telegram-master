@@ -37,7 +37,7 @@ class LocalCache():
             'expire': self.nowTime() + expire,
             'value': value
         })
-        # 放入定大队列，弹出元素马上被回收
+        # Enqueue the element and waiting to be collected by gc once popped.
         self.strong.append(strongRef)
 
     def remove(self, key):
