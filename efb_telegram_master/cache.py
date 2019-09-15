@@ -1,6 +1,8 @@
 # coding: utf-8
 
-import weakref, collections, time
+import collections
+import time
+import weakref
 
 class LocalCache():
     notFound = None
