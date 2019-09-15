@@ -264,7 +264,7 @@ class SlaveMessageProcessor(LocaleMixin):
         self.logger.debug("[%s] Message is sent to Telegram chat %s, with header \"%s\".",
                           xid, tg_dest, msg_template)
 
-        if cache.get(tg_dest) and cache.get(tg_dest) != chat_uid:
+        if cache.get(tg_dest) != chat_uid:
             cache.remove(tg_dest)
 
         return msg_template, tg_dest
