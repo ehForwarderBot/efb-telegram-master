@@ -5,7 +5,6 @@ import time
 import weakref
 
 class LocalCache():
-    notFound = None
 
     # Wrapping dict as it requires subclassing for weak reference.
     class Dict(dict):
