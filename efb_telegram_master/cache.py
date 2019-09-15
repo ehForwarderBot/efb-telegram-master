@@ -16,7 +16,7 @@ class LocalCache():
         self.strong = collections.deque(maxlen=maxlen)
 
     @staticmethod
-    def nowTime():
+    def now_time():
         return int(time.time())
 
     def get(self, key):
