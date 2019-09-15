@@ -4,13 +4,10 @@ import html
 import itertools
 import logging
 import os
-import pickle
 import tempfile
 import traceback
 import urllib.parse
-from queue import Queue
-from threading import Thread
-from typing import Tuple, Optional, TYPE_CHECKING, List, Union
+from typing import Tuple, Optional, TYPE_CHECKING, List
 
 import pydub
 import telegram
@@ -25,9 +22,8 @@ from ehforwarderbot.chat import EFBChatNotificationState
 from ehforwarderbot.constants import MsgType, ChatType
 from ehforwarderbot.message import EFBMsgLinkAttribute, EFBMsgLocationAttribute, EFBMsgCommand, Reactions
 from ehforwarderbot.status import EFBChatUpdates, EFBMemberUpdates, EFBMessageRemoval, EFBMessageReactionsUpdate
-from ehforwarderbot.types import ChatID
-
 from . import utils, ETMChat
+from .chat_destination_cache import ChatDestinationCache
 from .commands import ETMCommandMsgStorage
 from .constants import Emoji
 from .locale_mixin import LocaleMixin
@@ -38,7 +34,6 @@ if TYPE_CHECKING:
     from . import TelegramChannel
     from .bot_manager import TelegramBotManager
     from .db import DatabaseManager
-    from .cache import LocalCache
 
 OldMsgID = Tuple[TelegramChatID, TelegramMessageID]
 
@@ -52,7 +47,7 @@ class SlaveMessageProcessor(LocaleMixin):
         self.logger: logging.Logger = logging.getLogger(__name__)
         self.flag: utils.ExperimentalFlagsManager = self.channel.flag
         self.db: 'DatabaseManager' = channel.db
-        self.cache: 'LocalCache' = channel.cache
+        self.chat_dest_cache: ChatDestinationCache = channel.chat_dest_cache
 
     def send_message(self, msg: EFBMsg) -> EFBMsg:
         """
@@ -272,8 +267,8 @@ class SlaveMessageProcessor(LocaleMixin):
         self.logger.debug("[%s] Message is sent to Telegram chat %s, with header \"%s\".",
                           xid, tg_dest, msg_template)
 
-        if self.cache.get(tg_dest) != chat_uid:
-            self.cache.remove(tg_dest)
+        if self.chat_dest_cache.get(tg_dest) != chat_uid:
+            self.chat_dest_cache.remove(tg_dest)
 
         return msg_template, tg_dest
 

@@ -129,27 +129,6 @@ A sample config file can be as follows:
     # [RPC Interface]
     # Refer to relevant sections afterwards for details.
 
-..  Removal of Speech recognition
-    ##################
-    # Optional items #
-    ##################
-    # The following options are optional. Omission of this section
-    # will only affect an additional part of functionality of
-    # this channel.
-    # API tokens required for speech recognition
-    speech_api:
-        # Microsoft (Bing) speech recognition token
-        # API key can be obtained from
-        # https://azure.microsoft.com/en-us/try/cognitive-services/
-        bing: "VOICE_RECOGNITION_TOKEN"
-        # Baidu speech recognition token
-        # API key can be obtained from
-        # http://yuyin.baidu.com/
-        baidu:
-            app_id: 123456
-            api_key: "API_KEY_GOES_HERE"
-            secret_key: "SECRET_KEY_GOES_HERE"
-
 Usage
 -----
 
@@ -248,7 +227,6 @@ E.g.: ``/chat Eana`` will give you all chats has the word “Eana”.
     Format of such information is specified in their documentations
     respectively.
 
-
 Examples:
 
 -  Look for all WeChat groups: ``Channel: WeChat.*Type: Group``
@@ -286,6 +264,18 @@ messages should appear only in the bot conversation.
 In a non-linked chat, quote-reply will not be passed on to the remote
 channel, everything else is supported as it does in a linked chat.
 
+Quick reply in non-linked chats
+'''''''''''''''''''''''''''''''
+ETM provides a mechanism that allow you to keep sending messages to the same
+recipient without quoting every single time.
+
+In case where recipient is not indicated for a message, ETM will try to deliver
+it to the “last known recipient” in the Telegram chat only if:
+
+1. your last message with the “last known recipient” is with in an hour, and
+2. the last message in this Telegram chat is from the “last known recipient”.
+
+
 Edit and delete message
 ^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -316,7 +306,7 @@ Advanced feature: Filtering
 '''''''''''''''''''''''''''
 
 Filter is also available in ``/chat`` command. Please refer to the
-same chapter above, under ``/link`` for the details.
+same chapter above, under ``/link`` for details.
 
 
 ``/extra``: External commands from slave channels (“additional features”)
@@ -506,6 +496,15 @@ e.g.:
 -   ``animated_stickers`` *(bool)* [Default: ``false``]
 
     Enable experimental support to animated stickers.
+
+-   ``send_to_last_chat`` *(str)* [Default: ``warn``]
+
+    Enable quick reply in non-linked chats.
+
+    - ``enabled``: Enable this feature without warning.
+    - ``warn``: Enable this feature and issue warnings every time when you
+      switch a recipient with quick reply.
+    - ``disabled``: Disable this feature.
 
 Network configuration: timeout tweaks
 -------------------------------------
