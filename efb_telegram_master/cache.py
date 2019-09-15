@@ -22,7 +22,7 @@ class LocalCache():
     def get(self, key):
         _ = self.weak.get(key, self.notFound)
         if _ is not self.notFound:
-            expire = _[r'expire']
+            expire = _['expire']
             value = _[r'value']
             if self.nowTime() > expire:
                 return self.notFound
