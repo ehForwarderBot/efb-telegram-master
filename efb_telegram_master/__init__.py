@@ -3,7 +3,6 @@
 import html
 import logging
 import mimetypes
-import pickle
 from gettext import NullTranslations, translation
 from typing import Optional, IO, List
 from xmlrpc.server import SimpleXMLRPCServer
@@ -38,7 +37,7 @@ from .message import ETMMsg
 from .rpc_utils import RPCUtilities
 from .slave_message import SlaveMessageProcessor
 from .utils import ExperimentalFlagsManager, EFBChannelChatIDStr
-from .cache import LocalCache
+from .chat_destination_cache import ChatDestinationCache
 
 
 class TelegramChannel(EFBChannel):
@@ -126,7 +125,7 @@ class TelegramChannel(EFBChannel):
         # Initialize managers
         self.flag: ExperimentalFlagsManager = ExperimentalFlagsManager(self)
         self.db: DatabaseManager = DatabaseManager(self)
-        self.cache: LocalCache = LocalCache()
+        self.chat_dest_cache: ChatDestinationCache = ChatDestinationCache(self.flag("send_to_last_chat"))
         self.bot_manager: TelegramBotManager = TelegramBotManager(self)
         self.chat_binding: ChatBindingManager = ChatBindingManager(self)
         self.commands: CommandsManager = CommandsManager(self)

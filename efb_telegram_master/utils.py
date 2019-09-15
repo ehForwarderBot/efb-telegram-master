@@ -40,6 +40,7 @@ class ExperimentalFlagsManager(LocaleMixin):
         "message_muted_on_slave": "normal",
         "your_message_on_slave": "silent",
         "animated_stickers": False,
+        "send_to_last_chat": "warn",
     }
 
     def __init__(self, channel: 'TelegramChannel'):

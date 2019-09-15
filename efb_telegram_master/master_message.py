@@ -13,6 +13,7 @@ from telegram import Update
 from telegram.ext import MessageHandler, Filters, CallbackContext
 from telegram.utils.helpers import escape_markdown
 
+from efb_telegram_master import ChatDestinationCache
 from ehforwarderbot import EFBChat, EFBMsg, coordinator
 from ehforwarderbot.constants import MsgType, ChatType
 from ehforwarderbot.exceptions import EFBMessageTypeNotSupported, EFBChatNotFound, \
@@ -30,7 +31,6 @@ if TYPE_CHECKING:
     from . import TelegramChannel
     from .bot_manager import TelegramBotManager
     from .db import DatabaseManager, MsgLog
-    from .cache import LocalCache
 
 
 class MasterMessageProcessor(LocaleMixin):
@@ -61,7 +61,7 @@ class MasterMessageProcessor(LocaleMixin):
         self.channel: 'TelegramChannel' = channel
         self.bot: 'TelegramBotManager' = channel.bot_manager
         self.db: 'DatabaseManager' = channel.db
-        self.cache: 'LocalCache' = channel.cache
+        self.chat_dest_cache: ChatDestinationCache = channel.chat_dest_cache
         self.bot.dispatcher.add_handler(MessageHandler(
             (Filters.text | Filters.photo | Filters.sticker | Filters.document |
              Filters.venue | Filters.location | Filters.audio | Filters.voice | Filters.video) &
@@ -114,7 +114,11 @@ class MasterMessageProcessor(LocaleMixin):
         reply_to = bool(getattr(message, "reply_to_message", None))
         private_chat = message.chat.id == message.from_user.id
 
-        if (private_chat or multi_slaves) and not reply_to and not self.cache.get(message.chat.id):
+        if (private_chat or multi_slaves) and not reply_to and not self.chat_dest_cache.get(message.chat.id):
+            # If
+            # 1. the Telegram chat is multi-linked, and
+            # 2. the message doesn't have a quoted reply, and
+            # 3. there is not cached destination
             candidates = self.db.get_recent_slave_chats(message.chat.id) or \
                          self.db.get_chat_assoc(master_uid=utils.chat_id_to_str(self.channel_id, message.chat.id))[:5]
             if candidates:
@@ -172,7 +176,7 @@ class MasterMessageProcessor(LocaleMixin):
         reply_to = bool(getattr(message, "reply_to_message", None))
 
         # Process predefined target (slave) chat.
-        cached_dest = self.cache.get(message.chat.id)
+        cached_dest = self.chat_dest_cache.get(message.chat.id)
         if channel_id and chat_id:
             destination = utils.chat_id_to_str(channel_id, chat_id)
             if target_msg is not None:
@@ -192,13 +196,14 @@ class MasterMessageProcessor(LocaleMixin):
                     message.reply_to_message.message_id))
                 if dest_msg:
                     destination = dest_msg.slave_origin_uid
-                    self.cache.set(message.chat.id, destination)
+                    self.chat_dest_cache.set(message.chat.id, dest_msg.slave_origin_uid)
                 else:
                     return self.bot.reply_error(update,
                                                 self._("Message is not found in database. "
                                                        "Please try with another one. (UC03)"))
             elif cached_dest:
                 destination = cached_dest
+                self._send_cached_chat_warning(update, message.chat.id, cached_dest)
             else:
                 return self.bot.reply_error(update,
                                             self._("Please reply to an incoming message. (UC04)"))
@@ -210,13 +215,14 @@ class MasterMessageProcessor(LocaleMixin):
                         message.reply_to_message.message_id))
                     if dest_msg:
                         destination = dest_msg.slave_origin_uid
-                        self.cache.set(message.chat.id, destination)
+                        self.chat_dest_cache.set(message.chat.id, destination)
                     else:
                         return self.bot.reply_error(update,
                                                     self._("Message is not found in database. "
                                                            "Please try with another one. (UC05)"))
                 elif cached_dest:
                     destination = cached_dest
+                    self._send_cached_chat_warning(update, message.chat.id, cached_dest)
                 else:
                     return self.bot.reply_error(update,
                                                 self._("This group is linked to multiple remote chats. "
@@ -428,6 +434,22 @@ class MasterMessageProcessor(LocaleMixin):
                 self.db.add_task(self.db.add_msg_log, tuple(), msg_log_d)
                 if m.file:
                     m.file.close()
+
+    def _send_cached_chat_warning(self, update: telegram.Update, cache_key: str, cached_dest: str):
+        """Send warning about cached chat."""
+        if self.channel.flag("send_to_last_chat") != "warn":
+            return
+        if not self.chat_dest_cache.is_warned(cache_key):
+            self.chat_dest_cache.set_warned(cache_key)
+            update.message.reply_text(
+                self._(
+                    "This message is sent to “{dest}” with quick reply feature.\n"
+                    "\n"
+                    "Learn more about how this works, how to turn off this feature, "
+                    "and how to stop this warning at {docs}."
+                ).format(dest=cached_dest,
+                         docs="https://github.com/blueset/efb-telegram-master/"),
+                quote=True)
 
     def _check_file_download(self, file_obj: telegram.File):
         """
