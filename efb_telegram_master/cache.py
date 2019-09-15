@@ -32,7 +32,7 @@ class LocalCache():
             return self.notFound
 
     def set(self, key, value, expire):
-        # strongRef作为强引用避免被回收
+        # strong_ref prevent object from being collected by gc.
         self.weak[key] = strongRef = LocalCache.Dict({
             'expire': self.nowTime() + expire,
             'value': value
