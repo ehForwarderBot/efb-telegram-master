@@ -5,7 +5,7 @@ import weakref, collections, time
 class LocalCache():
     notFound = None
 
-    # list dict等不支持弱引用，但其子类支持，故这里包装了下
+    # Wrapping dict as it requires subclassing for weak reference.
     class Dict(dict):
         def __del__(self):
             pass
