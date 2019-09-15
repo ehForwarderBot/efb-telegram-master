@@ -24,7 +24,7 @@ from ehforwarderbot.message import EFBMsgLinkAttribute, EFBMsgLocationAttribute,
 from ehforwarderbot.status import EFBChatUpdates, EFBMemberUpdates, EFBMessageRemoval, EFBMessageReactionsUpdate
 from ehforwarderbot.types import ChatID
 
-from . import utils, ETMChat, cache
+from . import utils, ETMChat
 from .commands import ETMCommandMsgStorage
 from .constants import Emoji
 from .locale_mixin import LocaleMixin
@@ -35,6 +35,7 @@ if TYPE_CHECKING:
     from . import TelegramChannel
     from .bot_manager import TelegramBotManager
     from .db import DatabaseManager
+    from .cache import LocalCache
 
 OldMsgID = Tuple[TelegramChatID, TelegramMessageID]
 
@@ -48,6 +49,7 @@ class SlaveMessageProcessor(LocaleMixin):
         self.logger: logging.Logger = logging.getLogger(__name__)
         self.flag: utils.ExperimentalFlagsManager = self.channel.flag
         self.db: 'DatabaseManager' = channel.db
+        self.cache: 'LocalCache' = channel.cache
 
     def send_message(self, msg: EFBMsg) -> EFBMsg:
         """
@@ -264,8 +266,8 @@ class SlaveMessageProcessor(LocaleMixin):
         self.logger.debug("[%s] Message is sent to Telegram chat %s, with header \"%s\".",
                           xid, tg_dest, msg_template)
 
-        if cache.get(tg_dest) != chat_uid:
-            cache.remove(tg_dest)
+        if self.cache.get(tg_dest) != chat_uid:
+            self.cache.remove(tg_dest)
 
         return msg_template, tg_dest
 

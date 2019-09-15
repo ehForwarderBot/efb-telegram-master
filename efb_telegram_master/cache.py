@@ -1,4 +1,5 @@
 # coding: utf-8
+# modified from [messud4312]https://my.oschina.net/u/914655/blog/1799159
 
 import collections
 import time
@@ -20,37 +21,25 @@ class LocalCache():
         return int(time.time())
 
     def get(self, key):
-        _ = self.weak.get(key, self.notFound)
-        if _ is not self.notFound:
-            expire = _['expire']
-            value = _[r'value']
-            if self.nowTime() > expire:
-                return self.notFound
+        val = self.weak.get(key, None)
+        if val is not None:
+            expire = val['expire']
+            value = val['value']
+            if self.now_time() > expire:
+                return None
             else:
                 return value
         else:
-            return self.notFound
+            return None
 
-    def set(self, key, value, expire):
+    def set(self, key, value, expire=3600):
         # strong_ref prevent object from being collected by gc.
-        self.weak[key] = strongRef = LocalCache.Dict({
-            'expire': self.nowTime() + expire,
+        self.weak[key] = strong_ref = LocalCache.Dict({
+            'expire': self.now_time() + expire,
             'value': value
         })
         # Enqueue the element and waiting to be collected by gc once popped.
-        self.strong.append(strongRef)
+        self.strong.append(strong_ref)
 
     def remove(self, key):
-        return self.weak.pop(key)
-
-CACHE = LocalCache()
-
-
-def get(key):
-    return CACHE.get(key)
-
-def set(key, value, expire=3600):
-    CACHE.set(key, value, expire)
-
-def remove(key):
-    return CACHE.remove(key)
+        return self.weak.pop(key, None)
