@@ -243,7 +243,7 @@ Examples:
 * Look for everyone who has an alias ``Name: (.*?)\nAlias: (?!\1)``
 
 * Look for all entries contain “John” and “Johnny” in any order:
-  ``(?=.*John)(?=.*Johnny)"``
+  ``(?=.*John)(?=.*Johnny)``
 
 
 Send a message
@@ -283,6 +283,23 @@ In a non-linked chat, quote-reply will not be passed on to the remote
 channel, everything else is supported as it does in a linked chat.
 
 
+Quick reply in non-linked chats
+"""""""""""""""""""""""""""""""
+
+ETM provides a mechanism that allow you to keep sending messages to
+the same recipient without quoting every single time.
+
+In case where recipient is not indicated for a message, ETM will try
+to deliver it to the “last known recipient” in the Telegram chat only
+if:
+
+1. your last message with the “last known recipient” is with in an
+    hour, and
+
+2. the last message in this Telegram chat is from the “last known
+    recipient”.
+
+
 Edit and delete message
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -315,7 +332,7 @@ Advanced feature: Filtering
 """""""""""""""""""""""""""
 
 Filter is also available in ``/chat`` command. Please refer to the
-same chapter above, under ``/link`` for the details.
+same chapter above, under ``/link`` for details.
 
 
 ``/extra``: External commands from slave channels (“additional features”)
@@ -491,7 +508,7 @@ e.g.:
 
 * ``auto_locale`` *(str)* [Default: ``true``]
 
-  Detect the locale from admin's messages automatically. Locale
+  Detect the locale from admin’s messages automatically. Locale
   defined in environment variables will be used otherwise.
 
 * ``retry_on_error`` *(bool)* [Default: ``false``]
@@ -503,7 +520,7 @@ e.g.:
 
 * ``send_image_as_file`` *(bool)* [Default: ``false``]
 
-  Send all image messages as files, in order to prevent Telegram's
+  Send all image messages as files, in order to prevent Telegram’s
   image compression in an aggressive way.
 
 * ``message_muted_on_slave`` *(str)* [Default: ``normal``]
@@ -529,6 +546,21 @@ e.g.:
 
   * ``mute``: do not send to Telegram
 
+* ``animated_stickers`` *(bool)* [Default: ``false``]
+
+  Enable experimental support to animated stickers.
+
+* ``send_to_last_chat`` *(str)* [Default: ``warn``]
+
+  Enable quick reply in non-linked chats.
+
+  * ``enabled``: Enable this feature without warning.
+
+  * ``warn``: Enable this feature and issue warnings every time when
+    you switch a recipient with quick reply.
+
+  * ``disabled``: Disable this feature.
+
 
 Network configuration: timeout tweaks
 =====================================
@@ -547,7 +579,7 @@ The ``connect_timeout`` value controls the timeout for establishing a
 connection to the Telegram server(s).
 
 Changing the defaults of ``read_timeout`` & ``connet_timeout`` can be
-done by adjusting values ``request_kwargs`` section in ETM's \
+done by adjusting values ``request_kwargs`` section in ETM’s \
 ``config.yaml``.
 
 ::
@@ -567,7 +599,7 @@ Run ETM behind a proxy
 
 You can appoint proxy specifically for ETM without affecting other
 channels running in together in the same EFB instance. This can also
-be done by adjusting values ``request_kwargs`` section in ETM's \
+be done by adjusting values ``request_kwargs`` section in ETM’s \
 ``config.yaml``.
 
 

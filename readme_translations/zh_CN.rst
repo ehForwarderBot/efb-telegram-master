@@ -81,9 +81,10 @@ API，``python-telegram-bot`` 建立。
 设置机器人
 ----------
 
-使用 `@BotFather <https://t.me/botfather>`_ 创建一个
-bot，并给它起个名字及用户名。此后您会获得一个令牌（token）。此令牌稍后将会用到。请妥善保管该令牌，泄露该令牌相当于泄露 bot
-的完整控制权限。
+Create a bot with `@BotFather <https://t.me/botfather>`_, give it a
+name and a username. Then you’ll get a token, which will be used
+later. Keep this token secure, as it gives who owns it the full access
+to the bot.
 
 使用 ``/setjoingroups`` 来允许您的 bot 加入群组。使用 ``/setprivacy``
 来禁用隐私限制，以使其能读取群组内的所有消息。
@@ -212,7 +213,8 @@ bot，并给它起个名字及用户名。此后您会获得一个令牌（token
 
 * 筛选所有具有别名的会话：``Name: (.*?)\nAlias: (?!\1)``
 
-* 搜索所有同时包含「John」和「Johnny」的条目，不分先后：``(?=.*John)(?=.*Johnny)``
+* Look for all entries contain “John” and “Johnny” in any order:
+  ``(?=.*John)(?=.*Johnny)``
 
 
 发送消息
@@ -249,6 +251,23 @@ bot，并给它起个名字及用户名。此后您会获得一个令牌（token
 在未绑定的会话中，回复中的引用将不会被发送至远端信道，除此之外，受支持的内容皆与已绑定会话类似。
 
 
+Quick reply in non-linked chats
+"""""""""""""""""""""""""""""""
+
+ETM provides a mechanism that allow you to keep sending messages to
+the same recipient without quoting every single time.
+
+In case where recipient is not indicated for a message, ETM will try
+to deliver it to the “last known recipient” in the Telegram chat only
+if:
+
+1. your last message with the “last known recipient” is with in an
+    hour, and
+
+2. the last message in this Telegram chat is from the “last known
+    recipient”.
+
+
 编辑和删除消息
 ~~~~~~~~~~~~~~
 
@@ -272,7 +291,8 @@ bot，并给它起个名字及用户名。此后您会获得一个令牌（token
 高级功能：筛选
 """"""""""""""
 
-筛选也可以在 ``/chat`` 指令上使用。 请参阅前述章节 ``/link`` 的内容以获取详情。
+Filter is also available in ``/chat`` command. Please refer to the
+same chapter above, under ``/link`` for details.
 
 
 ``/extra``：从端提供的指令（附加功能）
@@ -421,129 +441,10 @@ ETM 不能：
 
   当从端要求删除特定消息时，ETM 将以通知替代删除操作。
 
-   This chapter is adapted from `Python Telegram Bot wiki
-   <https://github.com/python-telegram-bot/python-telegram-bot/wiki/Handling-network-errors#tweaking-ptb>`_,
-   licensed under CC-BY 3.0.
-
-``python-telegram-bot`` performs HTTPS requests using ``urllib3``.
-``urllib3`` provides control over ``connect_timeout`` &
-``read_timeout``. ``urllib3`` does not separate between what would be
-considered read & write timeout, so ``read_timeout`` serves for both.
-The defaults chosen for each of these parameters is 5 seconds.
-
-The ``connect_timeout`` value controls the timeout for establishing a
-connection to the Telegram server(s).
-
-Changing the defaults of ``read_timeout`` & ``connet_timeout`` can be
-done by adjusting values ``request_kwargs`` section in ETM’s \
-``config.yaml``.
-
-::
-
-   # ...
-   request_kwargs:
-       read_timeout: 6
-       connect_timeout: 7
-
-
-Run ETM behind a proxy
-======================
-
-   This chapter is adapted from `Python Telegram Bot wiki
-   <https://github.com/python-telegram-bot/python-telegram-bot/wiki/Working-Behind-a-Proxy>`_,
-   licensed under CC-BY 3.0.
-
-You can appoint proxy specifically for ETM without affecting other
-channels running in together in the same EFB instance. This can also
-be done by adjusting values ``request_kwargs`` section in ETM’s \
-``config.yaml``.
-
-
-HTTP proxy server
------------------
-
-::
-
-   request_kwargs:
-       # ...
-       proxy_url: http://PROXY_HOST:PROXY_PORT/
-       # Optional, if you need authentication:
-       username: PROXY_USER
-       password: PROXY_PASS
-
-
-SOCKS5 proxy server
--------------------
-
-This is configuration is supported, but requires an optional/extra
-python package. To install:
-
-::
-
-   pip install python-telegram-bot[socks]
-
-::
-
-   request_kwargs:
-       # ...
-       proxy_url: socks5://URL_OF_THE_PROXY_SERVER:PROXY_PORT
-       # Optional, if you need authentication:
-       urllib3_proxy_kwargs:
-           username: PROXY_USER
-           password: PROXY_PASS
-
-
-RPC interface
-=============
-
-A standard `Python XML RPC server
-<https://docs.python.org/3/library/xmlrpc.html>`_ is implemented in
-ETM 2. It can be enabled by adding a ``rpc`` section in ETM’s
-``config.yml`` file.
-
-::
-
-   rpc:
-       server: 127.0.0.1
-       port: 8000
-
-警告: The ``xmlrpc`` module is not secure against maliciously
-   constructed data. Do not expose the interface to untrusted
-   parties or the public internet, and turn off after use.
-
-
-Exposed functions
------------------
-
-Functions in `the db (database manager) class
-<https://github.com/blueset/efb-telegram-master/blob/master/efb_telegram_master/db.py>`_
-and \ `the RPCUtilities class
-<https://github.com/blueset/efb-telegram-master/blob/master/efb_telegram_master/rpc_utilities.py>`_
-are exposed. Refer to the source code for their documentations.
-
-
-How to use
-----------
-
-Set up a ``SimpleXMLRPCClient`` in any Python script and call any of
-the exposed functions directly. For details, please consult `Python
-documentation on xmlrpc
-<https://docs.python.org/3/library/xmlrpc.html>`_.
-
-
-实验性翻译支持
-==============
-
-ETM 启用了实验性的本地化翻译。本 bot 能够从管理员的语言设定中自动检测，并设置为一种已支持的语言。如果您不希望使用测功能，您可以
-关闭 ``auto_locale`` 功能，并将语言环境变量
-(``LANGUAGE``、``LC_ALL``、``LC_MESSAGES`` 或 ``LANG``) 设置为一种设为一种已支持的语言。
-同时，您也可以在我们的 `Crowdin 项目
-<https://crowdin.com/project/ehforwarderbot/>`_\ 里面将 EWS 翻译为您的语言。
-=======
-
 * ``auto_locale`` *(str)* [默认: ``true``]
 
-  从 bot 管理员的语言设定中自动设定 ETM 语言。 当该值为 ``false`` 时，ETM 会从系统的环境变量中读取语言设定。
+  Detect the locale from admin’s messages automatically. Locale
+  defined in environment variables will be used otherwise.
 
 * ``retry_on_error`` *(bool)* [默认: ``false``]
 
@@ -552,7 +453,8 @@ ETM 启用了实验性的本地化翻译。本 bot 能够从管理员的语言�
 
 * ``send_image_as_file`` *(bool)* [默认: ``false``]
 
-  将所有图片消息以文件发送，以积极避免 Telegram 对于图片的压缩。
+  Send all image messages as files, in order to prevent Telegram’s
+  image compression in an aggressive way.
 
 * ``message_muted_on_slave`` *(str)* [默认值：``normal``]
 
@@ -574,6 +476,21 @@ ETM 启用了实验性的本地化翻译。本 bot 能够从管理员的语言�
 
   * ``mute``：不要发送到 Telegram
 
+* ``animated_stickers`` *(bool)* [Default: ``false``]
+
+  Enable experimental support to animated stickers.
+
+* ``send_to_last_chat`` *(str)* [Default: ``warn``]
+
+  Enable quick reply in non-linked chats.
+
+  * ``enabled``: Enable this feature without warning.
+
+  * ``warn``: Enable this feature and issue warnings every time when
+    you switch a recipient with quick reply.
+
+  * ``disabled``: Disable this feature.
+
 
 网络配置：超时调整
 ==================
@@ -588,8 +505,9 @@ ETM 启用了实验性的本地化翻译。本 bot 能够从管理员的语言�
 
 ``connect_timeout`` 控制连接到 Telegram 服务器的超时时长 。
 
-可以通过调整 ETM 的 ``config.yaml`` 中的 ``request_kwargs`` 来更改
-``read_timeout`` 和 ``connet_timeout`` 的默认值。
+Changing the defaults of ``read_timeout`` & ``connet_timeout`` can be
+done by adjusting values ``request_kwargs`` section in ETM’s \
+``config.yaml``.
 
 ::
 
@@ -606,8 +524,10 @@ ETM 启用了实验性的本地化翻译。本 bot 能够从管理员的语言�
    <https://github.com/python-telegram-bot/python-telegram-bot/wiki/Working-Behind-a-Proxy>`_，遵从
    CC-BY 3.0 许可。
 
-您可以为 ETM 单独指定代理，而不会影响相同 EFB 实例下的其他信道。您也可以通过调整 ETM 的 ``config.yaml`` 中的
-``request_kwargs`` 选项来完成此操作。
+You can appoint proxy specifically for ETM without affecting other
+channels running in together in the same EFB instance. This can also
+be done by adjusting values ``request_kwargs`` section in ETM’s \
+``config.yaml``.
 
 
 HTTP 代理服务器
@@ -646,9 +566,10 @@ SOCKS5 代理服务器
 RPC 接口
 ========
 
-在 ETM 2 中实现了一个标准的 `Python XML RPC 服务器
-<https://docs.python.org/3/library/xmlrpc.html>`_。您可以通过在ETM 的
-``config.yml`` 文件中添加 ``rpc`` 选项来启用它。
+A standard `Python XML RPC server
+<https://docs.python.org/3/library/xmlrpc.html>`_ is implemented in
+ETM 2. It can be enabled by adding a ``rpc`` section in ETM’s
+``config.yml`` file.
 
 ::
 
@@ -663,9 +584,9 @@ RPC 接口
 ----------
 
 我们提供了 `db（数据库管理器）类
-<https://github.com/blueset/efb-telegram-master/blob/master/efb_telegram_master/db.py>`_\
-和 `RPCUtilities 类
 <https://github.com/blueset/efb-telegram-master/blob/master/efb_telegram_master/rpc_utilities.py>`_\
+和 `RPCUtilities 类
+<https://github.com/blueset/efb-telegram-master/blob/master/efb_telegram_master/db.py>`_\
 中的函数。详细文档请参考源代码。
 
 

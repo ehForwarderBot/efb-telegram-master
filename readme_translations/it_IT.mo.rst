@@ -160,7 +160,7 @@ to BotFather for a command list:
    update_info - Update the group name and profile picture.
    react - Send a reaction to a message, or show a list of reactors.
 
-Catatan: In case of multiple admins are assigned, they may all send
+Nota: In case of multiple admins are assigned, they may all send
    message on your behalf, but only the 0th admin can receive
    direct message from the bot.
 
@@ -179,7 +179,7 @@ Catatan: In case of multiple admins are assigned, they may all send
 4. Tap “Start” at the bottom of your screen, and you should see a
     success message: “Chat linked.”
 
-Catatan: You may introduce non-ETM admin users to the group, however,
+Nota: You may introduce non-ETM admin users to the group, however,
    they:
 
    * Can read all messages send from the related remote chat;
@@ -232,10 +232,9 @@ multiple criteria.
    Mode: [Linked]
    Other: <Python Dictionary String>
 
-Catatan: Type can be either “User” or “Group”Other is the vendor
-   specific information provided by slave channels. Format of
-   such information is specified in their documentations
-   respectively.
+Nota: Type can be either “User” or “Group”Other is the vendor specific
+   information provided by slave channels. Format of such
+   information is specified in their documentations respectively.
 
 Examples:
 
@@ -326,7 +325,7 @@ head works similarly to an incoming message, you can reply to it to
 send messages to your recipient.
 
 Send ``/chat`` to the bot, and choose a chat from the list. When you
-see “Reply to this message to chat with ...”, it’s ready to go.
+see “Reply to this message to chat with …”, it’s ready to go.
 
 
 Advanced feature: Filtering
@@ -425,7 +424,7 @@ How to use:
 
 Technical Details: Telegram Bot API prevents bot from knowing who
 actually sent a message in a channel (not including signatures as that
-doesn't reflect the numeric ID of the sender). In fact, that is the
+doesn’t reflect the numeric ID of the sender). In fact, that is the
 same for normal users in a channel too, even admins.If messages from
 channels are to be processed unconditionally, not only that other
 admins in existing channels can add malicious admins to it, anyone on
@@ -652,9 +651,10 @@ ETM 2. It can be enabled by adding a ``rpc`` section in ETM’s
        server: 127.0.0.1
        port: 8000
 
-Peringatan: The ``xmlrpc`` module is not secure against maliciously
-   constructed data. Do not expose the interface to untrusted
-   parties or the public internet, and turn off after use.
+Avvertimento: The ``xmlrpc`` module is not secure against maliciously
+   constructed data. Do not expose the interface to
+   untrusted parties or the public internet, and turn off
+   after use.
 
 
 Exposed functions
@@ -715,6 +715,6 @@ one of our supported languages. Meanwhile, you can help to translate
 this project into your languages on `our Crowdin page
 <https://crowdin.com/project/ehforwarderbot/>`_.
 
-Catatan: If your are installing from source code, you will not get
+Nota: If your are installing from source code, you will not get
    translations of the user interface without manual compile of
    message catalogs (``.mo``) prior to installation.
