@@ -1,7 +1,6 @@
 # coding=utf-8
 
 import logging
-import pickle
 import time
 from queue import Queue
 from threading import Thread
@@ -13,7 +12,6 @@ from telegram import Update
 from telegram.ext import MessageHandler, Filters, CallbackContext
 from telegram.utils.helpers import escape_markdown
 
-from efb_telegram_master import ChatDestinationCache
 from ehforwarderbot import EFBChat, EFBMsg, coordinator
 from ehforwarderbot.constants import MsgType, ChatType
 from ehforwarderbot.exceptions import EFBMessageTypeNotSupported, EFBChatNotFound, \
@@ -22,6 +20,7 @@ from ehforwarderbot.message import EFBMsgLocationAttribute
 from ehforwarderbot.status import EFBMessageRemoval
 from ehforwarderbot.types import ModuleID, ChatID, MessageID
 from . import utils
+from .chat_destination_cache import ChatDestinationCache
 from .locale_mixin import LocaleMixin
 from .message import ETMMsg
 from .msg_type import TGMsgType
