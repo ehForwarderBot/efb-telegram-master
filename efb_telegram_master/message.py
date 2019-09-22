@@ -26,6 +26,8 @@ class ETMMsg(EFBMsg):
     """File ID from Telegram Bot API"""
     type_telegram: TGMsgType
     """Type of message in Telegram Bot API"""
+    chat: ETMChat
+    author: ETMChat
 
     __file = None
     __path = None

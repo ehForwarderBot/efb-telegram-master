@@ -201,74 +201,89 @@ class TelegramChannel(EFBChannel):
         Triggered by `/info`.
         """
         if update.message.chat.type != telegram.Chat.PRIVATE:  # Group message
-            links = self.db.get_chat_assoc(master_uid=etm_utils.chat_id_to_str(self.channel_id, update.message.chat_id))
-            if links:  # Linked chat
-                msg = self._("The group {group_name} ({group_id}) is linked to:").format(
-                    group_name=update.message.chat.title,
-                    group_id=update.message.chat_id)
-                for i in links:
-                    channel_id, chat_id = etm_utils.chat_id_str_to_id(i)
-                    d = self.chat_binding.get_chat_from_db(channel_id, chat_id)
-                    if d:
-                        msg += "\n- %s (%s:%s)" % (ETMChat(chat=d, db=self.db).full_name,
-                                                   d.module_id, d.chat_uid)
-                    else:
-                        if channel_id not in coordinator.slaves:
-                            msg += self._("\n- Unknown channel {channel_id}: {chat_id}").format(
-                                channel_id=channel_id,
-                                chat_id=chat_id
-                            )
-                        else:
-                            msg += self._("\n- {channel_emoji} {channel_name}: Unknown chat ({chat_id})").format(
-                                channel_emoji=coordinator.slaves[channel_id].channel_emoji,
-                                channel_name=coordinator.slaves[channel_id].channel_name,
-                                chat_id=chat_id
-                            )
-            else:
-                msg = self._("The group {group_name} ({group_id}) is not linked to any remote chat. "
-                             "To link one, use /link.").format(group_name=update.message.chat.title,
-                                                               group_id=update.message.chat_id)
+            msg = self.info_group(update)
         elif update.effective_message.forward_from_chat and \
                 update.effective_message.forward_from_chat.type == 'channel':  # Forwarded channel command.
-            chat = update.effective_message.forward_from_chat
-            links = self.db.get_chat_assoc(master_uid=etm_utils.chat_id_to_str(self.channel_id, chat.id))
-            if links:  # Linked chat
-                msg = self._("The channel {group_name} ({group_id}) is linked to:") \
-                    .format(group_name=chat.title,
-                            group_id=chat.id)
-                for i in links:
-                    channel_id, chat_id = etm_utils.chat_id_str_to_id(i)
-                    d = self.chat_binding.get_chat_from_db(channel_id, chat_id)
-                    if d:
-                        msg += "\n- %s" % ETMChat(chat=d, db=self.db).full_name
+            msg = self.info_channel(update)
+        else:  # Talking to the bot.
+            msg = self.info_general()
+
+        update.message.reply_text(msg)
+
+    def info_general(self):
+        """Generate string for information of the current running EFB instance."""
+        msg = self.ngettext("This is EFB Telegram Master Channel {version}, running on EFB {fw_version}.\n"
+                            "{count} slave channel activated:",
+                            "This is EFB Telegram Master Channel {version}, running on EFB {fw_version}.\n"
+                            "{count} slave channels activated:",
+                            len(coordinator.slaves)).format(
+            version=self.__version__, fw_version=ehforwarderbot.__version__, count=len(coordinator.slaves))
+        for i in coordinator.slaves:
+            msg += "\n- %s %s (%s, %s)" % (coordinator.slaves[i].channel_emoji,
+                                           coordinator.slaves[i].channel_name,
+                                           i, coordinator.slaves[i].__version__)
+        if coordinator.middlewares:
+            msg += self.ngettext("\n\n{count} middleware activated:", "\n\n{count} middlewares activated:",
+                                 len(coordinator.middlewares)).format(count=len(coordinator.middlewares))
+            for i in coordinator.middlewares:
+                msg += "\n- %s (%s, %s)" % (i.middleware_name, i.middleware_id, i.__version__)
+        return msg
+
+    def info_channel(self, update):
+        """Generate string for chat linking info of a channel."""
+        chat = update.effective_message.forward_from_chat
+        links = self.db.get_chat_assoc(master_uid=etm_utils.chat_id_to_str(self.channel_id, chat.id))
+        if links:  # Linked chat
+            msg = self._("The channel {group_name} ({group_id}) is linked to:") \
+                .format(group_name=chat.title,
+                        group_id=chat.id)
+            for i in links:
+                channel_id, chat_id = etm_utils.chat_id_str_to_id(i)
+                d = self.chat_binding.get_chat_from_db(channel_id, chat_id)
+                if d:
+                    msg += "\n- %s" % ETMChat(chat=d, db=self.db).full_name
+                else:
+                    msg += self._("\n- {channel_emoji} {channel_name}: Unknown chat ({chat_id})").format(
+                        channel_emoji=coordinator.slaves[channel_id].channel_emoji,
+                        channel_name=coordinator.slaves[channel_id].channel_name,
+                        chat_id=chat_id
+                    )
+        else:
+            msg = self._("The channel {group_name} ({group_id}) is "
+                         "not linked to any remote chat. ").format(group_name=chat.title,
+                                                                   group_id=chat.id)
+        return msg
+
+    def info_group(self, update):
+        """Generate string for chat linking info of a group."""
+        links = self.db.get_chat_assoc(master_uid=etm_utils.chat_id_to_str(self.channel_id, update.message.chat_id))
+        if links:  # Linked chat
+            msg = self._("The group {group_name} ({group_id}) is linked to:").format(
+                group_name=update.message.chat.title,
+                group_id=update.message.chat_id)
+            for i in links:
+                channel_id, chat_id = etm_utils.chat_id_str_to_id(i)
+                d = self.chat_binding.get_chat_from_db(channel_id, chat_id)
+                if d:
+                    msg += "\n- %s (%s:%s)" % (ETMChat(chat=d, db=self.db).full_name,
+                                               d.module_id, d.chat_uid)
+                else:
+                    if channel_id not in coordinator.slaves:
+                        msg += self._("\n- Unknown channel {channel_id}: {chat_id}").format(
+                            channel_id=channel_id,
+                            chat_id=chat_id
+                        )
                     else:
                         msg += self._("\n- {channel_emoji} {channel_name}: Unknown chat ({chat_id})").format(
                             channel_emoji=coordinator.slaves[channel_id].channel_emoji,
                             channel_name=coordinator.slaves[channel_id].channel_name,
                             chat_id=chat_id
                         )
-            else:
-                msg = self._("The channel {group_name} ({group_id}) is "
-                             "not linked to any remote chat. ").format(group_name=chat.title,
-                                                                       group_id=chat.id)
-        else:  # Talking to the bot.
-            msg = self.ngettext("This is EFB Telegram Master Channel {version}, running on EFB {fw_version}.\n"
-                                "{count} slave channel activated:",
-                                "This is EFB Telegram Master Channel {version}, running on EFB {fw_version}.\n"
-                                "{count} slave channels activated:",
-                                len(coordinator.slaves)).format(
-                version=self.__version__, fw_version=ehforwarderbot.__version__, count=len(coordinator.slaves))
-            for i in coordinator.slaves:
-                msg += "\n- %s %s (%s, %s)" % (coordinator.slaves[i].channel_emoji,
-                                               coordinator.slaves[i].channel_name,
-                                               i, coordinator.slaves[i].__version__)
-            if coordinator.middlewares:
-                msg += self.ngettext("\n\n{count} middleware activated:", "\n\n{count} middlewares activated:",
-                                     len(coordinator.middlewares)).format(count=len(coordinator.middlewares))
-                for i in coordinator.middlewares:
-                    msg += "\n- %s (%s, %s)" % (i.middleware_name, i.middleware_id, i.__version__)
-
-        update.message.reply_text(msg)
+        else:
+            msg = self._("The group {group_name} ({group_id}) is not linked to any remote chat. "
+                         "To link one, use /link.").format(group_name=update.message.chat.title,
+                                                           group_id=update.message.chat_id)
+        return msg
 
     def start(self, update: Update, context: CallbackContext):
         """
