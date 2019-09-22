@@ -5,7 +5,7 @@ import io
 import logging
 import re
 import urllib.parse
-from typing import Tuple, Dict, Optional, List, TYPE_CHECKING, IO
+from typing import Tuple, Dict, Optional, List, TYPE_CHECKING, IO, Sequence
 
 import telegram
 from PIL import Image
@@ -164,7 +164,7 @@ class ChatBindingManager(LocaleMixin):
                 master_msg_id=utils.message_id_to_str(
                     chat_id=rtm.chat_id, message_id=rtm.message_id))
             if msg_log and msg_log.pickle:
-                chat = ETMMsg.unpickle(msg_log.pickle, db=self.db).chat
+                chat: ETMChat = ETMMsg.unpickle(msg_log.pickle, db=self.db).chat
                 tg_chat_id = message.chat_id
                 tg_msg_id = message.reply_text(self._("Processing...")).message_id
                 storage_id = (tg_chat_id, tg_msg_id)
@@ -290,7 +290,7 @@ class ChatBindingManager(LocaleMixin):
 
         return legend, chat_btn_list
 
-    def _db_update_slave_chats_cache(self, chats: List[EFBChat]):
+    def _db_update_slave_chats_cache(self, chats: Sequence[EFBChat]):
         """
         Update all slave chats info cache to database. Triggered by retrieving
         the entire list of chats from all slaves by the method `slave_chats_pagination`.
