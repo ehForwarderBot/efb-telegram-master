@@ -417,6 +417,7 @@ class TelegramChannel(EFBChannel):
         if "Invalid server response" in str(error) and not update:
             self.logger.error("Boom! Telegram API is no good. (Invalid server response.)")
             return
+        # noinspection PyBroadException
         try:
             raise error
         except telegram.error.Unauthorized:
@@ -472,7 +473,7 @@ class TelegramChannel(EFBChannel):
                                       "Chat migration detected.\n"
                                       "All {count} remote chats are now linked to this new group.",
                                       count).format(count=count))
-        except Exception as e:
+        except Exception:
             try:
                 self.bot_manager.send_message(
                     self.config['admins'][0],
@@ -488,7 +489,7 @@ class TelegramChannel(EFBChannel):
 
             finally:
                 self.logger.exception('Unhandled telegram bot error!\n'
-                                      'Update %s caused error %s. Exception', update, error, e)
+                                      'Update %s caused error %s. Exception', update, error)
 
     def send_message(self, msg: EFBMsg) -> EFBMsg:
         return self.slave_messages.send_message(msg)
