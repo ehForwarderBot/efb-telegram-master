@@ -362,15 +362,15 @@ class TelegramChannel(EFBChannel):
         channel = coordinator.slaves[channel_id]
 
         if channel.suggested_reactions is None:
-            message.reply_html(self._("The channel involved in this message does not accept reactions. "
+            message.reply_text(self._("The channel involved in this message ({}) does not accept reactions. "
                                       "You cannot react to this message.").format(channel_id))
             return
 
         try:
             chat_obj = channel.get_chat(chat_uid)
         except EFBChatNotFound:
-            message.reply_html(self._("The chat involved in this message ({}) is not found. "
-                                      "You cannot react to this message.").format(channel_id))
+            message.reply_text(self._("The chat involved in this message ({}) is not found. "
+                                      "You cannot react to this message.").format(chat_uid))
             return
 
         if reaction == "-":

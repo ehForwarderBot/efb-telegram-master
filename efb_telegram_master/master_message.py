@@ -264,7 +264,8 @@ class MasterMessageProcessor(LocaleMixin):
             # Chat and author related stuff
             m.author = ETMChat(self.channel, db=self.db).self()
             m.chat = ETMChat(coordinator.slaves[channel], db=self.db)
-            m.chat.chat_uid = uid
+            m.chat.chat_uid = m.chat.chat_name = uid
+            # TODO: get chat from ETM local cache when available
             chat_info = self.db.get_slave_chat_info(channel, uid)
             if chat_info:
                 m.chat.chat_name = chat_info.slave_chat_name
