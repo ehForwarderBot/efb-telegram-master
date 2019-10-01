@@ -1,9 +1,0 @@
-humanize
-PyYAML
-ehforwarderbot>=2.0.0b12
-python-telegram-bot>=10.0.0
-python-magic
-moviepy
-peewee
-requests
-pydub

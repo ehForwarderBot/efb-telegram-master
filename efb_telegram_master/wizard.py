@@ -400,7 +400,9 @@ flags_settings = {
            '- mute: do not send to Telegram')),
     "animated_stickers":
         (False, 'bool', None,
-         _('Enable experimental support to animated stickers.')
+         _('Enable experimental support to animated stickers. Note: you might '
+           'need to install binary dependency "libcairo" to enable this '
+           'feature.')
          )
 }
 

@@ -7,8 +7,6 @@ from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, IO
 from typing_extensions import NewType
 
 import telegram
-from tgs.parsers.tgs import parse_tgs
-from tgs.exporters.gif import export_gif
 
 from ehforwarderbot import EFBChat, EFBChannel
 from ehforwarderbot.types import ChatID, ModuleID
@@ -16,6 +14,7 @@ from .locale_mixin import LocaleMixin
 
 if TYPE_CHECKING:
     from . import TelegramChannel
+
 
 TelegramChatID = NewType('TelegramChatID', str)
 TelegramMessageID = NewType('TelegramMessageID', str)
@@ -133,6 +132,11 @@ def chat_id_str_to_id(s: EFBChannelChatIDStr) -> Tuple[ModuleID, ChatID]:
 
 
 def convert_tgs_to_gif(tgs_file: IO[bytes], gif_file: IO[bytes]):
+    # Import only upon calling the method due to added binary dependencies
+    # (libcairo)
+    from tgs.parsers.tgs import parse_tgs
+    from tgs.exporters.gif import export_gif
+
     # noinspection PyBroadException
     try:
         animation = parse_tgs(tgs_file)
