@@ -495,7 +495,8 @@ e.g.:
 
 -   ``animated_stickers`` *(bool)* [Default: ``false``]
 
-    Enable experimental support to animated stickers.
+    Enable experimental support to animated stickers. Note: you might need to
+    install binary dependency ``libcairo`` to enable this feature.
 
 -   ``send_to_last_chat`` *(str)* [Default: ``warn``]
 
