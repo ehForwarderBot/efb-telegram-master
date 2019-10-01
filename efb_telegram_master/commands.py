@@ -103,7 +103,7 @@ class CommandsManager(LocaleMixin):
         prefix = command_storage.prefix
 
         # Clear inline buttons.
-        update.callback_query.edit_message_reply_markup()
+        update.callback_query.edit_message_reply_markup(None)
 
         fn = getattr(module, command.callable_name, None)
         if fn is not None:
