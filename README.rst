@@ -524,7 +524,7 @@ for each of these parameters is 5 seconds.
 The ``connect_timeout`` value controls the timeout for establishing a
 connection to the Telegram server(s).
 
-Changing the defaults of ``read_timeout`` & ``connet_timeout`` can be
+Changing the defaults of ``read_timeout`` & ``connect_timeout`` can be
 done by adjusting values ``request_kwargs`` section in ETM’s
 ``config.yaml``.
 
