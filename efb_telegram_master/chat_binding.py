@@ -813,7 +813,8 @@ class ChatBindingManager(LocaleMixin):
     def chat_migration(self, update: Update, context: CallbackContext):
         message = update.effective_message
         from_id = ChatID(message.migrate_from_chat_id)
-        to_id = ChatID(message.migrate_to_chat_id)
+        if from_id:
+            to_id = ChatID(message.chat.id)
         from_str = utils.chat_id_to_str(self.channel.channel_id, from_id)
         to_str = utils.chat_id_to_str(self.channel.channel_id, to_id)
         for i in self.db.get_chat_assoc(master_uid=from_str):
