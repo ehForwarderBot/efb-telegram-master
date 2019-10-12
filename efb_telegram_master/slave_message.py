@@ -435,7 +435,7 @@ class SlaveMessageProcessor(LocaleMixin):
 
                 if send_as_file:
                     return self.bot.send_document(tg_dest, msg.file, prefix=msg_template, suffix=reactions,
-                                                  caption=msg.text,
+                                                  caption=msg.text, filename=msg.filename,
                                                   reply_to_message_id=target_msg_id,
                                                   reply_markup=reply_markup,
                                                   disable_notification=silent)
