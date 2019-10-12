@@ -582,7 +582,8 @@ class ChatBindingManager(LocaleMixin):
                 try:
                     chat: ETMChat = ETMChat(
                         chat=self.get_chat_from_db(slave_channel_id, slave_chat_id) or
-                        channel.get_chat(slave_chat_id), db=self.db)
+                        channel.get_chat(slave_chat_id),
+                        db=self.db)
                     msg_text = self._('This group is linked to {0}'
                                       'Send a message to this group to deliver it to the chat.\n'
                                       'Do NOT reply to this system message.') \
