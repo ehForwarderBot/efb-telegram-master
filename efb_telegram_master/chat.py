@@ -19,10 +19,8 @@ class ETMChat(EFBChat):
 
     _last_message_time: Optional[datetime] = None
 
-    def __init__(self,
-                 channel: Optional[EFBChannel] = None,
-                 chat: Optional[EFBChat] = None,
-                 db: 'DatabaseManager' = None):
+    def __init__(self, db: 'DatabaseManager',
+                 chat: Optional[EFBChat] = None, channel: Optional[EFBChannel] = None):
         assert db
         self.db = db
         if channel:
@@ -36,7 +34,7 @@ class ETMChat(EFBChat):
             self.chat_alias = chat.chat_alias
             self.chat_uid = chat.chat_uid
             self.is_chat = chat.is_chat
-            self.members = [ETMChat(chat=i, db=db) for i in chat.members]
+            self.members = [ETMChat(db=db, chat=i) for i in chat.members]
             self.chat = chat.group
             self.vendor_specific = chat.vendor_specific.copy()
 
