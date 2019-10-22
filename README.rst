@@ -192,7 +192,7 @@ the long chat list.
 Advanced feature: Filtering
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you have just too much chats, and being too tired for keep tapping
+If you have just too many chats, and being too tired for keep tapping
 ``Next >``, or maybe you just want to find a way to filter out what
 you’re looking for, now ETM has equipped ``/chat`` and ``/list`` with
 filtering feature. Attach your keyword behind, and you can get a
