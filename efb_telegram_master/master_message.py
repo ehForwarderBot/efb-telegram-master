@@ -262,8 +262,8 @@ class MasterMessageProcessor(LocaleMixin):
             m.put_telegram_file(message)
             mtype = m.type_telegram
             # Chat and author related stuff
-            m.author = ETMChat(self.channel, db=self.db).self()
-            m.chat = ETMChat(coordinator.slaves[channel], db=self.db)
+            m.author = ETMChat(db=self.db, channel=self.channel).self()
+            m.chat = ETMChat(db=self.db, channel=coordinator.slaves[channel])
             m.chat.chat_uid = m.chat.chat_name = uid
             # TODO: get chat from ETM local cache when available
             chat_info = self.db.get_slave_chat_info(channel, uid)
@@ -281,19 +281,19 @@ class MasterMessageProcessor(LocaleMixin):
                     trgt_msg.type = MsgType.Text
                     trgt_msg.text = target_log.text
                     trgt_msg.uid = target_log.slave_message_id
-                    trgt_msg.chat = ETMChat(coordinator.slaves[target_channel], db=self.db)
+                    trgt_msg.chat = ETMChat(db=self.db, channel=coordinator.slaves[target_channel])
                     trgt_msg.chat.chat_name = target_log.slave_origin_display_name
                     trgt_msg.chat.chat_alias = target_log.slave_origin_display_name
                     trgt_msg.chat.chat_uid = utils.chat_id_str_to_id(target_log.slave_origin_uid)[1]
                     if target_log.slave_member_uid:
-                        trgt_msg.author = ETMChat(coordinator.slaves[target_channel], db=self.db)
+                        trgt_msg.author = ETMChat(db=self.db, channel=coordinator.slaves[target_channel])
                         trgt_msg.author.chat_name = target_log.slave_member_display_name
                         trgt_msg.author.chat_alias = target_log.slave_member_display_name
                         trgt_msg.author.chat_uid = target_log.slave_member_uid
                     elif target_log.sent_to == 'master':
                         trgt_msg.author = trgt_msg.chat
                     else:
-                        trgt_msg.author = ETMChat(self.channel, db=self.db).self()
+                        trgt_msg.author = ETMChat(db=self.db, channel=self.channel).self()
                 m.target = trgt_msg
 
                 self.logger.debug("[%s] This message replies to another message of the same channel.\n"

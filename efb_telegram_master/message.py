@@ -182,14 +182,14 @@ class ETMMsg(EFBMsg):
         target = ETMMsg()
         target.__dict__.update(source.__dict__)
         if not isinstance(target.chat, ETMChat):
-            target.chat = ETMChat(chat=target.chat, db=db)
+            target.chat = ETMChat(db=db, chat=target.chat)
         if not isinstance(target.author, ETMChat):
-            target.author = ETMChat(chat=target.author, db=db)
+            target.author = ETMChat(db=db, chat=target.author)
         if isinstance(target.reactions, dict):
             for i in target.reactions:
                 if any(not isinstance(j, ETMChat) for j in target.reactions[i]):
                     # noinspection PyTypeChecker
-                    target.reactions[i] = list(map(lambda a: ETMChat(chat=a, db=db), target.reactions[i]))
+                    target.reactions[i] = list(map(lambda a: ETMChat(db=db, chat=a), target.reactions[i]))
         return target
 
     def put_telegram_file(self, message: telegram.Message):

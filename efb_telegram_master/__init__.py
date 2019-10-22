@@ -241,7 +241,7 @@ class TelegramChannel(EFBChannel):
                 channel_id, chat_id = etm_utils.chat_id_str_to_id(i)
                 d = self.chat_binding.get_chat_from_db(channel_id, chat_id)
                 if d:
-                    msg += "\n- %s" % ETMChat(chat=d, db=self.db).full_name
+                    msg += "\n- %s" % ETMChat(db=self.db, chat=d).full_name
                 else:
                     msg += self._("\n- {channel_emoji} {channel_name}: Unknown chat ({chat_id})").format(
                         channel_emoji=coordinator.slaves[channel_id].channel_emoji,
@@ -265,7 +265,7 @@ class TelegramChannel(EFBChannel):
                 channel_id, chat_id = etm_utils.chat_id_str_to_id(i)
                 d = self.chat_binding.get_chat_from_db(channel_id, chat_id)
                 if d:
-                    msg += "\n- %s (%s:%s)" % (ETMChat(chat=d, db=self.db).full_name,
+                    msg += "\n- %s (%s:%s)" % (ETMChat(db=self.db, chat=d).full_name,
                                                d.module_id, d.chat_uid)
                 else:
                     if channel_id not in coordinator.slaves:
