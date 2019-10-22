@@ -384,7 +384,7 @@ class DatabaseManager:
                 chat_info.slave_chat_type = slave_chat_type
             if chat_object is not None:
                 if not isinstance(chat_object, ETMChat):
-                    chat_object = ETMChat(chat=chat_object, db=self)
+                    chat_object = ETMChat(db=self, chat=chat_object)
                 chat_info.pickle = chat_object.pickle
             chat_info.save()
             return chat_info

@@ -435,7 +435,7 @@ class SlaveMessageProcessor(LocaleMixin):
 
                 if send_as_file:
                     return self.bot.send_document(tg_dest, msg.file, prefix=msg_template, suffix=reactions,
-                                                  caption=msg.text,
+                                                  caption=msg.text, filename=msg.filename,
                                                   reply_to_message_id=target_msg_id,
                                                   reply_markup=reply_markup,
                                                   disable_notification=silent)
@@ -764,29 +764,29 @@ class SlaveMessageProcessor(LocaleMixin):
         msg_prefix = ""  # For group member name
         if msg.chat.chat_type == ChatType.Group:
             self.logger.debug("[%s] Message is from a group. Sender: %s", msg.uid, msg.author)
-            msg_prefix = ETMChat(chat=msg.author, db=self.db).display_name
+            msg_prefix = ETMChat(db=self.db, chat=msg.author).display_name
 
         if tg_chat and not multi_slaves:  # if singly linked
             if msg_prefix:  # if group message
                 msg_template = "%s:" % msg_prefix
             else:
                 if msg.chat != msg.author:
-                    msg_template = "%s:" % ETMChat(chat=msg.author, db=self.db).display_name
+                    msg_template = "%s:" % ETMChat(db=self.db, chat=msg.author).display_name
                 else:
                     msg_template = ""
         elif msg.chat.chat_type == ChatType.User:
             emoji_prefix = msg.chat.channel_emoji + Emoji.get_source_emoji(msg.chat.chat_type)
-            name_prefix = ETMChat(chat=msg.chat, db=self.db).display_name
+            name_prefix = ETMChat(db=self.db, chat=msg.chat).display_name
             if msg.chat != msg.author:
-                name_prefix += ", %s" % ETMChat(chat=msg.author, db=self.db).display_name
+                name_prefix += ", %s" % ETMChat(db=self.db, chat=msg.author).display_name
             msg_template = "%s %s:" % (emoji_prefix, name_prefix)
         elif msg.chat.chat_type == ChatType.Group:
             emoji_prefix = msg.chat.channel_emoji + Emoji.get_source_emoji(msg.chat.chat_type)
-            name_prefix = ETMChat(chat=msg.chat, db=self.db).display_name
+            name_prefix = ETMChat(db=self.db, chat=msg.chat).display_name
             msg_template = "%s %s [%s]:" % (emoji_prefix, msg_prefix, name_prefix)
         elif msg.chat.chat_type == ChatType.System:
             emoji_prefix = msg.chat.channel_emoji + Emoji.get_source_emoji(msg.chat.chat_type)
-            name_prefix = ETMChat(chat=msg.chat, db=self.db).display_name
+            name_prefix = ETMChat(db=self.db, chat=msg.chat).display_name
             msg_template = "%s %s:" % (emoji_prefix, name_prefix)
         else:
             if msg.chat == msg.author:
