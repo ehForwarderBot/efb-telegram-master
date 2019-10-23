@@ -225,7 +225,8 @@ class ChatBindingManager(LocaleMixin):
             try:
                 re_filter = re.compile(pattern, re.DOTALL | re.IGNORECASE) if pattern else None
             except re.error:
-                re_filter = None
+                pattern = re.escape(pattern)
+                re_filter = re.compile(pattern, re.DOTALL | re.IGNORECASE) if pattern else None
             if pattern:
                 self.logger.debug("Filter pattern: %s", pattern)
             chats: List[ETMChat] = []
