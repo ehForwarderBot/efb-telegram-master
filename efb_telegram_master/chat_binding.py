@@ -222,7 +222,11 @@ class ChatBindingManager(LocaleMixin):
 
         if chat_list is None or chat_list.length == 0:
             # Generate the full chat list first
-            re_filter = re.compile(pattern, re.DOTALL | re.IGNORECASE) if pattern else None
+            try:
+                re_filter = re.compile(pattern, re.DOTALL | re.IGNORECASE) if pattern else None
+            except re.error:
+                pattern = re.escape(pattern)
+                re_filter = re.compile(pattern, re.DOTALL | re.IGNORECASE) if pattern else None
             if pattern:
                 self.logger.debug("Filter pattern: %s", pattern)
             chats: List[ETMChat] = []
