@@ -5,7 +5,7 @@ import io
 import logging
 import re
 import urllib.parse
-from typing import Tuple, Dict, Optional, List, TYPE_CHECKING, IO, Sequence
+from typing import Tuple, Dict, Optional, List, TYPE_CHECKING, IO, Sequence, Union, Pattern
 
 import telegram
 from PIL import Image
@@ -222,13 +222,19 @@ class ChatBindingManager(LocaleMixin):
 
         if chat_list is None or chat_list.length == 0:
             # Generate the full chat list first
-            try:
-                re_filter = re.compile(pattern, re.DOTALL | re.IGNORECASE) if pattern else None
-            except re.error:
-                pattern = re.escape(pattern)
-                re_filter = re.compile(pattern, re.DOTALL | re.IGNORECASE) if pattern else None
+            re_filter: Optional[Union[str, Pattern]]
             if pattern:
                 self.logger.debug("Filter pattern: %s", pattern)
+                escaped_pattern = re.escape(pattern)
+                # Use simple string match if no regex significance is found.
+                if pattern == escaped_pattern:
+                    re_filter = pattern
+                else:
+                    # Use simple string match if regex provided is invalid
+                    try:
+                        re_filter = re.compile(pattern, re.DOTALL | re.IGNORECASE)
+                    except re.error:
+                        re_filter = pattern
             chats: List[ETMChat] = []
             if source_chats:
                 for s_chat in source_chats:

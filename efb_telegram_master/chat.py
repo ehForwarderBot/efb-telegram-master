@@ -38,9 +38,9 @@ class ETMChat(EFBChat):
             self.chat = chat.group
             self.vendor_specific = chat.vendor_specific.copy()
 
-    def match(self, pattern: Optional[Pattern]) -> bool:
+    def match(self, pattern: Optional[Pattern, str]) -> bool:
         """
-        Match the chat against a compiled regular expression
+        Match the chat against a compiled regex pattern or string
         with a string in the following format::
 
             Channel: <Channel name>
@@ -51,11 +51,18 @@ class ETMChat(EFBChat):
             Mode: [Linked]
             Other: <Python Dictionary String>
 
+        If a string is provided instead of compiled regular expression pattern,
+        simple string match is used instead.
+
+        String match is about 5x faster than re.search when there’s no
+        significance of regex used.
+        Ref: https://github.com/blueset/efb-telegram-master/pull/77
+
         Args:
-            pattern: Regular expression
+            pattern: Regex pattern or string to look for
 
         Returns:
-            If the expression is matched using ``pattern.search``.
+            If the pattern is found in the generated string.
         """
         if pattern is None:
             return True
@@ -66,7 +73,10 @@ class ETMChat(EFBChat):
         entry_string = "Channel: %s\nName: %s\nAlias: %s\nID: %s\nType: %s\nMode: %s\nOther: %s" \
                        % (self.module_name, self.chat_name, self.chat_alias, self.chat_uid, self.chat_type,
                           mode_str, self.vendor_specific)
-        return bool(pattern.search(entry_string))
+        if isinstance(pattern, str):
+            return pattern in entry_string
+        else:  # pattern is re.Pattern
+            return bool(pattern.search(entry_string))
 
     def unlink(self):
         """ Unlink this chat from any Telegram group."""
