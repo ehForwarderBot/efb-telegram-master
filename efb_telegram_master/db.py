@@ -377,8 +377,7 @@ class DatabaseManager:
         slave_chat_alias = chat_object.chat_alias
         slave_chat_type = chat_object.chat_type.value
 
-        if chat_object.chat is not None:
-            slave_chat_gid = chat_object.chat.chat_uid
+        slave_chat_gid = chat_object.chat.chat_uid if chat_object.chat is not None else None
 
         chat_info = self.get_slave_chat_info(slave_channel_id=slave_channel_id, slave_chat_uid=slave_chat_uid,
             slave_chat_gid=slave_chat_gid)
