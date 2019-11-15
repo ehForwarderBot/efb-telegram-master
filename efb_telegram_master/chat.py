@@ -38,7 +38,7 @@ class ETMChat(EFBChat):
             self.chat = chat.group
             self.vendor_specific = chat.vendor_specific.copy()
 
-    def match(self, pattern: Union[Pattern, str]) -> bool:
+    def match(self, pattern: Union[Pattern, str, None]) -> bool:
         """
         Match the chat against a compiled regex pattern or string
         with a string in the following format::
