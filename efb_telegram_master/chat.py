@@ -1,6 +1,6 @@
 import pickle
 from datetime import datetime
-from typing import Optional, TYPE_CHECKING, Pattern, List, Dict, Any
+from typing import Optional, TYPE_CHECKING, Pattern, List, Dict, Any, Union
 
 from ehforwarderbot import EFBChat, EFBChannel
 from ehforwarderbot.types import ChatID, ModuleID
@@ -38,7 +38,7 @@ class ETMChat(EFBChat):
             self.chat = chat.group
             self.vendor_specific = chat.vendor_specific.copy()
 
-    def match(self, pattern: Optional[Pattern, str]) -> bool:
+    def match(self, pattern: Union[Pattern, str, None]) -> bool:
         """
         Match the chat against a compiled regex pattern or string
         with a string in the following format::
