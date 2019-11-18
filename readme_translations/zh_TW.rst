@@ -81,10 +81,9 @@ API，``python-telegram-bot`` 建立。
 设置机器人
 ----------
 
-Create a bot with `@BotFather <https://t.me/botfather>`_, give it a
-name and a username. Then you’ll get a token, which will be used
-later. Keep this token secure, as it gives who owns it the full access
-to the bot.
+使用 `@BotFather <https://t.me/botfather>`_ 创建一个
+bot，并给它起个名字及用户名。此后您会获得一个令牌（token）。此令牌稍后将会用到。请妥善保管该令牌，泄露该令牌相当于泄露 bot
+的完整控制权限。
 
 使用 ``/setjoingroups`` 来允许您的 bot 加入群组。使用 ``/setprivacy``
 来禁用隐私限制，以使其能读取群组内的所有消息。
@@ -186,8 +185,11 @@ to the bot.
 高级功能：筛选
 ~~~~~~~~~~~~~~
 
-如果你的会话太多，不想在一次次点击 ``下一页 >`` 按钮，亦或是你想要一个更直接的方式筛选你的会话，ETM 为 ``/chat`` 和
-``/list`` 指令搭载了筛选功能。在指令后面追加关联词，即可获得筛选后的会话列表。
+If you have just too many chats, and being too tired for keep tapping
+\ ``Next >``, or maybe you just want to find a way to filter out what
+you’re looking for, now ETM has equipped ``/chat`` and ``/list`` with
+filtering feature. Attach your keyword behind, and you can get a
+filtered result.
 
 例如：``/chat Eana`` 指令能够筛选出所有包含「Eana」的会话。
 
@@ -213,8 +215,7 @@ to the bot.
 
 * 筛选所有具有别名的会话：``Name: (.*?)\nAlias: (?!\1)``
 
-* Look for all entries contain “John” and “Johnny” in any order:
-  ``(?=.*John)(?=.*Johnny)``
+* 搜索所有同时包含「John」和「Johnny」的条目，不分先后：``(?=.*John)(?=.*Johnny)``
 
 
 发送消息
@@ -251,11 +252,10 @@ to the bot.
 在未绑定的会话中，回复中的引用将不会被发送至远端信道，除此之外，受支持的内容皆与已绑定会话类似。
 
 
-Quick reply in non-linked chats
-"""""""""""""""""""""""""""""""
+在未受关联的聊天中快速回复
+""""""""""""""""""""""""""
 
-ETM provides a mechanism that allow you to keep sending messages to
-the same recipient without quoting every single time.
+ETM 提供了一种让你持续发送信息至接收者并不需要每次都引用的机制。
 
 In case where recipient is not indicated for a message, ETM will try
 to deliver it to the “last known recipient” in the Telegram chat only
@@ -291,8 +291,7 @@ if:
 高级功能：筛选
 """"""""""""""
 
-Filter is also available in ``/chat`` command. Please refer to the
-same chapter above, under ``/link`` for details.
+筛选也可以在 ``/chat`` 指令上使用。 请参阅前述章节 ``/link`` 的内容以获取详情。
 
 
 ``/extra``：从端提供的指令（附加功能）
@@ -478,7 +477,9 @@ ETM 不能：
 
 * ``animated_stickers`` *(bool)* [Default: ``false``]
 
-  Enable experimental support to animated stickers.
+  Enable experimental support to animated stickers. Note: you might
+  need to install binary dependency ``libcairo`` to enable this
+  feature.
 
 * ``send_to_last_chat`` *(str)* [Default: ``warn``]
 
@@ -505,7 +506,7 @@ ETM 不能：
 
 ``connect_timeout`` 控制连接到 Telegram 服务器的超时时长 。
 
-Changing the defaults of ``read_timeout`` & ``connet_timeout`` can be
+Changing the defaults of ``read_timeout`` & ``connect_timeout`` can be
 done by adjusting values ``request_kwargs`` section in ETM’s \
 ``config.yaml``.
 
@@ -598,11 +599,11 @@ ETM 2. It can be enabled by adding a ``rpc`` section in ETM’s
 <https://docs.python.org/3/library/xmlrpc.html>`_。
 
 
-License
-=======
+许可协议
+========
 
-ETM is licensed under `GNU Affero General Public License 3.0
-<https://www.gnu.org/licenses/agpl-3.0.txt>`_ or later versions:
+ETM 使用了 `GNU Affero General Public License 3.0
+<https://www.gnu.org/licenses/agpl-3.0.txt>`_ 或更新版本作为其开源许可:
 
 ::
 

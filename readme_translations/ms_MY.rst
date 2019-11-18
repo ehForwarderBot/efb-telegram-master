@@ -207,7 +207,7 @@ choosing from the long chat list.
 Advanced feature: Filtering
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you have just too much chats, and being too tired for keep tapping
+If you have just too many chats, and being too tired for keep tapping
 \ ``Next >``, or maybe you just want to find a way to filter out what
 you’re looking for, now ETM has equipped ``/chat`` and ``/list`` with
 filtering feature. Attach your keyword behind, and you can get a
@@ -548,7 +548,9 @@ e.g.:
 
 * ``animated_stickers`` *(bool)* [Default: ``false``]
 
-  Enable experimental support to animated stickers.
+  Enable experimental support to animated stickers. Note: you might
+  need to install binary dependency ``libcairo`` to enable this
+  feature.
 
 * ``send_to_last_chat`` *(str)* [Default: ``warn``]
 
@@ -578,7 +580,7 @@ The defaults chosen for each of these parameters is 5 seconds.
 The ``connect_timeout`` value controls the timeout for establishing a
 connection to the Telegram server(s).
 
-Changing the defaults of ``read_timeout`` & ``connet_timeout`` can be
+Changing the defaults of ``read_timeout`` & ``connect_timeout`` can be
 done by adjusting values ``request_kwargs`` section in ETM’s \
 ``config.yaml``.
 
