@@ -416,7 +416,7 @@ class DatabaseManager:
                                         pickle=pickle.dumps(chat_object))
 
     @staticmethod
-    def delete_slave_chat_info(slave_channel_id: ModuleID, slave_chat_uid: ChatID, slave_chat_group_id: ChatID):
+    def delete_slave_chat_info(slave_channel_id: ModuleID, slave_chat_uid: ChatID, slave_chat_group_id: ChatID = None):
         return SlaveChatInfo.delete() \
             .where((SlaveChatInfo.slave_channel_id == slave_channel_id) &
                    (SlaveChatInfo.slave_chat_uid == slave_chat_uid) &
