@@ -137,8 +137,9 @@ class ETMChat(EFBChat):
         return obj
 
     @staticmethod
-    def from_db_record(module_id: ModuleID, chat_id: ChatID, db: 'DatabaseManager') -> 'ETMChat':
-        c_log = db.get_slave_chat_info(module_id, chat_id)
+    def from_db_record(db: 'DatabaseManager', module_id: ModuleID, chat_id: ChatID,
+                       group_id: ChatID = None) -> 'ETMChat':
+        c_log = db.get_slave_chat_info(module_id, chat_id, group_id)
         if c_log is not None:
             c_pickle = c_log.pickle
             obj = ETMChat.unpickle(c_pickle, db)
