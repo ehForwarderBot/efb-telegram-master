@@ -696,7 +696,11 @@ class SlaveMessageProcessor(LocaleMixin):
         elif isinstance(status, EFBMemberUpdates):
             self.logger.debug("Received member updates from channel %s about group %s",
                               status.channel, status.chat_id)
-            self.logger.info('Currently group member info update is ignored.')
+            for i in status.removed_members:
+                self.db.delete_slave_chat_info(status.channel.channel_id, i, status.chat_id)
+            for i in itertools.chain(status.new_members, status.modified_members):
+                chat = status.channel.get_chat(status.chat_id, i)
+                self.db.set_slave_chat_info(chat_object=chat)
         elif isinstance(status, EFBMessageRemoval):
             self.logger.debug("Received message removal request from channel %s on message %s",
                               status.source_channel, status.message)
