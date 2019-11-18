@@ -216,7 +216,7 @@ class ETMMsg(EFBMsg):
         obj.chat = ETMChat.from_db_record(db, c_module, c_id)
         if a_module == c_module and a_id == c_id:
             obj.author = obj.chat
-        elif obj.chat.chat_type == ChatType.GROUP:
+        elif obj.chat.chat_type == ChatType.Group:
             obj.author = ETMChat.from_db_record(db, a_module, a_id, c_id)
         else:
             obj.author = ETMChat.from_db_record(db, a_module, a_id)

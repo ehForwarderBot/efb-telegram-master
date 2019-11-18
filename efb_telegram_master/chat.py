@@ -35,7 +35,7 @@ class ETMChat(EFBChat):
             self.chat_uid = chat.chat_uid
             self.is_chat = chat.is_chat
             self.members = [ETMChat(db=db, chat=i) for i in chat.members]
-            self.chat = chat.group
+            self.group = chat.group
             self.vendor_specific = chat.vendor_specific.copy()
 
     def match(self, pattern: Union[Pattern, str, None]) -> bool:

@@ -14,7 +14,7 @@ class Flags:
     # Command
     COMMAND_PENDING = 0x31
     # Message recipient suggestions
-    SUGGEST_RECIPIENT = 0x32
+    SUGGEST_RECIPIENTS = 0x32
 
 
 class Emoji:
