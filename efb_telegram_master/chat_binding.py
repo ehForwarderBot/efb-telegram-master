@@ -68,6 +68,7 @@ class ChatListStorage:
 
     def set_chat_suggestion(self, update: telegram.Update,
                             candidates: List[EFBChannelChatIDStr]):
+        """Set suggested chats of a message without recipient indicated."""
         self.update = update
         self.candidates = candidates
 
@@ -128,7 +129,7 @@ class ChatBindingManager(LocaleMixin):
         # Recipient suggestion
         self.suggestion_handler: ConversationHandler = ConversationHandler(
             entry_points=[],
-            states={Flags.SUGGEST_RECIPIENT: [CallbackQueryHandler(self.suggested_recipient)]},
+            states={Flags.SUGGEST_RECIPIENTS: [CallbackQueryHandler(self.suggested_recipient)]},
             fallbacks=[CallbackQueryHandler(self.bot.session_expired)],
             per_message=True,
             per_chat=True,
@@ -222,7 +223,7 @@ class ChatBindingManager(LocaleMixin):
 
         if chat_list is None or chat_list.length == 0:
             # Generate the full chat list first
-            re_filter: Optional[Union[str, Pattern]]
+            re_filter: Union[str, Pattern, None] = None
             if pattern:
                 self.logger.debug("Filter pattern: %s", pattern)
                 escaped_pattern = re.escape(pattern)
@@ -534,17 +535,15 @@ class ChatBindingManager(LocaleMixin):
                                                            len(links)).format(len(links)),
                                              reply_to_message_id=update.message.message_id)
         else:
-            if update.effective_message.forward_from_chat and \
-                    update.effective_message.forward_from_chat.type == telegram.Chat.CHANNEL:
-                chat = update.effective_message.forward_from_chat
-
-                links = self.db.get_chat_assoc(master_uid=utils.chat_id_to_str(self.channel.channel_id, chat.id))
+            forwarded_chat = update.effective_message.forward_from_chat
+            if forwarded_chat and forwarded_chat.type == telegram.Chat.CHANNEL:
+                links = self.db.get_chat_assoc(master_uid=utils.chat_id_to_str(self.channel.channel_id, forwarded_chat.id))
 
                 if len(links) < 1:
                     return self.bot.send_message(update.message.chat.id, self._("No chat is linked to the channel."),
                                                  reply_to_message_id=update.message.message_id)
                 else:
-                    self.db.remove_chat_assoc(master_uid=utils.chat_id_to_str(self.channel.channel_id, chat.id))
+                    self.db.remove_chat_assoc(master_uid=utils.chat_id_to_str(self.channel.channel_id, forwarded_chat.id))
                     return self.bot.send_message(update.message.chat.id,
                                                  self.ngettext("All {0} chat has been unlinked from this channel.",
                                                                "All {0} chats has been unlinked from this channel.",
@@ -687,10 +686,13 @@ class ChatBindingManager(LocaleMixin):
         return ConversationHandler.END
 
     def get_chat_from_db(self, channel_id: ModuleID, chat_id: ChatID) -> Optional[EFBChat]:
+        # TODO: move to ``db`` module
         if channel_id not in coordinator.slaves:
             return None
+        # TODO: Use RAM cache first in callers
         d = self.db.get_slave_chat_info(slave_channel_id=channel_id, slave_chat_uid=chat_id)
         if d:
+            # TODO: use pickled object
             chat = EFBChat(coordinator.slaves[channel_id])
             chat.chat_name = d.slave_chat_name
             chat.chat_alias = d.slave_chat_alias
@@ -724,14 +726,20 @@ class ChatBindingManager(LocaleMixin):
                                                "or choose a recipient:\n\nLegend:\n") + "\n".join(legends),
                                    chat_id=chat_id, message_id=message_id,
                                    reply_markup=telegram.InlineKeyboardMarkup(buttons))
-        self.suggestion_handler.conversations[storage_id] = Flags.SUGGEST_RECIPIENT
+        self.suggestion_handler.conversations[storage_id] = Flags.SUGGEST_RECIPIENTS
 
     def suggested_recipient(self, update: Update, context: CallbackContext):
+        """Send the message to selected recipient among all suggested when a
+        message is sent with unspecified recipient.
+
+        Triggered by flag ``SUGGEST_RECIPIENTS``.
+        """
         chat_id = update.effective_chat.id
         msg_id = update.effective_message.message_id
         param = update.callback_query.data
         storage_id = (chat_id, msg_id)
         if param.startswith("chat "):
+            # TODO: Throw error when message is not in storage
             update = self.msg_storage[storage_id].update
             candidates = self.msg_storage[storage_id].candidates
             assert candidates is not None
@@ -760,13 +768,15 @@ class ChatBindingManager(LocaleMixin):
         """
         Update the title and profile picture of singly-linked Telegram group
         according to the linked remote chat.
+
+        Triggered by ``/update_info`` command.
         """
-        if update.effective_chat.id == self.bot.get_me().id:
+        if update.effective_chat.type == Chat.PRIVATE:
             return self.bot.reply_error(update, self._('Send /update_info in a group where this bot is a group admin '
                                                        'to update group title and profile picture'))
-        if update.effective_message.forward_from_chat and \
-                update.effective_message.forward_from_chat.type == telegram.Chat.CHANNEL:
-            tg_chat = update.effective_message.forward_from_chat.id
+        forwarded_from_chat = update.effective_message.forward_from_chat
+        if forwarded_from_chat and forwarded_from_chat.type == Chat.CHANNEL:
+            tg_chat = forwarded_from_chat.id
         else:
             tg_chat = update.effective_chat.id
         chats = self.db.get_chat_assoc(master_uid=utils.chat_id_to_str(channel=self.channel,
@@ -786,6 +796,7 @@ class ChatBindingManager(LocaleMixin):
             if chat is None:
                 raise EFBChatNotFound()
             chat = ETMChat(db=self.db, chat=chat)
+            # TODO: read and update cache?
             self.bot.set_chat_title(tg_chat, chat.chat_title)
             picture = channel.get_chat_picture(chat)
             if not picture:
@@ -829,6 +840,10 @@ class ChatBindingManager(LocaleMixin):
                 pic_resized.close()
 
     def chat_migration(self, update: Update, context: CallbackContext):
+        """Triggered by any message update with either
+        ``migrate_from_chat_id`` or ``migrate_to_chat_id``
+        or both (which shouldn’t happen).
+        """
         message = update.effective_message
         if message.migrate_from_chat_id is not None:
             from_id = ChatID(message.migrate_from_chat_id)
