@@ -149,7 +149,7 @@ bot，并给它起个名字及用户名。此后您会获得一个令牌（token
    update_info - Update the group name and profile picture.
    react - Send a reaction to a message, or show a list of reactors.
 
-注解: 当指定了多个管理员时，所有管理员皆可以您的身份发送消息。但只有第 0 个管理员可以收到 bot 的私信。
+備註: 当指定了多个管理员时，所有管理员皆可以您的身份发送消息。但只有第 0 个管理员可以收到 bot 的私信。
 
 
 ``/link``：绑定会话
@@ -163,7 +163,7 @@ bot，并给它起个名字及用户名。此后您会获得一个令牌（token
 
 4. 点击屏幕底部的「开始」按钮，接着你会看到一条「绑定成功」提示。
 
-注解: 您可以邀请非 ETM 管理员加入群组中，但是：
+備註: 您可以邀请非 ETM 管理员加入群组中，但是：
 
    * 他/她们可以看到所有从相关远端会话发来的消息；
 
@@ -207,7 +207,7 @@ filtered result.
    Mode: [Linked]
    Other: <Python Dictionary String>
 
-注解: Type（类型）可以是「User」（私聊）或「Group」（群组）。Other（其他）对应的是从端提供的「供应商特定」信息。相关数据的具体格式请参照相应项目的文档。
+備註: Type（类型）可以是「User」（私聊）或「Group」（群组）。Other（其他）对应的是从端提供的「供应商特定」信息。相关数据的具体格式请参照相应项目的文档。
 
 示例：
 
@@ -585,9 +585,9 @@ ETM 2. It can be enabled by adding a ``rpc`` section in ETM’s
 ----------
 
 我们提供了 `db（数据库管理器）类
-<https://github.com/blueset/efb-telegram-master/blob/master/efb_telegram_master/db.py>`_\
-和 `RPCUtilities 类
 <https://github.com/blueset/efb-telegram-master/blob/master/efb_telegram_master/rpc_utilities.py>`_\
+和 `RPCUtilities 类
+<https://github.com/blueset/efb-telegram-master/blob/master/efb_telegram_master/db.py>`_\
 中的函数。详细文档请参考源代码。
 
 
@@ -634,4 +634,4 @@ ETM 启用了由社区支持的本地化翻译。本 bot 能够从管理员的�
 同时，您也可以在我们的 `Crowdin 项目
 <https://crowdin.com/project/ehforwarderbot/>`_\ 里面将 EWS 翻译为您的语言。
 
-注解: 如果您使用源代码安装，您需要手动编译翻译字符串文件（``.mo``）才可启用翻译后的界面。
+備註: 如果您使用源代码安装，您需要手动编译翻译字符串文件（``.mo``）才可启用翻译后的界面。
