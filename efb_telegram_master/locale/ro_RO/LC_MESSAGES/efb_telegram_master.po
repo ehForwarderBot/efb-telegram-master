@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ehforwarderbot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-18 23:57+0800\n"
-"PO-Revision-Date: 2019-11-18 15:58\n"
+"POT-Creation-Date: 2019-11-19 11:34+0800\n"
+"PO-Revision-Date: 2019-11-19 03:36\n"
 "Last-Translator: Eana Hufwe (blueset)\n"
 "Language-Team: Romanian\n"
 "Language: ro_RO\n"
@@ -670,7 +670,7 @@ msgid "This message is sent to “{dest}” with quick reply feature.\n\n"
 "Learn more about how this works, how to turn off this feature, and how to stop this warning at {docs}."
 msgstr ""
 
-#: efb_telegram_master/master_message.py:471
+#: efb_telegram_master/master_message.py:472
 #, python-brace-format
 msgid "Attachment is too large ({size}). Maximum allowed by Telegram is {max_size}. (AT01)"
 msgstr ""
