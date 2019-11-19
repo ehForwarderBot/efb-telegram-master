@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ehforwarderbot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-18 23:57+0800\n"
-"PO-Revision-Date: 2019-11-18 15:57\n"
+"POT-Creation-Date: 2019-11-19 11:34+0800\n"
+"PO-Revision-Date: 2019-11-19 03:34\n"
 "Last-Translator: Eana Hufwe (blueset)\n"
 "Language-Team: Chinese Simplified\n"
 "Language: zh_CN\n"
@@ -160,7 +160,7 @@ msgstr "此消息涉及的从端（{}）不可用。您不能对此消息作出�
 
 #: efb_telegram_master/__init__.py:365
 msgid "The channel involved in this message ({}) does not accept reactions. You cannot react to this message."
-msgstr ""
+msgstr "此消息涉及的信道（{}）不支持回应功能。您不能对此消息作出回应。"
 
 #: efb_telegram_master/__init__.py:372
 msgid "The chat involved in this message ({}) is not found. You cannot react to this message."
@@ -712,7 +712,7 @@ msgstr "不支持的消息类型：{}"
 #: efb_telegram_master/master_message.py:314
 #, python-brace-format
 msgid "Message type {0} is not supported by channel {1}."
-msgstr "消息类型 {0} 没有被频道 {1} 支持。"
+msgstr "信道 {1} 不支持支持 {0} 类型的消息。"
 
 #. TRANSLATORS: Message body text for location messages.
 #: efb_telegram_master/master_message.py:384
@@ -755,12 +755,13 @@ msgstr "消息未发送。 \n\n"
 #, python-brace-format
 msgid "This message is sent to “{dest}” with quick reply feature.\n\n"
 "Learn more about how this works, how to turn off this feature, and how to stop this warning at {docs}."
-msgstr ""
+msgstr "本消息已通过「快速回复」功能发送到「{dest}」。\n\n"
+"了解该功能如何工作、如何停用此功能、以及如何关闭本通知，请查阅 {docs} 。"
 
-#: efb_telegram_master/master_message.py:471
+#: efb_telegram_master/master_message.py:472
 #, python-brace-format
 msgid "Attachment is too large ({size}). Maximum allowed by Telegram is {max_size}. (AT01)"
-msgstr ""
+msgstr "文件尺寸太大（{size}）。Telegram 允许的最大文件大小为 {max_size}。(AT01)"
 
 #: efb_telegram_master/bot_manager.py:135
 #: efb_telegram_master/bot_manager.py:172
@@ -887,7 +888,7 @@ msgstr "手动{link_or_relink}"
 
 #: efb_telegram_master/chat_binding.py:450
 msgid "Chat {} is restored."
-msgstr ""
+msgstr "会话 {} 已还原。"
 
 #: efb_telegram_master/chat_binding.py:453
 #, python-brace-format
