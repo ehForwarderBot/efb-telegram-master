@@ -74,7 +74,7 @@ class ETMChat(EFBChat):
                        % (self.module_name, self.chat_name, self.chat_alias, self.chat_uid, self.chat_type,
                           mode_str, self.vendor_specific)
         if isinstance(pattern, str):
-            return pattern in entry_string
+            return pattern.lower() in entry_string.lower()
         else:  # pattern is re.Pattern
             return bool(pattern.search(entry_string))
 
