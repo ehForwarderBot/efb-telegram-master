@@ -74,11 +74,14 @@ class DatabaseManager:
         if not ChatAssoc.table_exists():
             self._create()
         else:
-            msg_log_columns = {i.name for i in database.get_columns("MsgLog")}
+            msg_log_columns = {i.name for i in database.get_columns("msglog")}
+            slave_chat_info_columns = {i.name for i in database.get_columns("slavechatinfo")}
             if "file_id" not in msg_log_columns:
                 self._migrate(0)
             elif "pickle" not in msg_log_columns:
                 self._migrate(1)
+            elif "slave_chat_group_id" not in slave_chat_info_columns:
+                self._migrate(2)
 
     def task_worker(self):
         while True:
