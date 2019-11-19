@@ -451,7 +451,8 @@ class MasterMessageProcessor(LocaleMixin):
                     "and how to stop this warning at {docs}."
                 ).format(dest=cached_dest,
                          docs="https://github.com/blueset/efb-telegram-master/"),
-                quote=True)
+                quote=True,
+                disable_web_page_preview=True)
 
     def _check_file_download(self, file_obj: telegram.File):
         """
