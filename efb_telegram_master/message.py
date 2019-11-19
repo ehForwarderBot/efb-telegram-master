@@ -1,6 +1,7 @@
 import mimetypes
 import os
 import pickle
+import subprocess
 import tempfile
 from typing import Dict, Any, Optional, TYPE_CHECKING
 
@@ -99,7 +100,7 @@ class ETMMsg(EFBMsg):
                 if channel_id == "blueset.wechat" and v.size[0] > 600:
                     # Workaround: Compress GIF for slave channel `blueset.wechat`
                     # TODO: Move this logic to `blueset.wechat` in the future
-                    os.subprocess.Popen(
+                    subprocess.Popen(
                         ["ffmpeg", "-y", "-i", file.name, '-vf', "scale=600:-2", gif_file.name],
                         bufsize=0
                     ).wait()
