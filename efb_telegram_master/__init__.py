@@ -212,12 +212,29 @@ class TelegramChannel(EFBChannel):
 
     def info_general(self):
         """Generate string for information of the current running EFB instance."""
-        msg = self.ngettext("This is EFB Telegram Master Channel {version}, running on EFB {fw_version}.\n"
-                            "{count} slave channel activated:",
-                            "This is EFB Telegram Master Channel {version}, running on EFB {fw_version}.\n"
-                            "{count} slave channels activated:",
-                            len(coordinator.slaves)).format(
-            version=self.__version__, fw_version=ehforwarderbot.__version__, count=len(coordinator.slaves))
+        if self.instance_id:
+            if coordinator.profile != "default":
+                msg = self._(
+                    "This is EFB Telegram Master Channel {version}, running on profile “{profile}”, "
+                    "instance “{instance}”, on EFB {fw_version}.")
+            else:  # Default profile
+                msg = self._(
+                    "This is EFB Telegram Master Channel {version}, running on default profile, "
+                    "instance “{instance}”, on EFB {fw_version}.")
+        else:  # Default instance
+            if coordinator.profile != "default":
+                msg = self._(
+                    "This is EFB Telegram Master Channel {version}, running on profile “{profile}”, "
+                    "default instance, on EFB {fw_version}.")
+            else:  # Default profile
+                msg = self._(
+                    "This is EFB Telegram Master Channel {version}, running on default profile and instance, "
+                    "on EFB {fw_version}.")
+        msg = msg.format(version=self.__version__, fw_version=ehforwarderbot.__version__,
+                         profile=coordinator.profile, instance=self.instance_id)
+        msg += "\n" + self.ngettext("{count} slave channel activated:",
+                                    "{count} slave channels activated:",
+                                    len(coordinator.slaves)).format(count=len(coordinator.slaves))
         for i in coordinator.slaves:
             msg += "\n- %s %s (%s, %s)" % (coordinator.slaves[i].channel_emoji,
                                            coordinator.slaves[i].channel_name,
