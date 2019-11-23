@@ -64,8 +64,8 @@ class DataModel:
     def save(self):
         if self.building_default:
             with self.config_path.open('w') as f:
-                # TRANSLATORS: This part of text must be formatted in a monospaced font and no line shall exceed the width of a 70-cell-wide terminal.
                 f.write(_(
+                    # TRANSLATORS: This part of text must be formatted in a monospaced font and no line shall exceed the width of a 70-cell-wide terminal.
                     "# ======================================\n"
                     "# EFB Telegram Master Configuration file\n"
                     "# ======================================\n"
@@ -83,8 +83,8 @@ class DataModel:
                 f.write("\n")
                 self.yaml.dump({"token": self.data['token']}, f)
                 f.write("\n")
-                # TRANSLATORS: This part of text must be formatted in a monospaced font.and no line shall exceed the width of a 70-cell-wide terminal.
                 f.write(_(
+                    # TRANSLATORS: This part of text must be formatted in a monospaced font.and no line shall exceed the width of a 70-cell-wide terminal.
                     "# [List of Admin User IDs]\n"
                     "# ETM will only process messages and commands from users\n"
                     "# listed below.  This ID can be obtained from various ways \n"
@@ -93,8 +93,8 @@ class DataModel:
                 f.write("\n")
                 self.yaml.dump({"admins": self.data['admins']}, f)
                 f.write("\n")
-                # TRANSLATORS: This part of text mst be formatted in a monospaced font.and no line shall exceed the width of a 70-cell-wide terminal.
                 f.write(_(
+                    # TRANSLATORS: This part of text mst be formatted in a monospaced font.and no line shall exceed the width of a 70-cell-wide terminal.
                     "# Optional items\n"
                     "# --------------\n"
                     "#\n"
@@ -109,8 +109,8 @@ class DataModel:
                 self.yaml.dump({"flags": self.data['flags']}, f)
                 f.write("\n")
 
-                # TRANSLATORS: This part of text mst be formatted in a monospaced font.and no line shall exceed the width of a 70-cell-wide terminal.
                 f.write(_(
+                    # TRANSLATORS: This part of text mst be formatted in a monospaced font.and no line shall exceed the width of a 70-cell-wide terminal.
                     "# [Network configurations]\n"
                     "# Timeout tweaks, Proxy, etc.\n"
                     "# Refer to the project documentation for details.\n"
@@ -136,8 +136,8 @@ class DataModel:
                     )
                 f.write("\n")
 
-                # TRANSLATORS: This part of text mst be formatted in a monospaced font.and no line shall exceed the width of a 70-cell-wide terminal.
                 f.write(_(
+                    # TRANSLATORS: This part of text mst be formatted in a monospaced font.and no line shall exceed the width of a 70-cell-wide terminal.
                     "# [RPC interface]\n"
                     "# Enable RPC interface of ETM where you can use scripts to manage data stored\n"
                     "# in the ETM message database or make queries.\n"
