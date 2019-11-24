@@ -603,7 +603,7 @@ class ChatBindingManager(LocaleMixin):
             if len(chats) == 1:
                 slave_channel_id, slave_chat_id = utils.chat_id_str_to_id(chats[0])
                 # TODO: Channel might be gone, add a check here.
-                chat: ETMChat = self.chat_manager.get_chat(slave_channel_id, slave_chat_id)
+                chat = self.chat_manager.get_chat(slave_channel_id, slave_chat_id)
                 if chat:
                     msg_text = self._('This group is linked to {0}'
                                       'Send a message to this group to deliver it to the chat.\n'
@@ -612,10 +612,14 @@ class ChatBindingManager(LocaleMixin):
                 else:
                     try:
                         channel = coordinator.get_module_by_id(slave_channel_id)
+                        if isinstance(channel, EFBChannel):
+                            name = channel.channel_name
+                        else:
+                            name = channel.middleware_name
                         msg_text = self._("This group is linked to an unknown chat ({chat_id}) "
                                           "on channel {channel_name} ({channel_id}). Possibly you can "
                                           "no longer reach this chat. Send /unlink_all to unlink all chats "
-                                          "from this group.").format(channel_name=channel.module_name,
+                                          "from this group.").format(channel_name=name,
                                                                      channel_id=slave_channel_id,
                                                                      chat_id=slave_chat_id)
                     except NameError:
@@ -741,13 +745,21 @@ class ChatBindingManager(LocaleMixin):
                                                        "Session expired, please try again."),
                                            chat_id=chat_id,
                                            message_id=msg_id)
+                return
             slave_chat_id = candidates[int(param.split(' ', 1)[1])]
-            chat = self.chat_manager.get_chat(*utils.chat_id_str_to_id(slave_chat_id))
-            self.channel.master_messages.process_telegram_message(update, context, channel_id=chat.module_id,
-                                                                  chat_id=chat.chat_uid)
-            self.bot.edit_message_text(text=self._("Delivering the message to {0}").format(chat.full_name),
-                                       chat_id=chat_id,
-                                       message_id=msg_id)
+            module_id, chat_uid = utils.chat_id_str_to_id(slave_chat_id)
+            chat = self.chat_manager.get_chat(module_id, chat_uid)
+            self.channel.master_messages.process_telegram_message(update, context, channel_id=module_id,
+                                                                  chat_id=chat_uid)
+            if chat:
+                self.bot.edit_message_text(text=self._("Delivering the message to {0}.").format(chat.full_name),
+                                           chat_id=chat_id,
+                                           message_id=msg_id)
+            else:
+                self.bot.edit_message_text(text=self._("Delivering the message to {module_id} {chat_uid}.")
+                                           .format(module_id=module_id, chat_uid=chat_uid),
+                                           chat_id=chat_id,
+                                           message_id=msg_id)
         elif param == Flags.CANCEL_PROCESS:
             self.bot.edit_message_text(text=self._("Error: No recipient specified.\n"
                                                    "Please reply to a previous message."),

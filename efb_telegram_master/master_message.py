@@ -268,11 +268,13 @@ class MasterMessageProcessor(LocaleMixin):
             mtype = m.type_telegram
             # Chat and author related stuff
             m.author = self.chat_manager.self
-            m.chat = self.chat_manager.get_chat(channel, uid)
-            if not m.chat:
+            m_chat = self.chat_manager.get_chat(channel, uid)
+            if not m_chat:
                 # Chat not found anyway, build a fake object
                 m.chat = ETMChat(db=self.db, channel=coordinator.slaves[channel])
                 m.chat.chat_uid = m.chat.chat_name = uid
+            else:
+                m.chat = m_chat
 
             m.deliver_to = coordinator.slaves[channel]
             if target and target_log is not None and target_channel == channel:
@@ -286,19 +288,23 @@ class MasterMessageProcessor(LocaleMixin):
                     trgt_msg.uid = target_log.slave_message_id
 
                     target_channel, trgt_chat = utils.chat_id_str_to_id(target_log.slave_origin_uid)
-                    trgt_msg.chat = self.chat_manager.get_chat(target_channel, trgt_chat)
-                    if not m.chat:
+                    trgt_msg_chat = self.chat_manager.get_chat(target_channel, trgt_chat)
+                    if not trgt_msg_chat:
                         # Chat not found anyway, build a fake object
                         trgt_msg.chat = ETMChat(db=self.db, channel=coordinator.slaves[target_channel])
                         trgt_msg.chat.chat_name = target_log.slave_origin_display_name
                         trgt_msg.chat.chat_uid = trgt_chat
+                    else:
+                        trgt_msg.chat = trgt_msg_chat
                     if target_log.slave_member_uid:
-                        trgt_msg.author = self.chat_manager.get_chat(target_channel, target_log.slave_member_uid, trgt_chat)
-                        if not trgt_msg.author:
+                        trgt_msg_author = self.chat_manager.get_chat(target_channel, target_log.slave_member_uid, trgt_chat)
+                        if not trgt_msg_author:
                             # Chat not found anyway, build a fake object
                             trgt_msg.author = ETMChat(db=self.db, channel=coordinator.slaves[target_channel])
                             trgt_msg.author.chat_name = target_log.slave_member_display_name
                             trgt_msg.author.chat_uid = target_log.slave_member_uid
+                        else:
+                            trgt_msg.author = trgt_msg_author
                     elif target_log.sent_to == 'master':
                         trgt_msg.author = trgt_msg.chat
                     else:

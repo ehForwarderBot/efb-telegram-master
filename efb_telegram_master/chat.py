@@ -1,7 +1,7 @@
 import pickle
 import time
 from datetime import datetime
-from typing import Optional, TYPE_CHECKING, Pattern, List, Dict, Any, Union
+from typing import Optional, TYPE_CHECKING, Pattern, List, Dict, Any, Union, Sequence
 
 from ehforwarderbot import EFBChat, EFBChannel
 from ehforwarderbot.types import ChatID, ModuleID
@@ -24,6 +24,9 @@ class ETMChat(EFBChat):
 
     _linked: Optional[List[EFBChannelChatIDStr]] = None
 
+    members: 'Sequence[ETMChat]'
+    group: 'Optional[ETMChat]'
+
     def __init__(self, db: 'DatabaseManager',
                  chat: Optional[EFBChat] = None, channel: Optional[EFBChannel] = None):
         assert db
@@ -41,7 +44,8 @@ class ETMChat(EFBChat):
             self.notification = chat.notification
             self.is_chat = chat.is_chat
             self.members = [ETMChat(db=db, chat=i) for i in chat.members]
-            self.group = chat.group
+            for i in self.members:
+                i.group = self
             self.vendor_specific = chat.vendor_specific.copy()
 
     def match(self, pattern: Union[Pattern, str, None]) -> bool:
@@ -156,6 +160,7 @@ class ETMChat(EFBChat):
                 self._last_message_time = datetime.min
             else:
                 self._last_message_time = msg_log.time
+        assert self._last_message_time
         return self._last_message_time
 
     @property
