@@ -146,7 +146,7 @@ to BotFather for a command list::
     info - Display information of the current Telegram chat.
     chat - Generate a chat head.
     extra - Access additional features from Slave Channels.
-    update_info - Update the group name and profile picture.
+    update_info - Update info of linked Telegram group.
     react - Send a reaction to a message, or show a list of reactors.
 
 .. note::
@@ -211,6 +211,7 @@ E.g.: ``/chat Eana`` will give you all chats has the word “Eana”.
 ::
 
     Channel: <Channel name>
+    Channel ID: <Channel ID>
     Name: <Chat name>
     Alias: <Chat Alias>
     ID: <Chat Unique ID>
@@ -323,11 +324,13 @@ called like an CLI utility. (of course, advanced features like
 piping etc would not be supported)
 
 
-``/update_info``: Update name and profile picture of linked group
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``/update_info``: Update details of linked Telegram group
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ETM can help you to update the name and profile picture of a group to
-match with appearance in the remote chat.
+match with appearance in the remote chat. This will also add a list of
+current members to the Telegram group description if the remote chat is
+a group.
 
 This functionality is available when:
 

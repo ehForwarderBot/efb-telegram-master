@@ -487,6 +487,10 @@ class TelegramBotManager(LocaleMixin):
     def set_chat_photo(self, *args, **kwargs):
         return self.updater.bot.set_chat_photo(*args, **kwargs)
 
+    @Decorators.retry_on_timeout
+    def set_chat_description(self, *args, **kwargs):
+        return self.updater.bot.set_chat_description(*args, **kwargs)
+
     def polling(self):
         """
         Poll message from Telegram Bot API. Can be used to extend for web hook.
