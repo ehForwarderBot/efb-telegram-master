@@ -42,6 +42,7 @@ class ETMChat(EFBChat):
             self.members = [ETMChat(db=db, chat=i) for i in chat.members]
             self.group = chat.group
             self.vendor_specific = chat.vendor_specific.copy()
+        self._update_linked()
 
     def match(self, pattern: Union[Pattern, str, None]) -> bool:
         """
@@ -75,9 +76,14 @@ class ETMChat(EFBChat):
         if self.linked:
             mode.append("Linked")
         mode_str = ', '.join(mode)
-        entry_string = "Channel: %s\nName: %s\nAlias: %s\nID: %s\nType: %s\nMode: %s\nOther: %s" \
-                       % (self.module_name, self.chat_name, self.chat_alias, self.chat_uid, self.chat_type,
-                          mode_str, self.vendor_specific)
+        entry_string = f"Channel: {self.module_name}\n" \
+                       f"Channel ID: {self.module_id}\n" \
+                       f"Name: {self.chat_name}\n" \
+                       f"Alias: {self.chat_alias}\n" \
+                       f"ID: {self.chat_uid}\n" \
+                       f"Type: {self.chat_type}\n" \
+                       f"Mode: {mode_str}" \
+                       f"\nOther: {self.vendor_specific}"
         if isinstance(pattern, str):
             return pattern.lower() in entry_string.lower()
         else:  # pattern is re.Pattern
@@ -107,22 +113,33 @@ class ETMChat(EFBChat):
 
     @property
     def muted(self) -> bool:
+        # TODO: remove mute related code
         return self.MUTE_CHAT_ID in self.linked
 
     @property
     def full_name(self) -> str:
-        chat_display_name = self.display_name
-        return f"'{chat_display_name}' @ '{self.channel_emoji} {self.module_name}'" \
-            if self.module_name else f"'{chat_display_name}'"
-
-    @property
-    def display_name(self) -> str:
-        return self.chat_name if not self.chat_alias \
-            else f"{self.chat_alias} ({self.chat_name})"
+        """Chat name with channel name and emoji"""
+        chat_long_name = self.long_name
+        instance_id = None
+        if self.module_name:
+            instance_id_idx = self.module_id.find('#')
+            if instance_id_idx >= 0:
+                instance_id = self.module_id[instance_id_idx + 1:]
+                return f"‘{chat_long_name}’ @ ‘{self.channel_emoji} {self.module_name} ({instance_id})’"
+            else:
+                return f"‘{chat_long_name}’ @ ‘{self.channel_emoji} {self.module_name}’"
+        else:
+            return f"‘{chat_long_name}’ @ ‘{self.module_id}’"
 
     @property
     def chat_title(self) -> str:
-        return f"{self.channel_emoji}{Emoji.get_source_emoji(self.chat_type)} " \
+        """Chat title used in updating title for Telegram group.
+        An asterisk (*) is added to the beginning if the channel is not
+        running on its default instance.
+        """
+        non_default_instance_flag = "*" if "#" in self.module_id else ""
+        return f"{non_default_instance_flag}" \
+               f"{self.channel_emoji}{Emoji.get_source_emoji(self.chat_type)} " \
                f"{self.chat_alias or self.chat_name}"
 
     @property
