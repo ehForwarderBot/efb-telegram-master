@@ -22,6 +22,8 @@ class ETMChat(EFBChat):
     _last_message_time_query: float = 0
     LAST_MESSAGE_QUERY_TIMEOUT_MS: float = 60000  # 60s
 
+    _linked: Optional[List[EFBChannelChatIDStr]] = None
+
     def __init__(self, db: 'DatabaseManager',
                  chat: Optional[EFBChat] = None, channel: Optional[EFBChannel] = None):
         assert db
@@ -84,17 +86,24 @@ class ETMChat(EFBChat):
     def unlink(self):
         """ Unlink this chat from any Telegram group."""
         self.db.remove_chat_assoc(slave_uid=utils.chat_id_to_str(self.module_id, self.chat_uid))
+        self._update_linked()
 
     def link(self, channel_id: ModuleID, chat_id: ChatID, multiple_slave: bool):
         self.db.add_chat_assoc(master_uid=utils.chat_id_to_str(channel_id, chat_id),
                                slave_uid=utils.chat_id_to_str(self.module_id, self.chat_uid),
                                multiple_slave=multiple_slave)
+        self._update_linked()
 
     @property
     def linked(self) -> List[EFBChannelChatIDStr]:
-        return self.db.get_chat_assoc(
-                slave_uid=utils.chat_id_to_str(self.module_id, self.chat_uid)
-            )
+        if self._linked is None:
+            self._update_linked()
+        return self._linked or []
+
+    def _update_linked(self):
+        self._linked = self.db.get_chat_assoc(
+            slave_uid=utils.chat_id_to_str(self.module_id, self.chat_uid)
+        )
 
     @property
     def muted(self) -> bool:
