@@ -8,7 +8,7 @@ EFB Telegram Master Channel (ETM)
    :alt: Translate this project
    :target: https://crowdin.com/project/ehforwarderbot/
 
-.. image:: https://etm.1a23.studio/raw/master/banner.png
+.. image:: https://github.com/blueset/efb-telegram-master/raw/master/banner.png
    :alt: Banner
 
 `README in other languages`_.
