@@ -159,6 +159,13 @@ class ETMChat(EFBChat):
         return self._last_message_time
 
     @property
+    def group_id(self) -> Optional[ChatID]:
+        if self.group:
+            return self.group.chat_uid
+        else:
+            return None
+
+    @property
     def pickle(self) -> bytes:
         return pickle.dumps(self)
 
