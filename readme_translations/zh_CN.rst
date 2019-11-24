@@ -10,7 +10,7 @@ EFB Telegram 主端（ETM）
    :target: https://crowdin.com/project/ehforwarderbot/
    :alt: Translate this project
 
-.. image:: https://github.com/blueset/efb-telegram-master/blob/master/banner.png
+.. image:: https://etm.1a23.studio/raw/master/banner.png
    :alt: Banner
 
 `其他语言的 README <./readme_translations>`_。
@@ -71,7 +71,7 @@ API，``python-telegram-bot`` 建立。
   (``python-efb-telegram-master-git``)
 
 * 其他\ `安装脚本和容器（Docker 等）
-  <https://github.com/blueset/ehForwarderBot/wiki/Channels-Repository#scripts-and-containers-eg-docker>`_
+  <https://efb-modules.1a23.studio#scripts-and-containers-eg-docker>`_
 
 
 配置
@@ -575,9 +575,9 @@ ETM 2 中实现了一个标准的 `Python XML RPC 服务器
 ----------
 
 我们提供了 `db（数据库管理器）类
-<https://github.com/blueset/efb-telegram-master/blob/master/efb_telegram_master/db.py>`_\
+<https://etm.1a23.studio/blob/master/efb_telegram_master/db.py>`_\
 和 `RPCUtilities 类
-<https://github.com/blueset/efb-telegram-master/blob/master/efb_telegram_master/rpc_utilities.py>`_\
+<https://etm.1a23.studio/blob/master/efb_telegram_master/rpc_utilities.py>`_\
 中的函数。详细文档请参考源代码。
 
 

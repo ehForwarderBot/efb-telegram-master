@@ -321,7 +321,7 @@ class TelegramChannel(EFBChannel):
                                               self._('You cannot link remote chats to here. Please try again.'))
         else:
             txt = self._("This is EFB Telegram Master Channel.\n\n"
-                         "To learn more, please visit https://github.com/blueset/efb-telegram-master .")
+                         "To learn more, please visit https://etm.1a23.studio .")
             self.bot_manager.send_message(update.effective_chat.id, txt)
 
     def react(self, update: Update, context: CallbackContext):

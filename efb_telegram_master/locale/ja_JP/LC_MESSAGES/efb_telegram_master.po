@@ -129,9 +129,9 @@ msgstr "ここにチャットをリンクすることはできません、もう
 
 #: efb_telegram_master/__init__.py:301
 msgid "This is EFB Telegram Master Channel.\n\n"
-"To learn more, please visit https://github.com/blueset/efb-telegram-master ."
+"To learn more, please visit https://etm.1a23.studio ."
 msgstr "こちらは EFB Telegram マスターチャンネルです。\n\n"
-"詳しくは、 https://github.com/blueset/efb-telegram-master をご覧ください。"
+"詳しくは、 https://etm.1a23.studio をご覧ください。"
 
 #: efb_telegram_master/__init__.py:315
 msgid "Reply to a message with this command and an emoji to send a reaction. Ex.: <code>/react 👍</code>.\n"
@@ -281,7 +281,7 @@ msgid "# Optional items\n"
 "# These features may be changed or removed at any time.\n"
 "# Refer to the project documentation for details.\n"
 "#\n"
-"# https://github.com/blueset/efb-telegram-master\n"
+"# https://etm.1a23.studio\n"
 msgstr ""
 
 #: efb_telegram_master/wizard.py:114
@@ -289,7 +289,7 @@ msgid "# [Network configurations]\n"
 "# Timeout tweaks, Proxy, etc.\n"
 "# Refer to the project documentation for details.\n"
 "#\n"
-"# https://github.com/blueset/efb-telegram-master\n"
+"# https://etm.1a23.studio\n"
 msgstr ""
 
 #: efb_telegram_master/wizard.py:141
@@ -298,7 +298,7 @@ msgid "# [RPC interface]\n"
 "# in the ETM message database or make queries.\n"
 "# Refer to the project documentation for details.\n"
 "#\n"
-"# https://github.com/blueset/efb-telegram-master\n"
+"# https://etm.1a23.studio\n"
 msgstr ""
 
 #: efb_telegram_master/wizard.py:167

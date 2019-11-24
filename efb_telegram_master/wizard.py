@@ -103,7 +103,7 @@ class DataModel:
                     "# These features may be changed or removed at any time.\n"
                     "# Refer to the project documentation for details.\n"
                     "#\n"
-                    "# https://github.com/blueset/efb-telegram-master\n"
+                    "# https://etm.1a23.studio\n"
                 ))
                 f.write("\n")
                 self.yaml.dump({"flags": self.data['flags']}, f)
@@ -115,7 +115,7 @@ class DataModel:
                     "# Timeout tweaks, Proxy, etc.\n"
                     "# Refer to the project documentation for details.\n"
                     "#\n"
-                    "# https://github.com/blueset/efb-telegram-master\n"
+                    "# https://etm.1a23.studio\n"
                 ))
                 f.write("\n")
                 if self.data.get('request_kwargs'):
@@ -143,7 +143,7 @@ class DataModel:
                     "# in the ETM message database or make queries.\n"
                     "# Refer to the project documentation for details.\n"
                     "#\n"
-                    "# https://github.com/blueset/efb-telegram-master\n"
+                    "# https://etm.1a23.studio\n"
                 ))
                 f.write("\n")
                 if self.data.get('rpc'):
@@ -458,7 +458,7 @@ def setup_network_configurations(data):
         "consult the module documentations."
     ))
     print()
-    print("https://github.com/blueset/efb-telegram-master/")
+    print("https://etm.1a23.studio/")
     print()
 
     if YesNo(prompt=_("Do you want to change timeout settings? "),
@@ -515,7 +515,7 @@ def setup_rpc(data):
         "visit the module documentations."
     ))
     print()
-    print("https://github.com/blueset/efb-telegram-master/")
+    print("https://etm.1a23.studio/")
     print()
 
     proceed = YesNo(prompt=_("Do you want to enable RPC interface? "),

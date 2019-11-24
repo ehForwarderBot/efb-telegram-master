@@ -62,7 +62,7 @@ class ETMChat(EFBChat):
 
         String match is about 5x faster than re.search when there’s no
         significance of regex used.
-        Ref: https://github.com/blueset/efb-telegram-master/pull/77
+        Ref: https://etm.1a23.studio/pull/77
 
         Args:
             pattern: Regex pattern or string to look for
