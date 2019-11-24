@@ -10,7 +10,7 @@ EFB Telegram Master Channel (ETM)
    :target: https://crowdin.com/project/ehforwarderbot/
    :alt: Translate this project
 
-.. image:: https://etm.1a23.studio/raw/master/banner.png
+.. image:: https://github.com/blueset/efb-telegram-master/raw/master/banner.png
    :alt: Banner
 
 `README in other languages <./readme_translations>`_.
@@ -157,7 +157,7 @@ to BotFather for a command list:
    info - Display information of the current Telegram chat.
    chat - Generate a chat head.
    extra - Access additional features from Slave Channels.
-   update_info - Update the group name and profile picture.
+   update_info - Update info of linked Telegram group.
    react - Send a reaction to a message, or show a list of reactors.
 
 注釈: In case of multiple admins are assigned, they may all send
@@ -225,6 +225,7 @@ multiple criteria.
 ::
 
    Channel: <Channel name>
+   Channel ID: <Channel ID>
    Name: <Chat name>
    Alias: <Chat Alias>
    ID: <Chat Unique ID>
@@ -349,11 +350,13 @@ be called like an CLI utility. (of course, advanced features like
 piping etc would not be supported)
 
 
-``/update_info``: Update name and profile picture of linked group
------------------------------------------------------------------
+``/update_info``: Update details of linked Telegram group
+---------------------------------------------------------
 
 ETM can help you to update the name and profile picture of a group to
-match with appearance in the remote chat.
+match with appearance in the remote chat. This will also add a list of
+current members to the Telegram group description if the remote chat
+is a group.
 
 This functionality is available when:
 
@@ -662,8 +665,8 @@ Exposed functions
 -----------------
 
 Functions in `the db (database manager) class
-<https://etm.1a23.studio/blob/master/efb_telegram_master/db.py>`_
-and \ `the RPCUtilities class
+<https://etm.1a23.studio/blob/master/efb_telegram_master/db.py>`_ and
+\ `the RPCUtilities class
 <https://etm.1a23.studio/blob/master/efb_telegram_master/rpc_utilities.py>`_
 are exposed. Refer to the source code for their documentations.
 

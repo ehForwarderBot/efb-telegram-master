@@ -10,7 +10,7 @@ EFB Telegram 主端（ETM）
    :target: https://crowdin.com/project/ehforwarderbot/
    :alt: Translate this project
 
-.. image:: https://etm.1a23.studio/raw/master/banner.png
+.. image:: https://github.com/blueset/efb-telegram-master/raw/master/banner.png
    :alt: Banner
 
 `其他语言的 README <./readme_translations>`_。
@@ -145,7 +145,7 @@ API，``python-telegram-bot`` 建立。
    info - Display information of the current Telegram chat.
    chat - Generate a chat head.
    extra - Access additional features from Slave Channels.
-   update_info - Update the group name and profile picture.
+   update_info - Update info of linked Telegram group.
    react - Send a reaction to a message, or show a list of reactors.
 
 備註: 当指定了多个管理员时，所有管理员皆可以您的身份发送消息。但只有第 0 个管理员可以收到 bot 的私信。
@@ -199,6 +199,7 @@ filtered result.
 ::
 
    Channel: <Channel name>
+   Channel ID: <Channel ID>
    Name: <Chat name>
    Alias: <Chat Alias>
    ID: <Chat Unique ID>
@@ -303,10 +304,13 @@ if:
 等高级功能不会被支持）
 
 
-``/update_info``：更新绑定群组的名称与头像
-------------------------------------------
+``/update_info``: Update details of linked Telegram group
+---------------------------------------------------------
 
-ETM 可以一键更新群组的名称和头像，和其所绑定的会话一致。
+ETM can help you to update the name and profile picture of a group to
+match with appearance in the remote chat. This will also add a list of
+current members to the Telegram group description if the remote chat
+is a group.
 
 此功能仅在满足以下条件的情况下可用：
 
@@ -575,8 +579,8 @@ ETM 2 中实现了一个标准的 `Python XML RPC 服务器
 ----------
 
 我们提供了 `db（数据库管理器）类
-<https://etm.1a23.studio/blob/master/efb_telegram_master/db.py>`_\
-和 `RPCUtilities 类
+<https://etm.1a23.studio/blob/master/efb_telegram_master/db.py>`_\ 和
+`RPCUtilities 类
 <https://etm.1a23.studio/blob/master/efb_telegram_master/rpc_utilities.py>`_\
 中的函数。详细文档请参考源代码。
 
