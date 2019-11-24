@@ -1,4 +1,5 @@
 import pickle
+import time
 from datetime import datetime
 from typing import Optional, TYPE_CHECKING, Pattern, List, Dict, Any, Union
 
@@ -18,6 +19,8 @@ class ETMChat(EFBChat):
     MUTE_CHAT_ID = "__muted__"
 
     _last_message_time: Optional[datetime] = None
+    _last_message_time_query: float = 0
+    LAST_MESSAGE_QUERY_TIMEOUT_MS: float = 60000  # 60s
 
     def __init__(self, db: 'DatabaseManager',
                  chat: Optional[EFBChat] = None, channel: Optional[EFBChannel] = None):
@@ -118,8 +121,11 @@ class ETMChat(EFBChat):
         """Time of the last recorded message from this chat.
         Returns ``datetime.min`` when no recorded message is found.
         """
-        if self._last_message_time is None:
+        now = time.time()
+        if self._last_message_time is None or \
+                now - self._last_message_time_query < self.LAST_MESSAGE_QUERY_TIMEOUT_MS:
             msg_log = self.db.get_last_message(slave_chat_id=utils.chat_id_to_str(chat=self))
+            self._last_message_time_query = now
             if msg_log is None:
                 self._last_message_time = datetime.min
             else:
