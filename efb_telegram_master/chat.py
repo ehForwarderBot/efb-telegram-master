@@ -24,8 +24,8 @@ class ETMChat(EFBChat):
 
     _linked: Optional[List[EFBChannelChatIDStr]] = None
 
-    members: 'Sequence[ETMChat]'
-    group: 'Optional[ETMChat]'
+    members: 'Sequence[ETMChat]' = []
+    group: 'Optional[ETMChat]' = None
 
     def __init__(self, db: 'DatabaseManager',
                  chat: Optional[EFBChat] = None, channel: Optional[EFBChannel] = None):
