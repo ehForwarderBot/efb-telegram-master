@@ -98,7 +98,7 @@ class DatabaseManager:
 
     def stop_worker(self):
         self.task_queue.put(None)
-        self.task_queue.join()
+        self.worker_thread.join()
 
     def add_task(self, method: Callable, args: Sequence[Any], kwargs: Dict[str, Any]):
         self.task_queue.put((method, args, kwargs))

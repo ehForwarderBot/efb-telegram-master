@@ -80,18 +80,21 @@ class MasterMessageProcessor(LocaleMixin):
         self.message_worker_thread.start()
 
     def message_worker(self):
+        # TODO: Implement a per-chat queue to prevent one message blocking all others?
         while True:
             content = self.message_queue.get()
             if content is None:
                 self.message_queue.task_done()
-                break
+                return
             update, context = content
             self.msg(update, context)
             self.message_queue.task_done()
 
     def stop_worker(self):
+        if not self.message_worker_thread.is_alive():
+            return
         self.message_queue.put(None)
-        self.message_queue.join()
+        self.message_worker_thread.join()
 
     def enqueue_message(self, update: Update, context: CallbackContext):
         self.message_queue.put((update, context))
