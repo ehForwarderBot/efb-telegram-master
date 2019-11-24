@@ -38,11 +38,11 @@ class ETMChat(EFBChat):
             self.chat_type = chat.chat_type
             self.chat_alias = chat.chat_alias
             self.chat_uid = chat.chat_uid
+            self.notification = chat.notification
             self.is_chat = chat.is_chat
             self.members = [ETMChat(db=db, chat=i) for i in chat.members]
             self.group = chat.group
             self.vendor_specific = chat.vendor_specific.copy()
-        self._update_linked()
 
     def match(self, pattern: Union[Pattern, str, None]) -> bool:
         """
@@ -175,18 +175,16 @@ class ETMChat(EFBChat):
         obj.db = db
         return obj
 
-    @staticmethod
-    def from_db_record(db: 'DatabaseManager', module_id: ModuleID, chat_id: ChatID,
-                       group_id: ChatID = None) -> 'ETMChat':
-        c_log = db.get_slave_chat_info(module_id, chat_id, group_id)
-        if c_log is not None:
-            c_pickle = c_log.pickle
-            obj = ETMChat.unpickle(c_pickle, db)
-        else:
-            obj = ETMChat(db=db)
-            obj.module_id = module_id
-            obj.chat_uid = chat_id
-        return obj
+    def update_to_db(self):
+        """Update this object to database."""
+        self.db.set_slave_chat_info(self)
+
+    def remove_from_db(self):
+        """Remove this chat from database."""
+        self.db.delete_slave_chat_info(self.module_id, self.chat_uid, self.group_id)
+        if self.members:
+            for i in self.members:
+                i.remove_from_db()
 
     def __getstate__(self) -> Dict[str, Any]:
         state = self.__dict__.copy()

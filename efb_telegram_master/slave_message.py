@@ -24,6 +24,7 @@ from ehforwarderbot.message import EFBMsgLinkAttribute, EFBMsgLocationAttribute,
 from ehforwarderbot.status import EFBChatUpdates, EFBMemberUpdates, EFBMessageRemoval, EFBMessageReactionsUpdate
 from . import utils, ETMChat
 from .chat_destination_cache import ChatDestinationCache
+from .chat_object_cache import ChatObjectCacheManager
 from .commands import ETMCommandMsgStorage
 from .constants import Emoji
 from .locale_mixin import LocaleMixin
@@ -48,6 +49,7 @@ class SlaveMessageProcessor(LocaleMixin):
         self.flag: utils.ExperimentalFlagsManager = self.channel.flag
         self.db: 'DatabaseManager' = channel.db
         self.chat_dest_cache: ChatDestinationCache = channel.chat_dest_cache
+        self.chat_manager: ChatObjectCacheManager = channel.chat_manager
 
     def send_message(self, msg: EFBMsg) -> EFBMsg:
         """
@@ -237,7 +239,8 @@ class SlaveMessageProcessor(LocaleMixin):
             tg_dest (Optional[str]): Telegram destination chat, None if muted.
         """
         xid = msg.uid
-
+        msg.author = self.chat_manager.update_chat_obj(msg.author)
+        msg.chat = self.chat_manager.update_chat_obj(msg.chat)
         chat_uid = utils.chat_id_to_str(chat=msg.chat)
         tg_chats = self.db.get_chat_assoc(slave_uid=chat_uid)
         tg_chat = None
@@ -628,7 +631,7 @@ class SlaveMessageProcessor(LocaleMixin):
         location_reply_markup = self.build_chat_info_inline_keyboard(msg, msg_template, reactions, reply_markup)
 
         if old_msg_id and old_msg_id[0] == tg_dest:
-            # TRANSLATORS: Flag for edited message, but cannot be edited on Telegram.
+            # TRANSLATORS: Flag for messages edited on slave channels, but cannot be edited on Telegram.
             msg_template += self._('[edited]')
             target_msg_id = target_msg_id or old_msg_id[1]
 
@@ -753,7 +756,7 @@ class SlaveMessageProcessor(LocaleMixin):
                                   'Message ID %s from %s, status: %s.', status.msg_id, status.chat, status.reactions)
             return
 
-        old_msg: ETMMsg = ETMMsg.unpickle(old_msg_db.pickle, db=self.db)
+        old_msg: ETMMsg = ETMMsg.unpickle(old_msg_db.pickle, chat_manager=self.db)
         old_msg.reactions = status.reactions
         old_msg.edit = True
 
@@ -768,33 +771,33 @@ class SlaveMessageProcessor(LocaleMixin):
         msg_prefix = ""  # For group member name
         if msg.chat.chat_type == ChatType.Group:
             self.logger.debug("[%s] Message is from a group. Sender: %s", msg.uid, msg.author)
-            msg_prefix = ETMChat(db=self.db, chat=msg.author).display_name
+            msg_prefix = msg.author.long_name
 
         if tg_chat and not multi_slaves:  # if singly linked
             if msg_prefix:  # if group message
-                msg_template = "%s:" % msg_prefix
+                msg_template = f"{msg_prefix}:"
             else:
                 if msg.chat != msg.author:
-                    msg_template = "%s:" % ETMChat(db=self.db, chat=msg.author).display_name
+                    msg_template = f"{msg.author.long_name}:"
                 else:
                     msg_template = ""
         elif msg.chat.chat_type == ChatType.User:
             emoji_prefix = msg.chat.channel_emoji + Emoji.get_source_emoji(msg.chat.chat_type)
-            name_prefix = ETMChat(db=self.db, chat=msg.chat).display_name
+            name_prefix = msg.chat.long_name
             if msg.chat != msg.author:
-                name_prefix += ", %s" % ETMChat(db=self.db, chat=msg.author).display_name
-            msg_template = "%s %s:" % (emoji_prefix, name_prefix)
+                name_prefix += f", {msg.author.long_name}"
+            msg_template = f"{emoji_prefix} {name_prefix}:"
         elif msg.chat.chat_type == ChatType.Group:
             emoji_prefix = msg.chat.channel_emoji + Emoji.get_source_emoji(msg.chat.chat_type)
-            name_prefix = ETMChat(db=self.db, chat=msg.chat).display_name
-            msg_template = "%s %s [%s]:" % (emoji_prefix, msg_prefix, name_prefix)
+            name_prefix = msg.chat.long_name
+            msg_template = f"{emoji_prefix} {msg_prefix} [{name_prefix}]:"
         elif msg.chat.chat_type == ChatType.System:
             emoji_prefix = msg.chat.channel_emoji + Emoji.get_source_emoji(msg.chat.chat_type)
-            name_prefix = ETMChat(db=self.db, chat=msg.chat).display_name
-            msg_template = "%s %s:" % (emoji_prefix, name_prefix)
+            name_prefix = msg.chat.long_name
+            msg_template = f"{emoji_prefix} {name_prefix}:"
         else:
             if msg.chat == msg.author:
-                msg_template = "\u2753 {}:".format(msg.chat.long_name)
+                msg_template = f"\u2753 {msg.chat.long_name}:"
             else:
-                msg_template = "\u2753 {0} ({1}):".format(msg.author.long_name, msg.chat.display_name)
+                msg_template = f"\u2753 {msg.author.long_name} ({msg.chat.display_name}):"
         return msg_template
