@@ -857,5 +857,5 @@ class ChatBindingManager(LocaleMixin):
         from_str = utils.chat_id_to_str(self.channel.channel_id, from_id)
         to_str = utils.chat_id_to_str(self.channel.channel_id, to_id)
         for i in self.db.get_chat_assoc(master_uid=from_str):
-            self.db.add_chat_assoc(master_uid=from_str, slave_uid=to_str)
+            self.db.add_chat_assoc(master_uid=to_str, slave_uid=i)
         self.db.remove_chat_assoc(master_uid=from_str)
