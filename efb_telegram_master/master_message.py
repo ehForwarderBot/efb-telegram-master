@@ -470,7 +470,7 @@ class MasterMessageProcessor(LocaleMixin):
                     "Learn more about how this works, how to turn off this feature, "
                     "and how to stop this warning at {docs}."
                 ).format(dest=dest_name,
-                         docs="https://github.com/blueset/efb-telegram-master/"),
+                         docs="https://etm.1a23.studio/"),
                 quote=True,
                 disable_web_page_preview=True)
 

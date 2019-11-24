@@ -8,7 +8,7 @@ EFB Telegram Master Channel (ETM)
    :alt: Translate this project
    :target: https://crowdin.com/project/ehforwarderbot/
 
-.. image:: https://github.com/blueset/efb-telegram-master/blob/master/banner.png
+.. image:: https://etm.1a23.studio/raw/master/banner.png
    :alt: Banner
 
 `README in other languages`_.
@@ -67,7 +67,7 @@ contributed by the community, including:
 
 .. _KeLiu: https://github.com/specter119
 .. _AUR package: https://aur.archlinux.org/packages/python-efb-telegram-master-git
-.. _installation scripts and containers (e.g. Docker): https://github.com/blueset/ehForwarderBot/wiki/Channels-Repository#scripts-and-containers-eg-docker
+.. _installation scripts and containers (e.g. Docker): https://efb-modules.1a23.studio#scripts-and-containers-eg-docker
 
 Configuration
 -------------
@@ -620,8 +620,8 @@ documentation on xmlrpc`__.
 
 __ https://docs.python.org/3/library/xmlrpc.html
 
-.. _the db (database manager) class: https://github.com/blueset/efb-telegram-master/blob/master/efb_telegram_master/db.py
-.. _the RPCUtilities class: https://github.com/blueset/efb-telegram-master/blob/master/efb_telegram_master/rpc_utilities.py
+.. _the db (database manager) class: https://etm.1a23.studio/blob/master/efb_telegram_master/db.py
+.. _the RPCUtilities class: https://etm.1a23.studio/blob/master/efb_telegram_master/rpc_utilities.py
 
 License
 -------

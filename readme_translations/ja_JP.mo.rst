@@ -10,7 +10,7 @@ EFB Telegram Master Channel (ETM)
    :target: https://crowdin.com/project/ehforwarderbot/
    :alt: Translate this project
 
-.. image:: https://github.com/blueset/efb-telegram-master/blob/master/banner.png
+.. image:: https://etm.1a23.studio/raw/master/banner.png
    :alt: Banner
 
 `README in other languages <./readme_translations>`_.
@@ -75,7 +75,7 @@ community, including:
   (``python-efb-telegram-master-git``)
 
 * Other `installation scripts and containers (e.g. Docker)
-  <https://github.com/blueset/ehForwarderBot/wiki/Channels-Repository#scripts-and-containers-eg-docker>`_
+  <https://efb-modules.1a23.studio#scripts-and-containers-eg-docker>`_
 
 
 Configuration
@@ -662,9 +662,9 @@ Exposed functions
 -----------------
 
 Functions in `the db (database manager) class
-<https://github.com/blueset/efb-telegram-master/blob/master/efb_telegram_master/db.py>`_
+<https://etm.1a23.studio/blob/master/efb_telegram_master/db.py>`_
 and \ `the RPCUtilities class
-<https://github.com/blueset/efb-telegram-master/blob/master/efb_telegram_master/rpc_utilities.py>`_
+<https://etm.1a23.studio/blob/master/efb_telegram_master/rpc_utilities.py>`_
 are exposed. Refer to the source code for their documentations.
 
 
