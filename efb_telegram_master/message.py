@@ -14,6 +14,7 @@ from typing.io import IO
 from ehforwarderbot import EFBMsg, coordinator, MsgType, ChatType
 from . import utils
 from .chat import ETMChat
+from .chat_object_cache import ChatObjectCacheManager
 from .msg_type import TGMsgType, get_msg_type
 
 if TYPE_CHECKING:
@@ -210,15 +211,15 @@ class ETMMsg(EFBMsg):
                 self.mime = 'image/jpeg'
 
     @staticmethod
-    def unpickle(data: bytes, db: 'DatabaseManager') -> 'ETMMsg':
+    def unpickle(data: bytes, chat_manager: ChatObjectCacheManager) -> 'ETMMsg':
         obj = pickle.loads(data)
         c_module, c_id = utils.chat_id_str_to_id(obj.chat)
         a_module, a_id = utils.chat_id_str_to_id(obj.author)
-        obj.chat = ETMChat.from_db_record(db, c_module, c_id)
+        obj.chat = chat_manager.get_chat(c_module, c_id)
         if a_module == c_module and a_id == c_id:
             obj.author = obj.chat
         elif obj.chat.chat_type == ChatType.Group:
-            obj.author = ETMChat.from_db_record(db, a_module, a_id, c_id)
+            obj.author = chat_manager.get_chat(a_module, a_id, c_id)
         else:
-            obj.author = ETMChat.from_db_record(db, a_module, a_id)
+            obj.author = chat_manager.get_chat(a_module, a_id)
         return obj

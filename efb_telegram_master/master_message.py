@@ -13,7 +13,7 @@ from telegram.ext import MessageHandler, Filters, CallbackContext
 from telegram.utils.helpers import escape_markdown
 
 from efb_telegram_master import ETMChat
-from ehforwarderbot import EFBChat, EFBMsg, coordinator
+from ehforwarderbot import EFBMsg, coordinator
 from ehforwarderbot.constants import MsgType, ChatType
 from ehforwarderbot.exceptions import EFBMessageTypeNotSupported, EFBChatNotFound, \
     EFBMessageError, EFBMessageNotFound, EFBOperationNotSupported
@@ -25,12 +25,13 @@ from .chat_destination_cache import ChatDestinationCache
 from .locale_mixin import LocaleMixin
 from .message import ETMMsg
 from .msg_type import TGMsgType
-from .utils import EFBChannelChatIDStr
+from .utils import EFBChannelChatIDStr, TelegramChatID
 
 if TYPE_CHECKING:
     from . import TelegramChannel
     from .bot_manager import TelegramBotManager
     from .db import DatabaseManager, MsgLog
+    from .chat_object_cache import ChatObjectCacheManager
 
 
 class MasterMessageProcessor(LocaleMixin):
@@ -62,6 +63,7 @@ class MasterMessageProcessor(LocaleMixin):
         self.bot: 'TelegramBotManager' = channel.bot_manager
         self.db: 'DatabaseManager' = channel.db
         self.chat_dest_cache: ChatDestinationCache = channel.chat_dest_cache
+        self.chat_manager: 'ChatObjectCacheManager' = channel.chat_manager
         self.bot.dispatcher.add_handler(MessageHandler(
             (Filters.text | Filters.photo | Filters.sticker | Filters.document |
              Filters.venue | Filters.location | Filters.audio | Filters.voice | Filters.video) &
@@ -122,7 +124,7 @@ class MasterMessageProcessor(LocaleMixin):
             # 1. the Telegram chat is multi-linked, and
             # 2. the message doesn't have a quoted reply, and
             # 3. there is not cached destination
-            candidates = self.db.get_recent_slave_chats(message.chat.id) or \
+            candidates = self.db.get_recent_slave_chats(message.chat.id, limit=5) or \
                          self.db.get_chat_assoc(master_uid=utils.chat_id_to_str(self.channel_id, message.chat.id))[:5]
             if candidates:
                 tg_err_msg = message.reply_text(self._("Error: No recipient specified.\n"
@@ -256,7 +258,7 @@ class MasterMessageProcessor(LocaleMixin):
         assert destination is not None
         channel, uid = utils.chat_id_str_to_id(destination)
         if channel not in coordinator.slaves:
-            return self.bot.reply_error(update, self._("Internal error: Channel \"{0}\" not found.").format(channel))
+            return self.bot.reply_error(update, self._("Internal error: Slave channel “{0}” not found.").format(channel))
 
         m = ETMMsg()
         log_message = True
@@ -265,38 +267,42 @@ class MasterMessageProcessor(LocaleMixin):
             m.put_telegram_file(message)
             mtype = m.type_telegram
             # Chat and author related stuff
-            m.author = ETMChat(db=self.db, channel=self.channel).self()
-            m.chat = ETMChat(db=self.db, channel=coordinator.slaves[channel])
-            m.chat.chat_uid = m.chat.chat_name = uid
-            # TODO: get chat from ETM local cache when available
-            chat_info = self.db.get_slave_chat_info(channel, uid)
-            if chat_info:
-                m.chat.chat_name = chat_info.slave_chat_name
-                m.chat.chat_alias = chat_info.slave_chat_alias
-                m.chat.chat_type = ChatType(chat_info.slave_chat_type)
+            m.author = self.chat_manager.self
+            m.chat = self.chat_manager.get_chat(channel, uid)
+            if not m.chat:
+                # Chat not found anyway, build a fake object
+                m.chat = ETMChat(db=self.db, channel=coordinator.slaves[channel])
+                m.chat.chat_uid = m.chat.chat_name = uid
+
             m.deliver_to = coordinator.slaves[channel]
             if target and target_log is not None and target_channel == channel:
                 if target_log.pickle:
-                    trgt_msg: ETMMsg = ETMMsg.unpickle(target_log.pickle, self.db)
+                    trgt_msg: ETMMsg = ETMMsg.unpickle(target_log.pickle, self.chat_manager)
                     trgt_msg.target = None
                 else:
                     trgt_msg = ETMMsg()
                     trgt_msg.type = MsgType.Text
                     trgt_msg.text = target_log.text
                     trgt_msg.uid = target_log.slave_message_id
-                    trgt_msg.chat = ETMChat(db=self.db, channel=coordinator.slaves[target_channel])
-                    trgt_msg.chat.chat_name = target_log.slave_origin_display_name
-                    trgt_msg.chat.chat_alias = target_log.slave_origin_display_name
-                    trgt_msg.chat.chat_uid = utils.chat_id_str_to_id(target_log.slave_origin_uid)[1]
+
+                    target_channel, trgt_chat = utils.chat_id_str_to_id(target_log.slave_origin_uid)
+                    trgt_msg.chat = self.chat_manager.get_chat(target_channel, trgt_chat)
+                    if not m.chat:
+                        # Chat not found anyway, build a fake object
+                        trgt_msg.chat = ETMChat(db=self.db, channel=coordinator.slaves[target_channel])
+                        trgt_msg.chat.chat_name = target_log.slave_origin_display_name
+                        trgt_msg.chat.chat_uid = trgt_chat
                     if target_log.slave_member_uid:
-                        trgt_msg.author = ETMChat(db=self.db, channel=coordinator.slaves[target_channel])
-                        trgt_msg.author.chat_name = target_log.slave_member_display_name
-                        trgt_msg.author.chat_alias = target_log.slave_member_display_name
-                        trgt_msg.author.chat_uid = target_log.slave_member_uid
+                        trgt_msg.author = self.chat_manager.get_chat(target_channel, target_log.slave_member_uid, trgt_chat)
+                        if not trgt_msg.author:
+                            # Chat not found anyway, build a fake object
+                            trgt_msg.author = ETMChat(db=self.db, channel=coordinator.slaves[target_channel])
+                            trgt_msg.author.chat_name = target_log.slave_member_display_name
+                            trgt_msg.author.chat_uid = target_log.slave_member_uid
                     elif target_log.sent_to == 'master':
                         trgt_msg.author = trgt_msg.chat
                     else:
-                        trgt_msg.author = ETMChat(db=self.db, channel=self.channel).self()
+                        trgt_msg.author = self.chat_manager.self
                 m.target = trgt_msg
 
                 self.logger.debug("[%s] This message replies to another message of the same channel.\n"
@@ -440,19 +446,30 @@ class MasterMessageProcessor(LocaleMixin):
                 if m.file:
                     m.file.close()
 
-    def _send_cached_chat_warning(self, update: telegram.Update, cache_key: str, cached_dest: str):
+    def _send_cached_chat_warning(self, update: telegram.Update,
+                                  cache_key: TelegramChatID,
+                                  cached_dest: EFBChannelChatIDStr):
         """Send warning about cached chat."""
         if self.channel.flag("send_to_last_chat") != "warn":
             return
+
+        # Warn the user once every timeout threshold per Telegram group
         if not self.chat_dest_cache.is_warned(cache_key):
             self.chat_dest_cache.set_warned(cache_key)
+
+            dest_module, dest_chat_id = utils.chat_id_str_to_id(cached_dest)
+            dest_chat = self.chat_manager.get_chat(dest_module, dest_chat_id)
+            if dest_chat:
+                dest_name = dest_chat.full_name
+            else:
+                dest_name = cached_dest
             update.message.reply_text(
                 self._(
                     "This message is sent to “{dest}” with quick reply feature.\n"
                     "\n"
                     "Learn more about how this works, how to turn off this feature, "
                     "and how to stop this warning at {docs}."
-                ).format(dest=cached_dest,
+                ).format(dest=dest_name,
                          docs="https://github.com/blueset/efb-telegram-master/"),
                 quote=True,
                 disable_web_page_preview=True)
