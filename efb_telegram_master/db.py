@@ -68,7 +68,7 @@ class DatabaseManager:
         database.connect()
 
         self.task_queue: 'Queue[Optional[Tuple[Callable, Sequence[Any], Dict[str, Any]]]]' = Queue()
-        self.worker_thread = Thread(target=self.task_worker)
+        self.worker_thread = Thread(target=self.task_worker, name="ETM database worker thread")
         self.worker_thread.start()
 
         if not ChatAssoc.table_exists():

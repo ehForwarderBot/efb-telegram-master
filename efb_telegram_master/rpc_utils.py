@@ -38,7 +38,7 @@ class RPCUtilities:
         self.server.register_function(self.get_slave_channel_by_id)
         self.server.register_function(self.get_chats_from_channel_by_id)
 
-        threading.Thread(target=self.server.serve_forever)
+        threading.Thread(target=self.server.serve_forever, name="ETM RPC server thread")
 
     def shutdown(self):
         """Shutdown RPC server if running."""

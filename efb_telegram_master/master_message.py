@@ -76,7 +76,7 @@ class MasterMessageProcessor(LocaleMixin):
             self.TYPE_DICT[TGMsgType.AnimatedSticker] = MsgType.Animation
 
         self.message_queue: 'Queue[Optional[Tuple[Update, CallbackContext]]]' = Queue()
-        self.message_worker_thread = Thread(target=self.message_worker)
+        self.message_worker_thread = Thread(target=self.message_worker, name="ETM master messages worker thraed")
         self.message_worker_thread.start()
 
     def message_worker(self):
