@@ -337,6 +337,9 @@ class MasterMessageProcessor(LocaleMixin):
             # Flag for edited message
             if edited:
                 m.edit = True
+                # Telegram Bot API did not provide any info about whether media is edited,
+                # so ``edit_media`` should be always flagged up to prevent unwanted issue.
+                m.edit_media = True
                 text = msg_md_text or msg_md_caption
                 msg_log = self.db.get_msg_log(master_msg_id=utils.message_id_to_str(update=update))
                 if not msg_log or msg_log == self.FAIL_FLAG:
@@ -348,6 +351,13 @@ class MasterMessageProcessor(LocaleMixin):
                         destination_channel=coordinator.slaves[channel],
                         message=m
                     ))
+                    if not self.channel.flag('prevent_message_removal'):
+                        try:
+                            message.delete()
+                        except telegram.TelegramError:
+                            message.reply_text(self._("Message removed in remote chat."))
+                    else:
+                        message.reply_text(self._("Message removed in remote chat."))
                     self.db.delete_msg_log(master_msg_id=utils.message_id_to_str(update=update))
                     log_message = False
                     return
