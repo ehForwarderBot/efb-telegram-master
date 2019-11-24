@@ -27,10 +27,10 @@ class ChatObjectCacheManager:
         self.self = ETMChat(db=self.db, channel=self.channel).self()
 
         # load all chats from all slave channels and convert to ETMChat object
-        for channel_id, channel in coordinator.slaves.items():
+        for channel_id, module in coordinator.slaves.items():
             # noinspection PyBroadException
             try:
-                chats = channel.get_chats()
+                chats = module.get_chats()
             except Exception:
                 continue
             for chat in chats:
@@ -115,10 +115,7 @@ class ChatObjectCacheManager:
             cached.is_chat = chat.is_chat
             cached.vendor_specific = chat.vendor_specific
             cached.notification = chat.notification
-            if chat.members:
-                cached.members = [self.update_chat_obj(i, full_update) for i in chat.members]
-            else:
-                cached.members = chat.members
+            cached.members = [self.update_chat_obj(i, full_update) for i in chat.members]
             cached.update_to_db()
         else:
             if chat.chat_name != cached.chat_name or \

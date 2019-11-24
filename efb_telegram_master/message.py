@@ -218,7 +218,7 @@ class ETMMsg(EFBMsg):
         obj.chat = chat_manager.get_chat(c_module, c_id)
         if a_module == c_module and a_id == c_id:
             obj.author = obj.chat
-        elif obj.chat.chat_type == ChatType.Group:
+        elif obj.chat and obj.chat.chat_type == ChatType.Group:
             obj.author = chat_manager.get_chat(a_module, a_id, c_id)
         else:
             obj.author = chat_manager.get_chat(a_module, a_id)

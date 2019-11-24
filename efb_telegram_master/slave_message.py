@@ -756,7 +756,7 @@ class SlaveMessageProcessor(LocaleMixin):
                                   'Message ID %s from %s, status: %s.', status.msg_id, status.chat, status.reactions)
             return
 
-        old_msg: ETMMsg = ETMMsg.unpickle(old_msg_db.pickle, chat_manager=self.db)
+        old_msg: ETMMsg = ETMMsg.unpickle(old_msg_db.pickle, chat_manager=self.chat_manager)
         old_msg.reactions = status.reactions
         old_msg.edit = True
 
