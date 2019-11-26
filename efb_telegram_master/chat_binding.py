@@ -818,10 +818,14 @@ class ChatBindingManager(LocaleMixin):
                 desc = self.ngettext("{count} group member: {list}",
                                      "{count} group members: {list}",
                                      len(chat.members)).format(
-                    len(chat.members), desc
+                    count=len(chat.members), list=desc
                 )
-                self.bot.set_chat_description(tg_chat,
+                try:
+                    self.bot.set_chat_description(tg_chat,
                                               self.truncate_ellipsis(desc, self.MAX_LEN_CHAT_DESC))
+                except Exception as e:          # description is not update
+                    pass
+
 
             picture = channel.get_chat_picture(chat)
             if not picture:
