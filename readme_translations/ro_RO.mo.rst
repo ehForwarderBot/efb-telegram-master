@@ -159,6 +159,7 @@ to BotFather for a command list:
    extra - Access additional features from Slave Channels.
    update_info - Update info of linked Telegram group.
    react - Send a reaction to a message, or show a list of reactors.
+   rm - Remove a message from its remote chat.
 
 Notă: In case of multiple admins are assigned, they may all send
    message on your behalf, but only the 0th admin can receive
@@ -307,14 +308,19 @@ Edit and delete message
 In EFB v2, the framework added support to message editing and removal,
 and so does ETM. However, due to the limitation of Telegram Bot API,
 although you may have selected “Delete for the bot”, or “Delete for
-everyone” while deleting messages, the bot would not know anything
+everyone” while deleting messages, the bot would **not** know anything
 about it. Therefore, if you want your message to be removed from a
-remote chat, edit your message and prepend it with rm` (it’s R, M, and
-~`, not single quote), so that the bot knows that you want to delete
-the message.
+remote chat, edit your message and prepend it with ``rm``` (it’s
+``R``, ``M``, and ``~```, not single quote), so that the bot knows
+that you want to delete the message.
 
-Please also notice that some channels may not support editing and/or
-deleting messages depends on their implementations.
+Alternatively, you can also reply ``/rm`` to a message to remove it
+from its remote chat. This can be useful when you cannot edit the
+message directly (sticker, location, etc.), or when the message is not
+sent via ETM.
+
+Please also notice that some slave channels may not support editing
+and/or deleting messages depends on their implementations.
 
 
 ``/chat``: Chat head
@@ -385,6 +391,19 @@ Note that some slave channels may not accept message reactions, and
 some channels have a limited reactions you can send with. Usually when
 you send an unaccepted reaction, slave channels can provide a list of
 suggested reactions you may want to try instead.
+
+
+``/rm``: Delete a message from its remote chat
+----------------------------------------------
+
+You can reply ``/rm`` to a message to remove it from its remote chat.
+Comparing to prepending ``rm``` to a message, you can use this command
+even when you cannot edit the message directly (sticker, location,
+etc.), or when the message is not sent via ETM. It can also allow you
+to remove messages sent by others if provided by the slave channel.
+
+Please notice that some slave channels may not support removing
+messages depends on their implementations.
 
 
 Telegram Channel support
