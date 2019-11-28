@@ -723,7 +723,7 @@ class SlaveMessageProcessor(LocaleMixin):
                 except telegram.TelegramError:
                     pass
                 self.bot.send_message(chat_id=old_msg_id[0],
-                                      text=self._("Message removed in remote chat."),
+                                      text=self._("Message is removed in remote chat."),
                                       reply_to_message_id=old_msg_id[1])
             else:
                 self.logger.info('Was supposed to delete a message, '

@@ -2,21 +2,22 @@
 
 import logging
 import time
+from pickle import UnpicklingError
 from queue import Queue
 from threading import Thread
 from typing import Optional, TYPE_CHECKING, Tuple
 
 import humanize
 import telegram
-from telegram import Update
-from telegram.ext import MessageHandler, Filters, CallbackContext
+from telegram import Update, Message
+from telegram.ext import MessageHandler, Filters, CallbackContext, CommandHandler
 from telegram.utils.helpers import escape_markdown
 
 from efb_telegram_master import ETMChat
 from ehforwarderbot import EFBMsg, coordinator
 from ehforwarderbot.constants import MsgType, ChatType
 from ehforwarderbot.exceptions import EFBMessageTypeNotSupported, EFBChatNotFound, \
-    EFBMessageError, EFBMessageNotFound, EFBOperationNotSupported
+    EFBMessageError, EFBMessageNotFound, EFBOperationNotSupported, EFBException
 from ehforwarderbot.message import EFBMsgLocationAttribute
 from ehforwarderbot.status import EFBMessageRemoval
 from ehforwarderbot.types import ModuleID, ChatID, MessageID
@@ -64,6 +65,9 @@ class MasterMessageProcessor(LocaleMixin):
         self.db: 'DatabaseManager' = channel.db
         self.chat_dest_cache: ChatDestinationCache = channel.chat_dest_cache
         self.chat_manager: 'ChatObjectCacheManager' = channel.chat_manager
+
+        self.bot.dispatcher.add_handler(CommandHandler("rm", self.delete_message))
+
         self.bot.dispatcher.add_handler(MessageHandler(
             (Filters.text | Filters.photo | Filters.sticker | Filters.document |
              Filters.venue | Filters.location | Filters.audio | Filters.voice | Filters.video) &
@@ -78,7 +82,7 @@ class MasterMessageProcessor(LocaleMixin):
             self.TYPE_DICT[TGMsgType.AnimatedSticker] = MsgType.Animation
 
         self.message_queue: 'Queue[Optional[Tuple[Update, CallbackContext]]]' = Queue()
-        self.message_worker_thread = Thread(target=self.message_worker, name="ETM master messages worker thraed")
+        self.message_worker_thread = Thread(target=self.message_worker, name="ETM master messages worker thread")
         self.message_worker_thread.start()
 
     def message_worker(self):
@@ -192,7 +196,7 @@ class MasterMessageProcessor(LocaleMixin):
                         target_channel, target_uid = utils.chat_id_str_to_id(target)
                 else:
                     return self.bot.reply_error(update,
-                                                self._("Message is not found in database. "
+                                                self._("Message is not found in ETM database. "
                                                        "Please try with another message. (UC07)"))
         elif private_chat:
             if reply_to:
@@ -204,7 +208,7 @@ class MasterMessageProcessor(LocaleMixin):
                     self.chat_dest_cache.set(message.chat.id, dest_msg.slave_origin_uid)
                 else:
                     return self.bot.reply_error(update,
-                                                self._("Message is not found in database. "
+                                                self._("Message is not found in ETM database. "
                                                        "Please try with another one. (UC03)"))
             elif cached_dest:
                 destination = cached_dest
@@ -224,7 +228,7 @@ class MasterMessageProcessor(LocaleMixin):
                         self.chat_dest_cache.set(message.chat.id, destination)
                     else:
                         return self.bot.reply_error(update,
-                                                    self._("Message is not found in database. "
+                                                    self._("Message is not found in ETM database. "
                                                            "Please try with another one. (UC05)"))
                 elif cached_dest:
                     destination = cached_dest
@@ -246,7 +250,7 @@ class MasterMessageProcessor(LocaleMixin):
                             target_channel, target_uid = utils.chat_id_str_to_id(target)
                     else:
                         return self.bot.reply_error(update,
-                                                    self._("Message is not found in database. "
+                                                    self._("Message is not found in ETM database. "
                                                            "Please try with another message. (UC07)"))
             else:
                 return self.bot.reply_error(update,
@@ -348,7 +352,7 @@ class MasterMessageProcessor(LocaleMixin):
                 m.edit_media = True
                 text = msg_md_text or msg_md_caption
                 msg_log = self.db.get_msg_log(master_msg_id=utils.message_id_to_str(update=update))
-                if not msg_log or msg_log == self.FAIL_FLAG:
+                if not msg_log or msg_log.slave_message_id == self.FAIL_FLAG:
                     raise EFBMessageNotFound()
                 m.uid = msg_log.slave_message_id
                 if text.startswith(self.DELETE_FLAG):
@@ -361,10 +365,9 @@ class MasterMessageProcessor(LocaleMixin):
                         try:
                             message.delete()
                         except telegram.TelegramError:
-                            message.reply_text(self._("Message removed in remote chat."))
+                            message.reply_text(self._("Message is removed in remote chat."))
                     else:
-                        message.reply_text(self._("Message removed in remote chat."))
-                    self.db.delete_msg_log(master_msg_id=utils.message_id_to_str(update=update))
+                        message.reply_text(self._("Message is removed in remote chat."))
                     log_message = False
                     return
                 self.logger.debug('[%s] Message is edited (%s)', m.uid, m.edit)
@@ -431,10 +434,13 @@ class MasterMessageProcessor(LocaleMixin):
         except EFBMessageTypeNotSupported as e:
             self.bot.reply_error(update, e.args[0] or self._("Message type is not supported."))
         except EFBOperationNotSupported as e:
-            self.bot.reply_error(update, self._("Message editing is not supported.\n\n{!s}".format(e)))
+            self.bot.reply_error(update, self._("Message editing is not supported.\n\n{exception!s}".format(exception=e)))
+        except EFBException as e:
+            self.bot.reply_error(update, self._("Message is not sent.\n\n{exception!s}".format(exception=e)))
+            self.logger.exception("Message is not sent. (update: %s, exception: %s)", update, e)
         except Exception as e:
-            self.bot.reply_error(update, self._("Message is not sent.\n\n{!r}".format(e)))
-            self.logger.exception("Message is not sent. (update: %s)", update)
+            self.bot.reply_error(update, self._("Message is not sent.\n\n{exception!r}".format(exception=e)))
+            self.logger.exception("Message is not sent. (update: %s, exception: %s)", update, e)
         finally:
             if log_message:
                 pickled_msg = m.pickle(self.db)
@@ -507,3 +513,52 @@ class MasterMessageProcessor(LocaleMixin):
             raise EFBMessageError(
                 self._("Attachment is too large ({size}). Maximum allowed by Telegram is {max_size}. (AT01)").format(
                     size=size_str, max_size=max_size_str))
+
+    def delete_message(self, update: Update, context: CallbackContext):
+        """Remove an arbitrary message from its remote chat.
+        Triggered by command ``/rm``.
+        """
+        message: Message = update.message
+        if message.reply_to_message is None:
+            return self.bot.reply_error(update, self._(
+                "Reply /rm to a message to remove it from its remote chat."
+            ))
+        reply: Message = message.reply_to_message
+        msg_log = self.db.get_msg_log(master_msg_id=utils.message_id_to_str(chat_id=reply.chat_id, message_id=reply.message_id))
+        if not msg_log or msg_log.slave_member_uid == self.FAIL_FLAG or not msg_log.pickle:
+            return self.bot.reply_error(update, self._(
+                "This message is not found in ETM database. You cannot remove it from its remote chat."
+            ))
+        try:
+            etm_msg: ETMMsg = ETMMsg.unpickle(msg_log.pickle, self.chat_manager)
+        except UnpicklingError:
+            return self.bot.reply_error(update, self._(
+                "This message is not found in ETM database. You cannot remove it from its remote chat."
+            ))
+        dest_channel = coordinator.slaves.get(etm_msg.chat.module_id, None)
+        if dest_channel is None:
+            return self.bot.reply_error(update, self._(
+                "Module of this message ({module_id}) count not be found, or is not a slave channel."
+            ).format(module_id=etm_msg.chat.module_id))
+        # noinspection PyBroadException
+        try:
+            coordinator.send_status(EFBMessageRemoval(
+                source_channel=self.channel, destination_channel=dest_channel, message=etm_msg
+            ))
+        except EFBException as e:
+            self.logger.exception("Failed to remove message from remote chat. Message: %s; Error: %s", etm_msg, e)
+            return reply.reply_text(self._(
+                "Failed to remove this message from remote chat.\n\n{error!s}"
+            ).format(error=e))
+        except Exception as e:
+            self.logger.exception("Failed to remove message from remote chat. Message: %s; Error: %s", etm_msg, e)
+            return reply.reply_text(self._(
+                "Failed to remove this message from remote chat.\n\n{error!r}"
+            ).format(error=e))
+        if not self.channel.flag('prevent_message_removal'):
+            try:
+                reply.delete()
+            except telegram.TelegramError:
+                reply.reply_text(self._("Message is removed in remote chat."))
+        else:
+            reply.reply_text(self._("Message is removed in remote chat."))

@@ -254,8 +254,9 @@ def setup_telegram_bot(data):
                 "info - Display information of the current Telegram chat.\n"
                 "chat - Generate a chat head.\n"
                 "extra - Access additional features from Slave Channels.\n"
-                "update_info - Update the group name and profile picture.\n"
-                "react - Send a reaction to a message, or show a list of reactors."
+                "update_info - Update info of linked Telegram group.\n"
+                "react - Send a reaction to a message, or show a list of reactors.\n"
+                "rm - Remove a message from its remote chat."
             ))
             print()
             input(_("Press ENTER/RETURN to continue..."))
