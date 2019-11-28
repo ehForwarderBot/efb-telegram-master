@@ -25,6 +25,7 @@ class ChatObjectCacheManager:
         self.channel = channel
         self.db = channel.db
         self.self = ETMChat(db=self.db, channel=self.channel).self()
+        self.enrol(self.self)
 
         # load all chats from all slave channels and convert to ETMChat object
         for channel_id, module in coordinator.slaves.items():

@@ -14,7 +14,6 @@ from telegram.ext import ConversationHandler, CommandHandler, CallbackQueryHandl
     MessageHandler
 
 from ehforwarderbot import coordinator, EFBChat, EFBChannel
-from ehforwarderbot.constants import ChatType
 from ehforwarderbot.exceptions import EFBChatNotFound, EFBOperationNotSupported
 from ehforwarderbot.types import ModuleID, ChatID
 from . import utils
