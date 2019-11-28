@@ -9,7 +9,7 @@ from typing import Tuple, Dict, Optional, List, TYPE_CHECKING, IO, Sequence, Uni
 
 import telegram
 from PIL import Image
-from telegram import Update, Message, Chat
+from telegram import Update, Message, Chat, TelegramError
 from telegram.ext import ConversationHandler, CommandHandler, CallbackQueryHandler, CallbackContext, Filters, \
     MessageHandler
 
@@ -820,11 +820,10 @@ class ChatBindingManager(LocaleMixin):
                     count=len(chat.members), list=desc
                 )
                 try:
-                    self.bot.set_chat_description(tg_chat,
-                                              self.truncate_ellipsis(desc, self.MAX_LEN_CHAT_DESC))
-                except Exception as e:          # description is not update
-                    pass
-
+                    self.bot.set_chat_description(
+                        tg_chat, self.truncate_ellipsis(desc, self.MAX_LEN_CHAT_DESC))
+                except TelegramError as e:  # description is not updated
+                    self.logger.exception("Exception occurred while trying to update chat description: %s", e)
 
             picture = channel.get_chat_picture(chat)
             if not picture:
