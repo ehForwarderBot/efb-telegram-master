@@ -147,6 +147,7 @@ API，``python-telegram-bot`` 建立。
    extra - Access additional features from Slave Channels.
    update_info - Update info of linked Telegram group.
    react - Send a reaction to a message, or show a list of reactors.
+   rm - Remove a message from its remote chat.
 
 備註: 当指定了多个管理员时，所有管理员皆可以您的身份发送消息。但只有第 0 个管理员可以收到 bot 的私信。
 
@@ -184,11 +185,8 @@ API，``python-telegram-bot`` 建立。
 高级功能：筛选
 ~~~~~~~~~~~~~~
 
-If you have just too many chats, and being too tired for keep tapping
-\ ``Next >``, or maybe you just want to find a way to filter out what
-you’re looking for, now ETM has equipped ``/chat`` and ``/list`` with
-filtering feature. Attach your keyword behind, and you can get a
-filtered result.
+如果你的会话太多，不想在一次次点击 ``下一页
+>`` 按钮，亦或是你想要一个更直接的方式筛选你的会话，ETM 为 ``/chat`` 和 ``/list`` 指令搭载了筛选功能。在指令后面追加关联词即可获得筛选后的会话列表。
 
 例如：``/chat Eana`` 指令能够筛选出所有包含「Eana」的会话。
 
@@ -257,26 +255,23 @@ filtered result.
 
 ETM 提供了一种无需每次引用回复即可持续向某一会话发送信息的功能。
 
-In case where recipient is not indicated for a message, ETM will try
-to deliver it to the “last known recipient” in the Telegram chat only
-if:
+如果消息未指定收件人， ETM 仅会在满足以下条件时将起发送至该 Telegram 会话中的「最后一个已知收件人」：
 
-1. your last message with the “last known recipient” is with in an
-    hour, and
+1. 您在过去一小时内与「最后一个已知收件人」有过通信，并且
 
-2. the last message in this Telegram chat is from the “last known
-    recipient”.
+2. 该 Telegram 会话中最新一条消息来自于该「最后一个已知收件人」。
 
 
 编辑和删除消息
 ~~~~~~~~~~~~~~
 
-在 EFB v2 中，框架与 ETM 皆添加了对编辑和删除信息的支持。但由于 Telegram Bot API
-的限制，即使您在删除消息时选择「从 bot 处撤回」或是「从所有成员的记录中撤回」，bot
-也无法收到相关通知。因此，如果您想要删除您发送到远端会话中的某条消息，请编辑您的消息，并在开头加上 rm`（注意，是 R，M 和
-~`，不是单引号），由此让 bot 知道您想要删除这条消息。
+在 EFB v2 中，框架与 ETM 皆添加了对编辑和删除信息的支持。但由于 Telegram Bot
+API 的限制，即使您在删除消息时选择「从 bot 处撤回」或是「从所有成员的记录中撤回」，bot 也无法收到相关通知。因此，如果您想要删除您发送到远端会话中的某条消息，请编辑您的消息，并在开头加上 ``rm```（注意，是 ``R``、``M`` 和 ，``~```，不是单引号），由此让 bot 知道您想要删除这条消息。
 
-请注意：由于平台不同，部分信道可能不支持编辑或删除已发送的消息。
+或者，您也可以向这条消息回复 ``/rm`` 来将其从远端会话中移除。
+此方法可以用于消息不能直接被编辑（如贴纸、位置等），或消息不是通过 ETM 发送的情况。
+
+请注意：由于平台不同，部分从端可能不支持编辑或删除已发送的消息。
 
 
 ``/chat``：会话头
@@ -304,13 +299,10 @@ if:
 等高级功能不会被支持）
 
 
-``/update_info``: Update details of linked Telegram group
----------------------------------------------------------
+``/update_info``：更新被绑定 Telegram 群組的详情信息
+----------------------------------------------------
 
-ETM can help you to update the name and profile picture of a group to
-match with appearance in the remote chat. This will also add a list of
-current members to the Telegram group description if the remote chat
-is a group.
+ETM 可以协助您依照远端会话来更新 Telegram 群组的名称和头像。如果远端会话是一个群组，ETM 还可以将群组的成员列表写入 Telegram 会话的简介中。
 
 此功能仅在满足以下条件的情况下可用：
 
@@ -334,6 +326,15 @@ is a group.
 -`` 可以删除您的回应。
 
 注意，一些从端可能不支持对消息的回应，而一些从端可能会限定您可以发送的回应。通常当您发送一个未被支持的回应时，从端可以提供一个回应列表供您选择尝试。
+
+
+``/rm``：从远端会话中删除消息
+-----------------------------
+
+向一条消息回复 ``/rm`` 即可在远端会话中移除该消息。比起在消息内容之前追加 ``rm``` 的功能，本方法可以在您不能直接编辑消息（如贴纸、位置等）、或是没有通过 ETM 发送消息时移除这些消息。
+在从端允许的情况下，该指令还能尝试移除其他人发送的消息。
+
+请注意：由于平台不同，部分从端可能不支持删除已发送的消息。
 
 
 Telegram 频道支持
@@ -476,22 +477,19 @@ ETM 不能：
 
   * ``mute``：不要发送到 Telegram
 
-* ``animated_stickers`` *(bool)* [Default: ``false``]
+* ``animated_stickers`` *(bool)* [默认值: ``false``]
 
-  Enable experimental support to animated stickers. Note: you might
-  need to install binary dependency ``libcairo`` to enable this
-  feature.
+  启用对动态贴纸的实验支持。注意：您可能需要安装二进制依赖 ``libcairo`` 才能启用此功能。
 
-* ``send_to_last_chat`` *(str)* [Default: ``warn``]
+* ``send_to_last_chat`` *(str)* [默认值: ``warn``]
 
   在未绑定的会话中快速回复。
 
-  * ``enabled``: Enable this feature without warning.
+  * ``enabled``：启用此功能并关闭警告。
 
-  * ``warn``: Enable this feature and issue warnings every time when
-    you switch a recipient with quick reply.
+  * ``warn``：启用该功能，并在自动发送至不同收件人时发出警告。
 
-  * ``disabled``: Disable this feature.
+  * ``disabled``：禁用此功能。
 
 
 网络配置：超时调整
@@ -579,9 +577,9 @@ ETM 2 中实现了一个标准的 `Python XML RPC 服务器
 ----------
 
 我们提供了 `db（数据库管理器）类
-<https://etm.1a23.studio/blob/master/efb_telegram_master/db.py>`_\ 和
-`RPCUtilities 类
 <https://etm.1a23.studio/blob/master/efb_telegram_master/rpc_utilities.py>`_\
+和 `RPCUtilities 类
+<https://etm.1a23.studio/blob/master/efb_telegram_master/db.py>`_\
 中的函数。详细文档请参考源代码。
 
 
