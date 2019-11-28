@@ -538,7 +538,7 @@ class MasterMessageProcessor(LocaleMixin):
         dest_channel = coordinator.slaves.get(etm_msg.chat.module_id, None)
         if dest_channel is None:
             return self.bot.reply_error(update, self._(
-                "Module of this message ({module_id}) count not be found, or is not a slave channel."
+                "Module of this message ({module_id}) could not be found, or is not a slave channel."
             ).format(module_id=etm_msg.chat.module_id))
         # noinspection PyBroadException
         try:

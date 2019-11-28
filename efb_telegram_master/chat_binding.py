@@ -781,8 +781,8 @@ class ChatBindingManager(LocaleMixin):
         Triggered by ``/update_info`` command.
         """
         if update.effective_chat.type == Chat.PRIVATE:
-            return self.bot.reply_error(update, self._('Send /update_info in a group where this bot is a group admin '
-                                                       'to update group title and profile picture.'))
+            return self.bot.reply_error(update, self._('Send /update_info to a group where this bot is a group admin '
+                                                       'to update group title, description and profile picture.'))
         forwarded_from_chat = update.effective_message.forward_from_chat
         if forwarded_from_chat and forwarded_from_chat.type == Chat.CHANNEL:
             tg_chat = forwarded_from_chat.id

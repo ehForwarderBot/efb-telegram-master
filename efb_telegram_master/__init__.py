@@ -430,6 +430,8 @@ class TelegramChannel(EFBChannel):
                      "/update_info\n"
                      "    Update info of linked Telegram group.\n"
                      "    Only works in singly linked group where the bot is an admin.\n"
+                     "/rm\n"
+                     "    Remove the quoted message from its remote chat.\n"
                      "/help\n"
                      "    Print this command list.")
         self.bot_manager.send_message(update.message.from_user.id, txt)
