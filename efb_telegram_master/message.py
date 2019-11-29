@@ -215,11 +215,11 @@ class ETMMsg(EFBMsg):
         obj = pickle.loads(data)
         c_module, c_id = utils.chat_id_str_to_id(obj.chat)
         a_module, a_id = utils.chat_id_str_to_id(obj.author)
-        obj.chat = chat_manager.get_chat(c_module, c_id)
+        obj.chat = chat_manager.get_chat(c_module, c_id, build_dummy=True)
         if a_module == c_module and a_id == c_id:
             obj.author = obj.chat
         elif obj.chat and obj.chat.chat_type == ChatType.Group:
-            obj.author = chat_manager.get_chat(a_module, a_id, c_id)
+            obj.author = chat_manager.get_chat(a_module, a_id, c_id, build_dummy=True)
         else:
-            obj.author = chat_manager.get_chat(a_module, a_id)
+            obj.author = chat_manager.get_chat(a_module, a_id, build_dummy=True)
         return obj

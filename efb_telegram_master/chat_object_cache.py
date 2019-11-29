@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Optional, Dict, Tuple, Iterator
+from typing import TYPE_CHECKING, Optional, Dict, Tuple, Iterator, overload
+from typing_extensions import Literal
 from ehforwarderbot import coordinator
 from ehforwarderbot.chat import EFBChat
 from ehforwarderbot.constants import ChatType
@@ -45,6 +46,11 @@ class ChatObjectCacheManager:
         if etm_chat.chat_type == ChatType.Group:
             for i in etm_chat.members:
                 self.enrol(i)
+            group_self = ETMChat(db=self.db, channel=self.channel)
+            group_self.group = etm_chat
+            group_self.is_chat = False
+            group_self.self()
+            self.enrol(group_self)
         self.enrol(etm_chat)
 
         return etm_chat
@@ -66,14 +72,28 @@ class ChatObjectCacheManager:
             group_id = chat.group.chat_uid
         return module_id, chat_id, group_id
 
+    def get_self(self, group_id: Optional[ChatID] = None) -> ETMChat:
+        return self.get_chat(self.channel.channel_id, ETMChat.SELF_ID, group_id=group_id, build_dummy=True)
+
+    @overload
     def get_chat(self, module_id: ModuleID, chat_id: ChatID,
-                 group_id: Optional[ChatID] = None) -> Optional[ETMChat]:
+                 group_id: Optional[ChatID] = None, build_dummy: Literal[True] = True) -> ETMChat: ...
+
+    @overload
+    def get_chat(self, module_id: ModuleID, chat_id: ChatID,
+                 group_id: Optional[ChatID] = None, build_dummy: bool = False) -> Optional[ETMChat]: ...
+
+    def get_chat(self, module_id: ModuleID, chat_id: ChatID,
+                 group_id: Optional[ChatID] = None, build_dummy: bool = False) -> Optional[ETMChat]:
         """
         Get an ETMChat object of a chat from cache.
 
         If the object queried is not found, try to get from database cache,
         then the relevant channel.
         If still not found, return None.
+
+        If build_dummy is set to True, this will return a dummy object with
+        the module_id, chat_id and group_id specified.
         """
         key = (module_id, chat_id, group_id)
         if key in self.cache:
@@ -90,13 +110,25 @@ class ChatObjectCacheManager:
             return obj
 
         # Only look up from slave channels as middlewares don’t have get_chat_by_id method.
-        if module_id not in coordinator.slaves:
-            return None
-        try:
-            chat_obj = coordinator.slaves[module_id].get_chat(chat_id, group_id)
-            return self.compound_enrol(chat_obj)
-        except EFBChatNotFound:
-            return None
+        if module_id in coordinator.slaves:
+            try:
+                chat_obj = coordinator.slaves[module_id].get_chat(chat_id, group_id)
+                return self.compound_enrol(chat_obj)
+            except EFBChatNotFound:
+                pass
+
+        if build_dummy:
+            chat = ETMChat(db=self.db)
+            chat.module_id = chat.module_name = module_id
+            chat.chat_uid = chat.chat_name = chat_id
+            if group_id:
+                group = ETMChat(db=self.db)
+                group.module_id = group.module_name = module_id
+                group.chat_uid = group.chat_name = group_id
+                chat.group = group
+                chat.is_chat = False
+            return chat
+        return None
 
     def update_chat_obj(self, chat: EFBChat, full_update: bool = False) -> ETMChat:
         """Insert or update chat object to cache.
