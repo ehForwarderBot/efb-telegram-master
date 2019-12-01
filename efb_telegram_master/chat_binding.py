@@ -63,7 +63,7 @@ class ChatListStorage:
         self.__chats = value
         self.channels = dict()
         for i in value:
-            if i.module_id not in self.channels:
+            if i.module_id not in self.channels and i.module_id in coordinator.slaves:
                 self.channels[i.module_id] = coordinator.slaves[i.module_id]
 
     def set_chat_suggestion(self, update: telegram.Update,

@@ -177,4 +177,7 @@ class ChatObjectCacheManager:
 
     @property
     def all_chats(self) -> Iterator[ETMChat]:
-        return (val for key, val in self.cache.items() if key[2] is None)
+        """Return all chats that is not a group member and not myself."""
+        return (val for key, val in self.cache.items() if
+                key[2] is None and val.is_chat and not val.is_self
+                )
