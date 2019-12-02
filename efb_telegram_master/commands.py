@@ -170,7 +170,7 @@ class CommandsManager(LocaleMixin):
     def extra_usage(self, update: Update, context: CallbackContext):
         groupdict = context.match.groupdict()
         if int(groupdict['id']) >= len(self.modules_list):
-            return self.bot.reply_error(update, self._("Invalid module id ID. (XC03)"))
+            return self.bot.reply_error(update, self._("Invalid module ID. (XC03)"))
 
         channel = self.modules_list[int(groupdict['id'])]
         functions = channel.get_extra_functions()
