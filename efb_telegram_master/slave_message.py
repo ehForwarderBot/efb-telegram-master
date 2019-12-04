@@ -486,7 +486,7 @@ class SlaveMessageProcessor(LocaleMixin):
                                                reply_markup=reply_markup,
                                                disable_notification=silent)
         finally:
-            if msg.file:
+            if msg.file is not None:
                 msg.file.close()
 
     def slave_message_sticker(self, msg: EFBMsg, tg_dest: TelegramChatID, msg_template: str, reactions: str,
@@ -563,8 +563,6 @@ class SlaveMessageProcessor(LocaleMixin):
                            target_msg_id: Optional[TelegramMessageID] = None,
                            reply_markup: Optional[telegram.ReplyMarkup] = None,
                            silent: bool = False) -> telegram.Message:
-        assert msg.file is not None
-
         self.bot.send_chat_action(tg_dest, telegram.ChatAction.UPLOAD_DOCUMENT)
 
         if msg.filename is None and msg.path is not None:
@@ -576,9 +574,11 @@ class SlaveMessageProcessor(LocaleMixin):
         try:
             if old_msg_id:
                 if msg.edit_media:
+                    assert msg.file is not None
                     self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=msg.file)
                 return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1],
                                                      prefix=msg_template, suffix=reactions, caption=msg.text)
+            assert msg.file is not None
             self.logger.debug("[%s] Uploading file %s (%s) as %s", msg.uid,
                               msg.file.name, msg.mime, file_name)
             return self.bot.send_document(tg_dest, msg.file,
@@ -588,23 +588,25 @@ class SlaveMessageProcessor(LocaleMixin):
                                           reply_markup=reply_markup,
                                           disable_notification=silent)
         finally:
-            msg.file.close()
+            if msg.file is not None:
+                msg.file.close()
 
     def slave_message_audio(self, msg: EFBMsg, tg_dest: TelegramChatID, msg_template: str, reactions: str,
                             old_msg_id: OldMsgID = None,
                             target_msg_id: Optional[TelegramMessageID] = None,
                             reply_markup: Optional[telegram.ReplyMarkup] = None,
                             silent: bool = False) -> telegram.Message:
-        assert msg.file is not None
         self.bot.send_chat_action(tg_dest, telegram.ChatAction.RECORD_AUDIO)
         msg.text = msg.text or ''
         self.logger.debug("[%s] Message is an audio file.", msg.uid)
         try:
             if old_msg_id:
                 if msg.edit_media:
+                    assert msg.file is not None
                     self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=msg.file)
                 return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1],
                                                      prefix=msg_template, suffix=reactions, caption=msg.text)
+            assert msg.file is not None
             with tempfile.NamedTemporaryFile() as f:
                 pydub.AudioSegment.from_file(msg.file).export(f, format="ogg", codec="libopus",
                                                               parameters=['-vbr', 'on'])
@@ -613,7 +615,8 @@ class SlaveMessageProcessor(LocaleMixin):
                                              disable_notification=silent)
             return tg_msg
         finally:
-            msg.file.close()
+            if msg.file is not None:
+                msg.file.close()
 
     def slave_message_location(self, msg: EFBMsg, tg_dest: TelegramChatID, msg_template: str, reactions: str,
                                old_msg_id: OldMsgID = None,
@@ -646,22 +649,24 @@ class SlaveMessageProcessor(LocaleMixin):
                             target_msg_id: Optional[TelegramMessageID] = None,
                             reply_markup: Optional[telegram.ReplyMarkup] = None,
                             silent: bool = False) -> telegram.Message:
-        assert msg.file is not None
         self.bot.send_chat_action(tg_dest, telegram.ChatAction.UPLOAD_VIDEO)
         if not msg.text:
             msg.text = self._("sent a video.")
         try:
             if old_msg_id:
                 if msg.edit_media:
+                    assert msg.file is not None
                     self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=msg.file)
                 return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1],
                                                      prefix=msg_template, suffix=reactions, caption=msg.text)
+            assert msg.file is not None
             return self.bot.send_video(tg_dest, msg.file, prefix=msg_template, suffix=reactions, caption=msg.text,
                                        reply_to_message_id=target_msg_id,
                                        reply_markup=reply_markup,
                                        disable_notification=silent)
         finally:
-            msg.file.close()
+            if msg.file is not None:
+                msg.file.close()
 
     def slave_message_unsupported(self, msg: EFBMsg, tg_dest: TelegramChatID, msg_template: str, reactions: str,
                                   old_msg_id: OldMsgID = None,
