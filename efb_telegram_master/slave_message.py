@@ -567,10 +567,10 @@ class SlaveMessageProcessor(LocaleMixin):
 
         if msg.filename is None and msg.path is not None:
             file_name = os.path.basename(msg.path)
-            msg.text = self._("sent a file.")
         else:
             assert msg.filename is not None  # mypy compliance
             file_name = msg.filename
+        msg.text = msg.text or self._("sent a file.")
         try:
             if old_msg_id:
                 if msg.edit_media:

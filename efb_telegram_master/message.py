@@ -34,10 +34,10 @@ class ETMMsg(EFBMsg):
     __file = None
     __path = None
     __filename = None
-    __initialized = False
 
     def __init__(self):
         super().__init__()
+        self.__initialized = False
 
     def __getstate__(self):
         # TODO: Avoid removing attributes from __getstate__ for pickle unless there is a way to do that only for pickle calls
@@ -141,15 +141,27 @@ class ETMMsg(EFBMsg):
 
         self.__initialized = True
 
-    def get_file(self):
+    def get_file(self) -> Optional[IO[bytes]]:
         if not self.__initialized:
             self._load_file()
         return self.__file
 
-    def get_path(self):
+    def set_file(self, value: Optional[IO[bytes]]):
+        # Stop initialization-on-demand as new file info is written
+        # This is added for compatibility with middleware behaviors
+        self.__initialized = True
+        self.__file = value
+
+    def get_path(self) -> Optional[str]:
         if not self.__initialized:
             self._load_file()
         return self.__path
+
+    def set_path(self, value: Optional[str]):
+        # Stop initialization-on-demand as new file info is written
+        # This is added for compatibility with middleware behaviors
+        self.__initialized = True
+        self.__path = value
 
     def get_filename(self) -> Optional[str]:
         if not self.__initialized:
@@ -159,11 +171,9 @@ class ETMMsg(EFBMsg):
     def set_filename(self, value: Optional[str]):
         self.__filename = value
 
-    def void_setter(self, value):
-        pass
-
-    file: Optional[IO[bytes]] = property(get_file, void_setter)  # type: ignore
-    path: Optional[str] = property(get_path, void_setter)  # type: ignore
+    # Override properties
+    file: Optional[IO[bytes]] = property(get_file, set_file)  # type: ignore
+    path: Optional[str] = property(get_path, set_path)  # type: ignore
     filename: Optional[str] = property(get_filename, set_filename)  # type: ignore
 
     @staticmethod
