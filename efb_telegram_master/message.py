@@ -40,6 +40,7 @@ class ETMMsg(EFBMsg):
         super().__init__()
 
     def __getstate__(self):
+        # TODO: Avoid removing attributes from __getstate__ for pickle unless there is a way to do that only for pickle calls
         state = super().__getstate__()
         if state.get('file', None) is not None:
             del state['file']
@@ -49,8 +50,6 @@ class ETMMsg(EFBMsg):
             del state['_ETMMsg__file']
         if state.get('_ETMMsg__path', None) is not None:
             del state['_ETMMsg__path']
-        if state.get('filename', None) is not None:
-            del state['filename']
         # Store author and chat as database key to prevent
         # redundant storage.
         if state.get('chat', None) is not None:
@@ -189,7 +188,7 @@ class ETMMsg(EFBMsg):
         is_common_file = False
 
         # Store media related information to local database
-        for tg_media_type in ('audio', 'animation', 'document', 'video', 'voice', 'video_note'):
+        for tg_media_type in ('animation', 'document', 'video', 'voice', 'video_note'):
             attachment = getattr(message, tg_media_type, None)
             if attachment:
                 is_common_file = True
@@ -198,7 +197,11 @@ class ETMMsg(EFBMsg):
                 break
 
         if not is_common_file:
-            if self.type_telegram == TGMsgType.Sticker:
+            if self.type_telegram == TGMsgType.Audio:
+                self.file_id = message.audio.file_id
+                self.mime = message.audio.mime_type
+                self.filename = f"{message.audio.title} - {message.audio.performer}{mimetypes.guess_extension(self.mime)}"
+            elif self.type_telegram == TGMsgType.Sticker:
                 self.file_id = message.sticker.file_id
                 self.mime = 'image/webp'
             elif self.type_telegram == TGMsgType.AnimatedSticker:
