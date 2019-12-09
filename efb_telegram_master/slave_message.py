@@ -570,6 +570,11 @@ class SlaveMessageProcessor(LocaleMixin):
         else:
             assert msg.filename is not None  # mypy compliance
             file_name = msg.filename
+
+        # Telegram Bot API drops everything after `;` in filenames
+        # Replace it with a space
+        # Note: it also seems to strip off a lot of unicode punctuations
+        file_name = file_name.replace(';', ' ')
         msg.text = msg.text or self._("sent a file.")
         try:
             if old_msg_id:
