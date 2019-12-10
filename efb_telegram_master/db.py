@@ -104,29 +104,30 @@ class MsgLog(BaseModel):
         - ``substitutions``: ``Dict[Tuple[int, int], SlaveChatID]``
         - ``reactions``: ``Dict[str, Collection[SlaveChatID]]``
         """
-        misc_data = pickle.loads(self.pickle)
+        if self.pickle:
+            misc_data = pickle.loads(self.pickle)
 
-        if 'target' in misc_data and recur:
-            target_row = self.get_or_none(MsgLog.master_msg_id == misc_data['target'])
-            if target_row:
-                msg.target = target_row.build_etm_msg(chat_manager, recur=False)
-        if 'is_system' in misc_data:
-            msg.is_system = misc_data['is_system']
-        if 'attributes' in misc_data:
-            msg.attributes = misc_data['attributes']
-        if 'commands' in misc_data:
-            msg.commands = misc_data['commands']
-        if 'substitutions' in misc_data:
-            msg.substitutions = EFBMsgSubstitutions({
-                k: chat_manager.get_chat(*chat_id_str_to_id(v), build_dummy=True)
-                for k, v in misc_data['substitutions'].items()
-            })
-        if 'reactions' in misc_data:
-            msg.reactions = {
-                k: [chat_manager.get_chat(*chat_id_str_to_id(i), build_dummy=True)
-                    for i in v]
-                for k, v in misc_data['reactions'].items()
-            }
+            if 'target' in misc_data and recur:
+                target_row = self.get_or_none(MsgLog.master_msg_id == misc_data['target'])
+                if target_row:
+                    msg.target = target_row.build_etm_msg(chat_manager, recur=False)
+            if 'is_system' in misc_data:
+                msg.is_system = misc_data['is_system']
+            if 'attributes' in misc_data:
+                msg.attributes = misc_data['attributes']
+            if 'commands' in misc_data:
+                msg.commands = misc_data['commands']
+            if 'substitutions' in misc_data:
+                msg.substitutions = EFBMsgSubstitutions({
+                    k: chat_manager.get_chat(*chat_id_str_to_id(v), build_dummy=True)
+                    for k, v in misc_data['substitutions'].items()
+                })
+            if 'reactions' in misc_data:
+                msg.reactions = {
+                    k: [chat_manager.get_chat(*chat_id_str_to_id(i), build_dummy=True)
+                        for i in v]
+                    for k, v in misc_data['reactions'].items()
+                }
 
         return msg
 
@@ -278,7 +279,7 @@ class DatabaseManager:
             return log.master_msg_id
         return None
 
-    def pickle_misc_msg(self, message: EFBMsg) -> bytes:
+    def pickle_misc_msg(self, message: EFBMsg) -> Optional[bytes]:
         """Pickle miscellaneous information of a message.
 
         Since 2.0.0b34, this would be a dict that reflects the following
@@ -312,7 +313,8 @@ class DatabaseManager:
         if message.target:
             data['target'] = self.get_master_msg_id(message.target)
 
-        return pickle.dumps(data)
+        if data:
+            return pickle.dumps(data)
 
     @staticmethod
     def get_chat_assoc(master_uid: Optional[EFBChannelChatIDStr] = None,
@@ -373,9 +375,11 @@ class DatabaseManager:
             'slave_message_id': slave_message_id,
             'media_type': msg.type_telegram.value,
             'file_id': msg.file_id,
-            'pickle': self.pickle_misc_msg(msg),
             'mime': msg.mime,
         }
+        pickle_data = self.pickle_misc_msg(msg)
+        if pickle_data:
+            updates['pickle'] = pickle_data
         MsgLog.insert(
             master_msg_id=master_msg_id,
             **updates
