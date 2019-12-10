@@ -249,7 +249,7 @@ class TelegramChannel(EFBChannel):
                 .format(group_name=chat.title,
                         group_id=chat.id)
             for i in links:
-                channel_id, chat_id = etm_utils.chat_id_str_to_id(i)
+                channel_id, chat_id, _ = etm_utils.chat_id_str_to_id(i)
                 chat_object = self.chat_manager.get_chat(channel_id, chat_id)
                 if chat_object:
                     msg += f"\n- {chat_object.full_name}"
@@ -282,7 +282,7 @@ class TelegramChannel(EFBChannel):
                 group_name=update.message.chat.title,
                 group_id=update.message.chat_id)
             for i in links:
-                channel_id, chat_id = etm_utils.chat_id_str_to_id(i)
+                channel_id, chat_id, _ = etm_utils.chat_id_str_to_id(i)
                 chat_object = self.chat_manager.get_chat(channel_id, chat_id)
                 if chat_object:
                     msg += "\n- %s (%s:%s)" % (chat_object.full_name,
@@ -353,7 +353,7 @@ class TelegramChannel(EFBChannel):
             if msg_log.pickle is None:
                 message.reply_text(self._("Reactors of this message are not recorded in database."))
                 return
-            msg_log_obj: ETMMsg = ETMMsg.unpickle(msg_log.pickle, self.chat_manager)
+            msg_log_obj: ETMMsg = msg_log.build_etm_msg(self.chat_manager)
             reactors = msg_log_obj.reactions
             if not reactors:
                 message.reply_html(self._("This message has no reactions yet. "
@@ -374,7 +374,7 @@ class TelegramChannel(EFBChannel):
                 return
 
         message_id = msg_log.slave_message_id
-        channel_id, chat_uid = etm_utils.chat_id_str_to_id(msg_log.slave_origin_uid)
+        channel_id, chat_uid, _ = etm_utils.chat_id_str_to_id(msg_log.slave_origin_uid)
 
         if channel_id not in coordinator.slaves:
             message.reply_text(self._("The slave channel involved in this message ({}) is not available. "
@@ -544,7 +544,7 @@ class TelegramChannel(EFBChannel):
                                       slave_msg_id=msg_id)
         if msg_log is not None:
             if msg_log.pickle:
-                return ETMMsg.unpickle(msg_log.pickle, self.chat_manager)
+                return msg_log.build_etm_msg(self.chat_manager)
             else:
                 # Pickled data is not recorded.
                 raise EFBOperationNotSupported(self._("Message is not possible to be retrieved."))

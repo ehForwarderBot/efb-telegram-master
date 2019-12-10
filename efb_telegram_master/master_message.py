@@ -41,7 +41,6 @@ class MasterMessageProcessor(LocaleMixin):
     """
 
     DELETE_FLAG = 'rm`'
-    FAIL_FLAG = '__fail__'
 
     # Constants
     TYPE_DICT = {
@@ -188,12 +187,13 @@ class MasterMessageProcessor(LocaleMixin):
         cached_dest = self.chat_dest_cache.get(message.chat.id)
         if channel_id and chat_id:
             destination = utils.chat_id_to_str(channel_id, chat_id)
+            # TODO: what is going on here?
             if target_msg is not None:
                 target_log = self.db.get_msg_log(master_msg_id=target_msg)
                 if target_log:
                     target = target_log.slave_origin_uid
                     if target is not None:
-                        target_channel, target_uid = utils.chat_id_str_to_id(target)
+                        target_channel, target_uid, _ = utils.chat_id_str_to_id(target)
                 else:
                     return self.bot.reply_error(update,
                                                 self._("Message is not found in ETM database. "
@@ -247,7 +247,7 @@ class MasterMessageProcessor(LocaleMixin):
                     if target_log:
                         target = target_log.slave_origin_uid
                         if target is not None:
-                            target_channel, target_uid = utils.chat_id_str_to_id(target)
+                            target_channel, target_uid, _ = utils.chat_id_str_to_id(target)
                     else:
                         return self.bot.reply_error(update,
                                                     self._("Message is not found in ETM database. "
@@ -260,7 +260,7 @@ class MasterMessageProcessor(LocaleMixin):
                           "Message replied to another message: %s", message_id, private_chat, multi_slaves, reply_to)
         self.logger.debug("[%s] Destination chat = %s", message_id, destination)
         assert destination is not None
-        channel, uid = utils.chat_id_str_to_id(destination)
+        channel, uid, gid = utils.chat_id_str_to_id(destination)
         if channel not in coordinator.slaves:
             return self.bot.reply_error(update, self._("Internal error: Slave channel “{0}” not found.").format(channel))
 
@@ -271,7 +271,7 @@ class MasterMessageProcessor(LocaleMixin):
             m.put_telegram_file(message)
             mtype = m.type_telegram
             # Chat and author related stuff
-            m.chat = self.chat_manager.get_chat(channel, uid, build_dummy=True)
+            m.chat = self.chat_manager.get_chat(channel, uid, gid, build_dummy=True)
             if m.chat.chat_type == ChatType.Group:
                 m.author = self.chat_manager.get_self(m.chat.chat_uid)
             else:
@@ -280,26 +280,12 @@ class MasterMessageProcessor(LocaleMixin):
             m.deliver_to = coordinator.slaves[channel]
             if target and target_log is not None and target_channel == channel:
                 if target_log.pickle:
-                    trgt_msg: ETMMsg = ETMMsg.unpickle(target_log.pickle, self.chat_manager)
+                    trgt_msg: ETMMsg = target_log.build_etm_msg(self.chat_manager, recur=False)
                     trgt_msg.target = None
-                else:
-                    trgt_msg = ETMMsg()
-                    trgt_msg.type = MsgType.Text
-                    trgt_msg.text = target_log.text
-                    trgt_msg.uid = target_log.slave_message_id
+                    m.target = trgt_msg
 
-                    target_channel, trgt_chat = utils.chat_id_str_to_id(target_log.slave_origin_uid)
-                    trgt_msg.chat = self.chat_manager.get_chat(target_channel, trgt_chat, build_dummy=True)
-                    if target_log.slave_member_uid:
-                        trgt_msg.author = self.chat_manager.get_chat(target_channel, target_log.slave_member_uid, trgt_chat, build_dummy=True)
-                    elif target_log.sent_to == 'master':
-                        trgt_msg.author = trgt_msg.chat
-                    else:
-                        trgt_msg.author = self.chat_manager.self
-                m.target = trgt_msg
-
-                self.logger.debug("[%s] This message replies to another message of the same channel.\n"
-                                  "Chat ID: %s; Message ID: %s.", message_id, trgt_msg.chat.chat_uid, trgt_msg.uid)
+                    self.logger.debug("[%s] This message replies to another message of the same channel.\n"
+                                      "Chat ID: %s; Message ID: %s.", message_id, trgt_msg.chat.chat_uid, trgt_msg.uid)
             # Type specific stuff
             self.logger.debug("[%s] Message type from Telegram: %s", message_id, mtype)
 
@@ -335,7 +321,7 @@ class MasterMessageProcessor(LocaleMixin):
                 m.edit_media = True
                 text = msg_md_text or msg_md_caption
                 msg_log = self.db.get_msg_log(master_msg_id=utils.message_id_to_str(update=update))
-                if not msg_log or msg_log.slave_message_id == self.FAIL_FLAG:
+                if not msg_log or msg_log.slave_message_id == self.db.FAIL_FLAG:
                     raise EFBMessageNotFound()
                 m.uid = msg_log.slave_message_id
                 if text.startswith(self.DELETE_FLAG):
@@ -412,6 +398,10 @@ class MasterMessageProcessor(LocaleMixin):
                 raise EFBMessageTypeNotSupported(self._("Message type {0} is not supported.").format(mtype))
 
             slave_msg = coordinator.send_message(m)
+            if slave_msg and slave_msg.uid:
+                m.uid = slave_msg.uid
+            else:
+                m.uid = None
         except EFBChatNotFound as e:
             self.bot.reply_error(update, e.args[0] or self._("Chat is not found."))
         except EFBMessageTypeNotSupported as e:
@@ -426,28 +416,7 @@ class MasterMessageProcessor(LocaleMixin):
             self.logger.exception("Message is not sent. (update: %s, exception: %s)", update, e)
         finally:
             if log_message:
-                pickled_msg = m.pickle(self.db)
-                self.logger.debug("[%s] Pickle size: %s", message_id, len(pickled_msg))
-                msg_log_d = {
-                    "master_msg_id": utils.message_id_to_str(update=update),
-                    "text": m.text or "Sent a %s" % m.type.name,
-                    "slave_origin_uid": utils.chat_id_to_str(chat=m.chat),
-                    "slave_origin_display_name": "__chat__",
-                    "msg_type": m.type.name,
-                    "sent_to": "slave",
-                    "slave_message_id": None if m.edit else "%s.%s" % (self.FAIL_FLAG, int(time.time())),
-                    # Overwritten later if slave message ID exists
-                    "update": m.edit,
-                    "media_type": m.type_telegram.value,
-                    "file_id": m.file_id,
-                    "mime": m.mime,
-                    "pickle": pickled_msg
-                }
-
-                if slave_msg:
-                    msg_log_d['slave_message_id'] = slave_msg.uid
-                # self.db.add_msg_log(**msg_log_d)
-                self.db.add_task(self.db.add_msg_log, tuple(), msg_log_d)
+                self.db.add_or_update_message_log(m, update.effective_message)
                 if m.file:
                     m.file.close()
 
@@ -462,8 +431,8 @@ class MasterMessageProcessor(LocaleMixin):
         if not self.chat_dest_cache.is_warned(cache_key):
             self.chat_dest_cache.set_warned(cache_key)
 
-            dest_module, dest_chat_id = utils.chat_id_str_to_id(cached_dest)
-            dest_chat = self.chat_manager.get_chat(dest_module, dest_chat_id)
+            dest_module, dest_chat_id, dest_grp_id = utils.chat_id_str_to_id(cached_dest)
+            dest_chat = self.chat_manager.get_chat(dest_module, dest_chat_id, dest_grp_id)
             if dest_chat:
                 dest_name = dest_chat.full_name
             else:
@@ -508,12 +477,12 @@ class MasterMessageProcessor(LocaleMixin):
             ))
         reply: Message = message.reply_to_message
         msg_log = self.db.get_msg_log(master_msg_id=utils.message_id_to_str(chat_id=reply.chat_id, message_id=reply.message_id))
-        if not msg_log or msg_log.slave_member_uid == self.FAIL_FLAG or not msg_log.pickle:
+        if not msg_log or msg_log.slave_member_uid == self.db.FAIL_FLAG or not msg_log.pickle:
             return self.bot.reply_error(update, self._(
                 "This message is not found in ETM database. You cannot remove it from its remote chat."
             ))
         try:
-            etm_msg: ETMMsg = ETMMsg.unpickle(msg_log.pickle, self.chat_manager)
+            etm_msg: ETMMsg = msg_log.build_etm_msg(self.chat_manager)
         except UnpicklingError:
             return self.bot.reply_error(update, self._(
                 "This message is not found in ETM database. You cannot remove it from its remote chat."

@@ -22,8 +22,6 @@ if TYPE_CHECKING:
 
 
 class ETMMsg(EFBMsg):
-    media_type: Optional[str] = None
-    """Type of media attached"""
     file_id: Optional[str] = None
     """File ID from Telegram Bot API"""
     type_telegram: TGMsgType
@@ -38,34 +36,6 @@ class ETMMsg(EFBMsg):
     def __init__(self):
         super().__init__()
         self.__initialized = False
-
-    def __getstate__(self):
-        # TODO: Avoid removing attributes from __getstate__ for pickle unless there is a way to do that only for pickle calls
-        state = super().__getstate__()
-        if state.get('file', None) is not None:
-            del state['file']
-        if state.get('path', None) is not None:
-            del state['path']
-        if state.get('_ETMMsg__file', None) is not None:
-            del state['_ETMMsg__file']
-        if state.get('_ETMMsg__path', None) is not None:
-            del state['_ETMMsg__path']
-        # Store author and chat as database key to prevent
-        # redundant storage.
-        if state.get('chat', None) is not None:
-            state['chat'] = utils.chat_id_to_str(chat=state['chat'])
-        if state.get('author', None) is not None:
-            state['author'] = utils.chat_id_to_str(chat=state['author'])
-        return state
-
-    def __setstate__(self, state: Dict[str, Any]):
-        super().__setstate__(state)
-
-    def pickle(self, db: 'DatabaseManager') -> bytes:
-        db.add_task(db.set_slave_chat_info, (self.chat,), {})
-        if self.chat != self.author and not self.author.is_self:
-            db.add_task(db.set_slave_chat_info, (self.author,), {})
-        return pickle.dumps(self)
 
     def _load_file(self):
         if self.file_id:
@@ -222,17 +192,3 @@ class ETMMsg(EFBMsg):
                 attachment = message.photo[-1]
                 self.file_id = attachment.file_id
                 self.mime = 'image/jpeg'
-
-    @staticmethod
-    def unpickle(data: bytes, chat_manager: ChatObjectCacheManager) -> 'ETMMsg':
-        obj = pickle.loads(data)
-        c_module, c_id = utils.chat_id_str_to_id(obj.chat)
-        a_module, a_id = utils.chat_id_str_to_id(obj.author)
-        obj.chat = chat_manager.get_chat(c_module, c_id, build_dummy=True)
-        if a_module == c_module and a_id == c_id:
-            obj.author = obj.chat
-        elif obj.chat and obj.chat.chat_type == ChatType.Group:
-            obj.author = chat_manager.get_chat(a_module, a_id, c_id, build_dummy=True)
-        else:
-            obj.author = chat_manager.get_chat(a_module, a_id, build_dummy=True)
-        return obj
