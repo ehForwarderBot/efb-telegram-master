@@ -20,6 +20,7 @@ TelegramChatID = NewType('TelegramChatID', str)
 TelegramMessageID = NewType('TelegramMessageID', str)
 TgChatMsgIDStr = NewType('TgChatMsgIDStr', str)
 EFBChannelChatIDStr = NewType('EFBChannelChatIDStr', str)
+OldMsgID = Tuple[TelegramChatID, TelegramMessageID]
 # TelegramChatID = Union[str, int]
 # TelegramMessageID = Union[str, int]
 # TgChatMsgIDStr = str
@@ -95,6 +96,7 @@ def message_id_str_to_id(s: TgChatMsgIDStr) -> Tuple[TelegramChatID, TelegramMes
 
 
 def chat_id_to_str(channel_id: Optional[ModuleID] = None, chat_uid: Optional[ChatID] = None,
+                   group_id: Optional[ChatID] = None,
                    chat: Optional[EFBChat] = None, channel: Optional[EFBChannel] = None) -> EFBChannelChatIDStr:
     """
     Convert an unique identifier to EFB chat to a string.
@@ -115,20 +117,32 @@ def chat_id_to_str(channel_id: Optional[ModuleID] = None, chat_uid: Optional[Cha
     if chat:
         channel_id = chat.module_id
         chat_uid = chat.chat_uid
+        if chat.group:
+            group_id = chat.group.chat_uid or group_id
     if channel:
         channel_id = channel.channel_id
+    if group_id is None:
+        group_id = ChatID("__none__")
 
-    return EFBChannelChatIDStr(f"{channel_id} {chat_uid}")
+    return EFBChannelChatIDStr(f"{channel_id} {chat_uid} {group_id}")
 
 
-def chat_id_str_to_id(s: EFBChannelChatIDStr) -> Tuple[ModuleID, ChatID]:
+def chat_id_str_to_id(s: EFBChannelChatIDStr) -> Tuple[ModuleID, ChatID, Optional[ChatID]]:
     """
     Reverse of chat_id_to_str.
     Returns:
-        channel_id, chat_uid
+        channel_id, chat_uid, group_id
     """
-    chat_ids = s.split(" ", 1)
-    return ModuleID(chat_ids[0]), ChatID(chat_ids[1])
+    ids = s.split(" ", 2)
+    channel_id = ModuleID(ids[0])
+    chat_uid = ChatID(ids[1])
+    if len(ids) < 3:
+        group_id = None
+    elif ids[2] == "__none__":
+        group_id = None
+    else:
+        group_id = ChatID(ids[3])
+    return channel_id, chat_uid, group_id
 
 
 def convert_tgs_to_gif(tgs_file: IO[bytes], gif_file: IO[bytes]):

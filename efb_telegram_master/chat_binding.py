@@ -13,7 +13,7 @@ from telegram import Update, Message, Chat, TelegramError
 from telegram.ext import ConversationHandler, CommandHandler, CallbackQueryHandler, CallbackContext, Filters, \
     MessageHandler
 
-from ehforwarderbot import coordinator, EFBChat, EFBChannel
+from ehforwarderbot import coordinator, EFBChat, EFBChannel, MsgType
 from ehforwarderbot.exceptions import EFBChatNotFound, EFBOperationNotSupported
 from ehforwarderbot.types import ModuleID, ChatID
 from . import utils
@@ -21,6 +21,7 @@ from .chat import ETMChat
 from .constants import Emoji, Flags
 from .locale_mixin import LocaleMixin
 from .message import ETMMsg
+from .msg_type import TGMsgType
 from .utils import EFBChannelChatIDStr, TelegramChatID, TelegramMessageID
 
 if TYPE_CHECKING:
@@ -167,8 +168,9 @@ class ChatBindingManager(LocaleMixin):
             msg_log = self.db.get_msg_log(
                 master_msg_id=utils.message_id_to_str(
                     chat_id=rtm.chat_id, message_id=rtm.message_id))
-            if msg_log and msg_log.pickle:
-                chat: ETMChat = ETMMsg.unpickle(msg_log.pickle, chat_manager=self.chat_manager).chat
+            if msg_log:
+                chat: ETMChat = self.chat_manager.get_chat(
+                    *utils.chat_id_str_to_id(msg_log.slave_origin_uid))
                 tg_chat_id = message.chat_id
                 tg_msg_id = message.reply_text(self._("Processing...")).message_id
                 storage_id = (tg_chat_id, tg_msg_id)
@@ -242,7 +244,7 @@ class ChatBindingManager(LocaleMixin):
             chats: List[ETMChat] = []
             if source_chats:
                 for s_chat in source_chats:
-                    channel_id, chat_uid = utils.chat_id_str_to_id(s_chat)
+                    channel_id, chat_uid, _ = utils.chat_id_str_to_id(s_chat)
                     try:
                         coordinator.get_module_by_id(channel_id)
                     except NameError:
@@ -600,7 +602,7 @@ class ChatBindingManager(LocaleMixin):
 
         if chats and len(chats):
             if len(chats) == 1:
-                slave_channel_id, slave_chat_id = utils.chat_id_str_to_id(chats[0])
+                slave_channel_id, slave_chat_id, _ = utils.chat_id_str_to_id(chats[0])
                 # TODO: Channel might be gone, add a check here.
                 chat = self.chat_manager.get_chat(slave_channel_id, slave_chat_id)
                 if chat:
@@ -683,20 +685,17 @@ class ChatBindingManager(LocaleMixin):
 
         callback_idx = int(callback_uid.split()[1])
         chat: ETMChat = self.msg_storage[(tg_chat_id, tg_msg_id)].chats[callback_idx]
-        chat_uid = utils.chat_id_to_str(chat=chat)
         chat_display_name = chat.full_name
         self.msg_storage.pop((tg_chat_id, tg_msg_id), None)
         txt = self._("Reply to this message to chat with {0}.").format(chat_display_name)
-        msg_log = {"master_msg_id": utils.message_id_to_str(tg_chat_id, tg_msg_id),
-                   "text": txt,
-                   "msg_type": "Text",
-                   "sent_to": "master",
-                   "slave_origin_uid": chat_uid,
-                   "slave_origin_display_name": chat_display_name,
-                   "slave_member_uid": None,
-                   "slave_member_display_name": None,
-                   "slave_message_id": "__chathead__"}
-        self.db.add_msg_log(**msg_log)
+        chat_head_etm = ETMMsg()
+        chat_head_etm.chat = chat
+        chat_head_etm.author = self.chat_manager.self
+        chat_head_etm.uid = "__chathead__"
+        chat_head_etm.type = MsgType.Text
+        chat_head_etm.text = txt
+        chat_head_etm.type_telegram = TGMsgType.Text
+        self.db.add_or_update_message_log(chat_head_etm, update.effective_message)
         self.bot.edit_message_text(text=txt, chat_id=tg_chat_id, message_id=tg_msg_id)
         return ConversationHandler.END
 
@@ -746,7 +745,7 @@ class ChatBindingManager(LocaleMixin):
                                            message_id=msg_id)
                 return
             slave_chat_id = candidates[int(param.split(' ', 1)[1])]
-            module_id, chat_uid = utils.chat_id_str_to_id(slave_chat_id)
+            module_id, chat_uid, _ = utils.chat_id_str_to_id(slave_chat_id)
             chat = self.chat_manager.get_chat(module_id, chat_uid)
             self.channel.master_messages.process_telegram_message(update, context, channel_id=module_id,
                                                                   chat_id=chat_uid)
@@ -798,7 +797,7 @@ class ChatBindingManager(LocaleMixin):
                                                               len(chats)).format(len(chats)))
         picture: Optional[IO] = None
         pic_resized: Optional[IO] = None
-        channel_id, chat_uid = utils.chat_id_str_to_id(chats[0])
+        channel_id, chat_uid, _ = utils.chat_id_str_to_id(chats[0])
         if channel_id not in coordinator.slaves:
             self.logger.exception(f"Channel linked ({channel_id}) is not found.")
             return self.bot.reply_error(update, self._('Channel linked ({channel}) is not found.')
