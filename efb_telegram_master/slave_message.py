@@ -29,14 +29,12 @@ from .commands import ETMCommandMsgStorage
 from .constants import Emoji
 from .locale_mixin import LocaleMixin
 from .message import ETMMsg
-from .utils import TelegramChatID, TelegramMessageID
+from .utils import TelegramChatID, TelegramMessageID, OldMsgID
 
 if TYPE_CHECKING:
     from . import TelegramChannel
     from .bot_manager import TelegramBotManager
     from .db import DatabaseManager
-
-OldMsgID = Tuple[TelegramChatID, TelegramMessageID]
 
 
 class SlaveMessageProcessor(LocaleMixin):
@@ -120,7 +118,7 @@ class SlaveMessageProcessor(LocaleMixin):
         # When targeting a message (reply to)
         target_msg_id: Optional[TelegramMessageID] = None
         if isinstance(msg.target, EFBMsg):
-            self.logger.debug("[%s] Message is replying to %s.", msg.uid, msg.target)
+            self.logger.debug("[%s] Message is replying to %s.", msg.old_msg_iduid, msg.target)
             log = self.db.get_msg_log(
                 slave_msg_id=msg.target.uid,
                 slave_origin_uid=utils.chat_id_to_str(chat=msg.target.chat)
@@ -205,30 +203,7 @@ class SlaveMessageProcessor(LocaleMixin):
 
         etm_msg = ETMMsg.from_efbmsg(msg, self.db)
         etm_msg.put_telegram_file(tg_msg)
-        pickled_msg = etm_msg.pickle(self.db)
-        self.logger.debug("[%s] Pickle size: %s", xid, len(pickled_msg))
-        msg_log = {"master_msg_id": utils.message_id_to_str(tg_msg.chat.id, tg_msg.message_id),
-                   "text": msg.text or "Sent a %s." % msg.type.name,
-                   "msg_type": msg.type.name,
-                   "sent_to": "master" if msg.author.is_self else 'slave',
-                   "slave_origin_uid": utils.chat_id_to_str(chat=msg.chat),
-                   "slave_origin_display_name": msg.chat.chat_alias,
-                   "slave_member_uid": msg.author.chat_uid if not msg.author.is_self else None,
-                   "slave_member_display_name": msg.author.chat_alias if not msg.author.is_self else None,
-                   "slave_message_id": msg.uid,
-                   "update": msg.edit,
-                   "media_type": etm_msg.type_telegram.value,
-                   "file_id": etm_msg.file_id,
-                   "mime": etm_msg.mime,
-                   "pickle": pickled_msg
-                   }
-
-        if old_msg_id and old_msg_id != tg_msg.message_id:
-            msg_log['master_msg_id'] = utils.message_id_to_str(*old_msg_id)
-            msg_log['master_msg_id_alt'] = utils.message_id_to_str(tg_msg.chat.id, tg_msg.message_id)
-
-        # self.db.add_msg_log(**msg_log)
-        self.db.add_task(self.db.add_msg_log, tuple(), msg_log)
+        self.db.add_or_update_message_log(etm_msg, tg_msg, old_msg_id)
         # self.logger.debug("[%s] Message inserted/updated to the database.", xid)
 
     def get_slave_msg_dest(self, msg: EFBMsg) -> Tuple[str, Optional[TelegramChatID]]:
@@ -261,6 +236,7 @@ class SlaveMessageProcessor(LocaleMixin):
         tg_dest = self.channel.config['admins'][0]
 
         if tg_chat:  # if this chat is linked
+            # TODO: remove code for mute chats
             if tg_chat == ETMChat.MUTE_CHAT_ID:
                 tg_dest = None
             else:
@@ -567,10 +543,15 @@ class SlaveMessageProcessor(LocaleMixin):
 
         if msg.filename is None and msg.path is not None:
             file_name = os.path.basename(msg.path)
-            msg.text = self._("sent a file.")
         else:
             assert msg.filename is not None  # mypy compliance
             file_name = msg.filename
+
+        # Telegram Bot API drops everything after `;` in filenames
+        # Replace it with a space
+        # Note: it also seems to strip off a lot of unicode punctuations
+        file_name = file_name.replace(';', ' ')
+        msg.text = msg.text or self._("sent a file.")
         try:
             if old_msg_id:
                 if msg.edit_media:
@@ -761,7 +742,7 @@ class SlaveMessageProcessor(LocaleMixin):
                                   'Message ID %s from %s, status: %s.', status.msg_id, status.chat, status.reactions)
             return
 
-        old_msg: ETMMsg = ETMMsg.unpickle(old_msg_db.pickle, chat_manager=self.chat_manager)
+        old_msg: ETMMsg = old_msg_db.build_etm_msg(chat_manager=self.chat_manager)
         old_msg.reactions = status.reactions
         old_msg.edit = True
 
