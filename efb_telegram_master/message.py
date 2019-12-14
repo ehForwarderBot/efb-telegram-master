@@ -1,24 +1,28 @@
 import mimetypes
 import os
-import pickle
 import subprocess
 import tempfile
-from typing import Dict, Any, Optional, TYPE_CHECKING
+import logging
+from typing import Optional, TYPE_CHECKING
 
 import magic
 import telegram
 from PIL import Image
 from moviepy.video.io.VideoFileClip import VideoFileClip
+from telegram.error import BadRequest
 from typing.io import IO
 
-from ehforwarderbot import EFBMsg, coordinator, MsgType, ChatType
+from ehforwarderbot import EFBMsg, coordinator, MsgType
 from . import utils
 from .chat import ETMChat
-from .chat_object_cache import ChatObjectCacheManager
 from .msg_type import TGMsgType, get_msg_type
 
 if TYPE_CHECKING:
-    from .db import DatabaseManager
+    pass
+
+logger = logging.Logger(__name__)
+
+__all__ = ['ETMMsg']
 
 
 class ETMMsg(EFBMsg):
@@ -42,7 +46,11 @@ class ETMMsg(EFBMsg):
             # noinspection PyUnresolvedReferences
             bot = coordinator.master.bot_manager
 
-            file_meta = bot.get_file(self.file_id)
+            try:
+                file_meta = bot.get_file(self.file_id)
+            except BadRequest as e:
+                logger.exception("Bad request while trying to get file metadata: %s", e)
+                return
             if not self.mime:
                 ext = os.path.splitext(file_meta.file_path)[1]
                 mime = mimetypes.guess_type(file_meta.file_path, strict=False)[0]
