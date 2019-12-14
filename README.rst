@@ -438,8 +438,8 @@ Bot framework, ETM has the following limitations:
 - Some components in messages from slave channels are dropped:
     - @ references not referring to you.
 - The Telegram bot can only
-    - send you any file up to 50 MiB,
-    - receive file from you up to 20 MiB.
+    - send you any file up to 50 MB,
+    - receive file from you up to 20 MB.
 
 
 Experimental flags
