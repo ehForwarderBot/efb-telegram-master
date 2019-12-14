@@ -463,7 +463,7 @@ class MasterMessageProcessor(LocaleMixin):
             size_str = humanize.naturalsize(size, binary=True)
             max_size_str = humanize.naturalsize(telegram.constants.MAX_FILESIZE_DOWNLOAD, binary=True)
             raise EFBMessageError(
-                self._("Attachment is too large ({size}). Maximum allowed by Telegram is {max_size}. (AT01)").format(
+                self._("Attachment is too large ({size}). Maximum allowed by Telegram Bot API is {max_size}. (AT01)").format(
                     size=size_str, max_size=max_size_str))
 
     def delete_message(self, update: Update, context: CallbackContext):

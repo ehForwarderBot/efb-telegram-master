@@ -487,9 +487,9 @@ Forwarder Bot framework, ETM has the following limitations:
      * @ references not referring to you.
 
 * The Telegram bot can only
-     * send you any file up to 50 MiB,
+     * send you any file up to 50 MB,
 
-     * receive file from you up to 20 MiB.
+     * receive file from you up to 20 MB.
 
 
 Experimental flags
