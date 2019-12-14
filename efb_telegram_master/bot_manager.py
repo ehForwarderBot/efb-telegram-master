@@ -48,18 +48,75 @@ class TelegramBotManager(LocaleMixin):
         enabled = False
 
         @classmethod
-        def exception_filter(cls, exception):
-            cls.logger.error("Exception: %s while sending request to Telegram server.")
+        def exception_filter(cls, exception: Exception):
+            cls.logger.exception("Exception: %s while sending request to Telegram server.", exception)
             return isinstance(exception, telegram.error.TimedOut)
 
         @classmethod
-        def retry_on_timeout(cls, fn):
+        def retry_on_timeout(cls, fn: Callable):
             """Infinitely retry for timed-out exceptions."""
             if not cls.enabled:
                 return fn
             cls.logger.debug("Trying to call %s with infinite retry.", fn)
             return retry(wait_exponential_multiplier=1e3, wait_exponential_max=180e3,
                          retry_on_exception=cls.exception_filter)(fn)
+
+        @classmethod
+        def caption_strip_class_on_failure(cls, fn: Callable):
+            def caption_strip_class_on_failure_wrapper(*args, **kwargs):
+                try:
+                    return fn(*args, **kwargs)
+                except telegram.error.BadRequest as e:
+                    if e.message.lower().startswith("can't parse entities") and 'parse_mode' in kwargs:
+                        kwargs.pop("parse_mode")
+                        for i in args:
+                            if callable(getattr(i, 'seek', None)):
+                                i.seek(0)
+                        for i in kwargs.values():
+                            if callable(getattr(i, 'seek', None)):
+                                i.seek(0)
+                        return fn(*args, **kwargs)
+                    else:
+                        raise e
+            return caption_strip_class_on_failure_wrapper
+
+        @classmethod
+        def caption_affix_decorator(cls, fn: Callable):
+            fn = cls.caption_strip_class_on_failure(fn)
+
+            def caption_affix(self, *args, **kwargs):
+                prefix = kwargs.pop('prefix', '')
+                suffix = kwargs.pop('suffix', '')
+                text = kwargs.pop('caption', '')
+
+                file = args[1] if len(args) >= 2 else kwargs.get('file', None)
+                chat = args[0] if len(args) >= 1 else kwargs.get('chat_id', None)
+
+                if file:
+                    is_empty = self._detect_empty_file(file, chat, text, prefix, suffix)
+
+                    if is_empty:
+                        return is_empty
+
+                prefix = (prefix and (prefix + "\n")) or prefix
+                suffix = (suffix and ("\n" + suffix)) or suffix
+
+                if len(prefix + text + suffix) >= telegram.constants.MAX_CAPTION_LENGTH:
+                    full_message = io.StringIO(prefix + text + suffix)
+                    truncated = prefix + text[:100] + "\n...\n" + text[:-100] + suffix
+                    kwargs['caption'] = truncated
+                    msg = fn(self, *args, **kwargs)
+                    filename = "%s_%s.txt" % (args[0], msg.message_id)
+                    self.updater.bot.send_document(args[0], full_message, filename,
+                                                   reply_to_message_id=msg.message_id,
+                                                   caption=self._("Caption is truncated due to its length. "
+                                                                  "Full message is sent as attachment."))
+                    return msg
+                else:
+                    kwargs['caption'] = prefix + text + suffix
+                    return fn(self, *args, **kwargs)
+
+            return caption_affix
 
     def __init__(self, channel: 'TelegramChannel'):
         self.channel: 'TelegramChannel' = channel
@@ -186,7 +243,7 @@ class TelegramBotManager(LocaleMixin):
         try:
             return self.updater.bot.send_message(*args, **kwargs)
         except telegram.error.BadRequest as e:
-            if e.message.startswith("can't parse entities") and 'parse_mode' in kwargs:
+            if e.message.lower().startswith("can't parse entities") and 'parse_mode' in kwargs:
                 kwargs.pop("parse_mode")
                 return self.updater.bot.send_message(*args, **kwargs)
             else:
@@ -208,73 +265,14 @@ class TelegramBotManager(LocaleMixin):
             elif e.message == "message to edit not found":
                 kwargs.pop('message_id')
                 return self.updater.bot.send_message(*args, **kwargs)
-            elif e.message.startswith("can't parse entities") and 'parse_mode' in kwargs:
+            elif e.message.lower().startswith("can't parse entities") and 'parse_mode' in kwargs:
                 kwargs.pop("parse_mode")
                 return self.updater.bot.edit_message_text(*args, **kwargs)
             else:
                 raise e
 
-    # @Decorator
-    def caption_affix_decorator(fn: Callable):  # type: ignore
-        def caption_affix(self, *args, **kwargs):
-            prefix = kwargs.pop('prefix', '')
-            suffix = kwargs.pop('suffix', '')
-            text = kwargs.pop('caption', '')
-
-            file = args[1] if len(args) >= 2 else kwargs.get('file', None)
-            chat = args[0] if len(args) >= 1 else kwargs.get('chat_id', None)
-
-            if file:
-                is_empty = self._detect_empty_file(file, chat, text, prefix, suffix)
-
-                if is_empty:
-                    return is_empty
-
-            prefix = (prefix and (prefix + "\n")) or prefix
-            suffix = (suffix and ("\n" + suffix)) or suffix
-
-            if len(prefix + text + suffix) >= telegram.constants.MAX_CAPTION_LENGTH:
-                full_message = io.StringIO(prefix + text + suffix)
-                truncated = prefix + text[:100] + "\n...\n" + text[:-100] + suffix
-                kwargs['caption'] = truncated
-                msg = fn(self, *args, **kwargs)
-                filename = "%s_%s.txt" % (args[0], msg.message_id)
-                self.updater.bot.send_document(args[0], full_message, filename,
-                                               reply_to_message_id=msg.message_id,
-                                               caption=self._("Caption is truncated due to its length. "
-                                                              "Full message is sent as attachment."))
-                return msg
-            else:
-                kwargs['caption'] = prefix + text + suffix
-                return fn(self, *args, **kwargs)
-
-        return caption_affix
-
     @Decorators.retry_on_timeout
-    @caption_affix_decorator
-    def send_picture(self, *args, **kwargs):
-        """
-        Send a picture.
-
-        Takes exactly same parameters as telegram.bot.send_picture,
-        plus the following.
-
-        Fallback to document when failed to send.
-
-        Args:
-            prefix (str, optional): Prefix of the caption. Default: ""
-            suffix (str, optional): Suffix of the caption. Default: ""
-
-        Returns:
-            telegram.Message
-        """
-        try:
-            return self.updater.bot.send_picture(*args, **kwargs)
-        except telegram.error.BadRequest:
-            return self.updater.bot.send_document(*args, **kwargs)
-
-    @Decorators.retry_on_timeout
-    @caption_affix_decorator
+    @Decorators.caption_affix_decorator
     def send_audio(self, *args, **kwargs):
         """
         Send an audio file.
@@ -297,7 +295,7 @@ class TelegramBotManager(LocaleMixin):
             return self.updater.bot.send_document(*args, **kwargs)
 
     @Decorators.retry_on_timeout
-    @caption_affix_decorator
+    @Decorators.caption_affix_decorator
     def send_voice(self, *args, **kwargs):
         """
         Send an voice message.
@@ -320,7 +318,7 @@ class TelegramBotManager(LocaleMixin):
             return self.updater.bot.send_document(*args, **kwargs)
 
     @Decorators.retry_on_timeout
-    @caption_affix_decorator
+    @Decorators.caption_affix_decorator
     def send_video(self, *args, **kwargs):
         """
         Send an voice message.
@@ -343,7 +341,7 @@ class TelegramBotManager(LocaleMixin):
             return self.updater.bot.send_document(*args, **kwargs)
 
     @Decorators.retry_on_timeout
-    @caption_affix_decorator
+    @Decorators.caption_affix_decorator
     def send_document(self, *args, **kwargs):
         """
         Send a document.
@@ -361,7 +359,7 @@ class TelegramBotManager(LocaleMixin):
         return self.updater.bot.send_document(*args, **kwargs)
 
     @Decorators.retry_on_timeout
-    @caption_affix_decorator
+    @Decorators.caption_affix_decorator
     def send_animation(self, *args, **kwargs):
         """
         Send a document.
@@ -379,7 +377,7 @@ class TelegramBotManager(LocaleMixin):
         return self.updater.bot.send_animation(*args, **kwargs)
 
     @Decorators.retry_on_timeout
-    @caption_affix_decorator
+    @Decorators.caption_affix_decorator
     def send_photo(self, *args, **kwargs):
         """
         Send a document.
@@ -394,7 +392,10 @@ class TelegramBotManager(LocaleMixin):
         Returns:
             telegram.Message
         """
-        return self.updater.bot.send_photo(*args, **kwargs)
+        try:
+            return self.updater.bot.send_photo(*args, **kwargs)
+        except telegram.error.BadRequest:
+            return self.updater.bot.send_document(*args, **kwargs)
 
     @Decorators.retry_on_timeout
     def send_chat_action(self, *args, **kwargs):
@@ -426,7 +427,7 @@ class TelegramBotManager(LocaleMixin):
                                message_id=update.effective_message.message_id)
 
     @Decorators.retry_on_timeout
-    @caption_affix_decorator
+    @Decorators.caption_affix_decorator
     def edit_message_caption(self, *args, **kwargs):
         return self.updater.bot.edit_message_caption(*args, **kwargs)
 
