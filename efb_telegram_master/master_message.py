@@ -113,6 +113,10 @@ class MasterMessageProcessor(LocaleMixin):
 
     def enqueue_message(self, update: Update, context: CallbackContext):
         self.message_queue.put((update, context))
+        if not self.message_worker_thread.is_alive():
+            if update.effective_message:
+                update.effective_message.reply_text(
+                    self._("ETM message worker is not running due to unforeseen reason. This might be a bug. Please see log for details."))
 
     def msg(self, update: Update, context: CallbackContext):
         """
