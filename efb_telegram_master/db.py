@@ -364,26 +364,24 @@ class DatabaseManager:
             if master_msg_id != old_message_id_str:
                 master_msg_id, master_msg_id_alt = old_message_id_str, master_msg_id
 
-        slave_message_id = msg.uid or f"{self.FAIL_FLAG}.{time.time()}"
-        updates = {
-            'master_msg_id_alt': master_msg_id_alt,
-            'text': msg.text,
-            'slave_origin_uid': chat_id_to_str(chat=msg.chat),
-            'slave_member_uid': chat_id_to_str(chat=msg.author),
-            'msg_type': msg.type.name,
-            'sent_to': msg.deliver_to.channel_id,
-            'slave_message_id': slave_message_id,
-            'media_type': msg.type_telegram.value,
-            'file_id': msg.file_id,
-            'mime': msg.mime,
-        }
+        row: MsgLog = MsgLog.get_or_none(MsgLog.master_msg_id == master_msg_id) or MsgLog()
+
+        row.master_msg_id = master_msg_id
+        row.master_msg_id_alt = master_msg_id_alt
+        row.text = msg.text
+        row.slave_origin_uid = chat_id_to_str(chat=msg.chat)
+        row.slave_member_uid = chat_id_to_str(chat=msg.author)
+        row.msg_type = msg.type.name
+        row.sent_to = msg.deliver_to.channel_id
+        row.slave_message_id = msg.uid or f"{self.FAIL_FLAG}.{time.time()}"
+        row.media_type = msg.type_telegram.value
+        row.file_id = msg.file_id
+        row.mime = msg.mime
         pickle_data = self.pickle_misc_msg(msg)
         if pickle_data:
-            updates['pickle'] = pickle_data
-        MsgLog.insert(
-            master_msg_id=master_msg_id,
-            **updates
-        ).on_conflict("update", conflict_target=[MsgLog.master_msg_id], update=updates).execute()
+            row.pickle = pickle_data
+
+        row.save()
 
     @staticmethod
     def get_msg_log(master_msg_id: Optional[TgChatMsgIDStr] = None,

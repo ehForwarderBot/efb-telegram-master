@@ -92,8 +92,18 @@ class MasterMessageProcessor(LocaleMixin):
                 self.message_queue.task_done()
                 return
             update, context = content
-            self.msg(update, context)
-            self.message_queue.task_done()
+            try:
+                self.msg(update, context)
+            except Exception as e:
+                self.logger.exception(
+                    "Error [%r] occurred while processing update %s.", e, update)
+                if update.effective_message:
+                    update.effective_message.reply_text(
+                        self._("Unknown error has occurred while "
+                               "trying to process this message. See log for "
+                               "details.\n\n{error!r}").format(error=e))
+            finally:
+                self.message_queue.task_done()
 
     def stop_worker(self):
         if not self.message_worker_thread.is_alive():
@@ -103,6 +113,10 @@ class MasterMessageProcessor(LocaleMixin):
 
     def enqueue_message(self, update: Update, context: CallbackContext):
         self.message_queue.put((update, context))
+        if not self.message_worker_thread.is_alive():
+            if update.effective_message:
+                update.effective_message.reply_text(
+                    self._("ETM message worker is not running due to unforeseen reason. This might be a bug. Please see log for details."))
 
     def msg(self, update: Update, context: CallbackContext):
         """
