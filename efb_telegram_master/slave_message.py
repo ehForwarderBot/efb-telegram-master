@@ -236,11 +236,7 @@ class SlaveMessageProcessor(LocaleMixin):
         tg_dest = self.channel.config['admins'][0]
 
         if tg_chat:  # if this chat is linked
-            # TODO: remove code for mute chats
-            if tg_chat == ETMChat.MUTE_CHAT_ID:
-                tg_dest = None
-            else:
-                tg_dest = int(utils.chat_id_str_to_id(tg_chat)[1])
+            tg_dest = int(utils.chat_id_str_to_id(tg_chat)[1])
 
         msg_template = self.generate_message_template(msg, tg_chat, multi_slaves)
         self.logger.debug("[%s] Message is sent to Telegram chat %s, with header \"%s\".",
@@ -698,8 +694,6 @@ class SlaveMessageProcessor(LocaleMixin):
                 slave_origin_uid=utils.chat_id_to_str(chat=status.message.chat))
             if old_msg:
                 old_msg_id: OldMsgID = utils.message_id_str_to_id(old_msg.master_msg_id)
-                if old_msg_id[0] == ETMChat.MUTE_CHAT_ID:
-                    return
                 self.logger.debug("Found message to delete in Telegram: %s.%s",
                                   *old_msg_id)
                 try:
