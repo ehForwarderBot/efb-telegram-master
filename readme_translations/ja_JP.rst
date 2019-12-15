@@ -13,7 +13,7 @@ EFB Telegram Master Channel (ETM)
 .. image:: https://github.com/blueset/efb-telegram-master/raw/master/banner.png
    :alt: Banner
 
-`README in other languages <./readme_translations>`_.
+`他の言語でREADMEを読む <./readme_translations>`_
 
 **Channel ID**: ``blueset.telegram``
 
@@ -21,15 +21,14 @@ ETM is a Telegram Master Channel for EH Forwarder Bot, based on
 Telegram Bot API, ``python-telegram-bot``.
 
 
-Beta version
-============
+ベータバージョン
+================
 
-This is an unstable beta version, and its functionality may change at
-any time.
+このバージョンは不安定のバージョンであり、機能を変わる場合もあります。
 
 
-Requirements
-============
+条件
+====
 
 * Python >= 3.6
 
