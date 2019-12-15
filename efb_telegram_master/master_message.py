@@ -293,13 +293,12 @@ class MasterMessageProcessor(LocaleMixin):
 
             m.deliver_to = coordinator.slaves[channel]
             if target and target_log is not None and target_channel == channel:
-                if target_log.pickle:
-                    trgt_msg: ETMMsg = target_log.build_etm_msg(self.chat_manager, recur=False)
-                    trgt_msg.target = None
-                    m.target = trgt_msg
+                trgt_msg: ETMMsg = target_log.build_etm_msg(self.chat_manager, recur=False)
+                trgt_msg.target = None
+                m.target = trgt_msg
 
-                    self.logger.debug("[%s] This message replies to another message of the same channel.\n"
-                                      "Chat ID: %s; Message ID: %s.", message_id, trgt_msg.chat.chat_uid, trgt_msg.uid)
+                self.logger.debug("[%s] This message replies to another message of the same channel.\n"
+                                  "Chat ID: %s; Message ID: %s.", message_id, trgt_msg.chat.chat_uid, trgt_msg.uid)
             # Type specific stuff
             self.logger.debug("[%s] Message type from Telegram: %s", message_id, mtype)
 
