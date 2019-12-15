@@ -4,6 +4,7 @@ import datetime
 import logging
 import pickle
 import time
+from functools import partial
 from queue import Queue
 from threading import Thread
 from typing import List, Optional, Tuple, Callable, Sequence, Any, Dict, Collection
@@ -387,7 +388,14 @@ class DatabaseManager:
             if master_msg_id != old_message_id_str:
                 master_msg_id, master_msg_id_alt = old_message_id_str, master_msg_id
 
-        row: MsgLog = MsgLog.get_or_none(MsgLog.master_msg_id == master_msg_id) or MsgLog()
+        row: MsgLog
+        r = MsgLog.get_or_none(MsgLog.master_msg_id == master_msg_id)
+        if r is not None:
+            row = r
+            save = row.save
+        else:
+            row = MsgLog()
+            save = partial(row.save, force_insert=True)
 
         row.master_msg_id = master_msg_id
         row.master_msg_id_alt = master_msg_id_alt
@@ -404,7 +412,7 @@ class DatabaseManager:
         if pickle_data:
             row.pickle = pickle_data
 
-        row.save()
+        save()
 
     @staticmethod
     def get_msg_log(master_msg_id: Optional[TgChatMsgIDStr] = None,
