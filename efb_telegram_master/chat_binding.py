@@ -273,10 +273,7 @@ class ChatBindingManager(LocaleMixin):
         chats_per_page = self.channel.flag("chats_per_page")
         for idx in range(offset, min(offset + chats_per_page, chat_list.length)):
             chat = chat_list.chats[idx]
-            # TODO: Remove code for muted chats.
-            if chat.muted:
-                mode = Emoji.MUTED
-            elif chat.linked:
+            if chat.linked:
                 mode = Emoji.LINK
             else:
                 mode = ""
@@ -400,10 +397,7 @@ class ChatBindingManager(LocaleMixin):
         chat_display_name = chat.full_name
         self.msg_storage[(tg_chat_id, tg_msg_id)].chats = [chat]
         txt = self._("You've selected chat {0}.").format(html.escape(chat_display_name))
-        # TODO: Remove code for muted chats.
-        if chat.muted:
-            txt += self._("\nThis chat is currently muted.")
-        elif chat.linked:
+        if chat.linked:
             txt += self._("\nThis chat has already linked to Telegram.")
         txt += self._("\nWhat would you like to do?\n\n"
                       "<i>* If the link button doesn't work for you, please try to link manually.</i>")
@@ -506,10 +500,6 @@ class ChatBindingManager(LocaleMixin):
         txt = self._('Trying to link chat {0}...').format(chat_display_name)
         msg = self.bot.send_message(tg_chat_to_link, text=txt)
 
-        # TODO: remove mute related code
-        if chat.muted:
-            chat.unlink()
-
         chat.link(self.channel.channel_id, tg_chat_to_link, self.channel.flag("multiple_slave_chats"))
 
         txt = self._("Chat {0} is now linked.").format(chat_display_name)
@@ -518,7 +508,6 @@ class ChatBindingManager(LocaleMixin):
         self.bot.edit_message_text(chat_id=storage_key[0],
                                    message_id=storage_key[1],
                                    text=txt)
-        # TODO: show error message on the ``else`` case.
         self.msg_storage.pop(storage_key, None)
 
     def unlink_all(self, update: Update, context: CallbackContext):

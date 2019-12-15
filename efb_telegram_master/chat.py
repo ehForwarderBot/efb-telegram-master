@@ -15,8 +15,6 @@ if TYPE_CHECKING:
 
 
 class ETMChat(EFBChat):
-    # Constant
-    MUTE_CHAT_ID = "__muted__"
 
     _last_message_time: Optional[datetime] = None
     _last_message_time_query: float = 0
@@ -114,11 +112,6 @@ class ETMChat(EFBChat):
         self._linked = self.db.get_chat_assoc(
             slave_uid=utils.chat_id_to_str(self.module_id, self.chat_uid)
         )
-
-    @property
-    def muted(self) -> bool:
-        # TODO: remove mute related code
-        return self.MUTE_CHAT_ID in self.linked
 
     @property
     def full_name(self) -> str:
