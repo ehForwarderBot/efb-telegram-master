@@ -188,7 +188,8 @@ class ETMMsg(EFBMsg):
             if self.type_telegram == TGMsgType.Audio:
                 self.file_id = message.audio.file_id
                 self.mime = message.audio.mime_type
-                self.filename = f"{message.audio.title} - {message.audio.performer}{mimetypes.guess_extension(self.mime)}"
+                extension = mimetypes.guess_extension(message.audio.mime_type)
+                self.filename = f"{message.audio.title} - {message.audio.performer}{extension}"
             elif self.type_telegram == TGMsgType.Sticker:
                 self.file_id = message.sticker.file_id
                 self.mime = 'image/webp'

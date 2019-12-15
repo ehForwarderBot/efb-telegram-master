@@ -15,7 +15,7 @@ from telegram.ext import ConversationHandler, CommandHandler, CallbackQueryHandl
 
 from ehforwarderbot import coordinator, EFBChat, EFBChannel, MsgType
 from ehforwarderbot.exceptions import EFBChatNotFound, EFBOperationNotSupported
-from ehforwarderbot.types import ModuleID, ChatID
+from ehforwarderbot.types import ModuleID, ChatID, MessageID
 from . import utils
 from .chat import ETMChat
 from .constants import Emoji, Flags
@@ -680,7 +680,7 @@ class ChatBindingManager(LocaleMixin):
         chat_head_etm = ETMMsg()
         chat_head_etm.chat = chat
         chat_head_etm.author = self.chat_manager.self
-        chat_head_etm.uid = "__chathead__"
+        chat_head_etm.uid = MessageID("__chathead__")
         chat_head_etm.type = MsgType.Text
         chat_head_etm.text = txt
         chat_head_etm.type_telegram = TGMsgType.Text
