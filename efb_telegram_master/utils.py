@@ -122,7 +122,7 @@ def chat_id_to_str(channel_id: Optional[ModuleID] = None, chat_uid: Optional[Cha
     if channel:
         channel_id = channel.channel_id
     if group_id is None:
-        group_id = ChatID("__none__")
+        return EFBChannelChatIDStr(f"{channel_id} {chat_uid}")
 
     return EFBChannelChatIDStr(f"{channel_id} {chat_uid} {group_id}")
 
@@ -137,8 +137,6 @@ def chat_id_str_to_id(s: EFBChannelChatIDStr) -> Tuple[ModuleID, ChatID, Optiona
     channel_id = ModuleID(ids[0])
     chat_uid = ChatID(ids[1])
     if len(ids) < 3:
-        group_id = None
-    elif ids[2] == "__none__":
         group_id = None
     else:
         group_id = ChatID(ids[3])
