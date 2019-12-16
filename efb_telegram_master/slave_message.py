@@ -118,7 +118,7 @@ class SlaveMessageProcessor(LocaleMixin):
         # When targeting a message (reply to)
         target_msg_id: Optional[TelegramMessageID] = None
         if isinstance(msg.target, EFBMsg):
-            self.logger.debug("[%s] Message is replying to %s.", msg.old_msg_iduid, msg.target)
+            self.logger.debug("[%s] Message is replying to %s.", msg.uid, msg.target)
             log = self.db.get_msg_log(
                 slave_msg_id=msg.target.uid,
                 slave_origin_uid=utils.chat_id_to_str(chat=msg.target.chat)

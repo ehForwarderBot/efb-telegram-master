@@ -4,18 +4,20 @@ import datetime
 import logging
 import pickle
 import time
+from functools import partial
 from queue import Queue
 from threading import Thread
-from typing import List, Optional, Tuple, Callable, Sequence, Any, Dict
+from typing import List, Optional, Tuple, Callable, Sequence, Any, Dict, Collection
 
 from peewee import Model, TextField, DateTimeField, CharField, SqliteDatabase, DoesNotExist, fn, BlobField, \
     OperationalError
 from playhouse.migrate import SqliteMigrator, migrate
 from telegram import Message
+from typing_extensions import TypedDict
 
 from ehforwarderbot import utils, EFBChannel, EFBChat, EFBMsg, ChatType, coordinator, MsgType
-from ehforwarderbot.types import ModuleID, ChatID, MessageID
-from ehforwarderbot.message import EFBMsgSubstitutions
+from ehforwarderbot.types import ModuleID, ChatID, MessageID, ReactionName
+from ehforwarderbot.message import EFBMsgSubstitutions, EFBMsgCommands, EFBMsgAttribute
 from . import ETMChat
 from .chat_object_cache import ChatObjectCacheManager
 from .message import ETMMsg
@@ -24,6 +26,23 @@ from .utils import TelegramChatID, EFBChannelChatIDStr, TgChatMsgIDStr, message_
     chat_id_to_str, OldMsgID, chat_id_str_to_id
 
 database = SqliteDatabase(None)
+
+PickledDict = TypedDict('PickledDict', {
+    "target": EFBChannelChatIDStr,
+    "is_system": bool,
+    "attributes": EFBMsgAttribute,
+    "commands": EFBMsgCommands,
+    "substitutions": Dict[Tuple[int, int], EFBChannelChatIDStr],
+    "reactions": Dict[ReactionName, Collection[EFBChannelChatIDStr]]
+}, total=False)
+"""
+- ``target``: ``master_msg_id`` of the target message
+- ``is_system``
+- ``attributes``
+- ``commands``
+- ``substitutions``: ``Dict[Tuple[int, int], SlaveChatID]``
+- ``reactions``: ``Dict[str, Collection[SlaveChatID]]``
+"""
 
 
 class BaseModel(Model):
@@ -88,9 +107,11 @@ class MsgLog(BaseModel):
             msg.author = chat_manager.get_chat(a_module, a_id, a_grp, build_dummy=True)
         msg.text = self.text
         try:
-            msg.deliver_to = coordinator.get_module_by_id(self.sent_to)
+            to_module = coordinator.get_module_by_id(self.sent_to)
+            if isinstance(to_module, EFBChannel):
+                msg.deliver_to = to_module
         except NameError:
-            msg.deliver_to = None
+            pass
         msg.type = MsgType(self.msg_type)
         msg.type_telegram = TGMsgType(self.media_type)
         msg.mime = self.mime or None
@@ -105,7 +126,7 @@ class MsgLog(BaseModel):
         - ``reactions``: ``Dict[str, Collection[SlaveChatID]]``
         """
         if self.pickle:
-            misc_data = pickle.loads(self.pickle)
+            misc_data: PickledDict = pickle.loads(self.pickle)
 
             if 'target' in misc_data and recur:
                 target_row = self.get_or_none(MsgLog.master_msg_id == misc_data['target'])
@@ -293,28 +314,31 @@ class DatabaseManager:
         - ``reactions``: ``Dict[str, Collection[SlaveChatID]]``
         """
 
-        data = {}
+        data: PickledDict = {}
         if message.is_system:
-            data['is_system'] = message.is_system,
+            data['is_system'] = message.is_system
         if message.attributes:
-            data['attributes'] = message.attributes,
+            data['attributes'] = message.attributes
         if message.commands:
-            data['commands'] = message.commands,
+            data['commands'] = message.commands
         if message.substitutions:
             data['substitutions'] = {
                 k: chat_id_to_str(chat=v)
                 for k, v in message.substitutions.items()
-            } if message.substitutions else None
+            }
         if message.reactions:
             data['reactions'] = {
                 k: tuple(chat_id_to_str(chat=i) for i in v)
                 for k, v in message.reactions.items()
             }
         if message.target:
-            data['target'] = self.get_master_msg_id(message.target)
+            target_id = self.get_master_msg_id(message.target)
+            if target_id:
+                data['target'] = target_id
 
         if data:
             return pickle.dumps(data)
+        return None
 
     @staticmethod
     def get_chat_assoc(master_uid: Optional[EFBChannelChatIDStr] = None,
@@ -364,7 +388,14 @@ class DatabaseManager:
             if master_msg_id != old_message_id_str:
                 master_msg_id, master_msg_id_alt = old_message_id_str, master_msg_id
 
-        row: MsgLog = MsgLog.get_or_none(MsgLog.master_msg_id == master_msg_id) or MsgLog()
+        row: MsgLog
+        r = MsgLog.get_or_none(MsgLog.master_msg_id == master_msg_id)
+        if r is not None:
+            row = r
+            save = row.save
+        else:
+            row = MsgLog()
+            save = partial(row.save, force_insert=True)
 
         row.master_msg_id = master_msg_id
         row.master_msg_id_alt = master_msg_id_alt
@@ -381,7 +412,7 @@ class DatabaseManager:
         if pickle_data:
             row.pickle = pickle_data
 
-        row.save()
+        save()
 
     @staticmethod
     def get_msg_log(master_msg_id: Optional[TgChatMsgIDStr] = None,
