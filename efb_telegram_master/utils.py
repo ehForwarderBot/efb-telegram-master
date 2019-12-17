@@ -139,7 +139,7 @@ def chat_id_str_to_id(s: EFBChannelChatIDStr) -> Tuple[ModuleID, ChatID, Optiona
     if len(ids) < 3:
         group_id = None
     else:
-        group_id = ChatID(ids[3])
+        group_id = ChatID(ids[2])
     return channel_id, chat_uid, group_id
 
 
