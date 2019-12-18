@@ -43,6 +43,7 @@ def test_message_truncation(channel, bot_admin):
         message = channel.bot_manager.send_message(bot_admin, msg_body, prefix='Prefix')
         assert message.text.startswith('Prefix\n' + msg_body[:50])
         mock_send_document.assert_called()
+        assert mock_send_document.call_args[1]['filename'].endswith('txt')
 
 
 def test_malformed_markdown_text(channel, bot_admin):

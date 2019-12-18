@@ -14,6 +14,7 @@ from typing.io import IO
 
 from ehforwarderbot import EFBMsg, coordinator, MsgType
 from . import utils
+from .chat_object_cache import ChatObjectCacheManager
 from .chat import ETMChat
 from .msg_type import TGMsgType, get_msg_type
 
@@ -155,18 +156,18 @@ class ETMMsg(EFBMsg):
     filename: Optional[str] = property(get_filename, set_filename)  # type: ignore
 
     @staticmethod
-    def from_efbmsg(source: EFBMsg, db) -> 'ETMMsg':
+    def from_efbmsg(source: EFBMsg, chat_manager: ChatObjectCacheManager) -> 'ETMMsg':
         target = ETMMsg()
         target.__dict__.update(source.__dict__)
         if not isinstance(target.chat, ETMChat):
-            target.chat = ETMChat(db=db, chat=target.chat)
+            target.chat = chat_manager.update_chat_obj(target.chat)
         if not isinstance(target.author, ETMChat):
-            target.author = ETMChat(db=db, chat=target.author)
+            target.author = chat_manager.update_chat_obj(target.author)
         if isinstance(target.reactions, dict):
             for i in target.reactions:
                 if any(not isinstance(j, ETMChat) for j in target.reactions[i]):
                     # noinspection PyTypeChecker
-                    target.reactions[i] = list(map(lambda a: ETMChat(db=db, chat=a), target.reactions[i]))
+                    target.reactions[i] = list(map(lambda a: chat_manager.update_chat_obj(a), target.reactions[i]))
         return target
 
     def put_telegram_file(self, message: telegram.Message):

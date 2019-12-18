@@ -44,6 +44,7 @@ class ExperimentalFlagsManager(LocaleMixin):
     }
 
     def __init__(self, channel: 'TelegramChannel'):
+        self.channel = channel
         self.config: Dict[str, Any] = ExperimentalFlagsManager.DEFAULT_VALUES.copy()
         self.config.update(channel.config.get('flags', dict()))
 
@@ -65,7 +66,7 @@ def message_id_to_str(chat_id: Optional[TelegramChatID] = None,
                       message_id: Optional[TelegramMessageID] = None,
                       update: Optional[telegram.Update] = None) -> TgChatMsgIDStr:
     """
-    Convert an unique identifier to telegram message to a string.
+    Convert an unique identifier of Telegram message to a string.
 
     Args:
         update: PTB update object, provide either this or the other 2 below
@@ -139,11 +140,11 @@ def chat_id_str_to_id(s: EFBChannelChatIDStr) -> Tuple[ModuleID, ChatID, Optiona
     if len(ids) < 3:
         group_id = None
     else:
-        group_id = ChatID(ids[3])
+        group_id = ChatID(ids[2])
     return channel_id, chat_uid, group_id
 
 
-def convert_tgs_to_gif(tgs_file: IO[bytes], gif_file: IO[bytes]):
+def convert_tgs_to_gif(tgs_file: IO[bytes], gif_file: IO[bytes]) -> bool:
     # Import only upon calling the method due to added binary dependencies
     # (libcairo)
     from tgs.parsers.tgs import parse_tgs

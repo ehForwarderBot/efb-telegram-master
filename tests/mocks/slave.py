@@ -6,13 +6,14 @@ from logging import getLogger
 from ehforwarderbot import EFBChannel, EFBMsg, EFBStatus, ChannelType, MsgType, EFBChat, ChatType
 from ehforwarderbot.exceptions import EFBChatNotFound
 from ehforwarderbot.utils import extra
+from ehforwarderbot.types import ModuleID
 
 
 class MockSlaveChannel(EFBChannel):
 
     channel_name: str = "Mock Slave"
     channel_emoji: str = "➖"
-    channel_id: str = "tests.mocks.slave"
+    channel_id: str = ModuleID("tests.mocks.slave")
     channel_type: ChannelType = ChannelType.Slave
     supported_message_types: Set[MsgType] = {MsgType.Text, MsgType.Link}
     __version__: str = '0.0.1'
@@ -49,6 +50,7 @@ class MockSlaveChannel(EFBChannel):
         dave.chat_type = ChatType.User
         wonderland = EFBChat(self)
         wonderland.chat_name = "Wonderland"
+        wonderland.chat_alias = "仙境"
         wonderland.chat_uid = "wonderland001"
         wonderland.chat_type = ChatType.Group
         wonderland.members = [bob.copy(), carol.copy(), dave.copy()]
@@ -56,6 +58,10 @@ class MockSlaveChannel(EFBChannel):
             i.group = wonderland
             i.is_chat = False
         self.chats: List[EFBChat] = [alice, bob, wonderland]
+
+        self.chat_with_alias = bob
+        self.chat_without_alias = alice
+        self.group = wonderland
 
     def poll(self):
         self.polling.wait()

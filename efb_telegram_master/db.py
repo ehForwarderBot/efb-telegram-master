@@ -36,6 +36,8 @@ PickledDict = TypedDict('PickledDict', {
     "reactions": Dict[ReactionName, Collection[EFBChannelChatIDStr]]
 }, total=False)
 """
+Dict entries for ``pickle`` field of ``msglog`` log.
+
 - ``target``: ``master_msg_id`` of the target message
 - ``is_system``
 - ``attributes``

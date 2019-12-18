@@ -218,6 +218,7 @@ E.g.: ``/chat Eana`` will give you all chats has the word “Eana”.
     ID: <Chat Unique ID>
     Type: (User|Group)
     Mode: [Linked]
+    Notification: (ALL|MENTION|NONE)
     Other: <Python Dictionary String>
 
 
