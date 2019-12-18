@@ -55,7 +55,7 @@ def dump_config(file_path: Path, data):
         yaml.dump(data, file)
 
 
-@pytest.fixture(scope='class')
+@pytest.fixture(scope="module")
 def monkey_class():
     from _pytest.monkeypatch import MonkeyPatch
     mpatch = MonkeyPatch()
@@ -63,7 +63,7 @@ def monkey_class():
     mpatch.undo()
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="module")
 def coordinator(tmp_path_factory, monkey_class, bot_token, bot_admins) -> ehforwarderbot.coordinator:
     """Loaded coordinator with ETM and mock modules"""
     tmp_path = tmp_path_factory.mktemp("etm_test")
@@ -96,11 +96,11 @@ def coordinator(tmp_path_factory, monkey_class, bot_token, bot_admins) -> ehforw
         i.stop_polling()
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="module")
 def channel(coordinator) -> TelegramChannel:
     return coordinator.master
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="module")
 def slave(coordinator) -> MockSlaveChannel:
     return coordinator.slaves[MockSlaveChannel.channel_id]

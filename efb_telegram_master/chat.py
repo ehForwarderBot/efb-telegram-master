@@ -9,9 +9,10 @@ from . import utils
 from .constants import Emoji
 from .utils import EFBChannelChatIDStr
 
-
 if TYPE_CHECKING:
     from .db import DatabaseManager
+
+__all__ = ['ETMChat']
 
 
 class ETMChat(EFBChat):
@@ -57,6 +58,7 @@ class ETMChat(EFBChat):
             ID: <Chat Unique ID>
             Type: (User|Group)
             Mode: [Linked]
+            Notification: (ALL|MENTION|NONE)
             Other: <Python Dictionary String>
 
         If a string is provided instead of compiled regular expression pattern,
@@ -84,8 +86,9 @@ class ETMChat(EFBChat):
                        f"Alias: {self.chat_alias}\n" \
                        f"ID: {self.chat_uid}\n" \
                        f"Type: {self.chat_type}\n" \
-                       f"Mode: {mode_str}" \
-                       f"\nOther: {self.vendor_specific}"
+                       f"Mode: {mode_str}\n" \
+                       f"Notification: {self.notification.name}\n" \
+                       f"Other: {self.vendor_specific}"
         if isinstance(pattern, str):
             return pattern.lower() in entry_string.lower()
         else:  # pattern is re.Pattern
@@ -117,7 +120,6 @@ class ETMChat(EFBChat):
     def full_name(self) -> str:
         """Chat name with channel name and emoji"""
         chat_long_name = self.long_name
-        instance_id = None
         if self.module_name:
             instance_id_idx = self.module_id.find('#')
             if instance_id_idx >= 0:

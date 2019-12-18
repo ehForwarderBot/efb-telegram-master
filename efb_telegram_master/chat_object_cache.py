@@ -11,21 +11,20 @@ from .chat import ETMChat
 if TYPE_CHECKING:
     from . import TelegramChannel
 
+# Cache storage key: module_id, chat_id, group_id (if available)
+CacheKey = Tuple[ModuleID, ChatID, Optional[ChatID]]
+
 
 class ChatObjectCacheManager:
     """Maintain and update chat objects from all slave channels and
     middlewares.
     """
 
-    # Cache storage
-    # Key: module_id, chat_id, group_id (if available)
-    CacheKey = Tuple[ModuleID, ChatID, Optional[ChatID]]
-    cache: Dict[CacheKey, ETMChat] = dict()
-
     def __init__(self, channel: 'TelegramChannel'):
         self.channel = channel
         self.db = channel.db
         self.self = ETMChat(db=self.db, channel=self.channel).self()
+        self.cache: Dict[CacheKey, ETMChat] = dict()
         self.enrol(self.self)
 
         # load all chats from all slave channels and convert to ETMChat object

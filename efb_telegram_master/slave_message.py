@@ -201,7 +201,7 @@ class SlaveMessageProcessor(LocaleMixin):
         self.logger.debug("[%s] Message is sent to the user with telegram message id %s.%s.",
                           xid, tg_msg.chat.id, tg_msg.message_id)
 
-        etm_msg = ETMMsg.from_efbmsg(msg, self.db)
+        etm_msg = ETMMsg.from_efbmsg(msg, self.chat_manager)
         etm_msg.put_telegram_file(tg_msg)
         self.db.add_or_update_message_log(etm_msg, tg_msg, old_msg_id)
         # self.logger.debug("[%s] Message inserted/updated to the database.", xid)
@@ -224,11 +224,11 @@ class SlaveMessageProcessor(LocaleMixin):
             tg_chat = tg_chats[0]
         self.logger.debug("[%s] The message should deliver to %s", xid, tg_chat)
 
-        multi_slaves = False
+        singly_linked = True
         if tg_chat:
             slaves = self.db.get_chat_assoc(master_uid=tg_chat)
             if slaves and len(slaves) > 1:
-                multi_slaves = True
+                singly_linked = False
                 self.logger.debug("[%s] Sender is linked with other chats in a Telegram group.", xid)
         self.logger.debug("[%s] Message is in chat %s", xid, msg.chat)
 
@@ -236,9 +236,11 @@ class SlaveMessageProcessor(LocaleMixin):
         tg_dest = self.channel.config['admins'][0]
 
         if tg_chat:  # if this chat is linked
-            tg_dest = int(utils.chat_id_str_to_id(tg_chat)[1])
+            tg_dest = TelegramChatID(int(utils.chat_id_str_to_id(tg_chat)[1]))
+        else:
+            singly_linked = False
 
-        msg_template = self.generate_message_template(msg, tg_chat, multi_slaves)
+        msg_template = self.generate_message_template(msg, singly_linked)
         self.logger.debug("[%s] Message is sent to Telegram chat %s, with header \"%s\".",
                           xid, tg_dest, msg_template)
 
@@ -515,13 +517,15 @@ class SlaveMessageProcessor(LocaleMixin):
 
     @staticmethod
     def build_chat_info_inline_keyboard(msg: EFBMsg, msg_template: str, reactions: str,
-                                        reply_markup: Optional[telegram.InlineKeyboardMarkup],
-                                        silent: bool = False) -> telegram.InlineKeyboardMarkup:
+                                        reply_markup: Optional[telegram.InlineKeyboardMarkup]
+                                        ) -> telegram.InlineKeyboardMarkup:
         """
         Build inline keyboard markup with message header and footer (reactions). Buttons are attached
         before any other commands attached.
         """
-        description = [[telegram.InlineKeyboardButton(msg_template, callback_data="void")]]
+        description = []
+        if msg_template:
+            description.append([telegram.InlineKeyboardButton(msg_template, callback_data="void")])
         if msg.text:
             description.append([telegram.InlineKeyboardButton(msg.text, callback_data="void")])
         if reactions:
@@ -747,13 +751,13 @@ class SlaveMessageProcessor(LocaleMixin):
         # Go through the ordinary update process
         self.dispatch_message(old_msg, msg_template, old_msg_id=(chat_id, msg_id), tg_dest=chat_id)
 
-    def generate_message_template(self, msg: EFBMsg, tg_chat, multi_slaves: bool) -> str:
+    def generate_message_template(self, msg: EFBMsg, singly_linked: bool) -> str:
         msg_prefix = ""  # For group member name
         if msg.chat.chat_type == ChatType.Group:
             self.logger.debug("[%s] Message is from a group. Sender: %s", msg.uid, msg.author)
             msg_prefix = msg.author.long_name
 
-        if tg_chat and not multi_slaves:  # if singly linked
+        if singly_linked:
             if msg_prefix:  # if group message
                 msg_template = f"{msg_prefix}:"
             else:
@@ -777,7 +781,7 @@ class SlaveMessageProcessor(LocaleMixin):
             msg_template = f"{emoji_prefix} {name_prefix}:"
         else:
             if msg.chat == msg.author:
-                msg_template = f"\u2753 {msg.chat.long_name}:"
+                msg_template = f"{Emoji.UNKNOWN} {msg.chat.long_name}:"
             else:
-                msg_template = f"\u2753 {msg.author.long_name} ({msg.chat.display_name}):"
+                msg_template = f"{Emoji.UNKNOWN} {msg.author.long_name} ({msg.chat.display_name}):"
         return msg_template
