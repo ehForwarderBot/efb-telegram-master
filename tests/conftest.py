@@ -2,6 +2,7 @@ import pytest
 from pathlib import Path
 
 from ruamel.yaml import YAML
+from typing import List
 
 import ehforwarderbot.utils
 import ehforwarderbot.coordinator
@@ -17,32 +18,37 @@ def bot_info():
 
 
 @pytest.fixture('session')
-def bot_token(bot_info):
+def bot_token(bot_info) -> str:
     return bot_info['token']
 
 
 @pytest.fixture('session')
-def bot_admins(bot_info):
+def bot_id(bot_token) -> int:
+    return int(bot_token.split(":")[0])
+
+
+@pytest.fixture('session')
+def bot_admins(bot_info) -> List[int]:
     return bot_info['admins']
 
 
 @pytest.fixture('session')
-def bot_admin(bot_admins):
+def bot_admin(bot_admins) -> int:
     return bot_admins[0]
 
 
 @pytest.fixture('session')
-def bot_groups(bot_info):
+def bot_groups(bot_info) -> List[int]:
     return bot_info['groups']
 
 
 @pytest.fixture('session')
-def bot_group(bot_groups):
+def bot_group(bot_groups) -> int:
     return bot_groups[0]
 
 
 @pytest.fixture('session')
-def bot_channels(bot_info):
+def bot_channels(bot_info) -> List[int]:
     return bot_info['channels']
 
 
@@ -104,3 +110,35 @@ def channel(coordinator) -> TelegramChannel:
 @pytest.fixture(scope="module")
 def slave(coordinator) -> MockSlaveChannel:
     return coordinator.slaves[MockSlaveChannel.channel_id]
+
+
+# Isolation of unit tests and integration tests
+
+def pytest_addoption(parser):
+    parser.addoption(
+        "--mode",
+        action="store",
+        metavar="MODE",
+        default='unit',
+        choices=['unit', 'integration', 'both'],
+        help="run test of mode 'unit', 'integration', or 'both' (default: 'unit').",
+    )
+
+
+def pytest_configure(config):
+    # register an additional marker
+    config.addinivalue_line("markers", "unit: mark test as a unit test")
+    config.addinivalue_line("markers", "integration: mark test as an integration test")
+
+
+def pytest_runtest_setup(item):
+    is_unit = item.module.__name__.startswith('tests.unit')
+    is_integration = item.module.__name__.startswith('tests.integration')
+    mode = item.config.getoption("--mode")
+    if mode == 'unit' and not is_unit:
+        pytest.skip("test is a unit test", allow_module_level=True)
+    elif mode == 'integration' and not is_integration:
+        pytest.skip("test is an integration test", allow_module_level=True)
+
+    if is_integration:
+        item.fixturenames.append('poll_bot')

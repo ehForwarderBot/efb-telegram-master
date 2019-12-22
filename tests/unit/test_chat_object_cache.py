@@ -1,8 +1,9 @@
-from pytest import fixture
 from unittest.mock import patch
 
+from pytest import fixture
+
+from efb_telegram_master.chat_object_cache import ChatObjectCacheManager
 from ehforwarderbot import EFBChat
-from efb_telegram_master.chat_object_cache import ChatObjectCacheManager, coordinator
 
 
 @fixture(scope="function")
