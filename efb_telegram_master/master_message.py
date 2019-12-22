@@ -490,7 +490,7 @@ class MasterMessageProcessor(LocaleMixin):
             ))
         reply: Message = message.reply_to_message
         msg_log = self.db.get_msg_log(master_msg_id=utils.message_id_to_str(chat_id=reply.chat_id, message_id=reply.message_id))
-        if not msg_log or msg_log.slave_member_uid == self.db.FAIL_FLAG or not msg_log.pickle:
+        if not msg_log or msg_log.slave_member_uid == self.db.FAIL_FLAG:
             return self.bot.reply_error(update, self._(
                 "This message is not found in ETM database. You cannot remove it from its remote chat."
             ))

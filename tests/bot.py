@@ -11,7 +11,15 @@ def get_env(key):
 def get_bot():
     return {
         'token': get_env('token'),
-        'admins': get_env('admins').split(','),
-        'groups': get_env('groups').split(','),
-        'channels': get_env('channels').split(',')
+        'admins': list(map(int, get_env('admins').split(','))),
+        'groups': list(map(int, get_env('groups').split(','))),
+        'channels': list(map(int, get_env('channels').split(',')))
+    }
+
+
+def get_user_session():
+    return {
+        'user_session': get_env('user_session'),
+        'api_id': int(get_env('api_id')),
+        'api_hash': get_env('api_hash')
     }

@@ -1,6 +1,6 @@
 import time
 
-from pytest import fixture, mark
+from pytest import fixture
 
 from efb_telegram_master import chat_destination_cache
 from efb_telegram_master.utils import EFBChannelChatIDStr

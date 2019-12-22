@@ -38,6 +38,7 @@ setup(
         "Topic :: Communications :: Chat",
         "Topic :: Utilities"
     ],
+    tests_require=["pytest", "telethon", "pytest-dotenv"],
     install_requires=[
         "ehforwarderbot>=2.0.0b18",
         "python-telegram-bot>=12.1.0",
@@ -54,6 +55,7 @@ setup(
         "cjkwrap",
         "humanize",
         "tgs",
+        "typing-extensions>=3.7.4.1",
         "cairosvg",  # required by ``tgs`` to export GIF
     ],
     entry_points={
