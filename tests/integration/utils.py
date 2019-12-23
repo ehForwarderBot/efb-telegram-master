@@ -1,6 +1,10 @@
 from typing import Iterable
 from contextlib import contextmanager
 
+from telethon import TelegramClient
+from telethon.tl.types import ChatParticipantAdmin, ChannelParticipantsAdmins
+from telethon.tl.types.messages import ChatFull
+
 from efb_telegram_master import TelegramChannel
 from efb_telegram_master.utils import chat_id_to_str
 from ehforwarderbot import EFBChat
@@ -29,3 +33,12 @@ def link_chats(channel: TelegramChannel,
     db.remove_chat_assoc(master_uid=master_str)
     for i in backup:
         db.add_chat_assoc(master_str, i, multiple_slave=True)
+
+
+async def is_bot_admin(client: TelegramClient, bot_id: int, group):
+
+    async for admin in client.iter_participants(group, filter=ChannelParticipantsAdmins()):
+        if admin.id == bot_id:
+            return True
+
+    return False

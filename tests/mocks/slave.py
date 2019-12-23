@@ -24,13 +24,7 @@ class MockSlaveChannel(EFBChannel):
 
     polling = threading.Event()
 
-    __picture_dict = {
-        "alice": "A.png",
-        "bob": "B.png",
-        "carol": "C.png",
-        "dave": "D.png",
-        "wonderland001": "W.png"
-    }
+    __picture_dict: Dict[str, str] = {}
 
     # fields: name, type, notification, avatar, alias
     __chat_templates = [
@@ -159,7 +153,8 @@ class MockSlaveChannel(EFBChannel):
         for name, chat_type, notification, avatar, alias in self.__group_member_templates:
             chat = EFBChat(self)
             chat.chat_name = name
-            chat.chat_alias = alias
+            if alias is not None:
+                chat.chat_alias = f"{alias} @ {group.chat_name}"
             chat.chat_uid = ChatID(f"__chat_{hash(name)}__")
             chat.chat_type = chat_type
             chat.notification = notification
@@ -199,8 +194,8 @@ class MockSlaveChannel(EFBChannel):
         return self.chats.copy()
 
     def get_chat_picture(self, chat: EFBChat) -> Optional[IO[bytes]]:
-        if chat.chat_uid in self.__picture_dict:
-            return open('tests/mocks/' + self.__picture_dict[chat.chat_uid], 'rb')
+        if self.__picture_dict.get(chat.chat_uid):
+            return open(f'tests/mocks/{self.__picture_dict[chat.chat_uid]}', 'rb')
 
     def get_chats_by_criteria(self,
                               chat_type: Optional[ChatType] = None,

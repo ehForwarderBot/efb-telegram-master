@@ -10,6 +10,7 @@ from typing import Tuple, Dict, Optional, List, TYPE_CHECKING, IO, Sequence, Uni
 import telegram
 from PIL import Image
 from telegram import Update, Message, Chat, TelegramError
+from telegram.error import BadRequest
 from telegram.ext import ConversationHandler, CommandHandler, CallbackQueryHandler, CallbackContext, Filters, \
     MessageHandler
 
@@ -811,6 +812,11 @@ class ChatBindingManager(LocaleMixin):
                 try:
                     self.bot.set_chat_description(
                         tg_chat, self.truncate_ellipsis(desc, self.MAX_LEN_CHAT_DESC))
+                except BadRequest as e:
+                    if "Chat description is not modified" in e.message:
+                        pass
+                    else:
+                        self.logger.exception("Exception occurred while trying to update chat description: %s", e)
                 except TelegramError as e:  # description is not updated
                     self.logger.exception("Exception occurred while trying to update chat description: %s", e)
 

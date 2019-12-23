@@ -1,16 +1,11 @@
 import re
-from typing import cast
 
 from pytest import mark
-from telethon.events import NewMessage
 from telethon.tl.custom import Message
-from telethon.tl.types import Chat
 
 from ehforwarderbot.__version__ import __version__ as efb_version
-
 from .helper.filters import in_chats, regex
 from .utils import link_chats
-
 
 pytestmark = mark.asyncio
 

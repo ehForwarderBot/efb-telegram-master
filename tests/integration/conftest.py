@@ -1,3 +1,4 @@
+import logging
 import os
 import asyncio
 
@@ -59,6 +60,7 @@ async def helper(event_loop, user_session, api_id, api_hash, bot_id,
 
 @pytest.fixture(scope="module")
 def poll_bot(channel):
+    logging.root.level = logging.DEBUG
     channel.bot_manager.polling()
     yield channel.bot_manager
     channel.bot_manager.graceful_stop()

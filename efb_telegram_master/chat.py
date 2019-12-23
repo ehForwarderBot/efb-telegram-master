@@ -133,13 +133,16 @@ class ETMChat(EFBChat):
     @property
     def chat_title(self) -> str:
         """Chat title used in updating title for Telegram group.
+
+        Shows only alias if available.
+
         An asterisk (*) is added to the beginning if the channel is not
         running on its default instance.
         """
         non_default_instance_flag = "*" if "#" in self.module_id else ""
         return f"{non_default_instance_flag}" \
                f"{self.channel_emoji}{Emoji.get_source_emoji(self.chat_type)} " \
-               f"{self.chat_alias or self.chat_name}"
+               f"{self.display_name}"
 
     @property
     def last_message_time(self) -> datetime:

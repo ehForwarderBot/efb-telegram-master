@@ -9,7 +9,7 @@ under GPL v3.
 import re
 from typing import Optional, cast, Set
 
-from telethon.events import NewMessage
+from telethon.events import NewMessage, ChatAction
 from telethon.events.common import EventCommon
 from telethon.tl.custom import Message
 
@@ -192,3 +192,42 @@ class _HasButton(_Message):
 
 has_button = _HasButton()
 """Message has at least one button."""
+
+
+class _ChatAction(BaseFilter):
+    def filter(self, event) -> bool:
+        return isinstance(event, ChatAction.Event)
+
+    def __repr__(self):
+        return "ChatAction"
+
+
+chat_action = _ChatAction()
+
+
+class _NewTitle(_ChatAction):
+    def filter(self, event) -> bool:
+        if not super().filter(event):
+            return False
+        event = cast(ChatAction.Event, event)
+        return event.new_title is not None
+
+    def __repr__(self):
+        return "NewTitle"
+
+
+new_title = _NewTitle()
+
+
+class _NewPhoto(_ChatAction):
+    def filter(self, event) -> bool:
+        if not super().filter(event):
+            return False
+        event = cast(ChatAction.Event, event)
+        return event.new_photo is not None
+
+    def __repr__(self):
+        return "NewPhoto"
+
+
+new_photo = _NewPhoto()
