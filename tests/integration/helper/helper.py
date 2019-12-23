@@ -101,10 +101,10 @@ class TelegramIntegrationTestHelper:
         t = time.time() + timeout
         while t > time.time():
             time_left = t - time.time()
-            print("START TO WAIT FOR UPDATES")
+            # print("START TO WAIT FOR UPDATES")
             value = await asyncio.wait_for(self.queue.get(), time_left)
             self.queue.task_done()
-            print("EVENT =", value)
+            # print("EVENT =", value)
             if callable(event_filter) and event_filter(value):
                 return value
             elif event_filter is None:
