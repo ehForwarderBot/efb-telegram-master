@@ -42,8 +42,8 @@ def filter_chats(bot_id, bot_groups, bot_channels) -> Set[int]:
     """Only receive updates from the following chats"""
     chats = set()
     chats.add(bot_id)
-    chats.union(bot_groups)
-    chats.union(bot_channels)
+    chats = chats.union(bot_groups)
+    chats = chats.union(bot_channels)
     return chats
 
 

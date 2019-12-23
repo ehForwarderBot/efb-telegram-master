@@ -4,6 +4,7 @@ import datetime
 import logging
 import pickle
 import time
+from contextlib import suppress
 from functools import partial
 from queue import Queue
 from threading import Thread
@@ -108,12 +109,10 @@ class MsgLog(BaseModel):
         else:
             msg.author = chat_manager.get_chat(a_module, a_id, a_grp, build_dummy=True)
         msg.text = self.text
-        try:
+        with suppress(NameError):
             to_module = coordinator.get_module_by_id(self.sent_to)
             if isinstance(to_module, EFBChannel):
                 msg.deliver_to = to_module
-        except NameError:
-            pass
         msg.type = MsgType(self.msg_type)
         msg.type_telegram = TGMsgType(self.media_type)
         msg.mime = self.mime or None

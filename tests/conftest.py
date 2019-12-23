@@ -52,6 +52,11 @@ def bot_channels(bot_info) -> List[int]:
     return bot_info['channels']
 
 
+@pytest.fixture('session')
+def bot_channel(bot_channels) -> int:
+    return bot_channels[0]
+
+
 def dump_config(file_path: Path, data):
     """Dump YAML config to a file."""
     yaml = YAML()
