@@ -1,7 +1,7 @@
 import asyncio
 import os
 import time
-from typing import Tuple, Optional, Collection, Dict
+from typing import Tuple, Optional, Dict, cast, Iterable
 
 from telethon import TelegramClient
 from telethon.events import NewMessage, UserUpdate, MessageDeleted, MessageEdited, ChatAction
@@ -20,7 +20,7 @@ class TelegramIntegrationTestHelper:
                  session: str, api_id: int, api_hash: str,
                  loop: asyncio.AbstractEventLoop,
                  bot_id: int,
-                 chats: Collection[int] = tuple()):
+                 chats: Iterable[int] = tuple()):
         """
         Need to create a client with API key, hash, and a session file
         Need a list of whitelisted chat IDs
@@ -53,10 +53,12 @@ class TelegramIntegrationTestHelper:
         # Collect mappings from message ID to its chat (as Telegram API is not sending them)
         self.message_chat_map: Dict[int, TypeInputPeer] = dict()
 
-        self.chats = chats
+        self.chats = list(map(abs, chats))
         self.client.parse_mode = "html"
         self.client.add_event_handler(self.new_message_handler,
                                       NewMessage(chats=self.chats, incoming=True, from_users=[bot_id]))
+        # self.client.add_event_handler(self.new_message_handler,
+        #                               NewMessage(incoming=True))
         self.client.add_event_handler(self.deleted_message_handler, MessageDeleted(chats=self.chats))
         self.client.add_event_handler(self.update_handler, UserUpdate(chats=self.chats))
         self.client.add_event_handler(self.update_handler, MessageEdited(chats=self.chats))
@@ -99,12 +101,21 @@ class TelegramIntegrationTestHelper:
         t = time.time() + timeout
         while t > time.time():
             time_left = t - time.time()
+            print("START TO WAIT FOR UPDATES")
             value = await asyncio.wait_for(self.queue.get(), time_left)
             self.queue.task_done()
+            print("EVENT =", value)
             if callable(event_filter) and event_filter(value):
                 return value
             elif event_filter is None:
                 return value
+
+    async def wait_for_message_text(self, event_filter: BaseFilter = filters.everything,
+                                    timeout: float = 5.0) -> str:
+        """Short cut for "Wait for a text message and return its text"."""
+        event = await self.wait_for_event(filters.text & event_filter, timeout=timeout)
+        message: Message = cast(NewMessage.Event, event).message
+        return message.text
 
     # Context management
     # ------------------

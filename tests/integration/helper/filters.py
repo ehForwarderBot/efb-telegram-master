@@ -6,6 +6,7 @@ under GPL v3.
 
 .. _python-telegram-bot: https://github.com/python-telegram-bot/python-telegram-bot
 """
+import re
 from typing import Optional, cast, Set
 
 from telethon.events import NewMessage
@@ -158,6 +159,24 @@ class _TextMessage(_Message):
 
 text = _TextMessage()
 """Text messages"""
+
+
+class _RegexText(_TextMessage):
+    def __init__(self, pattern: str):
+        self.pattern = re.compile(pattern)
+
+    def filter(self, event: EventCommon):
+        if not super().filter(event):
+            return False
+        message: Message = cast(NewMessage.Event, event).message
+        return bool(self.pattern.search(message.text)) or bool(self.pattern.search(message.raw_text))
+
+    def __repr__(self):
+        return f"RegexText({self.pattern})"
+
+
+regex = _RegexText
+"""Match message text with regular expression"""
 
 
 class _HasButton(_Message):

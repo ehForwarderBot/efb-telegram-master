@@ -248,30 +248,13 @@ class TelegramChannel(EFBChannel):
             msg = self._("The channel {group_name} ({group_id}) is linked to:") \
                 .format(group_name=chat.title,
                         group_id=chat.id)
-            for i in links:
-                channel_id, chat_id, _ = etm_utils.chat_id_str_to_id(i)
-                chat_object = self.chat_manager.get_chat(channel_id, chat_id)
-                if chat_object:
-                    msg += f"\n- {chat_object.full_name}"
-                else:
-                    try:
-                        module = coordinator.get_module_by_id(channel_id)
-                        msg += self._("\n- {channel_emoji} {channel_name}: Unknown chat ({chat_id})").format(
-                            channel_emoji=module.channel_emoji,
-                            channel_name=module.channel_name,
-                            chat_id=chat_id
-                        )
-                    except NameError:
-                        # TRANSLATORS: ‘channel’ here means an EFB channel.
-                        msg += self._("\n- Unknown channel {channel_id}: ({chat_id})").format(
-                            channel_id=channel_id,
-                            chat_id=chat_id
-                        )
+            msg += self.build_link_chats_info_str(links)
         else:
             # TRANSLATORS: ‘channel’ here means an EFB channel.
             msg = self._("The channel {group_name} ({group_id}) is "
-                         "not linked to any remote chat. ").format(group_name=chat.title,
-                                                                   group_id=chat.id)
+                         "not linked to any remote chat. "
+                         "To link one, use /link.").format(group_name=chat.title,
+                                                           group_id=chat.id)
         return msg
 
     def info_group(self, update):
@@ -281,30 +264,42 @@ class TelegramChannel(EFBChannel):
             msg = self._("The group {group_name} ({group_id}) is linked to:").format(
                 group_name=update.message.chat.title,
                 group_id=update.message.chat_id)
-            for i in links:
-                channel_id, chat_id, _ = etm_utils.chat_id_str_to_id(i)
-                chat_object = self.chat_manager.get_chat(channel_id, chat_id)
-                if chat_object:
-                    msg += "\n- %s (%s:%s)" % (chat_object.full_name,
-                                               channel_id, chat_id)
-                else:
-                    try:
-                        module = coordinator.get_module_by_id(channel_id)
-                        msg += self._("\n- {channel_emoji} {channel_name}: Unknown chat ({chat_id})").format(
-                            channel_emoji=module.channel_emoji,
-                            channel_name=module.channel_name,
-                            chat_id=chat_id
-                        )
-                    except NameError:
-                        # TRANSLATORS: ‘channel’ here means an EFB channel.
-                        msg += self._("\n- Unknown channel {channel_id}: ({chat_id})").format(
-                            channel_id=channel_id,
-                            chat_id=chat_id
-                        )
+            msg += self.build_link_chats_info_str(links)
         else:
             msg = self._("The group {group_name} ({group_id}) is not linked to any remote chat. "
                          "To link one, use /link.").format(group_name=update.message.chat.title,
                                                            group_id=update.message.chat_id)
+        return msg
+
+    def build_link_chats_info_str(self, links: List[EFBChannelChatIDStr]) -> str:
+        """Build a string indicating all linked chats in argument.
+
+        Returns:
+            String that starts with a line break.
+        """
+        msg = ""
+        for i in links:
+            channel_id, chat_id, _ = etm_utils.chat_id_str_to_id(i)
+            chat_object = self.chat_manager.get_chat(channel_id, chat_id)
+            if chat_object:
+                msg += "\n- %s (%s:%s)" % (chat_object.full_name,
+                                           channel_id, chat_id)
+            else:
+                try:
+                    module = coordinator.get_module_by_id(channel_id)
+                    msg += self._(
+                        "\n- {channel_emoji} {channel_name}: Unknown chat ({channel_id}:{chat_id})").format(
+                        channel_emoji=module.channel_emoji,
+                        channel_name=module.channel_name,
+                        channel_id=channel_id,
+                        chat_id=chat_id
+                    )
+                except NameError:
+                    # TRANSLATORS: ‘channel’ here means an EFB channel.
+                    msg += self._("\n- Unknown channel {channel_id}: ({chat_id})").format(
+                        channel_id=channel_id,
+                        chat_id=chat_id
+                    )
         return msg
 
     def start(self, update: Update, context: CallbackContext):

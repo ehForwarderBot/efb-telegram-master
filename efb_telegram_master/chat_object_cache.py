@@ -1,3 +1,4 @@
+from contextlib import suppress
 from typing import TYPE_CHECKING, Optional, Dict, Tuple, Iterator, overload
 from typing_extensions import Literal
 from ehforwarderbot import coordinator
@@ -110,11 +111,9 @@ class ChatObjectCacheManager:
 
         # Only look up from slave channels as middlewares don’t have get_chat_by_id method.
         if module_id in coordinator.slaves:
-            try:
+            with suppress(EFBChatNotFound):
                 chat_obj = coordinator.slaves[module_id].get_chat(chat_id, group_id)
                 return self.compound_enrol(chat_obj)
-            except EFBChatNotFound:
-                pass
 
         if build_dummy:
             chat = ETMChat(db=self.db)
