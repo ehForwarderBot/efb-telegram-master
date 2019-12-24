@@ -19,6 +19,8 @@ __all__ = ["BaseFilter", "MergedFilter", "InvertedFilter",
            "message", "text", "has_button", "edited", "regex",
            "chat_action", "new_photo", "new_title"]
 
+from telethon.utils import resolve_id
+
 
 class BaseFilter:
     """

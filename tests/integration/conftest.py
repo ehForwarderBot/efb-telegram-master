@@ -1,6 +1,7 @@
 import logging
 import os
 import asyncio
+import time
 
 import pytest
 from telethon import TelegramClient
@@ -62,6 +63,7 @@ async def helper(event_loop, user_session, api_id, api_hash, bot_id,
 def poll_bot(channel):
     logging.root.level = logging.DEBUG
     channel.bot_manager.polling()
+    time.sleep(1)
     yield channel.bot_manager
     channel.bot_manager.graceful_stop()
 

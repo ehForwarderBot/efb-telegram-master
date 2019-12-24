@@ -55,11 +55,11 @@ class ExperimentalFlagsManager(LocaleMixin):
 
 
 def b64en(s: str) -> str:
-    return base64.b64encode(s.encode(), b"-_").decode().rstrip("=")
+    return base64.urlsafe_b64encode(s.encode()).decode().replace("=", "~")
 
 
 def b64de(s: str) -> str:
-    return base64.b64decode((s + '=' * (- len(s) % 4)).encode(), b"-_").decode()
+    return base64.urlsafe_b64decode(s.replace("~", "=").encode()).decode()
 
 
 def message_id_to_str(chat_id: Optional[TelegramChatID] = None,

@@ -4,7 +4,7 @@ from logging import getLogger
 from queue import Queue
 from typing import Set, Optional, List, IO, Dict, TypeVar
 
-from ehforwarderbot import EFBChannel, EFBMsg, EFBStatus, ChannelType, MsgType, EFBChat, ChatType
+from ehforwarderbot import EFBChannel, EFBMsg, EFBStatus, ChannelType, MsgType, EFBChat, ChatType, coordinator
 from ehforwarderbot.chat import EFBChatNotificationState
 from ehforwarderbot.exceptions import EFBChatNotFound
 from ehforwarderbot.types import ModuleID, ChatID, MessageID
@@ -92,6 +92,7 @@ class MockSlaveChannel(EFBChannel):
 
         self.messages: "Queue[EFBMsg]" = Queue()
         self.statuses: "Queue[EFBStatus]" = Queue()
+
 
     def generate_chats(self):
         """Generate a list of chats per the chat templates, and categorise
@@ -241,3 +242,30 @@ class MockSlaveChannel(EFBChannel):
         return args
 
     # TODO: Send types of messages and statuses to slave channels
+
+    def send_text_message(self, chat: EFBChat,
+                          author: Optional[EFBChat] = None,
+                          target: Optional[EFBMsg] = None) -> EFBMsg:
+        """Send a text message to master channel.
+        Leave author blank to use “self” of the chat.
+
+        Returns the message sent.
+        """
+        timestamp = time.time_ns()
+        if author is None:
+            author = EFBChat(self).self()
+            if chat.chat_type is ChatType.Group:
+                author.is_chat = False
+                author.group = chat
+        message = EFBMsg()
+        message.chat = chat
+        message.author = author
+        message.type = MsgType.Text
+        message.target = target
+        message.uid = f"__msg_id_{timestamp}__"
+        message.text = f"Content of message with ID {message.uid}"
+        message.deliver_to = coordinator.master
+
+        coordinator.send_message(message)
+
+        return message

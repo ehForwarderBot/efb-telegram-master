@@ -5,7 +5,7 @@ from pytest import mark
 from telethon.tl.custom import Message, MessageButton
 
 from ehforwarderbot import ChatType
-from .helper.filters import in_chats, text, has_button, edited, regex
+from .helper.filters import in_chats, has_button, edited, regex
 from .utils import link_chats
 
 pytestmark = mark.asyncio
@@ -16,7 +16,6 @@ async def test_chat_head_private_cancel(helper, client, bot_id, slave):
     message = await helper.wait_for_message(in_chats(bot_id) & has_button)
 
     # Cancel the message (cancel button)
-    await message.mark_read()
     await message.click(text="Cancel")
     # Wait message to be cancelled: cancelled message should be an edited one
     # with no button.
@@ -32,10 +31,10 @@ async def test_chat_head_private(helper, client, bot_id, slave):
     assert slave.channel_name in content
 
     buttons: List[List[MessageButton]] = message.buttons
-    assert message.button_count > 2, "more than 2 buttons found on the chats list."
-    assert ">" in buttons[-1][-1].text, "Next page button exists"
 
     # Test pagination
+    assert message.button_count > 2, "more than 2 buttons found on the chats list."
+    assert ">" in buttons[-1][-1].text, "Next page button exists"
     # Go to next page
     await message.mark_read()
     await buttons[-1][-1].click()
