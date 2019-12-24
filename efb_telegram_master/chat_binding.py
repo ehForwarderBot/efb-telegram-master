@@ -417,7 +417,7 @@ class ChatBindingManager(LocaleMixin):
                                                       .format(link_or_relink=btn_list[0].text),
                                                       callback_data="manual_link 0"))
         buttons = [btn_list,
-                   [telegram.InlineKeyboardButton("Cancel", callback_data=Flags.CANCEL_PROCESS)]]
+                   [telegram.InlineKeyboardButton(self._("Cancel"), callback_data=Flags.CANCEL_PROCESS)]]
 
         self.bot.edit_message_text(text=txt,
                                    chat_id=tg_chat_id,
