@@ -10,8 +10,6 @@ from .utils import link_chats, is_bot_admin
 pytestmark = mark.asyncio
 
 
-# /update_info
-
 async def test_update_info_private(helper, client, bot_id):
     await client.send_message(bot_id, "/update_info")
     await helper.wait_for_event(text & in_chats(bot_id))

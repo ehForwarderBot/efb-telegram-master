@@ -89,11 +89,13 @@ class CommandsManager(LocaleMixin):
             msg = self._("Invalid parameter: {0}. (CE01)").format(callback)
             self.msg_storage.pop(index, None)
             self.bot.edit_message_text(text=msg, chat_id=chat_id, message_id=message_id)
+            update.callback_query.answer()
             return ConversationHandler.END
         elif not (0 <= int(callback) < len(self.msg_storage[index].commands)):
             msg = self._("Index out of bound: {0}. (CE02)").format(callback)
             self.msg_storage.pop(index, None)
             self.bot.edit_message_text(text=msg, chat_id=chat_id, message_id=message_id)
+            update.callback_query.answer()
             return ConversationHandler.END
 
         callback = int(callback)
@@ -122,6 +124,7 @@ class CommandsManager(LocaleMixin):
         # self.bot.edit_message_text(prefix=prefix, text=msg,
         #                            chat_id=chat_id, message_id=message_id)
         if msg is None:
+            update.callback_query.answer()
             return ConversationHandler.END
         self.bot.answer_callback_query(
             prefix=prefix, text=msg,

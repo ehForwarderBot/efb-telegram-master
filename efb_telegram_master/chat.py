@@ -85,7 +85,7 @@ class ETMChat(EFBChat):
                        f"Name: {self.chat_name}\n" \
                        f"Alias: {self.chat_alias}\n" \
                        f"ID: {self.chat_uid}\n" \
-                       f"Type: {self.chat_type}\n" \
+                       f"Type: {self.chat_type.value}\n" \
                        f"Mode: {mode_str}\n" \
                        f"Notification: {self.notification.name}\n" \
                        f"Other: {self.vendor_specific}"

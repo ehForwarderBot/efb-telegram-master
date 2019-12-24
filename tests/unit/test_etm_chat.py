@@ -71,8 +71,15 @@ def test_etm_chat_match(db, slave):
     assert chat.match(chat.chat_alias)
     assert chat.match(chat.module_name)
     assert chat.match(chat.chat_uid)
-    assert chat.match(re.compile("Channel ID: .+mock"))
+    assert chat.match("type: user"), "case insensitive search"
+    assert chat.match(re.compile("Channel ID: .+mock")), "re compile object search"
     assert chat.match("Mode: \n")
+
+    assert chat.match(re.compile(f"Channel: {slave.channel_name}.*Type: User",
+                                 re.DOTALL | re.IGNORECASE)), "docs example #0"
+    assert not chat.match("Alias: None"), "docs example #1"
+    assert chat.match(re.compile(r"(?=.*Chat)(?=.*Channel)",
+                                 re.DOTALL | re.IGNORECASE)), "docs example #2"
 
     no_alias = ETMChat(db, chat=slave.chat_without_alias)
     assert no_alias.match("Alias: None")
