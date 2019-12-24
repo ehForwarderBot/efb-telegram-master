@@ -9,15 +9,15 @@ under GPL v3.
 import re
 from typing import Optional, cast, Set
 
-from telethon.events import NewMessage, ChatAction
+from telethon.events import NewMessage, ChatAction, MessageEdited
 from telethon.events.common import EventCommon
 from telethon.tl.custom import Message
+from telethon.tl.types import MessageMediaWebPage
 
 __all__ = ["BaseFilter", "MergedFilter", "InvertedFilter",
            "everything", "in_chats",
-           "message", "text", "has_button"]
-
-from telethon.tl.types import MessageMediaWebPage
+           "message", "text", "has_button", "edited", "regex",
+           "chat_action", "new_photo", "new_title"]
 
 
 class BaseFilter:
@@ -143,6 +143,28 @@ class _Message(BaseFilter):
 message = _Message()
 
 
+class _EditedMessage(_Message):
+    def __init__(self, message_id: Optional[int]):
+        self.message_id = message_id
+
+    def filter(self, event: EventCommon):
+        if not super().filter(event):
+            return False
+        if not isinstance(event, MessageEdited.Event):
+            return False
+        if self.message_id is not None:
+            message = cast(MessageEdited.Event, event).message
+            return message.id == self.message_id
+        return True
+
+    def __repr__(self):
+        return "EditedMessage"
+
+
+edited = _EditedMessage
+"""Edited message"""
+
+
 class _TextMessage(_Message):
     def filter(self, event: EventCommon):
         if not super().filter(event):
@@ -158,7 +180,7 @@ class _TextMessage(_Message):
 
 
 text = _TextMessage()
-"""Text messages"""
+"""Text message"""
 
 
 class _RegexText(_TextMessage):

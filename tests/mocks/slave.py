@@ -1,13 +1,14 @@
 import threading
-from io import FileIO
-from typing import Set, Optional, List, IO, Dict, TypeVar
+import time
 from logging import getLogger
+from queue import Queue
+from typing import Set, Optional, List, IO, Dict, TypeVar
 
 from ehforwarderbot import EFBChannel, EFBMsg, EFBStatus, ChannelType, MsgType, EFBChat, ChatType
 from ehforwarderbot.chat import EFBChatNotificationState
 from ehforwarderbot.exceptions import EFBChatNotFound
+from ehforwarderbot.types import ModuleID, ChatID, MessageID
 from ehforwarderbot.utils import extra
-from ehforwarderbot.types import ModuleID, ChatID
 
 _T = TypeVar("_T")
 
@@ -89,6 +90,9 @@ class MockSlaveChannel(EFBChannel):
         self.chat_without_alias = self.chats_by_alias[False][0]
         self.group = self.chats_by_chat_type[ChatType.Group][0]
 
+        self.messages: "Queue[EFBMsg]" = Queue()
+        self.statuses: "Queue[EFBStatus]" = Queue()
+
     def generate_chats(self):
         """Generate a list of chats per the chat templates, and categorise
         them accordingly.
@@ -168,9 +172,12 @@ class MockSlaveChannel(EFBChannel):
 
     def send_status(self, status: EFBStatus):
         self.logger.debug("Received status: %r", status)
+        self.statuses.put(status)
 
     def send_message(self, msg: EFBMsg) -> EFBMsg:
         self.logger.debug("Received message: %r", msg)
+        self.messages.put(msg)
+        msg.uid = MessageID(str(time.time_ns()))
         return msg
 
     def stop_polling(self):

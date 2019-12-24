@@ -217,7 +217,7 @@ E.g.: ``/chat Eana`` will give you all chats has the word “Eana”.
     Channel: <Channel name>
     Channel ID: <Channel ID>
     Name: <Chat name>
-    Alias: <Chat Alias>
+    Alias: (<Chat Alias>|None)
     ID: <Chat Unique ID>
     Type: (User|Group)
     Mode: [Linked]
@@ -236,7 +236,7 @@ E.g.: ``/chat Eana`` will give you all chats has the word “Eana”.
 Examples:
 
 -  Look for all WeChat groups: ``Channel: WeChat.*Type: Group``
--  Look for everyone who has an alias ``Name: (.*?)\nAlias: (?!\1)``
+-  Look for everyone who has no alias (and those with an alias called “None”): ``Alias: None``
 -  Look for all entries contain “John” and “Johnny” in any order:
    ``(?=.*John)(?=.*Johnny)``
 

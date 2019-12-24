@@ -461,7 +461,7 @@ class TelegramChannel(EFBChannel):
             if e.message == "Message is not modified" and update.callback_query:
                 self.logger.error("Chill bro, don't click that fast.")
             else:
-                self.logger.error("Message request is invalid.\n%s\n%s", str(update), str(error))
+                self.logger.exception("Message request is invalid.\n%s\n%s", str(update), str(error))
                 self.bot_manager.send_message(self.config['admins'][0],
                                               self._("Message request is invalid.\n{error}\n"
                                                      "<code>{update}</code>").format(
