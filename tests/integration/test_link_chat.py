@@ -173,6 +173,14 @@ async def test_link_chat_group_linked_unlink(helper, client, bot_id, bot_group, 
         assert_is_linked(channel, tuple(), bot_group)
 
 
+async def test_link_chat_group_linked_relink(helper, client, bot_id, bot_group, bot_channel, slave, channel):
+    chat = slave.chat_with_alias
+    with link_chats(channel, (chat,), bot_channel):
+        await simulate_link_chat(client, helper, chat, bot_id, bot_group, command_channel=bot_channel)
+        assert_is_linked(channel, tuple(), bot_channel)
+        assert_is_linked(channel, (chat,), bot_group)
+
+
 async def test_link_chat_channel_linked_cancel(helper, client, bot_id, bot_channel, slave, channel):
     chat = slave.chat_with_alias
     with link_chats(channel, (chat,), bot_channel):
