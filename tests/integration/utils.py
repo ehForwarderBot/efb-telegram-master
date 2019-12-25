@@ -52,7 +52,7 @@ def assert_is_linked(channel: TelegramChannel,
         chat_id_to_str(chat=i) for i in slave_chats
     }
     # print("ASSERT_IS_LINKED", chats_str, slave_ids)
-    assert chats_str == slave_ids
+    assert chats_str == slave_ids, f"expecting {slave_ids} linked, found {chats_str}"
 
 
 def unlink_all_chats(channel: TelegramChannel, telegram_chat_id: int):

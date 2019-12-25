@@ -1,14 +1,15 @@
-import logging
-import os
 import asyncio
+import logging
 import time
+from typing import Set
 
 import pytest
 from telethon import TelegramClient
-from typing import Set
 
 from .helper.helper import TelegramIntegrationTestHelper
 from ..bot import get_user_session
+
+pytest.register_assert_rewrite("tests.integration.utils")
 
 
 @pytest.fixture(scope="session")
