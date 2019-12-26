@@ -748,8 +748,7 @@ class ChatBindingManager(LocaleMixin):
             slave_chat_id = candidates[int(param.split(' ', 1)[1])]
             module_id, chat_uid, _ = utils.chat_id_str_to_id(slave_chat_id)
             chat = self.chat_manager.get_chat(module_id, chat_uid)
-            self.channel.master_messages.process_telegram_message(update, context, channel_id=module_id,
-                                                                  chat_id=chat_uid)
+            self.channel.master_messages.process_telegram_message(update, context, slave_chat_id)
             if chat:
                 self.bot.edit_message_text(text=self._("Delivering the message to {0}.").format(chat.full_name),
                                            chat_id=chat_id,
