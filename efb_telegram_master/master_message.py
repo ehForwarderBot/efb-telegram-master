@@ -9,7 +9,7 @@ from typing import Optional, TYPE_CHECKING, Tuple
 
 import humanize
 import telegram
-from telegram import Update, Message
+from telegram import Update, Message, Chat
 from telegram.ext import MessageHandler, Filters, CallbackContext, CommandHandler
 from telegram.utils.helpers import escape_markdown
 
@@ -130,60 +130,78 @@ class MasterMessageProcessor(LocaleMixin):
         """
 
         message: telegram.Message = update.effective_message
+        mid = message.message_id
 
-        self.logger.debug("Received message from Telegram: %s", message.to_dict())
-        multi_slaves = False
+        self.logger.debug("[%s] Received message from Telegram: %s", mid, message.to_dict())
 
-        if message.chat.id != message.from_user.id:  # from group
-            assocs = self.db.get_chat_assoc(master_uid=utils.chat_id_to_str(self.channel_id, message.chat.id))
-            if len(assocs) > 1:
-                multi_slaves = True
+        # if the chat is singly-linked
+        destination = self.get_singly_linked_chat_id_str(update.effective_chat)
+        if destination is None:  # not singly linked
+            self.logger.debug("[%s] Chat %s is not singly-linked", mid, update.effective_chat)
+            reply_to = message.reply_to_message
+            cached_dest = self.chat_dest_cache.get(message.chat.id)
+            if reply_to:
+                self.logger.debug("[%s] Message is quote-replying to %s", mid, reply_to)
+                dest_msg = self.db.get_msg_log(
+                    master_msg_id=utils.message_id_to_str(reply_to.chat.id, reply_to.message_id)
+                )
+                if dest_msg:
+                    destination = dest_msg.slave_origin_uid
+                    self.logger.debug("[%s] Quoted message is found in database with destination", mid, destination)
+            elif cached_dest:
+                self.logger.debug("[%s] Cached destination found: %s", mid, cached_dest)
+                destination = cached_dest
+                self._send_cached_chat_warning(update, message.chat.id, cached_dest)
+        else:
+            self.logger.debug("[%s] Chat %s is singly-linked to %s", mid, message.chat, destination)
 
-        reply_to = bool(getattr(message, "reply_to_message", None))
-        private_chat = message.chat.id == message.from_user.id
+        self.logger.debug("[%s] Destination chat = %s", mid, destination)
 
-        if (private_chat or multi_slaves) and not reply_to and not self.chat_dest_cache.get(message.chat.id):
-            # If
-            # 1. the Telegram chat is multi-linked, and
-            # 2. the message doesn't have a quoted reply, and
-            # 3. there is not cached destination
-            candidates = self.db.get_recent_slave_chats(message.chat.id, limit=5) or \
-                         self.db.get_chat_assoc(master_uid=utils.chat_id_to_str(self.channel_id, message.chat.id))[:5]
+        if destination is None:
+            self.logger.debug("[%s] Destination is not found for this message", mid)
+            candidates = (
+                 self.db.get_recent_slave_chats(message.chat.id, limit=5) or
+                 self.db.get_chat_assoc(master_uid=utils.chat_id_to_str(self.channel_id, message.chat.id))[:5]
+            )
             if candidates:
+                self.logger.debug("[%s] Candidate suggestions are found for this message: %s", mid, candidates)
                 tg_err_msg = message.reply_text(self._("Error: No recipient specified.\n"
                                                        "Please reply to a previous message. (MS01)"), quote=True)
                 self.channel.chat_binding.register_suggestions(update, candidates,
                                                                update.effective_chat.id, tg_err_msg.message_id)
-
             else:
+                self.logger.debug("[%s] Candidate suggestions not found, give up.", mid)
                 message.reply_text(self._("Error: No recipient specified.\n"
                                           "Please reply to a previous message. (MS02)"), quote=True)
         else:
-            return self.process_telegram_message(update, context)
+            return self.process_telegram_message(update, context, destination)
+
+    def get_singly_linked_chat_id_str(self, chat: Chat) -> Optional[EFBChannelChatIDStr]:
+        """Return the singly-linked remote chat if available.
+        Otherwise return None.
+        """
+        master_chat_uid = utils.chat_id_to_str(self.channel_id, chat.id)
+        chats = self.db.get_chat_assoc(master_uid=master_chat_uid)
+        if len(chats) == 1:
+            return chats[0]
+        return None
 
     def process_telegram_message(self, update: Update, context: CallbackContext,
-                                 channel_id: Optional[ModuleID] = None,
-                                 chat_id: Optional[ChatID] = None,
-                                 target_msg: Optional[utils.TgChatMsgIDStr] = None):
+                                 destination: EFBChannelChatIDStr):
         """
         Process messages came from Telegram.
 
         Args:
             update: Telegram message update
             context: PTB update context
-            channel_id: Slave channel ID if specified
-            chat_id: Slave chat ID if specified
-            target_msg: Target slave message if specified
+            destination: Destination of the message specified.
         """
         target: Optional[EFBChannelChatIDStr] = None
         target_channel: Optional[ModuleID] = None
         target_log: Optional['MsgLog'] = None
+
         # Message ID for logging
         message_id = utils.message_id_to_str(update=update)
-
-        multi_slaves: bool = False
-        destination: Optional[EFBChannelChatIDStr] = None
-        slave_msg: Optional[EFBMsg] = None
 
         message: telegram.Message = update.effective_message
 
@@ -191,95 +209,6 @@ class MasterMessageProcessor(LocaleMixin):
         self.logger.debug('[%s] Message is edited: %s, %s',
                           message_id, edited, message.edit_date)
 
-        private_chat = update.effective_chat.type == telegram.Chat.PRIVATE
-
-        if not private_chat:  # from group
-            linked_chats = self.db.get_chat_assoc(master_uid=utils.chat_id_to_str(
-                self.channel_id, update.effective_chat.id))
-            if len(linked_chats) == 1:
-                destination = linked_chats[0]
-            elif len(linked_chats) > 1:
-                multi_slaves = True
-
-        reply_to = bool(getattr(message, "reply_to_message", None))
-
-        # Process predefined target (slave) chat.
-        cached_dest = self.chat_dest_cache.get(message.chat.id)
-        if channel_id and chat_id:
-            destination = utils.chat_id_to_str(channel_id, chat_id)
-            # TODO: what is going on here?
-            if target_msg is not None:
-                target_log = self.db.get_msg_log(master_msg_id=target_msg)
-                if target_log:
-                    target = target_log.slave_origin_uid
-                    if target is not None:
-                        target_channel, target_uid, _ = utils.chat_id_str_to_id(target)
-                else:
-                    return self.bot.reply_error(update,
-                                                self._("Message is not found in ETM database. "
-                                                       "Please try with another message. (UC07)"))
-        elif private_chat:
-            if reply_to:
-                dest_msg = self.db.get_msg_log(master_msg_id=utils.message_id_to_str(
-                    message.reply_to_message.chat.id,
-                    message.reply_to_message.message_id))
-                if dest_msg:
-                    destination = dest_msg.slave_origin_uid
-                    self.chat_dest_cache.set(message.chat.id, dest_msg.slave_origin_uid)
-                else:
-                    return self.bot.reply_error(update,
-                                                self._("Message is not found in ETM database. "
-                                                       "Please try with another one. (UC03)"))
-            elif cached_dest:
-                destination = cached_dest
-                self._send_cached_chat_warning(update, message.chat.id, cached_dest)
-            else:
-                return self.bot.reply_error(update,
-                                            self._("Please reply to an incoming message. (UC04)"))
-        else:  # group chat
-            if multi_slaves:
-                if reply_to:
-                    dest_msg = self.db.get_msg_log(master_msg_id=utils.message_id_to_str(
-                        message.reply_to_message.chat.id,
-                        message.reply_to_message.message_id))
-                    if dest_msg:
-                        destination = dest_msg.slave_origin_uid
-                        assert destination is not None
-                        self.chat_dest_cache.set(message.chat.id, destination)
-                    else:
-                        return self.bot.reply_error(update,
-                                                    self._("Message is not found in ETM database. "
-                                                           "Please try with another one. (UC05)"))
-                elif cached_dest:
-                    destination = cached_dest
-                    self._send_cached_chat_warning(update, message.chat.id, cached_dest)
-                else:
-                    return self.bot.reply_error(update,
-                                                self._("This group is linked to multiple remote chats. "
-                                                       "Please reply to an incoming message. "
-                                                       "To unlink all remote chats, please send /unlink_all . (UC06)"))
-            elif destination:
-                if reply_to:
-                    target_log = \
-                        self.db.get_msg_log(master_msg_id=utils.message_id_to_str(
-                            message.reply_to_message.chat.id,
-                            message.reply_to_message.message_id))
-                    if target_log:
-                        target = target_log.slave_origin_uid
-                        if target is not None:
-                            target_channel, target_uid, _ = utils.chat_id_str_to_id(target)
-                    else:
-                        return self.bot.reply_error(update,
-                                                    self._("Message is not found in ETM database. "
-                                                           "Please try with another message. (UC07)"))
-            else:
-                return self.bot.reply_error(update,
-                                            self._("This group is not linked to any chat. (UC06)"))
-
-        self.logger.debug("[%s] Telegram received. From private chat: %s; Group has multiple linked chats: %s; "
-                          "Message replied to another message: %s", message_id, private_chat, multi_slaves, reply_to)
-        self.logger.debug("[%s] Destination chat = %s", message_id, destination)
-        assert destination is not None
         channel, uid, gid = utils.chat_id_str_to_id(destination)
         if channel not in coordinator.slaves:
             return self.bot.reply_error(update,
@@ -321,9 +250,10 @@ class MasterMessageProcessor(LocaleMixin):
             if m.type not in coordinator.slaves[channel].supported_message_types:
                 self.logger.info("[%s] Message type %s is not supported by channel %s",
                                  message_id, m.type.name, channel)
-                raise EFBMessageTypeNotSupported(self._("{type_name} messages are not supported by slave channel {channel_name}.")
-                                                 .format(type_name=m.type.name,
-                                                         channel_name=coordinator.slaves[channel].channel_name))
+                raise EFBMessageTypeNotSupported(
+                    self._("{type_name} messages are not supported by slave channel {channel_name}.")
+                        .format(type_name=m.type.name,
+                                channel_name=coordinator.slaves[channel].channel_name))
 
             # Parse message text and caption to markdown
             msg_md_text = message.text and message.text_markdown
