@@ -5,6 +5,7 @@ from typing import Set
 
 import pytest
 from telethon import TelegramClient
+from telethon.tl.types import InputStickerSetAnimatedEmoji
 
 from .helper.helper import TelegramIntegrationTestHelper
 from ..bot import get_user_session
@@ -63,7 +64,7 @@ async def helper(event_loop, user_session, api_id, api_hash, bot_id,
 @pytest.fixture(scope="module")
 def poll_bot(channel):
     logging.root.level = logging.DEBUG
-    channel.bot_manager.polling()
+    channel.bot_manager.polling(clean=True)
     time.sleep(1)
     yield channel.bot_manager
     channel.bot_manager.graceful_stop()

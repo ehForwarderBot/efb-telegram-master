@@ -4,6 +4,7 @@ import base64
 import logging
 from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, IO
 
+from telegram.ext import BaseFilter
 from typing_extensions import NewType
 
 import telegram
@@ -161,3 +162,15 @@ def convert_tgs_to_gif(tgs_file: IO[bytes], gif_file: IO[bytes]) -> bool:
     except Exception:
         logging.exception("Error occurred while converting TGS to GIF.")
         return False
+
+
+class PollFilter(BaseFilter):
+    """python-telegram-bot filter for poll messages.
+    TODO: remove this when PTB#1673 is merged and uploaded to PyPI
+
+    https://github.com/python-telegram-bot/python-telegram-bot/pull/1673
+    """
+    name = 'Filters.poll'
+
+    def filter(self, message):
+        return bool(message.poll)
