@@ -1,15 +1,8 @@
-import re
-from itertools import chain
-from typing import List, Optional
-
 from pytest import mark
-from telethon.errors import MessageIdInvalidError
-from telethon.tl.custom import Message, MessageButton
-from telethon.tl.types import MessageEntityCode
+from telethon.tl.custom import Message
 
-from ehforwarderbot import ChatType, EFBChat
-from .helper.filters import in_chats, has_button, edited, regex, text
-from .utils import link_chats, assert_is_linked, unlink_all_chats
+from .helper.filters import in_chats
+from .utils import link_chats, assert_is_linked
 
 pytestmark = mark.asyncio
 

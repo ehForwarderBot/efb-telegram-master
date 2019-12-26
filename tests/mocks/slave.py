@@ -93,6 +93,27 @@ class MockSlaveChannel(EFBChannel):
         self.messages: "Queue[EFBMsg]" = Queue()
         self.statuses: "Queue[EFBStatus]" = Queue()
 
+    def clear_messages(self):
+        self._clear_queue(self.messages)
+
+    def clear_statuses(self):
+        self._clear_queue(self.statuses)
+
+    @staticmethod
+    def _clear_queue(q: Queue):
+        """Safely clear all items in a queue.
+        Written by Niklas R on StackOverflow
+        https://stackoverflow.com/a/31892187/1989455
+        """
+        with q.mutex:
+            unfinished = q.unfinished_tasks - len(q.queue)
+            if unfinished <= 0:
+                if unfinished < 0:
+                    raise ValueError('task_done() called too many times')
+                q.all_tasks_done.notify_all()
+            q.unfinished_tasks = unfinished
+            q.queue.clear()
+            q.not_full.notify_all()
 
     def generate_chats(self):
         """Generate a list of chats per the chat templates, and categorise

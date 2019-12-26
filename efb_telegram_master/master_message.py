@@ -25,8 +25,8 @@ from . import utils
 from .chat_destination_cache import ChatDestinationCache
 from .locale_mixin import LocaleMixin
 from .message import ETMMsg
-from .msg_type import TGMsgType
-from .utils import EFBChannelChatIDStr, TelegramChatID
+from .msg_type import TGMsgType, get_msg_type
+from .utils import EFBChannelChatIDStr, TelegramChatID, PollFilter
 
 if TYPE_CHECKING:
     from . import TelegramChannel
@@ -73,6 +73,11 @@ class MasterMessageProcessor(LocaleMixin):
             Filters.update,
             self.enqueue_message
         ))
+        self.bot.dispatcher.add_handler(MessageHandler(
+            (Filters.passport_data | Filters.invoice | Filters.game | Filters.successful_payment |
+             PollFilter()) & Filters.update,
+            self.unsupported_message
+        ))
         self.logger: logging.Logger = logging.getLogger(__name__)
 
         self.channel_id: ModuleID = self.channel.channel_id
@@ -116,7 +121,8 @@ class MasterMessageProcessor(LocaleMixin):
         if not self.message_worker_thread.is_alive():
             if update.effective_message:
                 update.effective_message.reply_text(
-                    self._("ETM message worker is not running due to unforeseen reason. This might be a bug. Please see log for details."))
+                    self._(
+                        "ETM message worker is not running due to unforeseen reason. This might be a bug. Please see log for details."))
 
     def msg(self, update: Update, context: CallbackContext):
         """
@@ -276,7 +282,8 @@ class MasterMessageProcessor(LocaleMixin):
         assert destination is not None
         channel, uid, gid = utils.chat_id_str_to_id(destination)
         if channel not in coordinator.slaves:
-            return self.bot.reply_error(update, self._("Internal error: Slave channel “{0}” not found.").format(channel))
+            return self.bot.reply_error(update,
+                                        self._("Internal error: Slave channel “{0}” not found.").format(channel))
 
         m = ETMMsg()
         log_message = True
@@ -307,13 +314,16 @@ class MasterMessageProcessor(LocaleMixin):
                 self.logger.debug("[%s] EFB message type: %s", message_id, mtype)
             else:
                 self.logger.info("[%s] Message type %s is not supported by ETM", message_id, mtype)
-                raise EFBMessageTypeNotSupported(self._("Message type {} is not supported by ETM.").format(mtype.name))
+                raise EFBMessageTypeNotSupported(
+                    self._("{type_name} messages are not supported by EFB Telegram Master channel")
+                        .format(type_name=mtype.name))
 
             if m.type not in coordinator.slaves[channel].supported_message_types:
                 self.logger.info("[%s] Message type %s is not supported by channel %s",
                                  message_id, m.type.name, channel)
-                raise EFBMessageTypeNotSupported(self._("Message type {0} is not supported by channel {1}.")
-                                                 .format(m.type.name, coordinator.slaves[channel].channel_name))
+                raise EFBMessageTypeNotSupported(self._("{type_name} messages are not supported by slave channel {channel_name}.")
+                                                 .format(type_name=m.type.name,
+                                                         channel_name=coordinator.slaves[channel].channel_name))
 
             # Parse message text and caption to markdown
             msg_md_text = message.text and message.text_markdown
@@ -420,7 +430,8 @@ class MasterMessageProcessor(LocaleMixin):
         except EFBMessageTypeNotSupported as e:
             self.bot.reply_error(update, e.args[0] or self._("Message type is not supported."))
         except EFBOperationNotSupported as e:
-            self.bot.reply_error(update, self._("Message editing is not supported.\n\n{exception!s}".format(exception=e)))
+            self.bot.reply_error(update,
+                                 self._("Message editing is not supported.\n\n{exception!s}".format(exception=e)))
         except EFBException as e:
             self.bot.reply_error(update, self._("Message is not sent.\n\n{exception!s}".format(exception=e)))
             self.logger.exception("Message is not sent. (update: %s, exception: %s)", update, e)
@@ -476,7 +487,8 @@ class MasterMessageProcessor(LocaleMixin):
             size_str = humanize.naturalsize(size, binary=True)
             max_size_str = humanize.naturalsize(telegram.constants.MAX_FILESIZE_DOWNLOAD, binary=True)
             raise EFBMessageError(
-                self._("Attachment is too large ({size}). Maximum allowed by Telegram Bot API is {max_size}. (AT01)").format(
+                self._(
+                    "Attachment is too large ({size}). Maximum allowed by Telegram Bot API is {max_size}. (AT01)").format(
                     size=size_str, max_size=max_size_str))
 
     def delete_message(self, update: Update, context: CallbackContext):
@@ -489,7 +501,8 @@ class MasterMessageProcessor(LocaleMixin):
                 "Reply /rm to a message to remove it from its remote chat."
             ))
         reply: Message = message.reply_to_message
-        msg_log = self.db.get_msg_log(master_msg_id=utils.message_id_to_str(chat_id=reply.chat_id, message_id=reply.message_id))
+        msg_log = self.db.get_msg_log(
+            master_msg_id=utils.message_id_to_str(chat_id=reply.chat_id, message_id=reply.message_id))
         if not msg_log or msg_log.slave_member_uid == self.db.FAIL_FLAG:
             return self.bot.reply_error(update, self._(
                 "This message is not found in ETM database. You cannot remove it from its remote chat."
@@ -527,3 +540,11 @@ class MasterMessageProcessor(LocaleMixin):
                 reply.reply_text(self._("Message is removed in remote chat."))
         else:
             reply.reply_text(self._("Message is removed in remote chat."))
+
+    def unsupported_message(self, update: Update, context: CallbackContext):
+        message_type = get_msg_type(update.effective_message)
+        self.bot.reply_error(
+            update,
+            self._("{type_name} messages are not supported by "
+                   "EFB Telegram Master channel.")
+                .format(type_name=message_type.name))
