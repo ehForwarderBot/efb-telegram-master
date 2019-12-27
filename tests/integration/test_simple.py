@@ -146,5 +146,6 @@ async def test_extra_echo(helper, client, bot_id, bot_channel, channel, slave):
     assert slave.echo.desc.format(function_name=command) in text
 
     # Run command
-    await client.send_message(bot_id, f"{command} Hello, world!")
-    await helper.wait_for_event(in_chats(bot_id) & regex("Hello, world!"))
+    content = "信じたものは、都合のいい妄想を繰り返し映し出す鏡。"
+    await client.send_message(bot_id, f"{command} {content}")
+    await helper.wait_for_event(in_chats(bot_id) & regex(content))

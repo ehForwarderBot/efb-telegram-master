@@ -1,8 +1,8 @@
 import threading
-import time
 from logging import getLogger
 from queue import Queue
 from typing import Set, Optional, List, IO, Dict, TypeVar
+from uuid import uuid4
 
 from ehforwarderbot import EFBChannel, EFBMsg, EFBStatus, ChannelType, MsgType, EFBChat, ChatType, coordinator
 from ehforwarderbot.chat import EFBChatNotificationState
@@ -199,7 +199,7 @@ class MockSlaveChannel(EFBChannel):
     def send_message(self, msg: EFBMsg) -> EFBMsg:
         self.logger.debug("Received message: %r", msg)
         self.messages.put(msg)
-        msg.uid = MessageID(str(time.time_ns()))
+        msg.uid = MessageID(str(uuid4()))
         return msg
 
     def stop_polling(self):
@@ -272,7 +272,6 @@ class MockSlaveChannel(EFBChannel):
 
         Returns the message sent.
         """
-        timestamp = time.time_ns()
         if author is None:
             author = EFBChat(self).self()
             if chat.chat_type is ChatType.Group:
@@ -283,7 +282,7 @@ class MockSlaveChannel(EFBChannel):
         message.author = author
         message.type = MsgType.Text
         message.target = target
-        message.uid = f"__msg_id_{timestamp}__"
+        message.uid = f"__msg_id_{uuid4()}__"
         message.text = f"Content of message with ID {message.uid}"
         message.deliver_to = coordinator.master
 

@@ -260,6 +260,12 @@ What is NOT supported:
 -  Markdown/HTML formatting
 -  Messages with unsupported types
 
+.. note::
+
+    This only applies to Telegram groups that are linked to a single remote
+    chat, groups that are linked with multiple remote chats shall work in the
+    same way as non-linked chats.
+
 Send to a non-linked chat
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -273,7 +279,9 @@ channel, everything else is supported as it does in a linked chat.
 Quick reply in non-linked chats
 '''''''''''''''''''''''''''''''
 ETM provides a mechanism that allow you to keep sending messages to the same
-recipient without quoting every single time.
+recipient without quoting every single time. ETM will store the remote chat you
+sent a message to in every Telegram chat (i.e. a Telegram group or the bot),
+which is known as the “last known recipient” of the Telegram chat.
 
 In case where recipient is not indicated for a message, ETM will try to deliver
 it to the “last known recipient” in the Telegram chat only if:

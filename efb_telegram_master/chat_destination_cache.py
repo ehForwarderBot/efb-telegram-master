@@ -55,9 +55,13 @@ class ChatDestinationCache:
         return None
 
     def is_warned(self, key: str) -> bool:
+        if not self.enabled:
+            return True
         return key in self.weak and self.weak[key].warned
 
     def set_warned(self, key: str):
+        if not self.enabled:
+            return
         if key in self.weak:
             self.weak[key].warned = True
 
