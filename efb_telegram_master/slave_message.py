@@ -143,8 +143,8 @@ class SlaveMessageProcessor(LocaleMixin):
         if msg.commands:
             commands = msg.commands.commands
             buttons = []
-            for i, ival in enumerate(commands):
-                buttons.append([telegram.InlineKeyboardButton(ival.name, callback_data=str(i))])
+            for idx, i in enumerate(commands):
+                buttons.append([telegram.InlineKeyboardButton(i.name, callback_data=str(idx))])
             reply_markup = telegram.InlineKeyboardMarkup(buttons)
 
         reactions = self.build_reactions_footer(msg.reactions)

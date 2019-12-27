@@ -1,6 +1,7 @@
 import asyncio
 import os
 import time
+from asyncio import QueueEmpty
 from typing import Tuple, Optional, Dict, cast, Iterable
 
 from telethon import TelegramClient
@@ -70,6 +71,13 @@ class TelegramIntegrationTestHelper:
     async def update_handler(self, event):
         await self.queue.put(event)
 
+    def clear_queue(self):
+        while not self.queue.empty():
+            try:
+                self.queue.get_nowait()
+            except QueueEmpty:
+                return
+
     async def new_message_handler(self, event: NewMessage.Event):
         # record the mapping of message ID and its chat
         message: Message = event.message
@@ -117,13 +125,15 @@ class TelegramIntegrationTestHelper:
                                timeout: float = 10.0) -> Message:
         """Short cut for “Wait for a message and return its entity”."""
         event = await self.wait_for_event(filters.message & event_filter, timeout=timeout)
-        return event.message
+        # noinspection PyUnresolvedReferences
+        return event.message  # type: ignore
 
     async def wait_for_message_text(self, event_filter: BaseFilter = filters.everything,
                                     timeout: float = 10.0) -> str:
         """Short cut for “Wait for a text message and return its text”."""
         event = await self.wait_for_event(filters.text & event_filter, timeout=timeout)
-        return event.message.text
+        # noinspection PyUnresolvedReferences
+        return event.message.text  # type: ignore
 
     # Context management
     # ------------------

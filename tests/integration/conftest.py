@@ -52,13 +52,24 @@ def filter_chats(bot_id, bot_groups, bot_channels) -> Set[int]:
 
 
 @pytest.fixture(scope="session")
-async def helper(event_loop, user_session, api_id, api_hash, bot_id,
-                 filter_chats) -> TelegramIntegrationTestHelper:
+async def helper_wrap(event_loop, user_session, api_id, api_hash, bot_id,
+                      filter_chats) -> TelegramIntegrationTestHelper:
     async with TelegramIntegrationTestHelper(
-        user_session, api_id, api_hash, event_loop, bot_id,
-        chats=filter_chats
+            user_session, api_id, api_hash, event_loop, bot_id,
+            chats=filter_chats
     ) as helper:
         yield helper
+
+
+@pytest.fixture(scope="function")
+async def helper(helper_wrap, slave) -> TelegramIntegrationTestHelper:
+    """Clean the message queue before each test."""
+    helper_wrap.clear_queue()
+    assert helper_wrap.queue.empty()
+    slave.clear_messages()
+    assert slave.messages.empty()
+    print("===== HELPER QUEUE EMPTIED")
+    yield helper_wrap
 
 
 @pytest.fixture(scope="module")
@@ -71,5 +82,5 @@ def poll_bot(channel):
 
 
 @pytest.fixture(scope="session")
-async def client(helper) -> TelegramClient:
-    yield helper.client
+async def client(helper_wrap) -> TelegramClient:
+    yield helper_wrap.client

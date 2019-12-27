@@ -1,6 +1,6 @@
-import time
-from contextlib import suppress
+from uuid import uuid4
 from typing import Optional
+from uuid import uuid4
 
 from pytest import mark
 from telethon.tl.custom import Message, InlineResults
@@ -70,7 +70,7 @@ def _build_poll(question: str, *answers: str, closed: Optional[bool] = None,
 
 async def test_master_msg_poll(helper, client, bot_group, slave, channel):
     chat = slave.chat_with_alias
-    poll = _build_poll(f"Question {time.time_ns()}", "Answer 1", "Answer 2", "Answer 3")
+    poll = _build_poll(f"Question {uuid4()}", "Answer 1", "Answer 2", "Answer 3")
 
     with link_chats(channel, (chat,), bot_group):
 

@@ -52,13 +52,14 @@ async def test_chat_head_private(helper, client, bot_id, slave):
     await buttons[0][0].click()
 
     # Wait for the chad head
+    content = "test_chat_head_private this should be sent to slave channel"
     await helper.wait_for_message(in_chats(bot_id) & edited(message.id) & ~has_button)
-    await client.send_message(bot_id, "Hello, world!", reply_to=message)
+    await client.send_message(bot_id, content, reply_to=message)
 
     efb_msg = slave.messages.get(timeout=5)  # raises queue.Empty upon timeout
     slave.messages.task_done()
 
-    assert efb_msg.text == "Hello, world!"
+    assert efb_msg.text == content
 
 
 async def test_chat_head_singly_linked(helper, client, bot_group, slave, channel):
@@ -108,14 +109,15 @@ async def test_chat_head_multi_linked(helper, client, bot_group, slave, channel)
         await message.click(text=re.compile(pattern).search)
 
         # Wait for the chad head
+        content = "test_chat_head_multi_linked this should be sent to slave channel"
         message: Message = await helper.wait_for_message(in_chats(bot_group) & edited(message.id) & ~has_button)
-        await client.send_message(bot_group, "Hello, world!", reply_to=message)
+        await client.send_message(bot_group, content, reply_to=message)
 
         efb_msg = slave.messages.get(timeout=5)  # raises queue.Empty upon timeout
         slave.messages.task_done()
 
         assert efb_msg.chat == chat
-        assert efb_msg.text == "Hello, world!"
+        assert efb_msg.text == content
 
 
 async def test_chat_head_private_filter(helper, client, bot_id, slave):

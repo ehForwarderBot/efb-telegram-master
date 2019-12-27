@@ -770,6 +770,8 @@ class ChatBindingManager(LocaleMixin):
                                        chat_id=chat_id,
                                        message_id=msg_id)
         del self.msg_storage[storage_id]
+        if update.callback_query:
+            update.callback_query.answer()
         return ConversationHandler.END
 
     def update_group_info(self, update: Update, context: CallbackContext):
