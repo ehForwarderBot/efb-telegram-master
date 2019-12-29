@@ -1,5 +1,6 @@
-from uuid import uuid4
+from contextlib import suppress
 from typing import Optional
+from unittest.mock import patch
 from uuid import uuid4
 
 from pytest import mark
@@ -37,12 +38,7 @@ async def test_master_msg_game(helper, client, bot_group, slave, channel):
         input_group = await client.get_input_entity(bot_group)
         bot_results: InlineResults = InlineResults(
             client,
-            await client(GetInlineBotResultsRequest(
-                game_bot,
-                input_group,
-                "",
-                ""
-            ))
+            await client(GetInlineBotResultsRequest(game_bot, input_group, "", ""))
         )
         assert len(bot_results) > 1, "there should be games from @gamebot"
 
@@ -73,7 +69,6 @@ async def test_master_msg_poll(helper, client, bot_group, slave, channel):
     poll = _build_poll(f"Question {uuid4()}", "Answer 1", "Answer 2", "Answer 3")
 
     with link_chats(channel, (chat,), bot_group):
-
         slave.clear_messages()
         # Send poll
         message: Message = await client.send_message(bot_group, file=poll)
@@ -86,3 +81,16 @@ async def test_master_msg_poll(helper, client, bot_group, slave, channel):
             # reason, but it doesn’t really bother us here.
             # https://github.com/LonamiWebs/Telethon/issues/1355
             await message.edit(file=poll)
+
+
+async def test_master_msg_slave_not_supported(helper, client, bot_group, slave, channel):
+    chat = slave.chat_with_alias
+
+    with link_chats(channel, (chat,), bot_group), \
+         patch.multiple(slave, supported_message_types=set()):
+        # Send poll
+        await client.send_message(
+            bot_group,
+            "test_master_msg_slave_not_supported this shall be “unsupported by slave channel”")
+        content = await helper.wait_for_message_text()
+        assert slave.channel_name in content

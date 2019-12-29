@@ -65,7 +65,7 @@ class TelegramChannel(EFBChannel):
     channel_emoji = "✈"
     channel_id = ModuleID("blueset.telegram")
     channel_type = ChannelType.Master
-    supported_message_types = {MsgType.Text, MsgType.File, MsgType.Audio,
+    supported_message_types = {MsgType.Text, MsgType.File, MsgType.Voice,
                                MsgType.Image, MsgType.Link, MsgType.Location,
                                MsgType.Sticker, MsgType.Video, MsgType.Animation}
     __version__ = __version__

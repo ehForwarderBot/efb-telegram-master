@@ -177,7 +177,7 @@ class ETMMsg(EFBMsg):
         is_common_file = False
 
         # Store media related information to local database
-        for tg_media_type in ('animation', 'document', 'video', 'voice', 'video_note'):
+        for tg_media_type in ('animation', 'document', 'video', 'voice'):
             attachment = getattr(message, tg_media_type, None)
             if attachment:
                 is_common_file = True
@@ -186,15 +186,15 @@ class ETMMsg(EFBMsg):
                 break
 
         if not is_common_file:
-            if self.type_telegram == TGMsgType.Audio:
+            if self.type_telegram is TGMsgType.Audio:
                 self.file_id = message.audio.file_id
                 self.mime = message.audio.mime_type
                 extension = mimetypes.guess_extension(message.audio.mime_type)
                 self.filename = f"{message.audio.title} - {message.audio.performer}{extension}"
-            elif self.type_telegram == TGMsgType.Sticker:
+            elif self.type_telegram is TGMsgType.Sticker:
                 self.file_id = message.sticker.file_id
                 self.mime = 'image/webp'
-            elif self.type_telegram == TGMsgType.AnimatedSticker:
+            elif self.type_telegram is TGMsgType.AnimatedSticker:
                 self.file_id = message.sticker.file_id
                 self.mime = 'application/json+tgs'
                 self.type = MsgType.Animation
@@ -202,3 +202,6 @@ class ETMMsg(EFBMsg):
                 attachment = message.photo[-1]
                 self.file_id = attachment.file_id
                 self.mime = 'image/jpeg'
+            elif self.type_telegram is TGMsgType.VideoNote:
+                self.file_id = message.video_note.file_id
+                self.mime = 'video/mpeg'

@@ -10,6 +10,7 @@ repos:
         types: [python]
     -   id: check-yaml
     -   id: check-added-large-files
+        exclude: (?x)^tests/mocks/.+$
 -   repo: git://github.com/Lucas-C/pre-commit-hooks-markup
     rev: v1.0.0
     hooks:

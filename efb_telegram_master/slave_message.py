@@ -174,7 +174,7 @@ class SlaveMessageProcessor(LocaleMixin):
         elif msg.type == MsgType.File:
             tg_msg = self.slave_message_file(msg, tg_dest, msg_template, reactions, old_msg_id, target_msg_id,
                                              reply_markup, silent)
-        elif msg.type == MsgType.Audio:
+        elif msg.type == MsgType.Voice:
             tg_msg = self.slave_message_audio(msg, tg_dest, msg_template, reactions, old_msg_id, target_msg_id,
                                               reply_markup, silent)
         elif msg.type == MsgType.Location:
@@ -579,7 +579,7 @@ class SlaveMessageProcessor(LocaleMixin):
                             silent: bool = False) -> telegram.Message:
         self.bot.send_chat_action(tg_dest, telegram.ChatAction.RECORD_AUDIO)
         msg.text = msg.text or ''
-        self.logger.debug("[%s] Message is an audio file.", msg.uid)
+        self.logger.debug("[%s] Message is a voice file.", msg.uid)
         try:
             if old_msg_id:
                 if msg.edit_media:
@@ -604,6 +604,7 @@ class SlaveMessageProcessor(LocaleMixin):
                                target_msg_id: Optional[TelegramMessageID] = None,
                                reply_markup: Optional[telegram.ReplyMarkup] = None,
                                silent: bool = False) -> telegram.Message:
+        # TODO: Move msg_template to caption during MTProto migration (if we ever had a chance to do that).
         self.bot.send_chat_action(tg_dest, telegram.ChatAction.FIND_LOCATION)
         assert (isinstance(msg.attributes, EFBMsgLocationAttribute))
         attributes: EFBMsgLocationAttribute = msg.attributes
