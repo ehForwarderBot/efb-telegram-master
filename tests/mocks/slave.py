@@ -1,4 +1,5 @@
 import threading
+from contextlib import contextmanager
 from logging import getLogger
 from queue import Queue
 from typing import Set, Optional, List, IO, Dict, TypeVar
@@ -6,7 +7,8 @@ from uuid import uuid4
 
 from ehforwarderbot import EFBChannel, EFBMsg, EFBStatus, ChannelType, MsgType, EFBChat, ChatType, coordinator
 from ehforwarderbot.chat import EFBChatNotificationState
-from ehforwarderbot.exceptions import EFBChatNotFound
+from ehforwarderbot.exceptions import EFBChatNotFound, EFBOperationNotSupported
+from ehforwarderbot.status import EFBMessageRemoval
 from ehforwarderbot.types import ModuleID, ChatID, MessageID
 from ehforwarderbot.utils import extra
 
@@ -31,6 +33,7 @@ class MockSlaveChannel(EFBChannel):
 
     __picture_dict: Dict[str, str] = {}
 
+    # region [Chat data]
     # fields: name, type, notification, avatar, alias
     __chat_templates = [
         ("A", ChatType.User, EFBChatNotificationState.NONE, "A.png", "Alice"),
@@ -86,6 +89,8 @@ class MockSlaveChannel(EFBChannel):
         ("Я", ChatType.User, EFBChatNotificationState.ALL, None, None),
     ]
 
+    # endregion [Chat data]
+
     def __init__(self, instance_id=None):
         super().__init__(instance_id)
         self.generate_chats()
@@ -96,6 +101,12 @@ class MockSlaveChannel(EFBChannel):
 
         self.messages: "Queue[EFBMsg]" = Queue()
         self.statuses: "Queue[EFBStatus]" = Queue()
+        self.messages_sent: Dict[str, EFBMsg] = dict()
+
+        # flags
+        self.message_removal_possible: bool = True
+
+    # region [Clear queues]
 
     def clear_messages(self):
         self._clear_queue(self.messages)
@@ -118,6 +129,9 @@ class MockSlaveChannel(EFBChannel):
             q.unfinished_tasks = unfinished
             q.queue.clear()
             q.not_full.notify_all()
+
+    # endregion [Clear queues]
+    # region [Populate chats]
 
     def generate_chats(self):
         """Generate a list of chats per the chat templates, and categorise
@@ -143,12 +157,14 @@ class MockSlaveChannel(EFBChannel):
         }
 
         for name, chat_type, notification, avatar, alias in self.__chat_templates:
-            chat = EFBChat(self)
-            chat.chat_name = name
-            chat.chat_alias = alias
-            chat.chat_uid = ChatID(f"__chat_{hash(name)}__")
-            chat.chat_type = chat_type
-            chat.notification = notification
+            chat = EFBChat(
+                channel=self,
+                chat_name=name,
+                chat_alias=alias,
+                chat_uid=ChatID(f"__chat_{hash(name)}__"),
+                chat_type=chat_type,
+                notification=notification
+            )
             self.__picture_dict[chat.chat_uid] = avatar
 
             if chat_type == ChatType.Group:
@@ -160,44 +176,55 @@ class MockSlaveChannel(EFBChannel):
             self.chats_by_alias[alias is not None].append(chat)
             self.chats.append(chat)
 
-        self.unknown_chat = EFBChat(self)
-        self.unknown_chat.chat_name = "Unknown Chat"
-        self.unknown_chat.chat_alias = "不知道"
-        self.unknown_chat.chat_uid = ChatID(f"__chat_{hash(self.unknown_chat.chat_name)}__")
-        self.unknown_chat.chat_type = ChatType.User
-        self.unknown_chat.notification = EFBChatNotificationState.ALL
+        name = "Unknown Chat"
+        self.unknown_chat = EFBChat(
+            channel=self,
+            chat_name=name,
+            chat_alias="不知道",
+            chat_uid=ChatID(f"__chat_{hash(name)}__"),
+            chat_type=ChatType.User,
+            notification=EFBChatNotificationState.ALL
+        )
 
-        self.unknown_channel = EFBChat()
-        self.unknown_channel.module_id = "__this_is_not_a_channel__"
-        self.unknown_channel.module_name = "Unknown Channel"
-        self.unknown_channel.channel_emoji = "‼️"
-        self.unknown_channel.chat_name = "Unknown Chat @ unknown channel"
-        self.unknown_channel.chat_alias = "知らんでぇ"
-        self.unknown_channel.chat_uid = ChatID(f"__chat_{hash(self.unknown_channel.chat_name)}__")
-        self.unknown_channel.chat_type = ChatType.User
-        self.unknown_channel.notification = EFBChatNotificationState.ALL
+        name = "Unknown Chat @ unknown channel"
+        self.unknown_channel = EFBChat(
+            module_id="__this_is_not_a_channel__",
+            module_name="Unknown Channel",
+            channel_emoji="‼️",
+            chat_name=name,
+            chat_alias="知らんでぇ",
+            chat_uid=ChatID(f"__chat_{hash(name)}__"),
+            chat_type=ChatType.User,
+            notification=EFBChatNotificationState.ALL
+        )
 
     def fill_group(self, group: EFBChat):
         """Populate members into a group per membership template."""
         members = []
         for name, chat_type, notification, avatar, alias in self.__group_member_templates:
-            chat = EFBChat(self)
-            chat.chat_name = name
-            if alias is not None:
-                chat.chat_alias = f"{alias} @ {group.chat_name}"
-            chat.chat_uid = ChatID(f"__chat_{hash(name)}__")
-            chat.chat_type = chat_type
-            chat.notification = notification
-            chat.group = group
-            chat.is_chat = False
+            chat = EFBChat(
+                channel=self,
+                chat_name=name,
+                chat_alias=f"{alias} @ {group.chat_name}" if alias is not None else None,
+                chat_uid=ChatID(f"__chat_{hash(name)}__"),
+                chat_type=chat_type,
+                notification=notification,
+                group=group,
+                is_chat=False
+            )
             members.append(chat)
         group.members = members
+
+    # endregion [Populate chats]
+    # region [Necessities]
 
     def poll(self):
         self.polling.wait()
 
     def send_status(self, status: EFBStatus):
         self.logger.debug("Received status: %r", status)
+        if isinstance(status, EFBMessageRemoval):
+            self.message_removal_status(status)
         self.statuses.put(status)
 
     def send_message(self, msg: EFBMsg) -> EFBMsg:
@@ -229,6 +256,8 @@ class MockSlaveChannel(EFBChannel):
     def get_chat_picture(self, chat: EFBChat) -> Optional[IO[bytes]]:
         if self.__picture_dict.get(chat.chat_uid):
             return open(f'tests/mocks/{self.__picture_dict[chat.chat_uid]}', 'rb')
+
+    # endregion [Necessities]
 
     def get_chats_by_criteria(self,
                               chat_type: Optional[ChatType] = None,
@@ -281,15 +310,35 @@ class MockSlaveChannel(EFBChannel):
             if chat.chat_type is ChatType.Group:
                 author.is_chat = False
                 author.group = chat
-        message = EFBMsg()
-        message.chat = chat
-        message.author = author
-        message.type = MsgType.Text
-        message.target = target
-        message.uid = f"__msg_id_{uuid4()}__"
-        message.text = f"Content of message with ID {message.uid}"
-        message.deliver_to = coordinator.master
+        uid = f"__msg_id_{uuid4()}__"
+        message = EFBMsg(
+            chat=chat,
+            author=author,
+            type=MsgType.Text,
+            target=target,
+            uid=uid,
+            text=f"Content of message with ID {uid}",
+            deliver_to=coordinator.master,
+        )
 
         coordinator.send_message(message)
+        self.messages_sent[uid] = message
 
         return message
+
+    # region [Message removal]
+
+    def message_removal_status(self, status: EFBMessageRemoval):
+        if not self.message_removal_possible:
+            raise EFBOperationNotSupported("Message removal is not possible by flag.")
+
+    @contextmanager
+    def set_message_removal(self, value: bool):
+        backup = self.message_removal_possible
+        self.message_removal_possible = value
+        try:
+            yield
+        finally:
+            self.message_removal_possible = backup
+
+    # endregion [Message removal]

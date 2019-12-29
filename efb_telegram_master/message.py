@@ -3,7 +3,7 @@ import os
 import subprocess
 import tempfile
 import logging
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, Dict, Any
 
 import magic
 import telegram
@@ -12,7 +12,9 @@ from moviepy.video.io.VideoFileClip import VideoFileClip
 from telegram.error import BadRequest
 from typing.io import IO
 
-from ehforwarderbot import EFBMsg, coordinator, MsgType
+from ehforwarderbot import EFBMsg, coordinator, MsgType, EFBChat, EFBChannel
+from ehforwarderbot.message import EFBMsgAttribute, EFBMsgCommands, EFBMsgSubstitutions
+from ehforwarderbot.types import Reactions, MessageID
 from . import utils
 from .chat_object_cache import ChatObjectCacheManager
 from .chat import ETMChat
@@ -38,8 +40,15 @@ class ETMMsg(EFBMsg):
     __path = None
     __filename = None
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, attributes: Optional[EFBMsgAttribute] = None, author: EFBChat = None, chat: EFBChat = None,
+                 commands: Optional[EFBMsgCommands] = None, deliver_to: EFBChannel = None, edit: bool = False,
+                 edit_media: bool = False, file: Optional[IO[bytes]] = None, filename: Optional[str] = None,
+                 is_system: bool = False, mime: Optional[str] = None, path: Optional[str] = None,
+                 reactions: Reactions = None, substitutions: Optional[EFBMsgSubstitutions] = None,
+                 target: 'Optional[EFBMsg]' = None, text: str = "", type: MsgType = MsgType.Unsupported,
+                 uid: Optional[MessageID] = None, vendor_specific: Dict[str, Any] = None):
+        super().__init__(attributes, author, chat, commands, deliver_to, edit, edit_media, file, filename, is_system,
+                         mime, path, reactions, substitutions, target, text, type, uid, vendor_specific)
         self.__initialized = False
 
     def _load_file(self):

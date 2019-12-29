@@ -9,7 +9,7 @@ under GPL v3.
 import re
 from typing import Optional, cast, Set
 
-from telethon.events import NewMessage, ChatAction, MessageEdited
+from telethon.events import NewMessage, ChatAction, MessageEdited, MessageDeleted
 from telethon.events.common import EventCommon
 from telethon.tl.custom import Message
 from telethon.tl.types import MessageMediaWebPage
@@ -17,9 +17,8 @@ from telethon.tl.types import MessageMediaWebPage
 __all__ = ["BaseFilter", "MergedFilter", "InvertedFilter",
            "everything", "in_chats",
            "message", "text", "has_button", "edited", "regex",
-           "chat_action", "new_photo", "new_title"]
-
-from telethon.utils import resolve_id
+           "chat_action", "new_photo", "new_title",
+           "deleted"]
 
 
 class BaseFilter:
@@ -255,3 +254,21 @@ class _NewPhoto(_ChatAction):
 
 
 new_photo = _NewPhoto()
+
+
+class _DeletedMessage(BaseFilter):
+    def __init__(self, message: Optional[Message] = None):
+        self.message = message
+
+    def filter(self, event: EventCommon):
+        if not isinstance(event, MessageDeleted.Event):
+            return False
+        if self.message is None:
+            return True
+        return self.message.id in event.deleted_ids
+
+    def __repr__(self):
+        return "DeletedMessage"
+
+
+deleted = _DeletedMessage

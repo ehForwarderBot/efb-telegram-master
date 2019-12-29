@@ -887,6 +887,9 @@ class ChatBindingManager(LocaleMixin):
         else:
             # Per ptb filter specs, this part of code should not be reached.
             return
+        self.chat_migration_by_id(from_id, to_id)
+
+    def chat_migration_by_id(self, from_id, to_id):
         from_str = utils.chat_id_to_str(self.channel.channel_id, from_id)
         to_str = utils.chat_id_to_str(self.channel.channel_id, to_id)
         for i in self.db.get_chat_assoc(master_uid=from_str):
