@@ -116,13 +116,17 @@ class ChatObjectCacheManager:
                 return self.compound_enrol(chat_obj)
 
         if build_dummy:
-            chat = ETMChat(db=self.db)
-            chat.module_id = chat.module_name = module_id
-            chat.chat_uid = chat.chat_name = chat_id
+            chat = ETMChat(db=self.db,
+                           module_id=module_id,
+                           module_name=module_id,
+                           chat_uid=chat_id,
+                           chat_name=chat_id)
             if group_id:
-                group = ETMChat(db=self.db)
-                group.module_id = group.module_name = module_id
-                group.chat_uid = group.chat_name = group_id
+                group = ETMChat(db=self.db,
+                                module_id=module_id,
+                                module_name=module_id,
+                                chat_uid=group_id,
+                                chat_name=group_id)
                 chat.group = group
                 chat.is_chat = False
             return chat

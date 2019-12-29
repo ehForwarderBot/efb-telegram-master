@@ -3,7 +3,8 @@ import time
 from datetime import datetime
 from typing import Optional, TYPE_CHECKING, Pattern, List, Dict, Any, Union, Sequence
 
-from ehforwarderbot import EFBChat, EFBChannel
+from ehforwarderbot import EFBChat, EFBChannel, ChatType, EFBMiddleware
+from ehforwarderbot.chat import EFBChatNotificationState
 from ehforwarderbot.types import ChatID, ModuleID
 from . import utils
 from .constants import Emoji
@@ -16,7 +17,6 @@ __all__ = ['ETMChat']
 
 
 class ETMChat(EFBChat):
-
     _last_message_time: Optional[datetime] = None
     _last_message_time_query: float = 0
     LAST_MESSAGE_QUERY_TIMEOUT_MS: float = 60000  # 60s
@@ -27,25 +27,35 @@ class ETMChat(EFBChat):
     group: 'Optional[ETMChat]' = None
 
     def __init__(self, db: 'DatabaseManager',
-                 chat: Optional[EFBChat] = None, channel: Optional[EFBChannel] = None):
+                 chat: Optional[EFBChat] = None, channel: Optional[EFBChannel] = None,
+                 middleware: Optional[EFBMiddleware] = None,
+                 module_name: str = "", channel_emoji: str = "", module_id: ModuleID = ModuleID(""),
+                 chat_name: str = "", chat_alias: Optional[str] = None, chat_type: ChatType = ChatType.Unknown,
+                 chat_uid: ChatID = ChatID(""), is_chat: bool = True,
+                 notification: EFBChatNotificationState = EFBChatNotificationState.ALL,
+                 members: 'Sequence[EFBChat]' = None, group: 'Optional[EFBChat]' = None,
+                 vendor_specific: Dict[str, Any] = None):
         assert db
         self.db = db
-        if channel:
-            super().__init__(channel)
+
         if chat:
-            self.module_name = chat.module_name
-            self.channel_emoji = chat.channel_emoji
-            self.module_id = chat.module_id
-            self.chat_name = chat.chat_name
-            self.chat_type = chat.chat_type
-            self.chat_alias = chat.chat_alias
-            self.chat_uid = chat.chat_uid
-            self.notification = chat.notification
-            self.is_chat = chat.is_chat
-            self.members = [ETMChat(db=db, chat=i) for i in chat.members]
+            super().__init__(module_name=chat.module_name,
+                             channel_emoji=chat.channel_emoji,
+                             module_id=chat.module_id,
+                             chat_name=chat.chat_name,
+                             chat_type=chat.chat_type,
+                             chat_alias=chat.chat_alias,
+                             chat_uid=chat.chat_uid,
+                             notification=chat.notification,
+                             is_chat=chat.is_chat,
+                             members=[ETMChat(db=db, chat=i) for i in chat.members],
+                             vendor_specific=chat.vendor_specific.copy())
             for i in self.members:
                 i.group = self
-            self.vendor_specific = chat.vendor_specific.copy()
+        else:
+            super().__init__(channel, middleware, module_name, channel_emoji,
+                             module_id, chat_name, chat_alias, chat_type,
+                             chat_uid, is_chat, notification, members, group, vendor_specific)
 
     def match(self, pattern: Union[Pattern, str, None]) -> bool:
         """

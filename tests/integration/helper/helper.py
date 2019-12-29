@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 import time
 from asyncio import QueueEmpty
@@ -63,12 +64,15 @@ class TelegramIntegrationTestHelper:
                                       NewMessage(chats=self.chats, incoming=True, from_users=[bot_id]))
         # self.client.add_event_handler(self.new_message_handler,
         #                               NewMessage(incoming=True))
-        self.client.add_event_handler(self.deleted_message_handler, MessageDeleted(chats=self.chats))
+        self.client.add_event_handler(self.deleted_message_handler, MessageDeleted())
         self.client.add_event_handler(self.update_handler, UserUpdate(chats=self.chats))
         self.client.add_event_handler(self.update_handler, MessageEdited(chats=self.chats))
         self.client.add_event_handler(self.update_handler, ChatAction(chats=self.chats))
 
+        self.logger = logging.getLogger(__name__)
+
     async def update_handler(self, event):
+        self.logger.debug("Got event, %s, %s", time.time(), event.to_dict())
         await self.queue.put(event)
 
     def clear_queue(self):
@@ -82,7 +86,7 @@ class TelegramIntegrationTestHelper:
         # record the mapping of message ID and its chat
         message: Message = event.message
         self.message_chat_map[message.id] = message.get_input_chat()
-        # print("GOT EVENT FROM HANDLER", time.time(), event)
+        self.logger.debug("Got new message event, %s, %s", time.time(), event.to_dict())
         await self.queue.put(event)
 
     async def deleted_message_handler(self, event: MessageDeleted.Event):
@@ -92,7 +96,7 @@ class TelegramIntegrationTestHelper:
             input_peer = self.message_chat_map[message_id]
             event._chat_peer = input_peer
             del self.message_chat_map[message_id]
-
+        self.logger.debug("Got deleted message event, %s, %s", time.time(), event.to_dict())
         await self.queue.put(event)
 
     async def wait_for_event(self, event_filter: BaseFilter = filters.everything,
