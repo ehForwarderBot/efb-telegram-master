@@ -18,7 +18,11 @@ class MockSlaveChannel(EFBChannel):
     channel_emoji: str = "➖"
     channel_id: ModuleID = ModuleID("tests.mocks.slave")
     channel_type: ChannelType = ChannelType.Slave
-    supported_message_types: Set[MsgType] = {MsgType.Text, MsgType.Link}
+    supported_message_types: Set[MsgType] = {
+        MsgType.Text, MsgType.Image, MsgType.Voice, MsgType.Animation,
+        MsgType.Video, MsgType.File, MsgType.Location, MsgType.Link,
+        MsgType.Sticker, MsgType.Status, MsgType.Unsupported
+    }
     __version__: str = '0.0.2'
 
     logger = getLogger(channel_id)

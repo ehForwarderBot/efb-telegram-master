@@ -47,7 +47,7 @@ async def test_master_master_quick_reply(helper, client, bot_id, slave, channel)
     await message.click(0)
     message = await helper.wait_for_message(in_chats(bot_id) & edited(message.id) & ~has_button)
     await message.reply(content)
-    message = slave.messages.get()
+    message = slave.messages.get(timeout=5)
     slave.messages.task_done()
     assert message.text == content
     assert message.chat == chat
@@ -56,7 +56,7 @@ async def test_master_master_quick_reply(helper, client, bot_id, slave, channel)
     await client.send_message(bot_id, content)
     text = await helper.wait_for_message_text(in_chats(bot_id))
     assert chat.display_name in text, f"{text!r} is not a warning message for {chat}"
-    message = slave.messages.get()
+    message = slave.messages.get(timeout=5)
     slave.messages.task_done()
 
     assert message.text == content
@@ -88,7 +88,7 @@ async def test_master_master_quick_reply_cache_expiry(helper, client, bot_id, sl
     await message.click(0)
     message = await helper.wait_for_message(in_chats(bot_id) & edited(message.id) & ~has_button)
     await message.reply(content)
-    slave.messages.get()
+    slave.messages.get(timeout=5)
     slave.messages.task_done()
 
     time_now = time.time()

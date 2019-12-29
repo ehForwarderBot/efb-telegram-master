@@ -68,7 +68,6 @@ async def helper(helper_wrap, slave) -> TelegramIntegrationTestHelper:
     assert helper_wrap.queue.empty()
     slave.clear_messages()
     assert slave.messages.empty()
-    print("===== HELPER QUEUE EMPTIED")
     yield helper_wrap
 
 

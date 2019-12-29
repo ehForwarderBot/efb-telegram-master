@@ -45,13 +45,14 @@ class MasterMessageProcessor(LocaleMixin):
     # Constants
     TYPE_DICT = {
         TGMsgType.Text: MsgType.Text,
-        TGMsgType.Audio: MsgType.Audio,
+        TGMsgType.Audio: MsgType.File,
         TGMsgType.Document: MsgType.File,
         TGMsgType.Photo: MsgType.Image,
         TGMsgType.Sticker: MsgType.Sticker,
         # TGMsgType.AnimatedSticker: MsgType.Animation,
         TGMsgType.Video: MsgType.Video,
-        TGMsgType.Voice: MsgType.Audio,
+        TGMsgType.VideoNote: MsgType.Video,
+        TGMsgType.Voice: MsgType.Voice,
         TGMsgType.Location: MsgType.Location,
         TGMsgType.Venue: MsgType.Location,
         TGMsgType.Animation: MsgType.Animation,
@@ -69,7 +70,8 @@ class MasterMessageProcessor(LocaleMixin):
 
         self.bot.dispatcher.add_handler(MessageHandler(
             (Filters.text | Filters.photo | Filters.sticker | Filters.document |
-             Filters.venue | Filters.location | Filters.audio | Filters.voice | Filters.video) &
+             Filters.venue | Filters.location | Filters.audio | Filters.voice |
+             Filters.video | Filters.contact | Filters.video_note) &
             Filters.update,
             self.enqueue_message
         ))
@@ -130,13 +132,14 @@ class MasterMessageProcessor(LocaleMixin):
         """
 
         message: telegram.Message = update.effective_message
-        mid = message.message_id
+        mid = utils.message_id_to_str(update=update)
 
         self.logger.debug("[%s] Received message from Telegram: %s", mid, message.to_dict())
 
         # if the chat is singly-linked
         destination = self.get_singly_linked_chat_id_str(update.effective_chat)
         if destination is None:  # not singly linked
+            quote = False
             self.logger.debug("[%s] Chat %s is not singly-linked", mid, update.effective_chat)
             reply_to = message.reply_to_message
             cached_dest = self.chat_dest_cache.get(message.chat.id)
@@ -153,6 +156,7 @@ class MasterMessageProcessor(LocaleMixin):
                 destination = cached_dest
                 self._send_cached_chat_warning(update, message.chat.id, cached_dest)
         else:
+            quote = message.reply_to_message is not None
             self.logger.debug("[%s] Chat %s is singly-linked to %s", mid, message.chat, destination)
 
         self.logger.debug("[%s] Destination chat = %s", mid, destination)
@@ -175,7 +179,7 @@ class MasterMessageProcessor(LocaleMixin):
                                           "Please reply to a previous message. (MS02)"), quote=True)
         else:
             self.chat_dest_cache.set(message.chat.id, destination)
-            return self.process_telegram_message(update, context, destination)
+            return self.process_telegram_message(update, context, destination, quote=quote)
 
     def get_singly_linked_chat_id_str(self, chat: Chat) -> Optional[EFBChannelChatIDStr]:
         """Return the singly-linked remote chat if available.
@@ -188,7 +192,7 @@ class MasterMessageProcessor(LocaleMixin):
         return None
 
     def process_telegram_message(self, update: Update, context: CallbackContext,
-                                 destination: EFBChannelChatIDStr):
+                                 destination: EFBChannelChatIDStr, quote: bool = False):
         """
         Process messages came from Telegram.
 
@@ -196,10 +200,8 @@ class MasterMessageProcessor(LocaleMixin):
             update: Telegram message update
             context: PTB update context
             destination: Destination of the message specified.
+            quote: If the message shall quote another one
         """
-        target: Optional[EFBChannelChatIDStr] = None
-        target_channel: Optional[ModuleID] = None
-        target_log: Optional['MsgLog'] = None
 
         # Message ID for logging
         message_id = utils.message_id_to_str(update=update)
@@ -229,13 +231,9 @@ class MasterMessageProcessor(LocaleMixin):
                 m.author = self.chat_manager.self
 
             m.deliver_to = coordinator.slaves[channel]
-            if target and target_log is not None and target_channel == channel:
-                trgt_msg: ETMMsg = target_log.build_etm_msg(self.chat_manager, recur=False)
-                trgt_msg.target = None
-                m.target = trgt_msg
 
-                self.logger.debug("[%s] This message replies to another message of the same channel.\n"
-                                  "Chat ID: %s; Message ID: %s.", message_id, trgt_msg.chat.chat_uid, trgt_msg.uid)
+            if quote:
+                self.attach_target_message(message, m, channel)
             # Type specific stuff
             self.logger.debug("[%s] Message type from Telegram: %s", message_id, mtype)
 
@@ -270,9 +268,6 @@ class MasterMessageProcessor(LocaleMixin):
             # Flag for edited message
             if edited:
                 m.edit = True
-                # Telegram Bot API did not provide any info about whether media is edited,
-                # so ``edit_media`` should be always flagged up to prevent unwanted issue.
-                m.edit_media = True
                 text = msg_md_text or msg_md_caption
                 msg_log = self.db.get_msg_log(master_msg_id=utils.message_id_to_str(update=update))
                 if not msg_log or msg_log.slave_message_id == self.db.FAIL_FLAG:
@@ -294,11 +289,13 @@ class MasterMessageProcessor(LocaleMixin):
                     log_message = False
                     return
                 self.logger.debug('[%s] Message is edited (%s)', m.uid, m.edit)
+                if m.file_id and m.file_id != msg_log.file_id:
+                    m.edit_media = True
 
             # Enclose message as an EFBMsg object by message type.
-            if mtype == TGMsgType.Text:
+            if mtype is TGMsgType.Text:
                 m.text = msg_md_text
-            elif mtype == TGMsgType.Photo:
+            elif mtype is TGMsgType.Photo:
                 m.text = msg_md_caption
                 m.mime = "image/jpeg"
                 self._check_file_download(message.photo[-1])
@@ -306,50 +303,55 @@ class MasterMessageProcessor(LocaleMixin):
                 # Convert WebP to the more common PNG
                 m.text = ""
                 self._check_file_download(message.sticker)
-            elif mtype == TGMsgType.Animation:
-                m.text = ""
+            elif mtype is TGMsgType.Animation:
+                m.text = msg_md_caption
                 self.logger.debug("[%s] Telegram message is a \"Telegram GIF\".", message_id)
                 m.filename = getattr(message.document, "file_name", None) or None
+                if m.filename and not m.filename.lower().endswith(".gif"):
+                    m.filename += ".gif"
                 m.mime = message.document.mime_type or m.mime
-            elif mtype == TGMsgType.Document:
+            elif mtype is TGMsgType.Document:
                 m.text = msg_md_caption
                 self.logger.debug("[%s] Telegram message type is document.", message_id)
                 m.filename = getattr(message.document, "file_name", None) or None
                 m.mime = message.document.mime_type
                 self._check_file_download(message.document)
-            elif mtype == TGMsgType.Video:
+            elif mtype is TGMsgType.Video:
                 m.text = msg_md_caption
                 m.mime = message.video.mime_type
                 self._check_file_download(message.video)
-            elif mtype == TGMsgType.Audio:
+            elif mtype is TGMsgType.VideoNote:
+                m.text = msg_md_caption
+                self._check_file_download(message.video)
+            elif mtype is TGMsgType.Audio:
                 m.text = "%s - %s\n%s" % (
                     message.audio.title, message.audio.performer, msg_md_caption)
                 m.mime = message.audio.mime_type
                 self._check_file_download(message.audio)
-            elif mtype == TGMsgType.Voice:
+            elif mtype is TGMsgType.Voice:
                 m.text = msg_md_caption
                 m.mime = message.voice.mime_type
                 self._check_file_download(message.voice)
-            elif mtype == TGMsgType.Location:
+            elif mtype is TGMsgType.Location:
                 # TRANSLATORS: Message body text for location messages.
                 m.text = self._("Location")
                 m.attributes = EFBMsgLocationAttribute(
                     message.location.latitude,
                     message.location.longitude
                 )
-            elif mtype == TGMsgType.Venue:
-                m.text = message.location.title + "\n" + message.location.adderss
+            elif mtype is TGMsgType.Venue:
+                m.text = f"📍 {message.location.title}\n{message.location.adderss}"
                 m.attributes = EFBMsgLocationAttribute(
                     message.venue.location.latitude,
                     message.venue.location.longitude
                 )
-            elif mtype == TGMsgType.Contact:
+            elif mtype is TGMsgType.Contact:
                 contact: telegram.Contact = message.contact
                 m.text = self._("Shared a contact: {first_name} {last_name}\n{phone_number}").format(
                     first_name=contact.first_name, last_name=contact.last_name, phone_number=contact.phone_number
                 )
             else:
-                raise EFBMessageTypeNotSupported(self._("Message type {0} is not supported.").format(mtype))
+                raise EFBMessageTypeNotSupported(self._("Message type {0} is not supported.").format(mtype.name))
 
             slave_msg = coordinator.send_message(m)
             if slave_msg and slave_msg.uid:
@@ -374,6 +376,29 @@ class MasterMessageProcessor(LocaleMixin):
                 self.db.add_or_update_message_log(m, update.effective_message)
                 if m.file:
                     m.file.close()
+
+    def attach_target_message(self, tg_msg: Message, etm_msg: ETMMsg, channel: ModuleID) -> ETMMsg:
+        """Attach target message to an ETM message if possible"""
+        reply_to = tg_msg.reply_to_message
+        target_log = self.db.get_msg_log(
+            master_msg_id=utils.message_id_to_str(reply_to.chat.id, reply_to.message_id))
+        if not target_log or not target_log.slave_origin_uid:
+            self.logger.error("[%s] Quoted message not found in database, give up quoting.",
+                              tg_msg.message_id)
+            return etm_msg
+        target_channel, _, _ = utils.chat_id_str_to_id(target_log.slave_origin_uid)
+        if target_channel != channel:
+            self.logger.error("[%s] Quoted message is sent to channel %s, but this message is sent to %s, give up quoting.",
+                              tg_msg.message_id, target_channel, channel)
+            return ETMMsg
+        target_msg: ETMMsg = target_log.build_etm_msg(self.chat_manager, recur=False)
+        target_msg.target = None
+        etm_msg.target = target_msg
+
+        self.logger.debug("[%s] This message replies to another message of the same channel.\n"
+                          "Chat ID: %s; Message ID: %s.",
+                          tg_msg.message_id, target_msg.chat.chat_uid, target_msg.uid)
+        return ETMMsg
 
     def _send_cached_chat_warning(self, update: telegram.Update,
                                   cache_key: TelegramChatID,
