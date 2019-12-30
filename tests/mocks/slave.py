@@ -9,6 +9,7 @@ from uuid import uuid4
 from ehforwarderbot import EFBChannel, EFBMsg, EFBStatus, ChannelType, MsgType, EFBChat, ChatType, coordinator
 from ehforwarderbot.chat import EFBChatNotificationState
 from ehforwarderbot.exceptions import EFBChatNotFound, EFBOperationNotSupported, EFBMessageReactionNotPossible
+from ehforwarderbot.message import EFBMsgCommands, EFBMsgCommand
 from ehforwarderbot.status import EFBMessageRemoval, EFBReactToMessage, EFBMessageReactionsUpdate, EFBChatUpdates, \
     EFBMemberUpdates
 from ehforwarderbot.types import ModuleID, ChatID, MessageID, ReactionName, Reactions
@@ -345,6 +346,8 @@ class MockSlaveChannel(EFBChannel):
 
     # TODO: Send types of messages and statuses to slave channels
 
+    # region [Reactions]
+
     def build_reactions(self, group: EFBChat) -> Reactions:
         possible_reactions = self.suggested_reactions[:-1] + [None]
         chats = group.members
@@ -370,10 +373,28 @@ class MockSlaveChannel(EFBChannel):
         coordinator.send_status(status)
         return status
 
+    # endregion [Reactions]
+
+    @staticmethod
+    def build_message_commands() -> EFBMsgCommands:
+        return EFBMsgCommands([
+            EFBMsgCommand("Ping!", "command_ping"),
+            EFBMsgCommand("Bam", "command_bam"),
+        ])
+
+    @staticmethod
+    def command_ping() -> Optional[str]:
+        return "Pong!"
+
+    @staticmethod
+    def command_bam():
+        return None
+
     def send_text_message(self, chat: EFBChat,
                           author: Optional[EFBChat] = None,
                           target: Optional[EFBMsg] = None,
-                          reactions: bool = False) -> EFBMsg:
+                          reactions: bool = False,
+                          commands: bool = False) -> EFBMsg:
         """Send a text message to master channel.
         Leave author blank to use “self” of the chat.
 
@@ -386,6 +407,7 @@ class MockSlaveChannel(EFBChannel):
                 author.group = chat
         uid = f"__msg_id_{uuid4()}__"
         reactions = self.build_reactions(chat) if reactions else None
+        commands = self.build_message_commands() if commands else None
         message = EFBMsg(
             chat=chat,
             author=author,
@@ -394,6 +416,7 @@ class MockSlaveChannel(EFBChannel):
             uid=uid,
             text=f"Content of message with ID {uid}",
             reactions=reactions,
+            commands=commands,
             deliver_to=coordinator.master
         )
 
@@ -462,6 +485,7 @@ class MockSlaveChannel(EFBChannel):
             self.accept_message_reactions = backup
 
     # endregion [Message reactions]
+    # region [Chat/Member updates]
 
     def send_chat_update_status(self) -> Tuple[EFBChat, EFBChat, EFBChat]:
         """
@@ -507,3 +531,5 @@ class MockSlaveChannel(EFBChannel):
             removed_members=[to_remove.chat_uid],
         ))
         return to_add, self.member_to_edit, to_remove
+
+    # endregion [Chat/Member updates]

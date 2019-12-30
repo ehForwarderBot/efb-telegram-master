@@ -496,31 +496,33 @@ class TelegramBotManager(LocaleMixin):
 
     @Decorators.retry_on_timeout
     @Decorators.retry_on_chat_migration
-    def answer_callback_query(self, *args, prefix="", suffix="",
+    def answer_callback_query(self, *args, prefix="", suffix="", text=None,
                               message_id=None, **kwargs):
+        if text is None:
+            return self.updater.bot.answer_callback_query(
+                *args, **kwargs
+            )
         prefix = (prefix and (prefix + "\n")) or prefix
         suffix = (suffix and ("\n" + suffix)) or suffix
-        text: str
-
-        if args[1:]:
-            text = args[1]
-        else:
-            text = kwargs.pop('text')
-        args = args[:1]
 
         chat_id = kwargs.get('chat_id')
 
         if len(prefix + text + suffix) >= MAX_CALLBACK_QUERY_ANSWER_LENGTH:
-            full_message = io.StringIO(prefix + text + suffix)
-            truncated = prefix + text[:25] + "\n...\n" + text[-25:] + suffix
+            full_message = prefix + text + suffix
+            full_message_buffer = io.StringIO(full_message)
+            keep_size = MAX_CALLBACK_QUERY_ANSWER_LENGTH // 3
+            truncated = full_message[:keep_size] + "…" + full_message[keep_size:]
             result = self.updater.bot.answer_callback_query(*args, text=truncated, **kwargs)
             filename = f"{chat_id}_{message_id}.txt"
-            self.updater.bot.send_document(args[0], full_message, filename,
+            self.updater.bot.send_document(args[0], full_message_buffer, filename,
                                            reply_to_message_id=message_id,
                                            caption=self._("Response is truncated due to its length. "
                                                           "Full message is sent as attachment."))
             return result
-        return self.updater.bot.answer_callback_query(*args, **kwargs)
+        self.logger.debug(f"answer_callback_query({args}, {kwargs})")
+        return self.updater.bot.answer_callback_query(
+            *args, text=prefix + text + suffix, **kwargs
+        )
 
     @Decorators.retry_on_timeout
     @Decorators.retry_on_chat_migration

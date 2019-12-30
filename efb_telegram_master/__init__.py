@@ -543,6 +543,7 @@ class TelegramChannel(EFBChannel):
     def void_callback_handler(self, update: Update, context: CallbackContext):
         self.bot_manager.answer_callback_query(update.callback_query.id,
                                                text=self._("This button does nothing."),
+                                               message_id=update.effective_message.message_id,
                                                cache_time=180)
 
     def stop_polling(self):
