@@ -3,13 +3,14 @@ import threading
 from contextlib import contextmanager
 from logging import getLogger
 from queue import Queue
-from typing import Set, Optional, List, IO, Dict, TypeVar
+from typing import Set, Optional, List, IO, Dict, TypeVar, Tuple
 from uuid import uuid4
 
 from ehforwarderbot import EFBChannel, EFBMsg, EFBStatus, ChannelType, MsgType, EFBChat, ChatType, coordinator
 from ehforwarderbot.chat import EFBChatNotificationState
 from ehforwarderbot.exceptions import EFBChatNotFound, EFBOperationNotSupported, EFBMessageReactionNotPossible
-from ehforwarderbot.status import EFBMessageRemoval, EFBReactToMessage, EFBMessageReactionsUpdate
+from ehforwarderbot.status import EFBMessageRemoval, EFBReactToMessage, EFBMessageReactionsUpdate, EFBChatUpdates, \
+    EFBMemberUpdates
 from ehforwarderbot.types import ModuleID, ChatID, MessageID, ReactionName, Reactions
 from ehforwarderbot.utils import extra
 
@@ -29,6 +30,8 @@ class MockSlaveChannel(EFBChannel):
     __version__: str = '0.0.2'
 
     logger = getLogger(channel_id)
+
+    CHAT_ID_FORMAT = "__chat_{hash}__"
 
     polling = threading.Event()
 
@@ -116,6 +119,12 @@ class MockSlaveChannel(EFBChannel):
         self.message_removal_possible: bool = True
         self.accept_message_reactions: str = "accept"
 
+        # chat/member changes
+        self.chat_to_toggle = self.get_chat(self.CHAT_ID_FORMAT.format(hash=hash("I")))
+        self.chat_to_edit = self.get_chat(self.CHAT_ID_FORMAT.format(hash=hash("わ")))
+        self.member_to_toggle = self.get_chat(self.group.chat_uid, self.CHAT_ID_FORMAT.format(hash=hash("Ю")))
+        self.member_to_edit = self.get_chat(self.group.chat_uid, self.CHAT_ID_FORMAT.format(hash=hash("Я")))
+
     # region [Clear queues]
 
     def clear_messages(self):
@@ -171,7 +180,7 @@ class MockSlaveChannel(EFBChannel):
                 channel=self,
                 chat_name=name,
                 chat_alias=alias,
-                chat_uid=ChatID(f"__chat_{hash(name)}__"),
+                chat_uid=ChatID(self.CHAT_ID_FORMAT.format(hash=hash(name))),
                 chat_type=chat_type,
                 notification=notification
             )
@@ -191,7 +200,7 @@ class MockSlaveChannel(EFBChannel):
             channel=self,
             chat_name=name,
             chat_alias="不知道",
-            chat_uid=ChatID(f"__chat_{hash(name)}__"),
+            chat_uid=ChatID(self.CHAT_ID_FORMAT.format(hash=hash(name))),
             chat_type=ChatType.User,
             notification=EFBChatNotificationState.ALL
         )
@@ -203,9 +212,29 @@ class MockSlaveChannel(EFBChannel):
             channel_emoji="‼️",
             chat_name=name,
             chat_alias="知らんでぇ",
-            chat_uid=ChatID(f"__chat_{hash(name)}__"),
+            chat_uid=ChatID(self.CHAT_ID_FORMAT.format(hash=hash(name))),
             chat_type=ChatType.User,
             notification=EFBChatNotificationState.ALL
+        )
+
+        name = "backup_chat"
+        self.backup_chat = EFBChat(
+            channel=self,
+            chat_name=name,
+            chat_uid=ChatID(self.CHAT_ID_FORMAT.format(hash=hash(name))),
+            chat_type=ChatType.User,
+            notification=EFBChatNotificationState.ALL
+        )
+
+        name = "backup_member"
+        self.backup_member = EFBChat(
+            channel=self,
+            chat_name=name,
+            chat_uid=ChatID(self.CHAT_ID_FORMAT.format(hash=hash(name))),
+            chat_type=ChatType.User,
+            notification=EFBChatNotificationState.ALL,
+            group=self.chats_by_chat_type[ChatType.Group][0],
+            is_chat=False
         )
 
     def fill_group(self, group: EFBChat):
@@ -216,7 +245,7 @@ class MockSlaveChannel(EFBChannel):
                 channel=self,
                 chat_name=name,
                 chat_alias=f"{alias} @ {group.chat_name}" if alias is not None else None,
-                chat_uid=ChatID(f"__chat_{hash(name)}__"),
+                chat_uid=ChatID(self.CHAT_ID_FORMAT.format(hash=hash(name))),
                 chat_type=chat_type,
                 notification=notification,
                 group=group,
@@ -330,6 +359,17 @@ class MockSlaveChannel(EFBChannel):
                 reactions[reaction].append(i)
         return reactions
 
+    def send_reactions_update(self, message: EFBMsg) -> EFBMessageReactionsUpdate:
+        reactions = self.build_reactions(message.chat)
+        message.reactions = reactions
+        status = EFBMessageReactionsUpdate(
+            chat=message.chat,
+            msg_id=message.uid,
+            reactions=reactions
+        )
+        coordinator.send_status(status)
+        return status
+
     def send_text_message(self, chat: EFBChat,
                           author: Optional[EFBChat] = None,
                           target: Optional[EFBMsg] = None,
@@ -378,7 +418,9 @@ class MockSlaveChannel(EFBChannel):
             self.message_removal_possible = backup
 
     # endregion [Message removal]
+    # region [Message reactions]
 
+    # noinspection PyUnresolvedReferences
     def react_to_message_status(self, status: EFBReactToMessage):
         if self.accept_message_reactions == "reject_one":
             raise EFBMessageReactionNotPossible("Message reaction is rejected by flag.")
@@ -418,3 +460,50 @@ class MockSlaveChannel(EFBChannel):
             yield
         finally:
             self.accept_message_reactions = backup
+
+    # endregion [Message reactions]
+
+    def send_chat_update_status(self) -> Tuple[EFBChat, EFBChat, EFBChat]:
+        """
+        Returns:
+            chat added, chat edited, chat removed
+        """
+        keyword = " (Edited)"
+        if self.backup_chat not in self.chats:
+            to_add, to_remove = self.backup_chat, self.chat_to_toggle
+            self.chat_to_edit.chat_name += keyword
+        else:
+            to_add, to_remove = self.chat_to_toggle, self.backup_chat
+            self.chat_to_edit.chat_name = self.chat_to_edit.chat_name.replace(keyword, '')
+        self.chats.append(to_add)
+        self.chats.remove(to_remove)
+        coordinator.send_status(EFBChatUpdates(
+            self,
+            new_chats=[to_add.chat_uid],
+            modified_chats=[self.chat_to_edit.chat_uid],
+            removed_chats=[to_remove.chat_uid],
+        ))
+        return to_add, self.chat_to_edit, to_remove
+
+    # noinspection PyUnresolvedReferences
+    def send_member_update_status(self) -> Tuple[EFBChat, EFBChat, EFBChat]:
+        """
+        Returns:
+            member added, member edited, member removed
+        """
+        keyword = " (Edited)"
+        if self.backup_member not in self.group.members:
+            to_add, to_remove = self.backup_member, self.member_to_toggle
+            self.member_to_edit.chat_name += keyword
+        else:
+            to_add, to_remove = self.member_to_toggle, self.backup_member
+            self.member_to_edit.chat_name = self.member_to_edit.chat_name.replace(keyword, '')
+        self.group.members.append(to_add)
+        self.group.members.remove(to_remove)
+        coordinator.send_status(EFBMemberUpdates(
+            self, self.group.chat_uid,
+            new_members=[to_add.chat_uid],
+            modified_members=[self.member_to_edit.chat_uid],
+            removed_members=[to_remove.chat_uid],
+        ))
+        return to_add, self.member_to_edit, to_remove

@@ -1,3 +1,4 @@
+import logging
 from contextlib import suppress
 from typing import TYPE_CHECKING, Optional, Dict, Tuple, Iterator, overload
 from typing_extensions import Literal
@@ -12,8 +13,8 @@ from .chat import ETMChat
 if TYPE_CHECKING:
     from . import TelegramChannel
 
-# Cache storage key: module_id, chat_id, group_id (if available)
 CacheKey = Tuple[ModuleID, ChatID, Optional[ChatID]]
+"""Cache storage key: module_id, chat_id, group_id (if available)"""
 
 
 class ChatObjectCacheManager:
@@ -24,6 +25,8 @@ class ChatObjectCacheManager:
     def __init__(self, channel: 'TelegramChannel'):
         self.channel = channel
         self.db = channel.db
+        self.logger = logging.getLogger(__name__)
+
         self.self = ETMChat(db=self.db, channel=self.channel).self()
         self.cache: Dict[CacheKey, ETMChat] = dict()
         self.enrol(self.self)
@@ -41,9 +44,31 @@ class ChatObjectCacheManager:
     def compound_enrol(self, chat: EFBChat) -> ETMChat:
         """Convert and enrol a chat object for the first time.
         This method also enrols all members if the chat is a group.
+        If the chat is a group member, it will try to match its group in cache
+        first, and re-cache it if not found.
         """
         etm_chat = ETMChat(db=self.db, chat=chat)
+        if chat.group:
+            group_key = self.get_cache_key(chat.group)
+            if group_key in self.cache:
+                cached_group = self.cache[group_key]
+                cached_group.members.append(etm_chat)
+                etm_chat.group = cached_group
+                self.enrol(etm_chat)
+                return etm_chat
+            else:
+                cached_group = self.compound_enrol(chat.group)
+                chat_key = self.get_cache_key(chat)
+                if chat_key in self.cache:
+                    return self.cache[chat_key]
+                else:
+                    cached_group.members.append(etm_chat)
+                    etm_chat.group = cached_group
+                    self.enrol(etm_chat)
+                    return etm_chat
+
         if etm_chat.chat_type == ChatType.Group:
+            self.logger.debug("Compound enrol %s members of group %s", len(etm_chat.members), etm_chat)
             for i in etm_chat.members:
                 self.enrol(i)
             group_self = ETMChat(db=self.db, channel=self.channel)
@@ -62,6 +87,7 @@ class ChatObjectCacheManager:
         """
         key = self.get_cache_key(chat)
         self.cache[key] = chat
+        self.logger.debug("Enrolling key %s with value %s", key, chat)
 
     @staticmethod
     def get_cache_key(chat: EFBChat) -> CacheKey:
@@ -138,10 +164,13 @@ class ChatObjectCacheManager:
         unless full update is requested.
         """
         key = self.get_cache_key(chat)
+        self.logger.debug("Trying to update key %s with object %s. Full update: %s", key, chat, full_update)
         if key not in self.cache:
+            self.logger.debug("Key %s is not in cache. Do compound enrol.", key)
             return self.compound_enrol(chat)
 
         cached = self.cache[key]
+        self.logger.debug("Cached object found with key %s.", key)
 
         if full_update:
             cached.chat_name = chat.chat_name

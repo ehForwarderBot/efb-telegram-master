@@ -1,10 +1,9 @@
-from pytest import mark
 from unittest.mock import patch
 
+from pytest import mark
 from telethon.tl.custom import Message
 
-from ehforwarderbot.status import EFBMessageRemoval
-from tests.integration.helper.filters import in_chats, regex, deleted, has_button, reply_to, edited
+from tests.integration.helper.filters import in_chats, regex, reply_to, edited
 from tests.integration.utils import link_chats
 
 pytestmark = mark.asyncio
