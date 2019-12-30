@@ -18,7 +18,7 @@ __all__ = ["BaseFilter", "MergedFilter", "InvertedFilter",
            "everything", "in_chats",
            "message", "text", "has_button", "edited", "regex",
            "chat_action", "new_photo", "new_title",
-           "deleted"]
+           "deleted", "reply_to"]
 
 
 class BaseFilter:
@@ -159,11 +159,33 @@ class _EditedMessage(_Message):
         return True
 
     def __repr__(self):
-        return "EditedMessage"
+        return f"EditedMessage({self.message_id})"
 
 
 edited = _EditedMessage
 """Edited message"""
+
+
+class _ReplyToMessage(_Message):
+    def __init__(self, message_id: Optional[int]):
+        self.message_id = message_id
+
+    def filter(self, event: EventCommon):
+        if not super().filter(event):
+            return False
+        message = cast(MessageEdited.Event, event).message
+        if message.reply_to_msg_id is None:
+            return False
+        if self.message_id is not None:
+            return message.reply_to_msg_id == self.message_id
+        return True
+
+    def __repr__(self):
+        return f"ReplyTo({self.message_id})"
+
+
+reply_to = _ReplyToMessage
+"""Replied message"""
 
 
 class _TextMessage(_Message):

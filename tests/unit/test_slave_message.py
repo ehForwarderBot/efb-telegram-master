@@ -16,13 +16,21 @@ def test_slave_message_reaction_footer(slave):
         ReactionName("__reaction_a__"):
             [slave.chat_with_alias, slave.chat_without_alias],
         ReactionName("__reaction_b__"):
-            [slave.chat_with_alias]
+            [slave.chat_with_alias],
+        ReactionName("__reaction_c__"): []
     }
     footer = SlaveMessageProcessor.build_reactions_footer(reactions)
     assert "__reaction_a__" in footer
     assert "2" in footer
     assert "__reaction_b__" in footer
     assert "1" in footer
+    assert "__reaction_c__" not in footer
+
+    # Footer should be empty if no reaction name gives any value.
+    footer = SlaveMessageProcessor.build_reactions_footer({
+        ReactionName("__reaction_x__"): []
+    })
+    assert not footer
 
 
 @fixture(scope="module")

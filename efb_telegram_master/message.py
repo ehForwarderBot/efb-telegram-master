@@ -46,10 +46,13 @@ class ETMMsg(EFBMsg):
                  is_system: bool = False, mime: Optional[str] = None, path: Optional[str] = None,
                  reactions: Reactions = None, substitutions: Optional[EFBMsgSubstitutions] = None,
                  target: 'Optional[EFBMsg]' = None, text: str = "", type: MsgType = MsgType.Unsupported,
-                 uid: Optional[MessageID] = None, vendor_specific: Dict[str, Any] = None):
+                 uid: Optional[MessageID] = None, vendor_specific: Dict[str, Any] = None,
+                 type_telegram: TGMsgType = TGMsgType.System, file_id: Optional[str] = None):
         super().__init__(attributes, author, chat, commands, deliver_to, edit, edit_media, file, filename, is_system,
                          mime, path, reactions, substitutions, target, text, type, uid, vendor_specific)
         self.__initialized = False
+        self.type_telegram = type_telegram
+        self.file_id = file_id
 
     def _load_file(self):
         if self.file_id:
@@ -68,12 +71,16 @@ class ETMMsg(EFBMsg):
                 ext = mimetypes.guess_extension(self.mime, strict=False)
                 mime = self.mime
             file = tempfile.NamedTemporaryFile(suffix=ext)
-            full_path = file.name
             file_meta.download(out=file)
             file.seek(0)
-            mime = mime or magic.from_file(full_path, mime=True)
-            if type(mime) is bytes:
-                mime = mime.decode()
+
+            if not mime:
+                # Try to deal with restriction from Windows by only providing
+                # libmagic with the first 1048176 bytes (1 MiB) of data.
+                mime = magic.from_buffer(file.read(1048576), mime=True)
+                # mime = mime or magic.from_file(file.name, mime=True)
+                if type(mime) is bytes:
+                    mime = mime.decode()
             self.mime = mime
 
             self.__file = file
@@ -85,6 +92,7 @@ class ETMMsg(EFBMsg):
 
                 gif_file = tempfile.NamedTemporaryFile(suffix='.gif')
                 v = VideoFileClip(file.name)
+                # TODO: This would not work on Windows due to FS restriction
                 if channel_id == "blueset.wechat" and v.size[0] > 600:
                     # Workaround: Compress GIF for slave channel `blueset.wechat`
                     # TODO: Move this logic to `blueset.wechat` in the future
@@ -92,8 +100,10 @@ class ETMMsg(EFBMsg):
                         ["ffmpeg", "-y", "-i", file.name, '-vf', "scale=600:-2", gif_file.name],
                         bufsize=0
                     ).wait()
+                    # TODO: This would not work on Windows due to FS restriction
                 else:
                     v.write_gif(gif_file.name, program="ffmpeg")
+                    # TODO: This would not work on Windows due to FS restriction
                 file.close()
                 gif_file.seek(0)
 
