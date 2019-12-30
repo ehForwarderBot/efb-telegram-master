@@ -2,9 +2,9 @@
 Planned workflow
 ================
 Send a message
-Assert it is send, get slave message ID
+Assert if it is send
 Check if content is correct
-Check
+
 Edit the message (if possible)
     Assert message ID is the same
     Assert edit flag and not edit_media flag

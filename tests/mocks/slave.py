@@ -9,7 +9,7 @@ from uuid import uuid4
 from ehforwarderbot import EFBChannel, EFBMsg, EFBStatus, ChannelType, MsgType, EFBChat, ChatType, coordinator
 from ehforwarderbot.chat import EFBChatNotificationState
 from ehforwarderbot.exceptions import EFBChatNotFound, EFBOperationNotSupported, EFBMessageReactionNotPossible
-from ehforwarderbot.message import EFBMsgCommands, EFBMsgCommand
+from ehforwarderbot.message import EFBMsgCommands, EFBMsgCommand, EFBMsgStatusAttribute
 from ehforwarderbot.status import EFBMessageRemoval, EFBReactToMessage, EFBMessageReactionsUpdate, EFBChatUpdates, \
     EFBMemberUpdates
 from ehforwarderbot.types import ModuleID, ChatID, MessageID, ReactionName, Reactions
@@ -374,6 +374,7 @@ class MockSlaveChannel(EFBChannel):
         return status
 
     # endregion [Reactions]
+    # region [Commands]
 
     @staticmethod
     def build_message_commands() -> EFBMsgCommands:
@@ -389,6 +390,8 @@ class MockSlaveChannel(EFBChannel):
     @staticmethod
     def command_bam():
         return None
+
+    # endregion [Commands]
 
     def send_text_message(self, chat: EFBChat,
                           author: Optional[EFBChat] = None,
@@ -417,6 +420,37 @@ class MockSlaveChannel(EFBChannel):
             text=f"Content of message with ID {uid}",
             reactions=reactions,
             commands=commands,
+            deliver_to=coordinator.master
+        )
+
+        coordinator.send_message(message)
+        self.messages_sent[uid] = message
+
+        return message
+
+    def send_status_message(self, status: EFBMsgStatusAttribute,
+                            chat: EFBChat,
+                            author: Optional[EFBChat] = None,
+                            target: Optional[EFBMsg] = None) -> EFBMsg:
+        """Send a status message to master channel.
+        Leave author blank to use “self” of the chat.
+
+        Returns the message sent.
+        """
+        if author is None:
+            author = EFBChat(self).self()
+            if chat.chat_type is ChatType.Group:
+                author.is_chat = False
+                author.group = chat
+        uid = f"__msg_id_{uuid4()}__"
+        message = EFBMsg(
+            chat=chat,
+            author=author,
+            type=MsgType.Status,
+            target=target,
+            uid=uid,
+            text="",
+            attributes=status,
             deliver_to=coordinator.master
         )
 

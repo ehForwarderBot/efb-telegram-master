@@ -15,12 +15,13 @@ import telegram.constants
 import telegram.error
 import telegram.ext
 from PIL import Image
-from telegram import InputFile
+from telegram import InputFile, ChatAction
 
 from ehforwarderbot import EFBMsg, EFBStatus, coordinator
 from ehforwarderbot.chat import EFBChatNotificationState
 from ehforwarderbot.constants import MsgType, ChatType
-from ehforwarderbot.message import EFBMsgLinkAttribute, EFBMsgLocationAttribute, EFBMsgCommand, Reactions
+from ehforwarderbot.message import EFBMsgLinkAttribute, EFBMsgLocationAttribute, EFBMsgCommand, Reactions, \
+    EFBMsgStatusAttribute
 from ehforwarderbot.status import EFBChatUpdates, EFBMemberUpdates, EFBMessageRemoval, EFBMessageReactionsUpdate
 from . import utils, ETMChat
 from .chat_destination_cache import ChatDestinationCache
@@ -183,6 +184,9 @@ class SlaveMessageProcessor(LocaleMixin):
         elif msg.type == MsgType.Video:
             tg_msg = self.slave_message_video(msg, tg_dest, msg_template, reactions, old_msg_id, target_msg_id,
                                               reply_markup, silent)
+        elif msg.type == MsgType.Status:
+            # Status messages are not to be recorded in databases
+            return self.slave_message_status(msg, tg_dest)
         elif msg.type == MsgType.Unsupported:
             tg_msg = self.slave_message_unsupported(msg, tg_dest, msg_template, reactions, old_msg_id,
                                                     target_msg_id, reply_markup, silent)
@@ -674,6 +678,20 @@ class SlaveMessageProcessor(LocaleMixin):
 
         self.logger.debug("[%s] Processed and sent as text message", msg.uid)
         return tg_msg
+
+    def slave_message_status(self, msg: EFBMsg, tg_dest: TelegramChatID):
+        attributes = msg.attributes
+        assert isinstance(attributes, EFBMsgStatusAttribute)
+        if attributes.status_type is EFBMsgStatusAttribute.Types.TYPING:
+            self.bot.send_chat_action(tg_dest, ChatAction.TYPING)
+        elif attributes.status_type is EFBMsgStatusAttribute.Types.UPLOADING_VOICE:
+            self.bot.send_chat_action(tg_dest, ChatAction.RECORD_AUDIO)
+        elif attributes.status_type is EFBMsgStatusAttribute.Types.UPLOADING_IMAGE:
+            self.bot.send_chat_action(tg_dest, ChatAction.UPLOAD_PHOTO)
+        elif attributes.status_type is EFBMsgStatusAttribute.Types.UPLOADING_VIDEO:
+            self.bot.send_chat_action(tg_dest, ChatAction.UPLOAD_VIDEO)
+        elif attributes.status_type is EFBMsgStatusAttribute.Types.UPLOADING_FILE:
+            self.bot.send_chat_action(tg_dest, ChatAction.UPLOAD_DOCUMENT)
 
     def send_status(self, status: EFBStatus):
         if isinstance(status, EFBChatUpdates):

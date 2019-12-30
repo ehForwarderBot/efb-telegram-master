@@ -9,7 +9,7 @@ under GPL v3.
 import re
 from typing import Optional, cast, Set
 
-from telethon.events import NewMessage, ChatAction, MessageEdited, MessageDeleted
+from telethon.events import NewMessage, ChatAction, MessageEdited, MessageDeleted, UserUpdate
 from telethon.events.common import EventCommon
 from telethon.tl.custom import Message
 from telethon.tl.types import MessageMediaWebPage
@@ -128,6 +128,18 @@ class _InChats(BaseFilter):
 
 in_chats = _InChats
 """Update in chat IDs."""
+
+
+class _Typing(BaseFilter):
+    def filter(self, event: EventCommon):
+        return isinstance(event, UserUpdate.Event)
+
+    def __repr__(self):
+        return "Message"
+
+
+typing = _Typing()
+"""User typing."""
 
 
 class _Message(BaseFilter):
