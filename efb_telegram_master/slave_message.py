@@ -680,17 +680,21 @@ class SlaveMessageProcessor(LocaleMixin):
             self.logger.debug("Received chat updates from channel %s", status.channel)
             for i in status.removed_chats:
                 self.db.delete_slave_chat_info(status.channel.channel_id, i)
+                self.chat_manager.delete_chat_object(status.channel.channel_id, i)
             for i in itertools.chain(status.new_chats, status.modified_chats):
                 chat = status.channel.get_chat(i)
                 self.db.set_slave_chat_info(chat_object=chat)
+                self.chat_manager.update_chat_obj(chat, full_update=True)
         elif isinstance(status, EFBMemberUpdates):
             self.logger.debug("Received member updates from channel %s about group %s",
                               status.channel, status.chat_id)
             for i in status.removed_members:
                 self.db.delete_slave_chat_info(status.channel.channel_id, i, status.chat_id)
+                self.chat_manager.delete_chat_object(status.channel.channel_id, i, status.chat_id)
             for i in itertools.chain(status.new_members, status.modified_members):
                 chat = status.channel.get_chat(status.chat_id, i)
                 self.db.set_slave_chat_info(chat_object=chat)
+                self.chat_manager.update_chat_obj(chat, full_update=True)
         elif isinstance(status, EFBMessageRemoval):
             self.logger.debug("Received message removal request from channel %s on message %s",
                               status.source_channel, status.message)
