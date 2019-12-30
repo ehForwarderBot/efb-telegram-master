@@ -1,3 +1,4 @@
+import random
 import threading
 from contextlib import contextmanager
 from logging import getLogger
@@ -7,9 +8,9 @@ from uuid import uuid4
 
 from ehforwarderbot import EFBChannel, EFBMsg, EFBStatus, ChannelType, MsgType, EFBChat, ChatType, coordinator
 from ehforwarderbot.chat import EFBChatNotificationState
-from ehforwarderbot.exceptions import EFBChatNotFound, EFBOperationNotSupported
-from ehforwarderbot.status import EFBMessageRemoval
-from ehforwarderbot.types import ModuleID, ChatID, MessageID
+from ehforwarderbot.exceptions import EFBChatNotFound, EFBOperationNotSupported, EFBMessageReactionNotPossible
+from ehforwarderbot.status import EFBMessageRemoval, EFBReactToMessage, EFBMessageReactionsUpdate
+from ehforwarderbot.types import ModuleID, ChatID, MessageID, ReactionName, Reactions
 from ehforwarderbot.utils import extra
 
 _T = TypeVar("_T")
@@ -32,6 +33,14 @@ class MockSlaveChannel(EFBChannel):
     polling = threading.Event()
 
     __picture_dict: Dict[str, str] = {}
+
+    suggested_reactions: List[ReactionName] = [
+        ReactionName("R0"),
+        ReactionName("R1"),
+        ReactionName("R2"),
+        ReactionName("R3"),
+        ReactionName("R4")
+    ]
 
     # region [Chat data]
     # fields: name, type, notification, avatar, alias
@@ -105,6 +114,7 @@ class MockSlaveChannel(EFBChannel):
 
         # flags
         self.message_removal_possible: bool = True
+        self.accept_message_reactions: str = "accept"
 
     # region [Clear queues]
 
@@ -225,12 +235,15 @@ class MockSlaveChannel(EFBChannel):
         self.logger.debug("Received status: %r", status)
         if isinstance(status, EFBMessageRemoval):
             self.message_removal_status(status)
+        elif isinstance(status, EFBReactToMessage):
+            self.react_to_message_status(status)
         self.statuses.put(status)
 
     def send_message(self, msg: EFBMsg) -> EFBMsg:
         self.logger.debug("Received message: %r", msg)
         self.messages.put(msg)
         msg.uid = MessageID(str(uuid4()))
+        self.messages_sent[msg.uid] = msg
         return msg
 
     def stop_polling(self):
@@ -295,11 +308,32 @@ class MockSlaveChannel(EFBChannel):
     def echo(self, args):
         return args
 
+    def get_self_chat(self, base_chat: EFBChat) -> EFBChat:
+        return EFBChat(
+            channel=self,
+            group=base_chat if base_chat.chat_type is ChatType.Group else None
+        ).self()
+
     # TODO: Send types of messages and statuses to slave channels
+
+    def build_reactions(self, group: EFBChat) -> Reactions:
+        possible_reactions = self.suggested_reactions[:-1] + [None]
+        chats = group.members
+        reactions: Dict[ReactionName, List[EFBChat]] = {}
+        for i in chats:
+            reaction = random.choice(possible_reactions)
+            if reaction is None:
+                continue
+            elif reaction not in reactions:
+                reactions[reaction] = [i]
+            else:
+                reactions[reaction].append(i)
+        return reactions
 
     def send_text_message(self, chat: EFBChat,
                           author: Optional[EFBChat] = None,
-                          target: Optional[EFBMsg] = None) -> EFBMsg:
+                          target: Optional[EFBMsg] = None,
+                          reactions: bool = False) -> EFBMsg:
         """Send a text message to master channel.
         Leave author blank to use “self” of the chat.
 
@@ -311,6 +345,7 @@ class MockSlaveChannel(EFBChannel):
                 author.is_chat = False
                 author.group = chat
         uid = f"__msg_id_{uuid4()}__"
+        reactions = self.build_reactions(chat) if reactions else None
         message = EFBMsg(
             chat=chat,
             author=author,
@@ -318,7 +353,8 @@ class MockSlaveChannel(EFBChannel):
             target=target,
             uid=uid,
             text=f"Content of message with ID {uid}",
-            deliver_to=coordinator.master,
+            reactions=reactions,
+            deliver_to=coordinator.master
         )
 
         coordinator.send_message(message)
@@ -342,3 +378,43 @@ class MockSlaveChannel(EFBChannel):
             self.message_removal_possible = backup
 
     # endregion [Message removal]
+
+    def react_to_message_status(self, status: EFBReactToMessage):
+        if self.accept_message_reactions == "reject_one":
+            raise EFBMessageReactionNotPossible("Message reaction is rejected by flag.")
+        if self.accept_message_reactions == "reject_all":
+            raise EFBOperationNotSupported("All message reactions are rejected by flag.")
+        message = self.messages_sent.get(status.msg_id)
+        if message is None:
+            raise EFBOperationNotSupported("Message is not found.")
+
+        if status.reaction is None:
+            for idx, i in message.reactions.items():
+                message.reactions[idx] = [j for j in i if not j.is_self]
+        else:
+            if status.reaction not in message.reactions:
+                message.reactions[status.reaction] = []
+            message.reactions[status.reaction].append(self.get_self_chat(message.chat))
+
+        coordinator.send_status(EFBMessageReactionsUpdate(
+            chat=message.chat,
+            msg_id=message.uid,
+            reactions=message.reactions
+        ))
+
+    @contextmanager
+    def set_react_to_message(self, value: bool):
+        """
+        Set reaction response status.
+
+        Args:
+            value:
+                "reject_one": Reject with EFBMessageReactionNotPossible.
+                "reject_all": Reject with EFBOperationNotSupported.
+        """
+        backup = self.accept_message_reactions
+        self.accept_message_reactions = value
+        try:
+            yield
+        finally:
+            self.accept_message_reactions = backup

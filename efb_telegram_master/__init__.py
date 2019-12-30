@@ -345,9 +345,6 @@ class TelegramChannel(EFBChannel):
             return
 
         if not reaction:
-            if msg_log.pickle is None:
-                message.reply_text(self._("Reactors of this message are not recorded in database."))
-                return
             msg_log_obj: ETMMsg = msg_log.build_etm_msg(self.chat_manager)
             reactors = msg_log_obj.reactions
             if not reactors:
@@ -538,11 +535,7 @@ class TelegramChannel(EFBChannel):
         msg_log = self.db.get_msg_log(slave_origin_uid=origin_uid,
                                       slave_msg_id=msg_id)
         if msg_log is not None:
-            if msg_log.pickle:
-                return msg_log.build_etm_msg(self.chat_manager)
-            else:
-                # Pickled data is not recorded.
-                raise EFBOperationNotSupported(self._("Message is not possible to be retrieved."))
+            return msg_log.build_etm_msg(self.chat_manager)
         else:
             # Message is not found.
             return None

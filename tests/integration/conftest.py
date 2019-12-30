@@ -3,6 +3,7 @@ import logging
 import time
 from typing import Set
 
+import peewee
 import pytest
 from telethon import TelegramClient
 from telethon.tl.types import InputStickerSetAnimatedEmoji
@@ -75,7 +76,8 @@ async def helper(helper_wrap, slave) -> TelegramIntegrationTestHelper:
 
 @pytest.fixture(scope="module")
 def poll_bot(channel):
-    logging.root.level = logging.DEBUG
+    logging.root.setLevel(logging.DEBUG)
+    # peewee.logger.setLevel(logging.DEBUG)
     channel.bot_manager.polling(clean=True)
     time.sleep(1)
     yield channel.bot_manager

@@ -723,9 +723,10 @@ class SlaveMessageProcessor(LocaleMixin):
         """Generate a footer string for reactions in the format similar to [🙂×3, ❤️×1].
         Returns '' if no reaction is found.
         """
-        if not reactions:
-            return ''
-        return "[" + ", ".join(f"{k}×{len(v)}" for k, v in reactions.items() if len(v)) + "]"
+        result = "[" + ", ".join(f"{k}×{len(v)}" for k, v in reactions.items() if len(v)) + "]"
+        if result == "[]":
+            return ""
+        return result
 
     def update_reactions(self, status: EFBMessageReactionsUpdate):
         """Update reactions to a Telegram message."""
@@ -733,11 +734,6 @@ class SlaveMessageProcessor(LocaleMixin):
                                          slave_origin_uid=utils.chat_id_to_str(chat=status.chat))
         if old_msg_db is None:
             self.logger.exception('Trying to update reactions of message, but message is not found in database. '
-                                  'Message ID %s from %s, status: %s.', status.msg_id, status.chat, status.reactions)
-            return
-
-        if not old_msg_db.pickle:
-            self.logger.exception('Trying to update reactions of message, but ETMMsg object is not found in database. '
                                   'Message ID %s from %s, status: %s.', status.msg_id, status.chat, status.reactions)
             return
 
