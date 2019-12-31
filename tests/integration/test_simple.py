@@ -127,8 +127,7 @@ async def test_info_channel(helper, client, bot_id, bot_channel, channel, slave)
 async def test_extra_echo(helper, client, bot_id, bot_channel, channel, slave):
     # Get command list
     await client.send_message(bot_id, "/extra")
-    text = await helper.wait_for_message_text(in_chats(bot_id))
-    assert "echo" in text
+    text = await helper.wait_for_message_text(in_chats(bot_id) & regex("echo"))
     assert slave.echo.name in text
 
     cmd_match = re.search(r'/[a-zA-Z0-9_-]+echo', text)

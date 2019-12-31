@@ -228,7 +228,7 @@ class _RegexText(_TextMessage):
         if not super().filter(event):
             return False
         message: Message = cast(NewMessage.Event, event).message
-        return bool(self.pattern.search(message.text)) or bool(self.pattern.search(message.raw_text))
+        return bool(self.pattern.search(message.raw_text) or self.pattern.search(message.text))
 
     def __repr__(self):
         return f"RegexText({self.pattern})"

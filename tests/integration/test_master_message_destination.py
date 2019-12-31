@@ -15,7 +15,7 @@ from unittest.mock import patch, MagicMock
 from pytest import mark
 from telethon.tl.custom import Message, MessageButton
 
-from .helper.filters import in_chats, has_button, edited, regex
+from .helper.filters import in_chats, has_button, edited, regex, text
 
 pytestmark = mark.asyncio
 
@@ -95,7 +95,7 @@ async def test_master_master_quick_reply_cache_expiry(helper, client, bot_id, sl
     with patch("time.time", MagicMock(return_value=time_now + 24 * 60 * 60)):  # one day later
         content = "test_master_master_quick_reply_cache_expiry this shall not be sent due to expired cache"
         await client.send_message(bot_id, content)
-        message = await helper.wait_for_message_text(in_chats(bot_id))  # Error message
+        message = await helper.wait_for_message(in_chats(bot_id) & text)  # Error message
         assert slave.messages.empty()
     await cancel_destination_suggestion(helper, message)
 

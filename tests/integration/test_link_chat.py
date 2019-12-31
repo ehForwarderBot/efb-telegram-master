@@ -119,7 +119,7 @@ async def test_link_chat_private(helper, client, bot_id, bot_group, slave, chann
 
     # Link chat_0 to bot_group
     await client.send_message(bot_group, command)
-    await helper.wait_for_message(in_chats(bot_group) & text)
+    await helper.wait_for_message(in_chats(bot_id) & text)
 
     # assert chat_0 is linked singly
     assert_is_linked(channel, (chat_0, ), bot_group)
@@ -200,7 +200,7 @@ async def test_link_chat_target_incoming_message(helper, client, bot_id, slave, 
     await client.send_message(bot_id, f"/link", reply_to=incoming_msg)
 
     message = await helper.wait_for_message(in_chats(bot_id) & has_button)
-    assert chat.display_name in message.text
+    assert chat.display_name in message.raw_text
     await message.click(text="Cancel")
 
 
@@ -227,4 +227,4 @@ async def simulate_link_chat(client, helper, chat: EFBChat, command_chat: int, d
     token = re.search(r"\?startgroup=(.+)", url).groups()[0]
     command = f"/start {token}"
     await client.send_message(dest_chat, command)
-    await helper.wait_for_message(in_chats(dest_chat) & text)
+    await helper.wait_for_message(in_chats(command_chat) & text)
