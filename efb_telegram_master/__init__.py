@@ -288,10 +288,13 @@ class TelegramChannel(EFBChannel):
             else:
                 try:
                     module = coordinator.get_module_by_id(channel_id)
+                    if isinstance(module, EFBChannel):
+                        channel_name = f"{module.channel_emoji} {module.channel_name}"
+                    else:  # module is EFBMiddleware
+                        channel_name = module.middleware_name
                     msg += self._(
-                        "\n- {channel_emoji} {channel_name}: Unknown chat ({channel_id}:{chat_id})").format(
-                        channel_emoji=module.channel_emoji,
-                        channel_name=module.channel_name,
+                        "\n- {channel_name}: Unknown chat ({channel_id}:{chat_id})").format(
+                        channel_name=channel_name,
                         channel_id=channel_id,
                         chat_id=chat_id
                     )

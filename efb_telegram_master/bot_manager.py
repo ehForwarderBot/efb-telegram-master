@@ -138,9 +138,10 @@ class TelegramBotManager(LocaleMixin):
                         kwargs['chat_id'] = e.new_chat_id
                         return fn(self, *args, **kwargs)
                     else:
+                        args
                         chat_id = args[0]
                         self.channel.chat_binding.chat_migration_by_id(chat_id, e.new_chat_id)
-                        args[0] = e.new_chat_id
+                        args = (e.new_chat_id, *args[1:])
                         return fn(self, *args, **kwargs)
             return retry_on_chat_migration_wrap
 
