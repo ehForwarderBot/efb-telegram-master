@@ -18,7 +18,7 @@ __all__ = ["BaseFilter", "MergedFilter", "InvertedFilter",
            "everything", "in_chats",
            "message", "text", "has_button", "edited", "regex",
            "chat_action", "new_photo", "new_title",
-           "deleted", "reply_to"]
+           "deleted", "reply_to", "typing"]
 
 
 class BaseFilter:
@@ -179,21 +179,23 @@ edited = _EditedMessage
 
 
 class _ReplyToMessage(_Message):
-    def __init__(self, message_id: Optional[int]):
-        self.message_id = message_id
+    def __init__(self, *message_ids: Optional[int]):
+        self.message_ids = message_ids
 
     def filter(self, event: EventCommon):
         if not super().filter(event):
             return False
         message = cast(MessageEdited.Event, event).message
         if message.reply_to_msg_id is None:
+            # print("reply_to_msg_id IS NONE")
             return False
-        if self.message_id is not None:
-            return message.reply_to_msg_id == self.message_id
+        if self.message_ids:
+            # print(f"COMPARING {message.reply_to_msg_id!r} AND {self.message_id!r}")
+            return message.reply_to_msg_id in self.message_ids
         return True
 
     def __repr__(self):
-        return f"ReplyTo({self.message_id})"
+        return f"ReplyTo({self.message_ids})"
 
 
 reply_to = _ReplyToMessage

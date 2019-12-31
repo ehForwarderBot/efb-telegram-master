@@ -3,6 +3,7 @@ import os
 import subprocess
 import tempfile
 import logging
+from pathlib import Path
 from typing import Optional, TYPE_CHECKING, Dict, Any
 
 import magic
@@ -43,7 +44,7 @@ class ETMMsg(EFBMsg):
     def __init__(self, attributes: Optional[EFBMsgAttribute] = None, author: EFBChat = None, chat: EFBChat = None,
                  commands: Optional[EFBMsgCommands] = None, deliver_to: EFBChannel = None, edit: bool = False,
                  edit_media: bool = False, file: Optional[IO[bytes]] = None, filename: Optional[str] = None,
-                 is_system: bool = False, mime: Optional[str] = None, path: Optional[str] = None,
+                 is_system: bool = False, mime: Optional[str] = None, path: Optional[Path] = None,
                  reactions: Reactions = None, substitutions: Optional[EFBMsgSubstitutions] = None,
                  target: 'Optional[EFBMsg]' = None, text: str = "", type: MsgType = MsgType.Unsupported,
                  uid: Optional[MessageID] = None, vendor_specific: Dict[str, Any] = None,
@@ -84,7 +85,7 @@ class ETMMsg(EFBMsg):
             self.mime = mime
 
             self.__file = file
-            self.__path = file.name
+            self.__path = Path(file.name)
             self.__filename = self.__filename or os.path.basename(file.name)
 
             if self.type_telegram == TGMsgType.Animation:

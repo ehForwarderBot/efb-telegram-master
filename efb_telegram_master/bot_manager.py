@@ -1,5 +1,6 @@
 # coding=utf-8
 import collections
+import html
 import io
 import logging
 import operator
@@ -103,9 +104,13 @@ class TelegramBotManager(LocaleMixin):
                 prefix = (prefix and (prefix + "\n")) or prefix
                 suffix = (suffix and ("\n" + suffix)) or suffix
 
+                if str(kwargs.get('parse_mode', '')).lower() == "html":
+                    prefix = html.escape(prefix)
+                    suffix = html.escape(suffix)
+
                 if len(prefix + text + suffix) >= telegram.constants.MAX_CAPTION_LENGTH:
                     full_message = io.StringIO(prefix + text + suffix)
-                    truncated = prefix + text[:100] + "\n...\n" + text[:-100] + suffix
+                    truncated = prefix + text[:100] + "\n…\n" + text[:-100] + suffix
                     kwargs['caption'] = truncated
                     msg = fn(self, *args, **kwargs)
                     filename = "%s_%s.txt" % (args[0], msg.message_id)
@@ -189,6 +194,9 @@ class TelegramBotManager(LocaleMixin):
         """
         prefix = (prefix and (prefix + "\n")) or prefix
         suffix = (suffix and ("\n" + suffix)) or suffix
+        if str(kwargs.get('parse_mode', '')).lower() == "html":
+            prefix = html.escape(prefix)
+            suffix = html.escape(suffix)
         text: str
         if args[1:]:
             text = args[1]
@@ -220,7 +228,7 @@ class TelegramBotManager(LocaleMixin):
 
     @Decorators.retry_on_timeout
     @Decorators.retry_on_chat_migration
-    def edit_message_text(self, *args, prefix='', suffix='', **kwargs):
+    def edit_message_text(self, prefix='', suffix='', **kwargs):
         """
         Edit text message.
         Takes exactly same parameters as telegram.bot.edit_message_text,
@@ -235,11 +243,14 @@ class TelegramBotManager(LocaleMixin):
         """
         prefix = (prefix and (prefix + "\n")) or prefix
         suffix = (suffix and ("\n" + suffix)) or suffix
+        if str(kwargs.get('parse_mode', '')).lower() == "html":
+            prefix = html.escape(prefix)
+            suffix = html.escape(suffix)
         text = kwargs.pop('text', '')
         if len(prefix + text + suffix) >= telegram.constants.MAX_MESSAGE_LENGTH:
             full_message = io.BytesIO((prefix + text + suffix).encode())
             truncated = prefix + text[:100] + "\n...\n" + text[-100:] + suffix
-            msg = self._bot_edit_message_text_fallback(truncated, **kwargs)
+            msg = self._bot_edit_message_text_fallback(text=truncated, **kwargs)
             filename = "%s_%s" % (kwargs['chat_id'], msg.message_id)
             if kwargs.get('parse_mode', '').lower() == 'markdown':
                 filename += ".md"
@@ -254,7 +265,7 @@ class TelegramBotManager(LocaleMixin):
             return msg
         else:
             kwargs['text'] = prefix + text + suffix
-            return self._bot_edit_message_text_fallback(*args, **kwargs)
+            return self._bot_edit_message_text_fallback(**kwargs)
 
     def _bot_send_message_fallback(self, *args, **kwargs):
         """
