@@ -390,7 +390,7 @@ class MasterMessageProcessor(LocaleMixin):
         if target_channel != channel:
             self.logger.error("[%s] Quoted message is sent to channel %s, but this message is sent to %s, give up quoting.",
                               tg_msg.message_id, target_channel, channel)
-            return ETMMsg
+            return etm_msg
         target_msg: ETMMsg = target_log.build_etm_msg(self.chat_manager, recur=False)
         target_msg.target = None
         etm_msg.target = target_msg
@@ -398,7 +398,7 @@ class MasterMessageProcessor(LocaleMixin):
         self.logger.debug("[%s] This message replies to another message of the same channel.\n"
                           "Chat ID: %s; Message ID: %s.",
                           tg_msg.message_id, target_msg.chat.chat_uid, target_msg.uid)
-        return ETMMsg
+        return etm_msg
 
     def _send_cached_chat_warning(self, update: telegram.Update,
                                   cache_key: TelegramChatID,

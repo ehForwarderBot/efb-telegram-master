@@ -240,7 +240,7 @@ class SlaveMessageProcessor(LocaleMixin):
         tg_dest = self.channel.config['admins'][0]
 
         if tg_chat:  # if this chat is linked
-            tg_dest = TelegramChatID(int(utils.chat_id_str_to_id(tg_chat)[1]))
+            tg_dest = TelegramChatID(utils.chat_id_str_to_id(tg_chat)[1])
         else:
             singly_linked = False
 
@@ -275,6 +275,7 @@ class SlaveMessageProcessor(LocaleMixin):
             return t
         elif text:
             return html.escape(text)
+        return text
 
     def slave_message_text(self, msg: EFBMsg, tg_dest: TelegramChatID, msg_template: str, reactions: str,
                            old_msg_id: OldMsgID = None,
@@ -373,6 +374,7 @@ class SlaveMessageProcessor(LocaleMixin):
                             target_msg_id: Optional[TelegramMessageID] = None,
                             reply_markup: Optional[telegram.ReplyMarkup] = None,
                             silent: bool = False) -> telegram.Message:
+        assert msg.file
         self.bot.send_chat_action(tg_dest, telegram.ChatAction.UPLOAD_PHOTO)
         self.logger.debug("[%s] Message is of %s type; Path: %s; MIME: %s", msg.uid, msg.type, msg.path, msg.mime)
         if msg.path:
@@ -413,8 +415,8 @@ class SlaveMessageProcessor(LocaleMixin):
                 send_as_file = False
 
 
-            try:
-                if old_msg_id:
+            if old_msg_id:
+                try:
                     if msg.edit_media:
                         if send_as_file:
                             media = InputMediaDocument(msg.file)
@@ -424,11 +426,11 @@ class SlaveMessageProcessor(LocaleMixin):
                     return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1],
                                                          reply_markup=reply_markup,
                                                          prefix=msg_template, suffix=reactions, caption=text, parse_mode="HTML")
-            except telegram.error.BadRequest:
-                # Send as an reply if cannot edit previous message.
-                if old_msg_id[0] == str(target_msg_id):
-                    target_msg_id = target_msg_id or old_msg_id[1]
-                msg.file.seek(0)
+                except telegram.error.BadRequest:
+                    # Send as an reply if cannot edit previous message.
+                    if old_msg_id[0] == str(target_msg_id):
+                        target_msg_id = target_msg_id or old_msg_id[1]
+                    msg.file.seek(0)
 
             if send_as_file:
                 return self.bot.send_document(tg_dest, msg.file, prefix=msg_template, suffix=reactions,
