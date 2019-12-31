@@ -1,5 +1,7 @@
 from pytest import mark
+from telethon.tl.functions.channels import GetFullChannelRequest
 from telethon.tl.functions.messages import GetFullChatRequest
+from telethon.tl.types import PeerChannel
 from telethon.tl.types.messages import ChatFull
 from telethon.utils import resolve_id
 
@@ -71,8 +73,11 @@ async def test_update_info_group_user(helper, client, bot_group, channel, slave,
 
         if chat_type is ChatType.Group:
             # Get group description
-            bot_group_t, _ = resolve_id(bot_group)
-            group: ChatFull = await client(GetFullChatRequest(bot_group_t))
+            bot_group_t, peer_type = resolve_id(bot_group)
+            if peer_type == PeerChannel:
+                group: ChatFull = await client(GetFullChannelRequest(bot_group_t))
+            else:
+                group: ChatFull = await client(GetFullChatRequest(bot_group_t))
             desc = group.full_chat.about
 
             chats_found = sum(int(

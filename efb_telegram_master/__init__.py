@@ -121,8 +121,8 @@ class TelegramChannel(EFBChannel):
         self.chat_manager: ChatObjectCacheManager = ChatObjectCacheManager(self)
         self.chat_dest_cache: ChatDestinationCache = ChatDestinationCache(self.flag("send_to_last_chat"))
         self.bot_manager: TelegramBotManager = TelegramBotManager(self)
-        self.chat_binding: ChatBindingManager = ChatBindingManager(self)
         self.commands: CommandsManager = CommandsManager(self)
+        self.chat_binding: ChatBindingManager = ChatBindingManager(self)
         self.master_messages: MasterMessageProcessor = MasterMessageProcessor(self)
         self.slave_messages: SlaveMessageProcessor = SlaveMessageProcessor(self)
 
