@@ -50,6 +50,31 @@ class SlaveMessageProcessor(LocaleMixin):
         self.chat_dest_cache: ChatDestinationCache = channel.chat_dest_cache
         self.chat_manager: ChatObjectCacheManager = channel.chat_manager
 
+    def is_silent(self, msg: EFBMsg) -> Optional[bool]:
+        """Determine if a message shall be sent silently.
+        Returns None if the message shall not be sent at all.
+        """
+        xid = msg.uid
+        if msg.author.is_self:
+            # Message is send by admin not through EFB
+            your_slave_msg = self.flag('your_message_on_slave')
+            if your_slave_msg == 'silent':
+                return True
+            elif your_slave_msg == 'mute':
+                self.logger.debug("[%s] Message is muted as it is from the admin.", xid)
+                return None
+        elif msg.chat.notification == EFBChatNotificationState.NONE or \
+                (msg.chat.notification == EFBChatNotificationState.MENTIONS and
+                 (not msg.substitutions or not msg.substitutions.is_mentioned)):
+            # Shall not be notified in slave channel
+            muted_on_slave = self.flag('message_muted_on_slave')
+            if muted_on_slave == 'silent':
+                return True
+            elif muted_on_slave == 'mute':
+                self.logger.debug("[%s] Message is muted due to slave channel settings.", xid)
+                return None
+        return False
+
     def send_message(self, msg: EFBMsg) -> EFBMsg:
         """
         Process a message from slave channel and deliver it to the user.
@@ -63,25 +88,10 @@ class SlaveMessageProcessor(LocaleMixin):
 
             msg_template, tg_dest = self.get_slave_msg_dest(msg)
 
-            silent = False
-            if msg.author.is_self:
-                # Message is send by admin not through EFB
-                your_slave_msg = self.flag('your_message_on_slave')
-                if your_slave_msg == 'silent':
-                    silent = True
-                elif your_slave_msg == 'mute':
-                    self.logger.debug("[%s] Message is muted as it is from the admin.", xid)
-                    return msg
-            elif msg.chat.notification == EFBChatNotificationState.NONE or \
-                    (msg.chat.notification == EFBChatNotificationState.MENTIONS and
-                        msg.substitutions and not msg.substitutions.is_mentioned):
-                # Shall not be notified in slave channel
-                muted_on_slave = self.flag('message_muted_on_slave')
-                if muted_on_slave == 'silent':
-                    silent = True
-                elif muted_on_slave == 'mute':
-                    self.logger.debug("[%s] Message is muted due to slave channel settings.", xid)
-                    return msg
+            silent = self.is_silent(msg)
+            if silent is None:
+                self.logger.debug("[%s] Message is not delivered per silent settings.", xid)
+                return msg
 
             if tg_dest is None:
                 self.logger.debug("[%s] Sender of the message is muted.", xid)

@@ -396,11 +396,14 @@ class MockSlaveChannel(EFBChannel):
 
     # endregion [Commands]
 
-    def build_substitutions(self, text: str, group: EFBChat) -> EFBMsgSubstitutions:
+    def build_substitutions(self, text: str, chat: EFBChat) -> EFBMsgSubstitutions:
         size = len(text)
         a_0, a_1, b_0, b_1 = sorted(random.sample(range(size + 1), k=4))
-        a = self.fallback_author(chat=group, author=None)  # self
-        b = random.choice(group.members)
+        a = self.fallback_author(chat=chat, author=None)  # self
+        if chat.members:
+            b = random.choice(chat.members)
+        else:
+            b = chat
         if random.randrange(2) == 1:  # randomly swap a and b
             a, b = b, a
         return EFBMsgSubstitutions({
