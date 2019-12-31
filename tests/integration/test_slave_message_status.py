@@ -4,8 +4,7 @@ from telethon.tl.types import SendMessageTypingAction, SendMessageRecordAudioAct
     SendMessageUploadVideoAction, SendMessageUploadDocumentAction
 
 from ehforwarderbot.message import EFBMsgStatusAttribute
-from tests.integration.helper.filters import in_chats, regex, edited, typing
-from tests.integration.utils import link_chats
+from tests.integration.helper.filters import in_chats, typing
 
 pytestmark = mark.asyncio
 

@@ -15,7 +15,7 @@ import telegram.constants
 import telegram.error
 import telegram.ext
 from PIL import Image
-from telegram import InputFile, ChatAction
+from telegram import InputFile, ChatAction, InputMediaPhoto, InputMediaDocument, InputMediaVideo, InputMediaAnimation
 
 from ehforwarderbot import EFBMsg, EFBStatus, coordinator
 from ehforwarderbot.chat import EFBChatNotificationState
@@ -176,7 +176,7 @@ class SlaveMessageProcessor(LocaleMixin):
             tg_msg = self.slave_message_file(msg, tg_dest, msg_template, reactions, old_msg_id, target_msg_id,
                                              reply_markup, silent)
         elif msg.type == MsgType.Voice:
-            tg_msg = self.slave_message_audio(msg, tg_dest, msg_template, reactions, old_msg_id, target_msg_id,
+            tg_msg = self.slave_message_voice(msg, tg_dest, msg_template, reactions, old_msg_id, target_msg_id,
                                               reply_markup, silent)
         elif msg.type == MsgType.Location:
             tg_msg = self.slave_message_location(msg, tg_dest, msg_template, reactions, old_msg_id, target_msg_id,
@@ -253,6 +253,29 @@ class SlaveMessageProcessor(LocaleMixin):
 
         return msg_template, tg_dest
 
+    def html_substitutions(self, msg: EFBMsg) -> str:
+        """Build a Telegram-flavored HTML string for message text substitutions."""
+        text = msg.text
+        if msg.substitutions:
+            ranges = sorted(msg.substitutions.keys())
+            t = ""
+            prev = 0
+            for i in ranges:
+                t += html.escape(text[prev:i[0]])
+                if msg.substitutions[i].is_self:
+                    t += '<a href="tg://user?id=%s">' % self.channel.config['admins'][0]
+                    t += html.escape(text[i[0]:i[1]])
+                    t += "</a>"
+                else:
+                    t += '<code>'
+                    t += html.escape(text[i[0]:i[1]])
+                    t += '</code>'
+                prev = i[1]
+            t += html.escape(text[prev:])
+            return t
+        elif text:
+            return html.escape(text)
+
     def slave_message_text(self, msg: EFBMsg, tg_dest: TelegramChatID, msg_template: str, reactions: str,
                            old_msg_id: OldMsgID = None,
                            target_msg_id: Optional[TelegramMessageID] = None,
@@ -277,29 +300,9 @@ class SlaveMessageProcessor(LocaleMixin):
         self.logger.debug("[%s] Sending as a text message.", msg.uid)
         self.bot.send_chat_action(tg_dest, telegram.ChatAction.TYPING)
 
-        text = msg.text
+        text = self.html_substitutions(msg)
         msg_template = html.escape(msg_template)
         reactions = html.escape(reactions)
-
-        if msg.substitutions:
-            ranges = sorted(msg.substitutions.keys())
-            t = ""
-            prev = 0
-            for i in ranges:
-                t += html.escape(text[prev:i[0]])
-                if msg.substitutions[i].is_self:
-                    t += '<a href="tg://user?id=%s">' % self.channel.config['admins'][0]
-                    t += html.escape(text[i[0]:i[1]])
-                    t += "</a>"
-                else:
-                    t += '<code>'
-                    t += html.escape(text[i[0]:i[1]])
-                    t += '</code>'
-                prev = i[1]
-            t += html.escape(text[prev:])
-            text = t
-        elif text:
-            text = html.escape(text)
 
         if not old_msg_id:
             tg_msg = self.bot.send_message(tg_dest,
@@ -341,9 +344,9 @@ class SlaveMessageProcessor(LocaleMixin):
                 html.escape(attributes.description or ""))
 
         if msg.text:
-            text += "\n\n" + msg.text
+            text += "\n\n" + self.html_substitutions(msg)
         if old_msg_id:
-            return self.bot.edit_message_text(text, chat_id=old_msg_id[0], message_id=old_msg_id[1],
+            return self.bot.edit_message_text(text=text, chat_id=old_msg_id[0], message_id=old_msg_id[1],
                                               prefix=msg_template, suffix=reactions, parse_mode='HTML',
                                               reply_markup=reply_markup)
         else:
@@ -375,66 +378,79 @@ class SlaveMessageProcessor(LocaleMixin):
         if msg.path:
             self.logger.debug("[%s] Size of %s is %s.", msg.uid, msg.path, os.stat(msg.path).st_size)
 
-        if not msg.text:
-            msg.text = self._("sent a picture.")
+        if msg.text:
+            text = self.html_substitutions(msg)
+        else:
+            text = "🖼️"
         try:
-            if old_msg_id:
-                if msg.edit_media:
-                    self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=msg.file)
-                return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1],
-                                                     prefix=msg_template, suffix=reactions, caption=msg.text)
-            else:
+            # Avoid Telegram compression of pictures by sending high definition image messages as files
+            # Code adopted from wolfsilver's fork:
+            # https://github.com/wolfsilver/efb-telegram-master/blob/99668b60f7ff7b6363dfc87751a18281d9a74a09/efb_telegram_master/slave_message.py#L142-L163
+            #
+            # Rules:
+            # 1. If the picture is too large -- shorter side is greater than IMG_MIN_SIZE, send as file.
+            # 2. If the picture is large and thin --
+            #        longer side is greater than IMG_MAX_SIZE, and
+            #        aspect ratio (longer to shorter side ratio) is greater than IMG_SIZE_RATIO,
+            #    send as file.
+            # 3. If the picture is too thin -- aspect ratio grater than IMG_SIZE_MAX_RATIO, send as file.
 
-                # Avoid Telegram compression of pictures by sending high definition image messages as files
-                # Code adopted from wolfsilver's fork:
-                # https://github.com/wolfsilver/efb-telegram-master/blob/99668b60f7ff7b6363dfc87751a18281d9a74a09/efb_telegram_master/slave_message.py#L142-L163
-                #
-                # Rules:
-                # 1. If the picture is too large -- shorter side is greater than IMG_MIN_SIZE, send as file.
-                # 2. If the picture is large and thin --
-                #        longer side is greater than IMG_MAX_SIZE, and
-                #        aspect ratio (longer to shorter side ratio) is greater than IMG_SIZE_RATIO,
-                #    send as file.
-                # 3. If the picture is too thin -- aspect ratio grater than IMG_SIZE_MAX_RATIO, send as file.
+            try:
+                pic_img = Image.open(msg.path)
+                max_size = max(pic_img.size)
+                min_size = min(pic_img.size)
+                img_ratio = max_size / min_size
 
-                try:
-                    pic_img = Image.open(msg.path)
-                    max_size = max(pic_img.size)
-                    min_size = min(pic_img.size)
-                    img_ratio = max_size / min_size
-
-                    if min_size > self.IMG_MIN_SIZE:
-                        send_as_file = True
-                    elif max_size > self.IMG_MAX_SIZE and img_ratio > self.IMG_SIZE_RATIO:
-                        send_as_file = True
-                    elif img_ratio >= self.IMG_SIZE_MAX_RATIO:
-                        send_as_file = True
-                    else:
-                        send_as_file = False
-                except IOError:  # Ignore when the image cannot be properly identified.
+                if min_size > self.IMG_MIN_SIZE:
+                    send_as_file = True
+                elif max_size > self.IMG_MAX_SIZE and img_ratio > self.IMG_SIZE_RATIO:
+                    send_as_file = True
+                elif img_ratio >= self.IMG_SIZE_MAX_RATIO:
+                    send_as_file = True
+                else:
                     send_as_file = False
+            except IOError:  # Ignore when the image cannot be properly identified.
+                send_as_file = False
 
-                if send_as_file:
+
+            try:
+                if old_msg_id:
+                    if msg.edit_media:
+                        if send_as_file:
+                            media = InputMediaDocument(msg.file)
+                        else:
+                            media = InputMediaPhoto(msg.file)
+                        self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=media)
+                    return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1],
+                                                         reply_markup=reply_markup,
+                                                         prefix=msg_template, suffix=reactions, caption=text, parse_mode="HTML")
+            except telegram.error.BadRequest:
+                # Send as an reply if cannot edit previous message.
+                if old_msg_id[0] == str(target_msg_id):
+                    target_msg_id = target_msg_id or old_msg_id[1]
+                msg.file.seek(0)
+
+            if send_as_file:
+                return self.bot.send_document(tg_dest, msg.file, prefix=msg_template, suffix=reactions,
+                                              caption=text, parse_mode="HTML", filename=msg.filename,
+                                              reply_to_message_id=target_msg_id,
+                                              reply_markup=reply_markup,
+                                              disable_notification=silent)
+            else:
+                try:
+                    return self.bot.send_photo(tg_dest, msg.file, prefix=msg_template, suffix=reactions,
+                                               caption=text, parse_mode="HTML",
+                                               reply_to_message_id=target_msg_id,
+                                               reply_markup=reply_markup,
+                                               disable_notification=silent)
+                except telegram.error.BadRequest as e:
+                    self.logger.error('[%s] Failed to send it as image, sending as document. Reason: %s',
+                                      msg.uid, e)
                     return self.bot.send_document(tg_dest, msg.file, prefix=msg_template, suffix=reactions,
-                                                  caption=msg.text, filename=msg.filename,
+                                                  caption=text, parse_mode="HTML", filename=msg.filename,
                                                   reply_to_message_id=target_msg_id,
                                                   reply_markup=reply_markup,
                                                   disable_notification=silent)
-                else:
-                    try:
-                        return self.bot.send_photo(tg_dest, msg.file, prefix=msg_template, suffix=reactions,
-                                                   caption=msg.text,
-                                                   reply_to_message_id=target_msg_id,
-                                                   reply_markup=reply_markup,
-                                                   disable_notification=silent)
-                    except telegram.error.BadRequest as e:
-                        self.logger.error('[%s] Failed to send it as image, sending as document. Reason: %s',
-                                          msg.uid, e)
-                        return self.bot.send_document(tg_dest, msg.file, prefix=msg_template, suffix=reactions,
-                                                      caption=msg.text, filename=msg.filename,
-                                                      reply_to_message_id=target_msg_id,
-                                                      reply_markup=reply_markup,
-                                                      disable_notification=silent)
         finally:
             if msg.file:
                 msg.file.close()
@@ -450,16 +466,23 @@ class SlaveMessageProcessor(LocaleMixin):
         if msg.path:
             self.logger.debug("[%s] Size of %s is %s.", msg.uid, msg.path, os.stat(msg.path).st_size)
 
+        if msg.text:
+            text = self.html_substitutions(msg)
+        else:
+            text = ""
+
         try:
             if old_msg_id:
                 if msg.edit_media:
-                    self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=msg.file)
+                    self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=InputMediaAnimation(msg.file))
                 return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1],
-                                                     prefix=msg_template, suffix=reactions, caption=msg.text)
+                                                     prefix=msg_template, suffix=reactions,
+                                                     reply_markup=reply_markup,
+                                                     caption=text, parse_mode="HTML")
             else:
                 return self.bot.send_animation(tg_dest, InputFile(msg.file, filename=msg.filename),
                                                prefix=msg_template, suffix=reactions,
-                                               caption=msg.text,
+                                               caption=text, parse_mode="HTML",
                                                reply_to_message_id=target_msg_id,
                                                reply_markup=reply_markup,
                                                disable_notification=silent)
@@ -485,12 +508,12 @@ class SlaveMessageProcessor(LocaleMixin):
             if msg.edit_media and old_msg_id is not None:
                 target_msg_id = old_msg_id[1]
                 old_msg_id = None
-            if old_msg_id:
+            if old_msg_id and not msg.edit_media:
                 try:
-                    return self.bot.edit_message_reply_markup(chat_id=tg_dest, message_id=old_msg_id,
+                    return self.bot.edit_message_reply_markup(chat_id=old_msg_id[0], message_id=old_msg_id[1],
                                                               reply_markup=sticker_reply_markup)
                 except telegram.TelegramError:
-                    return self.bot.send_message(chat_id=tg_dest, reply_to_message_id=old_msg_id,
+                    return self.bot.send_message(chat_id=old_msg_id[0], reply_to_message_id=old_msg_id[1],
                                                  prefix=msg_template, text=msg.text, suffix=reactions,
                                                  reply_markup=reply_markup,
                                                  disable_notification=silent)
@@ -555,20 +578,25 @@ class SlaveMessageProcessor(LocaleMixin):
         # Replace it with a space
         # Note: it also seems to strip off a lot of unicode punctuations
         file_name = file_name.replace(';', ' ')
-        msg.text = msg.text or self._("sent a file.")
+
+        if msg.text:
+            text = self.html_substitutions(msg)
+        else:
+            text = "📄"
+
         try:
             if old_msg_id:
                 if msg.edit_media:
                     assert msg.file is not None
-                    self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=msg.file)
-                return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1],
-                                                     prefix=msg_template, suffix=reactions, caption=msg.text)
+                    self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=InputMediaDocument(msg.file))
+                return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1], reply_markup=reply_markup,
+                                                     prefix=msg_template, suffix=reactions, caption=text, parse_mode="HTML")
             assert msg.file is not None
             self.logger.debug("[%s] Uploading file %s (%s) as %s", msg.uid,
                               msg.file.name, msg.mime, file_name)
             return self.bot.send_document(tg_dest, msg.file,
                                           prefix=msg_template, suffix=reactions,
-                                          caption=msg.text, filename=file_name,
+                                          caption=text, parse_mode="HTML", filename=file_name,
                                           reply_to_message_id=target_msg_id,
                                           reply_markup=reply_markup,
                                           disable_notification=silent)
@@ -576,26 +604,34 @@ class SlaveMessageProcessor(LocaleMixin):
             if msg.file is not None:
                 msg.file.close()
 
-    def slave_message_audio(self, msg: EFBMsg, tg_dest: TelegramChatID, msg_template: str, reactions: str,
+    def slave_message_voice(self, msg: EFBMsg, tg_dest: TelegramChatID, msg_template: str, reactions: str,
                             old_msg_id: OldMsgID = None,
                             target_msg_id: Optional[TelegramMessageID] = None,
                             reply_markup: Optional[telegram.ReplyMarkup] = None,
                             silent: bool = False) -> telegram.Message:
         self.bot.send_chat_action(tg_dest, telegram.ChatAction.RECORD_AUDIO)
-        msg.text = msg.text or ''
+        if msg.text:
+            text = self.html_substitutions(msg)
+        else:
+            text = ""
         self.logger.debug("[%s] Message is a voice file.", msg.uid)
         try:
             if old_msg_id:
                 if msg.edit_media:
-                    assert msg.file is not None
-                    self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=msg.file)
-                return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1],
-                                                     prefix=msg_template, suffix=reactions, caption=msg.text)
+                    # Cannot edit voice message content, send a new one instead
+                    msg_template += " " + self._("[Edited]")
+                    if str(tg_dest) == old_msg_id[0]:
+                        target_msg_id = target_msg_id or old_msg_id[1]
+                else:
+                    return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1],
+                                                         reply_markup=reply_markup, prefix=msg_template,
+                                                         suffix=reactions, caption=text, parse_mode="HTML")
             assert msg.file is not None
             with tempfile.NamedTemporaryFile() as f:
                 pydub.AudioSegment.from_file(msg.file).export(f, format="ogg", codec="libopus",
                                                               parameters=['-vbr', 'on'])
-                tg_msg = self.bot.send_voice(tg_dest, f, prefix=msg_template, suffix=reactions, caption=msg.text,
+                tg_msg = self.bot.send_voice(tg_dest, f, prefix=msg_template, suffix=reactions,
+                                             caption=text, parse_mode="HTML",
                                              reply_to_message_id=target_msg_id, reply_markup=reply_markup,
                                              disable_notification=silent)
             return tg_msg
@@ -617,12 +653,14 @@ class SlaveMessageProcessor(LocaleMixin):
                          attributes.latitude, attributes.longitude,
                          msg.text, msg_template)
 
-        location_reply_markup = self.build_chat_info_inline_keyboard(msg, msg_template, reactions, reply_markup)
-
-        if old_msg_id and old_msg_id[0] == tg_dest:
+        self.logger.debug("[%s] Location message received with old_msg_id %s, compare it with tg_dest %s", msg.uid, old_msg_id, tg_dest)
+        if old_msg_id and old_msg_id[0] == str(tg_dest):
             # TRANSLATORS: Flag for messages edited on slave channels, but cannot be edited on Telegram.
-            msg_template += self._('[edited]')
+            msg_template += " " + self._('[edited]')
             target_msg_id = target_msg_id or old_msg_id[1]
+            self.logger.debug("[%s] updated target_msg_id %s", msg.uid, target_msg_id)
+
+        location_reply_markup = self.build_chat_info_inline_keyboard(msg, msg_template, reactions, reply_markup)
 
         # TODO: Use live location if possible? Lift live location messages to EFB Framework?
         return self.bot.send_location(tg_dest, latitude=attributes.latitude,
@@ -636,17 +674,20 @@ class SlaveMessageProcessor(LocaleMixin):
                             reply_markup: Optional[telegram.ReplyMarkup] = None,
                             silent: bool = False) -> telegram.Message:
         self.bot.send_chat_action(tg_dest, telegram.ChatAction.UPLOAD_VIDEO)
-        if not msg.text:
-            msg.text = self._("sent a video.")
+        if msg.text:
+            text = self.html_substitutions(msg)
+        else:
+            text = "🎥"
         try:
             if old_msg_id:
                 if msg.edit_media:
                     assert msg.file is not None
-                    self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=msg.file)
-                return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1],
-                                                     prefix=msg_template, suffix=reactions, caption=msg.text)
+                    self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=InputMediaVideo(msg.file))
+                return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1], reply_markup=reply_markup,
+                                                     prefix=msg_template, suffix=reactions, caption=text, parse_mode="HTML")
             assert msg.file is not None
-            return self.bot.send_video(tg_dest, msg.file, prefix=msg_template, suffix=reactions, caption=msg.text,
+            return self.bot.send_video(tg_dest, msg.file, prefix=msg_template, suffix=reactions,
+                                       caption=text, parse_mode="HTML",
                                        reply_to_message_id=target_msg_id,
                                        reply_markup=reply_markup,
                                        disable_notification=silent)
@@ -662,9 +703,15 @@ class SlaveMessageProcessor(LocaleMixin):
         self.logger.debug("[%s] Sending as an unsupported message.", msg.uid)
         self.bot.send_chat_action(tg_dest, telegram.ChatAction.TYPING)
 
+        if msg.text:
+            text = self.html_substitutions(msg)
+        else:
+            text = ""
+
         if not old_msg_id:
             tg_msg = self.bot.send_message(tg_dest,
-                                           text=msg.text, prefix=msg_template + " " + self._("(unsupported)"),
+                                           text=text, parse_mode="HTML",
+                                           prefix=msg_template + " " + self._("(unsupported)"),
                                            suffix=reactions,
                                            reply_to_message_id=target_msg_id, reply_markup=reply_markup,
                                            disable_notification=silent)
@@ -672,7 +719,8 @@ class SlaveMessageProcessor(LocaleMixin):
             # Cannot change reply_to_message_id when editing a message
             tg_msg = self.bot.edit_message_text(chat_id=old_msg_id[0],
                                                 message_id=old_msg_id[1],
-                                                text=msg.text, prefix=msg_template + " " + self._("(unsupported)"),
+                                                text=text, parse_mode="HTML",
+                                                prefix=msg_template + " " + self._("(unsupported)"),
                                                 suffix=reactions,
                                                 reply_markup=reply_markup)
 

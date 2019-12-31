@@ -1,7 +1,9 @@
 import random
 import threading
+import time
 from contextlib import contextmanager
 from logging import getLogger
+from pathlib import Path
 from queue import Queue
 from typing import Set, Optional, List, IO, Dict, TypeVar, Tuple
 from uuid import uuid4
@@ -9,7 +11,8 @@ from uuid import uuid4
 from ehforwarderbot import EFBChannel, EFBMsg, EFBStatus, ChannelType, MsgType, EFBChat, ChatType, coordinator
 from ehforwarderbot.chat import EFBChatNotificationState
 from ehforwarderbot.exceptions import EFBChatNotFound, EFBOperationNotSupported, EFBMessageReactionNotPossible
-from ehforwarderbot.message import EFBMsgCommands, EFBMsgCommand, EFBMsgStatusAttribute
+from ehforwarderbot.message import EFBMsgCommands, EFBMsgCommand, EFBMsgStatusAttribute, EFBMsgLinkAttribute, \
+    EFBMsgSubstitutions, EFBMsgLocationAttribute
 from ehforwarderbot.status import EFBMessageRemoval, EFBReactToMessage, EFBMessageReactionsUpdate, EFBChatUpdates, \
     EFBMemberUpdates
 from ehforwarderbot.types import ModuleID, ChatID, MessageID, ReactionName, Reactions
@@ -393,39 +396,210 @@ class MockSlaveChannel(EFBChannel):
 
     # endregion [Commands]
 
-    def send_text_message(self, chat: EFBChat,
-                          author: Optional[EFBChat] = None,
-                          target: Optional[EFBMsg] = None,
-                          reactions: bool = False,
-                          commands: bool = False) -> EFBMsg:
-        """Send a text message to master channel.
-        Leave author blank to use “self” of the chat.
+    def build_substitutions(self, text: str, group: EFBChat) -> EFBMsgSubstitutions:
+        size = len(text)
+        a_0, a_1, b_0, b_1 = sorted(random.sample(range(size + 1), k=4))
+        a = self.fallback_author(chat=group, author=None)  # self
+        b = random.choice(group.members)
+        if random.randrange(2) == 1:  # randomly swap a and b
+            a, b = b, a
+        return EFBMsgSubstitutions({
+            (a_0, a_1): a,
+            (b_0, b_1): b,
+        })
 
-        Returns the message sent.
-        """
+    def attach_message_properties(self, message: EFBMsg, reactions: bool, commands: bool,
+                                  substitutions: bool) -> EFBMsg:
+        reactions_val = self.build_reactions(message.chat) if reactions else {}
+        commands_val = self.build_message_commands() if commands else None
+        substitutions_val = self.build_substitutions(message.text, message.chat) if substitutions else None
+        message.reactions = reactions_val
+        message.commands = commands_val
+        message.substitutions = substitutions_val
+        return message
+
+    def fallback_author(self, chat: EFBChat, author: Optional[EFBChat]) -> EFBChat:
         if author is None:
             author = EFBChat(self).self()
             if chat.chat_type is ChatType.Group:
                 author.is_chat = False
                 author.group = chat
+        return author
+
+    def send_text_message(self, chat: EFBChat,
+                          author: Optional[EFBChat] = None,
+                          target: Optional[EFBMsg] = None,
+                          reactions: bool = False,
+                          commands: bool = False,
+                          substitution: bool = False,
+                          unsupported: bool = False) -> EFBMsg:
+        """Send a text message to master channel.
+        Leave author blank to use “self” of the chat.
+
+        Returns the message sent.
+        """
+        author = self.fallback_author(chat, author)
         uid = f"__msg_id_{uuid4()}__"
-        reactions = self.build_reactions(chat) if reactions else None
-        commands = self.build_message_commands() if commands else None
+        msg_type = MsgType.Unsupported if unsupported else MsgType.Text
         message = EFBMsg(
             chat=chat,
             author=author,
-            type=MsgType.Text,
+            type=msg_type,
             target=target,
             uid=uid,
-            text=f"Content of message with ID {uid}",
-            reactions=reactions,
-            commands=commands,
+            text=f"Content of {msg_type.name} message with ID {uid}",
             deliver_to=coordinator.master
         )
+        message = self.attach_message_properties(message, reactions, commands, substitution)
 
         coordinator.send_message(message)
         self.messages_sent[uid] = message
 
+        return message
+
+    def edit_text_message(self, message: EFBMsg, reactions: bool = False, commands: bool = False,
+                          substitution: bool = False) -> EFBMsg:
+        message.edit = True
+        message.text = f"Edited {message.type.name} message {message.uid} @ {time.time_ns()}"
+        message = self.attach_message_properties(message, reactions, commands, substitution)
+        self.messages_sent[message.uid] = message
+        coordinator.send_message(message)
+        return message
+
+    def send_link_message(self, chat: EFBChat,
+                          author: Optional[EFBChat] = None,
+                          target: Optional[EFBMsg] = None,
+                          reactions: bool = False,
+                          commands: bool = False,
+                          substitution: bool = False) -> EFBMsg:
+        author = self.fallback_author(chat, author)
+        uid = f"__msg_id_{uuid4()}__"
+        message = EFBMsg(
+            chat=chat, author=author,
+            type=MsgType.Link,
+            target=target, uid=uid,
+            text=f"Content of link message with ID {uid}",
+            attributes=EFBMsgLinkAttribute(
+                title="EH Forwarder Bot",
+                description="EH Forwarder Bot project site.",
+                url="https://efb.1a23.studio"
+            ),
+            deliver_to=coordinator.master
+        )
+        message = self.attach_message_properties(message, reactions, commands, substitution)
+        self.messages_sent[uid] = message
+        coordinator.send_message(message)
+        return message
+
+    def edit_link_message(self, message: EFBMsg,
+                          reactions: bool = False,
+                          commands: bool = False,
+                          substitution: bool = False) -> EFBMsg:
+
+        message.text = f"Content of edited link message with ID {message.uid}"
+        message.edit = True
+        message.attributes = EFBMsgLinkAttribute(
+            title="EH Forwarder Bot (edited)",
+            description="EH Forwarder Bot project site. (edited)",
+            url="https://efb.1a23.studio/#edited"
+        )
+        message = self.attach_message_properties(message, reactions, commands, substitution)
+        self.messages_sent[message.uid] = message
+        coordinator.send_message(message)
+        return message
+
+    def send_location_message(self, chat: EFBChat,
+                              author: Optional[EFBChat] = None,
+                              target: Optional[EFBMsg] = None,
+                              reactions: bool = False,
+                              commands: bool = False,
+                              substitution: bool = False) -> EFBMsg:
+        author = self.fallback_author(chat, author)
+        uid = f"__msg_id_{uuid4()}__"
+        message = EFBMsg(
+            chat=chat, author=author,
+            type=MsgType.Location,
+            target=target, uid=uid,
+            text=f"Content of location message with ID {uid}",
+            attributes=EFBMsgLocationAttribute(
+                latitude=random.uniform(0.0, 90.0),
+                longitude=random.uniform(0.0, 90.0)
+            ),
+            deliver_to=coordinator.master
+        )
+        message = self.attach_message_properties(message, reactions, commands, substitution)
+        self.messages_sent[uid] = message
+        coordinator.send_message(message)
+        return message
+
+    def edit_location_message(self, message: EFBMsg,
+                              reactions: bool = False,
+                              commands: bool = False,
+                              substitution: bool = False) -> EFBMsg:
+        message.text = f"Content of edited location message with ID {message.uid}"
+        message.edit = True
+        message.attributes = EFBMsgLocationAttribute(
+            latitude=random.uniform(0.0, 90.0),
+            longitude=random.uniform(0.0, 90.0)
+        )
+        message = self.attach_message_properties(message, reactions, commands, substitution)
+        self.messages_sent[message.uid] = message
+        coordinator.send_message(message)
+        return message
+
+    def send_file_like_message(self,
+                               msg_type: MsgType,
+                               file_path: Path,
+                               mime: str,
+                               chat: EFBChat,
+                               author: Optional[EFBChat] = None,
+                               target: Optional[EFBMsg] = None,
+                               reactions: bool = False,
+                               commands: bool = False,
+                               substitution: bool = False) -> EFBMsg:
+        author = self.fallback_author(chat, author)
+        uid = f"__msg_id_{uuid4()}__"
+        message = EFBMsg(
+            chat=chat, author=author,
+            type=msg_type, target=target, uid=uid,
+            file=file_path.open('rb'), filename=file_path.name,
+            path=file_path, mime=mime,
+            text=f"Content of {msg_type.name} message with ID {uid}",
+            deliver_to=coordinator.master
+        )
+        message = self.attach_message_properties(message, reactions, commands, substitution)
+        self.messages_sent[uid] = message
+        coordinator.send_message(message)
+        return message
+
+    def edit_file_like_message_text(self, message: EFBMsg,
+                                    reactions: bool = False,
+                                    commands: bool = False,
+                                    substitution: bool = False) -> EFBMsg:
+        message.text = f"Content of edited {message.type.name} message with ID {message.uid}"
+        message.edit = True
+        message.edit_media = False
+        message = self.attach_message_properties(message, reactions, commands, substitution)
+        self.messages_sent[message.uid] = message
+        coordinator.send_message(message)
+        return message
+
+    def edit_file_like_message(self, message: EFBMsg,
+                               file_path: Path,
+                               mime: str,
+                               reactions: bool = False,
+                               commands: bool = False,
+                               substitution: bool = False) -> EFBMsg:
+        message.text = f"Content of edited {message.type.name} media with ID {message.uid}"
+        message.edit = True
+        message.edit_media = True
+        message.file = file_path.open('rb')
+        message.filename = file_path.name
+        message.path = file_path
+        message.mime = mime
+        message = self.attach_message_properties(message, reactions, commands, substitution)
+        self.messages_sent[message.uid] = message
+        coordinator.send_message(message)
         return message
 
     def send_status_message(self, status: EFBMsgStatusAttribute,
