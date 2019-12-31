@@ -64,12 +64,12 @@ class MockSlaveChannel(EFBChannel):
         ("J", ChatType.System, EFBChatNotificationState.NONE, "J.png", None),
         ("K", ChatType.System, EFBChatNotificationState.MENTIONS, "K.png", None),
         ("L", ChatType.System, EFBChatNotificationState.ALL, "L.png", None),
-        ("U", ChatType.Group, EFBChatNotificationState.NONE, "U.png", "Uranus"),
-        ("V", ChatType.Group, EFBChatNotificationState.MENTIONS, "V.png", "Venus"),
-        ("W", ChatType.Group, EFBChatNotificationState.ALL, "W.png", "Wonderland"),
-        ("X", ChatType.Group, EFBChatNotificationState.NONE, "X.png", None),
-        ("Y", ChatType.Group, EFBChatNotificationState.MENTIONS, "Y.png", None),
-        ("Z", ChatType.Group, EFBChatNotificationState.ALL, "Z.png", None),
+        ("Ur", ChatType.Group, EFBChatNotificationState.NONE, "U.png", "Uranus"),
+        ("Ve", ChatType.Group, EFBChatNotificationState.MENTIONS, "V.png", "Venus"),
+        ("Wo", ChatType.Group, EFBChatNotificationState.ALL, "W.png", "Wonderland"),
+        ("Xe", ChatType.Group, EFBChatNotificationState.NONE, "X.png", None),
+        ("Yb", ChatType.Group, EFBChatNotificationState.MENTIONS, "Y.png", None),
+        ("Zn", ChatType.Group, EFBChatNotificationState.ALL, "Z.png", None),
         ("あ", ChatType.User, EFBChatNotificationState.NONE, None, "あべ"),
         ("い", ChatType.User, EFBChatNotificationState.MENTIONS, None, "いとう"),
         ("う", ChatType.User, EFBChatNotificationState.ALL, None, "うえだ"),
@@ -82,12 +82,12 @@ class MockSlaveChannel(EFBChannel):
         ("こ", ChatType.System, EFBChatNotificationState.NONE, None, None),
         ("さ", ChatType.System, EFBChatNotificationState.MENTIONS, None, None),
         ("し", ChatType.System, EFBChatNotificationState.ALL, None, None),
-        ("ら", ChatType.Group, EFBChatNotificationState.NONE, None, "ランド"),
-        ("り", ChatType.Group, EFBChatNotificationState.MENTIONS, None, "リゾート"),
-        ("る", ChatType.Group, EFBChatNotificationState.ALL, None, "ルートディレクトリ"),
-        ("れ", ChatType.Group, EFBChatNotificationState.NONE, None, None),
-        ("ろ", ChatType.Group, EFBChatNotificationState.MENTIONS, None, None),
-        ("わ", ChatType.Group, EFBChatNotificationState.ALL, None, None),
+        ("らん", ChatType.Group, EFBChatNotificationState.NONE, None, "ランド"),
+        ("りぞ", ChatType.Group, EFBChatNotificationState.MENTIONS, None, "リゾート"),
+        ("るう", ChatType.Group, EFBChatNotificationState.ALL, None, "ルートディレクトリ"),
+        ("れつ", ChatType.Group, EFBChatNotificationState.NONE, None, None),
+        ("ろく", ChatType.Group, EFBChatNotificationState.MENTIONS, None, None),
+        ("われ", ChatType.Group, EFBChatNotificationState.ALL, None, None),
     ]
 
     __group_member_templates = [
@@ -125,7 +125,7 @@ class MockSlaveChannel(EFBChannel):
 
         # chat/member changes
         self.chat_to_toggle = self.get_chat(self.CHAT_ID_FORMAT.format(hash=hash("I")))
-        self.chat_to_edit = self.get_chat(self.CHAT_ID_FORMAT.format(hash=hash("わ")))
+        self.chat_to_edit = self.get_chat(self.CHAT_ID_FORMAT.format(hash=hash("われ")))
         self.member_to_toggle = self.get_chat(self.group.chat_uid, self.CHAT_ID_FORMAT.format(hash=hash("Ю")))
         self.member_to_edit = self.get_chat(self.group.chat_uid, self.CHAT_ID_FORMAT.format(hash=hash("Я")))
 
@@ -248,7 +248,7 @@ class MockSlaveChannel(EFBChannel):
             chat = EFBChat(
                 channel=self,
                 chat_name=name,
-                chat_alias=f"{alias} @ {group.chat_name}" if alias is not None else None,
+                chat_alias=f"{alias} @ {group.chat_name[::-1]}" if alias is not None else None,
                 chat_uid=ChatID(self.CHAT_ID_FORMAT.format(hash=hash(name))),
                 chat_type=chat_type,
                 notification=notification,
