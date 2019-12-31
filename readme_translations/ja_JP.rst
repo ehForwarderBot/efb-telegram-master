@@ -706,8 +706,8 @@ ETM is licensed under `GNU Affero General Public License 3.0
 
 ::
 
-   EFB Telegram Master Channel: An slave channel for EH Forwarder Bot.
-   Copyright (C) 2016 - 2019 Eana Hufwe, and the EFB Telegram Master Channel contributors
+   EFB Telegram Master Channel: A master channel for EH Forwarder Bot.
+   Copyright (C) 2016 - 2020 Eana Hufwe, and the EFB Telegram Master Channel contributors
    All rights reserved.
 
    This program is free software: you can redistribute it and/or modify
