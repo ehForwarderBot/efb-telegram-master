@@ -4,12 +4,16 @@ from pathlib import Path
 from ruamel.yaml import YAML
 from typing import List
 
+from telegram.error import TimedOut, NetworkError
+
 import ehforwarderbot.utils
 import ehforwarderbot.coordinator
 
 from .mocks.slave import MockSlaveChannel
 from .bot import get_bot
 from efb_telegram_master import TelegramChannel
+
+pytestmark = [pytest.mark.xfail(raises=TimedOut), pytest.mark.xfail(raises=NetworkError)]
 
 
 @pytest.fixture('session')
