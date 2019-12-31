@@ -22,7 +22,7 @@ def test_filtered_chat_pagination(channel, slave):
 
 def test_source_chat_pagination(channel, slave):
     storage_id = (TelegramChatID(0), TelegramMessageID(3))
-    source_chats = [utils.chat_id_to_str(chat=slave.get_chat('wonderland001'))]
+    source_chats = [utils.chat_id_to_str(chat=slave.group)]
     legends, buttons = channel.chat_binding.slave_chats_pagination(storage_id, source_chats=source_chats)
     legend = "\n".join(legends)
     assert slave.channel_emoji in legend
