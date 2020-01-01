@@ -177,6 +177,8 @@ class ChatObjectCacheManager:
             cached.chat_alias = chat.chat_alias
             cached.chat_type = chat.chat_type
             cached.is_chat = chat.is_chat
+            cached.has_self = chat.has_self
+            cached.description = chat.description
             cached.vendor_specific = chat.vendor_specific
             cached.notification = chat.notification
             cached.members = [self.update_chat_obj(i, full_update) for i in chat.members]
@@ -184,10 +186,12 @@ class ChatObjectCacheManager:
         else:
             if chat.chat_name != cached.chat_name or \
                     chat.chat_alias != cached.chat_alias or \
-                    chat.notification != cached.notification:
+                    chat.notification != cached.notification or \
+                    chat.description != cached.description:
                 cached.chat_name = chat.chat_name
                 cached.chat_alias = chat.chat_alias
                 cached.notification = chat.notification
+                cached.description = chat.description
                 cached.update_to_db()
         return cached
 

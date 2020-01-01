@@ -34,7 +34,7 @@ class ETMChat(EFBChat):
                  chat_uid: ChatID = ChatID(""), is_chat: bool = True,
                  notification: EFBChatNotificationState = EFBChatNotificationState.ALL,
                  members: 'Sequence[EFBChat]' = None, group: 'Optional[EFBChat]' = None,
-                 vendor_specific: Dict[str, Any] = None):
+                 vendor_specific: Dict[str, Any] = None, description: str = "", has_self: bool = True):
         assert db
         self.db = db
 
@@ -49,7 +49,9 @@ class ETMChat(EFBChat):
                              notification=chat.notification,
                              is_chat=chat.is_chat,
                              members=[ETMChat(db=db, chat=i) for i in chat.members],
-                             vendor_specific=chat.vendor_specific.copy())
+                             vendor_specific=chat.vendor_specific.copy(),
+                             description=description,
+                             has_self=has_self)
             for i in self.members:
                 i.group = self
         else:
@@ -97,6 +99,7 @@ class ETMChat(EFBChat):
                        f"ID: {self.chat_uid}\n" \
                        f"Type: {self.chat_type.value}\n" \
                        f"Mode: {mode_str}\n" \
+                       f"Description: {self.description}\n" \
                        f"Notification: {self.notification.name}\n" \
                        f"Other: {self.vendor_specific}"
         if isinstance(pattern, str):

@@ -272,8 +272,9 @@ class SlaveMessageProcessor(LocaleMixin):
             prev = 0
             for i in ranges:
                 t += html.escape(text[prev:i[0]])
-                if msg.substitutions[i].is_self:
-                    t += '<a href="tg://user?id=%s">' % self.channel.config['admins'][0]
+                sub_chat = msg.substitutions[i]
+                if sub_chat.is_self or (sub_chat.is_chat and sub_chat.has_self):
+                    t += f'<a href="tg://user?id={self.channel.config["admins"][0]}">'
                     t += html.escape(text[i[0]:i[1]])
                     t += "</a>"
                 else:
