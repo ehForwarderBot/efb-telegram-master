@@ -13,6 +13,8 @@ def compare_chats(self: EFBChat, other: EFBChat):
     assert self.chat_alias == other.chat_alias
     assert self.notification == other.notification
     assert self.is_chat == other.is_chat
+    assert self.description == other.description
+    assert self.has_self == other.has_self
     if self.group:
         assert self.group.chat_uid == other.group.chat_uid
 
