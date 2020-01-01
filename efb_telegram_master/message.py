@@ -3,7 +3,8 @@ import os
 import subprocess
 import tempfile
 import logging
-from typing import Optional, TYPE_CHECKING
+from pathlib import Path
+from typing import Optional, TYPE_CHECKING, Dict, Any
 
 import magic
 import telegram
@@ -12,8 +13,11 @@ from moviepy.video.io.VideoFileClip import VideoFileClip
 from telegram.error import BadRequest
 from typing.io import IO
 
-from ehforwarderbot import EFBMsg, coordinator, MsgType
+from ehforwarderbot import EFBMsg, coordinator, MsgType, EFBChat, EFBChannel
+from ehforwarderbot.message import EFBMsgAttribute, EFBMsgCommands, EFBMsgSubstitutions
+from ehforwarderbot.types import Reactions, MessageID
 from . import utils
+from .chat_object_cache import ChatObjectCacheManager
 from .chat import ETMChat
 from .msg_type import TGMsgType, get_msg_type
 
@@ -37,9 +41,19 @@ class ETMMsg(EFBMsg):
     __path = None
     __filename = None
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, attributes: Optional[EFBMsgAttribute] = None, author: EFBChat = None, chat: EFBChat = None,
+                 commands: Optional[EFBMsgCommands] = None, deliver_to: EFBChannel = None, edit: bool = False,
+                 edit_media: bool = False, file: Optional[IO[bytes]] = None, filename: Optional[str] = None,
+                 is_system: bool = False, mime: Optional[str] = None, path: Optional[Path] = None,
+                 reactions: Reactions = None, substitutions: Optional[EFBMsgSubstitutions] = None,
+                 target: 'Optional[EFBMsg]' = None, text: str = "", type: MsgType = MsgType.Unsupported,
+                 uid: Optional[MessageID] = None, vendor_specific: Dict[str, Any] = None,
+                 type_telegram: TGMsgType = TGMsgType.System, file_id: Optional[str] = None):
+        super().__init__(attributes, author, chat, commands, deliver_to, edit, edit_media, file, filename, is_system,
+                         mime, path, reactions, substitutions, target, text, type, uid, vendor_specific)
         self.__initialized = False
+        self.type_telegram = type_telegram
+        self.file_id = file_id
 
     def _load_file(self):
         if self.file_id:
@@ -58,16 +72,20 @@ class ETMMsg(EFBMsg):
                 ext = mimetypes.guess_extension(self.mime, strict=False)
                 mime = self.mime
             file = tempfile.NamedTemporaryFile(suffix=ext)
-            full_path = file.name
             file_meta.download(out=file)
             file.seek(0)
-            mime = mime or magic.from_file(full_path, mime=True)
-            if type(mime) is bytes:
-                mime = mime.decode()
+
+            if not mime:
+                # Try to deal with restriction from Windows by only providing
+                # libmagic with the first 1048176 bytes (1 MiB) of data.
+                mime = magic.from_buffer(file.read(1048576), mime=True)
+                # mime = mime or magic.from_file(file.name, mime=True)
+                if type(mime) is bytes:
+                    mime = mime.decode()
             self.mime = mime
 
             self.__file = file
-            self.__path = file.name
+            self.__path = Path(file.name)
             self.__filename = self.__filename or os.path.basename(file.name)
 
             if self.type_telegram == TGMsgType.Animation:
@@ -75,6 +93,7 @@ class ETMMsg(EFBMsg):
 
                 gif_file = tempfile.NamedTemporaryFile(suffix='.gif')
                 v = VideoFileClip(file.name)
+                # TODO: This would not work on Windows due to FS restriction
                 if channel_id == "blueset.wechat" and v.size[0] > 600:
                     # Workaround: Compress GIF for slave channel `blueset.wechat`
                     # TODO: Move this logic to `blueset.wechat` in the future
@@ -82,8 +101,10 @@ class ETMMsg(EFBMsg):
                         ["ffmpeg", "-y", "-i", file.name, '-vf', "scale=600:-2", gif_file.name],
                         bufsize=0
                     ).wait()
+                    # TODO: This would not work on Windows due to FS restriction
                 else:
                     v.write_gif(gif_file.name, program="ffmpeg")
+                    # TODO: This would not work on Windows due to FS restriction
                 file.close()
                 gif_file.seek(0)
 
@@ -155,18 +176,18 @@ class ETMMsg(EFBMsg):
     filename: Optional[str] = property(get_filename, set_filename)  # type: ignore
 
     @staticmethod
-    def from_efbmsg(source: EFBMsg, db) -> 'ETMMsg':
+    def from_efbmsg(source: EFBMsg, chat_manager: ChatObjectCacheManager) -> 'ETMMsg':
         target = ETMMsg()
         target.__dict__.update(source.__dict__)
         if not isinstance(target.chat, ETMChat):
-            target.chat = ETMChat(db=db, chat=target.chat)
+            target.chat = chat_manager.update_chat_obj(target.chat)
         if not isinstance(target.author, ETMChat):
-            target.author = ETMChat(db=db, chat=target.author)
+            target.author = chat_manager.update_chat_obj(target.author)
         if isinstance(target.reactions, dict):
             for i in target.reactions:
                 if any(not isinstance(j, ETMChat) for j in target.reactions[i]):
                     # noinspection PyTypeChecker
-                    target.reactions[i] = list(map(lambda a: ETMChat(db=db, chat=a), target.reactions[i]))
+                    target.reactions[i] = list(map(lambda a: chat_manager.update_chat_obj(a), target.reactions[i]))
         return target
 
     def put_telegram_file(self, message: telegram.Message):
@@ -176,7 +197,7 @@ class ETMMsg(EFBMsg):
         is_common_file = False
 
         # Store media related information to local database
-        for tg_media_type in ('animation', 'document', 'video', 'voice', 'video_note'):
+        for tg_media_type in ('animation', 'document', 'video', 'voice'):
             attachment = getattr(message, tg_media_type, None)
             if attachment:
                 is_common_file = True
@@ -185,15 +206,15 @@ class ETMMsg(EFBMsg):
                 break
 
         if not is_common_file:
-            if self.type_telegram == TGMsgType.Audio:
+            if self.type_telegram is TGMsgType.Audio:
                 self.file_id = message.audio.file_id
                 self.mime = message.audio.mime_type
                 extension = mimetypes.guess_extension(message.audio.mime_type)
                 self.filename = f"{message.audio.title} - {message.audio.performer}{extension}"
-            elif self.type_telegram == TGMsgType.Sticker:
+            elif self.type_telegram is TGMsgType.Sticker:
                 self.file_id = message.sticker.file_id
                 self.mime = 'image/webp'
-            elif self.type_telegram == TGMsgType.AnimatedSticker:
+            elif self.type_telegram is TGMsgType.AnimatedSticker:
                 self.file_id = message.sticker.file_id
                 self.mime = 'application/json+tgs'
                 self.type = MsgType.Animation
@@ -201,3 +222,6 @@ class ETMMsg(EFBMsg):
                 attachment = message.photo[-1]
                 self.file_id = attachment.file_id
                 self.mime = 'image/jpeg'
+            elif self.type_telegram is TGMsgType.VideoNote:
+                self.file_id = message.video_note.file_id
+                self.mime = 'video/mpeg'

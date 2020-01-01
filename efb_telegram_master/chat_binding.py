@@ -9,7 +9,8 @@ from typing import Tuple, Dict, Optional, List, TYPE_CHECKING, IO, Sequence, Uni
 
 import telegram
 from PIL import Image
-from telegram import Update, Message, Chat, TelegramError
+from telegram import Update, Message, Chat, TelegramError, CallbackQuery
+from telegram.error import BadRequest
 from telegram.ext import ConversationHandler, CommandHandler, CallbackQueryHandler, CallbackContext, Filters, \
     MessageHandler
 
@@ -358,12 +359,12 @@ class ChatBindingManager(LocaleMixin):
         Returns:
             int: Next status
         """
-
         tg_chat_id = TelegramChatID(update.effective_chat.id)
         tg_msg_id = TelegramMessageID(update.effective_message.message_id)
         callback_uid: str = update.callback_query.data
         if callback_uid.split()[0] == "offset":
             # Offer a new page of chats
+            update.callback_query.answer()
             return self.link_chat_gen_list(tg_chat_id, message_id=tg_msg_id, offset=int(callback_uid.split()[1]))
 
         if callback_uid == Flags.CANCEL_PROCESS:
@@ -373,6 +374,7 @@ class ChatBindingManager(LocaleMixin):
                                        chat_id=tg_chat_id,
                                        message_id=tg_msg_id)
             self.msg_storage.pop((tg_chat_id, tg_msg_id), None)
+            update.callback_query.answer()
             return ConversationHandler.END
 
         if callback_uid[:4] != "chat":
@@ -382,6 +384,7 @@ class ChatBindingManager(LocaleMixin):
                                        chat_id=tg_chat_id,
                                        message_id=tg_msg_id)
             self.msg_storage.pop((tg_chat_id, tg_msg_id), None)
+            update.callback_query.answer()
             return ConversationHandler.END
 
         callback_idx: int = int(callback_uid.split()[1])
@@ -389,6 +392,7 @@ class ChatBindingManager(LocaleMixin):
 
         self.build_link_action_message(chat, tg_chat_id, tg_msg_id)
 
+        update.callback_query.answer()
         return Flags.LINK_EXEC
 
     def build_link_action_message(self, chat: ETMChat,
@@ -413,7 +417,7 @@ class ChatBindingManager(LocaleMixin):
                                                       .format(link_or_relink=btn_list[0].text),
                                                       callback_data="manual_link 0"))
         buttons = [btn_list,
-                   [telegram.InlineKeyboardButton("Cancel", callback_data=Flags.CANCEL_PROCESS)]]
+                   [telegram.InlineKeyboardButton(self._("Cancel"), callback_data=Flags.CANCEL_PROCESS)]]
 
         self.bot.edit_message_text(text=txt,
                                    chat_id=tg_chat_id,
@@ -434,6 +438,7 @@ class ChatBindingManager(LocaleMixin):
             txt = self._("Cancelled.")
             self.bot.edit_message_text(text=txt, chat_id=tg_chat_id, message_id=tg_msg_id)
             self.msg_storage.pop((tg_chat_id, tg_msg_id), None)
+            update.callback_query.answer()
             return ConversationHandler.END
 
         cmd, chat_lid = callback_uid.split()
@@ -465,6 +470,7 @@ class ChatBindingManager(LocaleMixin):
             txt = self._("Command ‘{command}’ ({query}) is not recognised, please try again.") \
                 .format(command=cmd, query=callback_uid)
             self.bot.edit_message_text(text=txt, chat_id=tg_chat_id, message_id=tg_msg_id)
+        update.callback_query.answer()
         self.msg_storage.pop((tg_chat_id, tg_msg_id), None)
         return ConversationHandler.END
 
@@ -653,6 +659,7 @@ class ChatBindingManager(LocaleMixin):
 
         # Refresh with a new set of pages
         if callback_uid.split()[0] == "offset":
+            update.callback_query.answer()
             return self.chat_head_req_generate(tg_chat_id, message_id=tg_msg_id,
                                                offset=int(callback_uid.split()[1]))
         if callback_uid == Flags.CANCEL_PROCESS:
@@ -661,6 +668,7 @@ class ChatBindingManager(LocaleMixin):
             self.bot.edit_message_text(text=txt,
                                        chat_id=tg_chat_id,
                                        message_id=tg_msg_id)
+            update.callback_query.answer()
             return ConversationHandler.END
 
         if not callback_uid.startswith("chat "):
@@ -670,6 +678,7 @@ class ChatBindingManager(LocaleMixin):
             self.bot.edit_message_text(text=txt,
                                        chat_id=tg_chat_id,
                                        message_id=tg_msg_id)
+            update.callback_query.answer()
             return ConversationHandler.END
 
         callback_idx = int(callback_uid.split()[1])
@@ -687,6 +696,7 @@ class ChatBindingManager(LocaleMixin):
         chat_head_etm.deliver_to = self.channel
         self.db.add_or_update_message_log(chat_head_etm, update.effective_message)
         self.bot.edit_message_text(text=txt, chat_id=tg_chat_id, message_id=tg_msg_id)
+        update.callback_query.answer()
         return ConversationHandler.END
 
     def register_suggestions(self, update: telegram.Update,
@@ -733,12 +743,12 @@ class ChatBindingManager(LocaleMixin):
                                                        "Session expired, please try again."),
                                            chat_id=chat_id,
                                            message_id=msg_id)
-                return
+                update.callback_query.answer()
+                return ConversationHandler.END
             slave_chat_id = candidates[int(param.split(' ', 1)[1])]
             module_id, chat_uid, _ = utils.chat_id_str_to_id(slave_chat_id)
             chat = self.chat_manager.get_chat(module_id, chat_uid)
-            self.channel.master_messages.process_telegram_message(update, context, channel_id=module_id,
-                                                                  chat_id=chat_uid)
+            self.channel.master_messages.process_telegram_message(update, context, slave_chat_id)
             if chat:
                 self.bot.edit_message_text(text=self._("Delivering the message to {0}.").format(chat.full_name),
                                            chat_id=chat_id,
@@ -760,6 +770,8 @@ class ChatBindingManager(LocaleMixin):
                                        chat_id=chat_id,
                                        message_id=msg_id)
         del self.msg_storage[storage_id]
+        if update.callback_query:
+            update.callback_query.answer()
         return ConversationHandler.END
 
     def update_group_info(self, update: Update, context: CallbackContext):
@@ -811,6 +823,11 @@ class ChatBindingManager(LocaleMixin):
                 try:
                     self.bot.set_chat_description(
                         tg_chat, self.truncate_ellipsis(desc, self.MAX_LEN_CHAT_DESC))
+                except BadRequest as e:
+                    if "Chat description is not modified" in e.message:
+                        pass
+                    else:
+                        self.logger.exception("Exception occurred while trying to update chat description: %s", e)
                 except TelegramError as e:  # description is not updated
                     self.logger.exception("Exception occurred while trying to update chat description: %s", e)
 
@@ -870,6 +887,9 @@ class ChatBindingManager(LocaleMixin):
         else:
             # Per ptb filter specs, this part of code should not be reached.
             return
+        self.chat_migration_by_id(from_id, to_id)
+
+    def chat_migration_by_id(self, from_id, to_id):
         from_str = utils.chat_id_to_str(self.channel.channel_id, from_id)
         to_str = utils.chat_id_to_str(self.channel.channel_id, to_id)
         for i in self.db.get_chat_assoc(master_uid=from_str):

@@ -4,6 +4,7 @@ import datetime
 import logging
 import pickle
 import time
+from contextlib import suppress
 from functools import partial
 from queue import Queue
 from threading import Thread
@@ -36,6 +37,8 @@ PickledDict = TypedDict('PickledDict', {
     "reactions": Dict[ReactionName, Collection[EFBChannelChatIDStr]]
 }, total=False)
 """
+Dict entries for ``pickle`` field of ``msglog`` log.
+
 - ``target``: ``master_msg_id`` of the target message
 - ``is_system``
 - ``attributes``
@@ -94,37 +97,36 @@ class MsgLog(BaseModel):
 
     def build_etm_msg(self, chat_manager: ChatObjectCacheManager,
                       recur: bool = True) -> ETMMsg:
-        msg = ETMMsg()
         c_module, c_id, _ = chat_id_str_to_id(self.slave_origin_uid)
         a_module, a_id, a_grp = chat_id_str_to_id(self.slave_member_uid)
-        msg.uid = self.slave_message_id
-        msg.chat = chat_manager.get_chat(c_module, c_id, build_dummy=True)
+        chat = chat_manager.get_chat(c_module, c_id, build_dummy=True)
         if a_module == c_module and a_id == c_id:
-            msg.author = msg.chat
-        elif msg.chat and msg.chat.chat_type == ChatType.Group:
-            msg.author = chat_manager.get_chat(a_module, a_id, c_id, build_dummy=True)
+            author = chat
+        elif chat and chat.chat_type == ChatType.Group:
+            author = chat_manager.get_chat(a_module, a_id, c_id, build_dummy=True)
         else:
-            msg.author = chat_manager.get_chat(a_module, a_id, a_grp, build_dummy=True)
-        msg.text = self.text
-        try:
+            author = chat_manager.get_chat(a_module, a_id, a_grp, build_dummy=True)
+        msg = ETMMsg(
+            uid=self.slave_message_id,
+            chat=chat,
+            author=author,
+            text=self.text,
+            type=MsgType(self.msg_type),
+            type_telegram=TGMsgType(self.media_type),
+            mime=self.mime or None,
+            file_id=self.file_id or None,
+        )
+        with suppress(NameError):
             to_module = coordinator.get_module_by_id(self.sent_to)
             if isinstance(to_module, EFBChannel):
                 msg.deliver_to = to_module
-        except NameError:
-            pass
-        msg.type = MsgType(self.msg_type)
-        msg.type_telegram = TGMsgType(self.media_type)
-        msg.mime = self.mime or None
-        msg.file_id = self.file_id or None
 
-        """
-        - ``target``: ``master_msg_id`` of the target message
-        - ``is_system``
-        - ``attributes``
-        - ``commands``
-        - ``substitutions``: ``Dict[Tuple[int, int], SlaveChatID]``
-        - ``reactions``: ``Dict[str, Collection[SlaveChatID]]``
-        """
+        # - ``target``: ``master_msg_id`` of the target message
+        # - ``is_system``
+        # - ``attributes``
+        # - ``commands``
+        # - ``substitutions``: ``Dict[Tuple[int, int], SlaveChatID]``
+        # - ``reactions``: ``Dict[str, Collection[SlaveChatID]]``
         if self.pickle:
             misc_data: PickledDict = pickle.loads(self.pickle)
 
@@ -200,7 +202,8 @@ class DatabaseManager:
             try:
                 method(*args, **kwargs)
             except OperationalError as e:
-                self.logger.exception("Operational error occurred when running %s(%s, %s): %r", method.__name__, args, kwargs, e)
+                self.logger.exception("Operational error occurred when running %s(%s, %s): %r", method.__name__, args,
+                                      kwargs, e)
             self.task_queue.task_done()
 
     def stop_worker(self):
@@ -382,10 +385,12 @@ class DatabaseManager:
         """Add or update a message into the database."""
         master_msg_id = message_id_to_str(master_message.chat_id, master_message.message_id)
         master_msg_id_alt = None
+        self.logger.debug("[%s] Received message logging request of %s", master_msg_id, msg.uid)
 
         if old_message_id is not None:
             old_message_id_str = message_id_to_str(*old_message_id)
             if master_msg_id != old_message_id_str:
+                self.logger.debug("[%s] Message has an old ID: %s", master_msg_id, old_message_id_str)
                 master_msg_id, master_msg_id_alt = old_message_id_str, master_msg_id
 
         row: MsgLog
@@ -393,9 +398,11 @@ class DatabaseManager:
         if r is not None:
             row = r
             save = row.save
+            self.logger.debug("[%s] Message record is found in database, update it", master_msg_id)
         else:
             row = MsgLog()
             save = partial(row.save, force_insert=True)
+            self.logger.debug("[%s] Message record is not found in database, insert it", master_msg_id)
 
         row.master_msg_id = master_msg_id
         row.master_msg_id_alt = master_msg_id_alt
@@ -412,7 +419,8 @@ class DatabaseManager:
         if pickle_data:
             row.pickle = pickle_data
 
-        save()
+        result = save()
+        self.logger.debug("[%s] Database insert/update outcome: %s", master_msg_id, result)
 
     @staticmethod
     def get_msg_log(master_msg_id: Optional[TgChatMsgIDStr] = None,
