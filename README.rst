@@ -4,6 +4,9 @@ EFB Telegram Master Channel (ETM)
 .. image:: https://img.shields.io/pypi/v/efb-telegram-master.svg
    :alt: PyPI release
    :target: https://pypi.org/project/efb-telegram-master/
+.. image:: https://pepy.tech/badge/efb-telegram-master/month
+   :alt: Downloads per month
+   :target: https://pepy.tech/project/efb-telegram-master
 .. image:: https://d322cqt584bo4o.cloudfront.net/ehforwarderbot/localized.svg
    :alt: Translate this project
    :target: https://crowdin.com/project/ehforwarderbot/
@@ -214,10 +217,11 @@ E.g.: ``/chat Eana`` will give you all chats has the word “Eana”.
     Channel: <Channel name>
     Channel ID: <Channel ID>
     Name: <Chat name>
-    Alias: <Chat Alias>
+    Alias: (<Chat Alias>|None)
     ID: <Chat Unique ID>
     Type: (User|Group)
     Mode: [Linked]
+    Notification: (ALL|MENTION|NONE)
     Other: <Python Dictionary String>
 
 
@@ -232,7 +236,7 @@ E.g.: ``/chat Eana`` will give you all chats has the word “Eana”.
 Examples:
 
 -  Look for all WeChat groups: ``Channel: WeChat.*Type: Group``
--  Look for everyone who has an alias ``Name: (.*?)\nAlias: (?!\1)``
+-  Look for everyone who has no alias (and those with an alias called “None”): ``Alias: None``
 -  Look for all entries contain “John” and “Johnny” in any order:
    ``(?=.*John)(?=.*Johnny)``
 
@@ -256,6 +260,12 @@ What is NOT supported:
 -  Markdown/HTML formatting
 -  Messages with unsupported types
 
+.. note::
+
+    This only applies to Telegram groups that are linked to a single remote
+    chat, groups that are linked with multiple remote chats shall work in the
+    same way as non-linked chats.
+
 Send to a non-linked chat
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -269,7 +279,9 @@ channel, everything else is supported as it does in a linked chat.
 Quick reply in non-linked chats
 '''''''''''''''''''''''''''''''
 ETM provides a mechanism that allow you to keep sending messages to the same
-recipient without quoting every single time.
+recipient without quoting every single time. ETM will store the remote chat you
+sent a message to in every Telegram chat (i.e. a Telegram group or the bot),
+which is known as the “last known recipient” of the Telegram chat.
 
 In case where recipient is not indicated for a message, ETM will try to deliver
 it to the “last known recipient” in the Telegram chat only if:
@@ -646,8 +658,8 @@ License
 
 ETM is licensed under `GNU Affero General Public License 3.0`_ or later versions::
 
-    EFB Telegram Master Channel: An slave channel for EH Forwarder Bot.
-    Copyright (C) 2016 - 2019 Eana Hufwe, and the EFB Telegram Master Channel contributors
+    EFB Telegram Master Channel: A master channel for EH Forwarder Bot.
+    Copyright (C) 2016 - 2020 Eana Hufwe, and the EFB Telegram Master Channel contributors
     All rights reserved.
 
     This program is free software: you can redistribute it and/or modify

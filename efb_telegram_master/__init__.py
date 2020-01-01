@@ -65,9 +65,10 @@ class TelegramChannel(EFBChannel):
     channel_emoji = "✈"
     channel_id = ModuleID("blueset.telegram")
     channel_type = ChannelType.Master
-    supported_message_types = {MsgType.Text, MsgType.File, MsgType.Audio,
+    supported_message_types = {MsgType.Text, MsgType.File, MsgType.Voice,
                                MsgType.Image, MsgType.Link, MsgType.Location,
-                               MsgType.Sticker, MsgType.Video, MsgType.Animation}
+                               MsgType.Sticker, MsgType.Video, MsgType.Animation,
+                               MsgType.Status}
     __version__ = __version__
 
     # Data
@@ -120,8 +121,8 @@ class TelegramChannel(EFBChannel):
         self.chat_manager: ChatObjectCacheManager = ChatObjectCacheManager(self)
         self.chat_dest_cache: ChatDestinationCache = ChatDestinationCache(self.flag("send_to_last_chat"))
         self.bot_manager: TelegramBotManager = TelegramBotManager(self)
-        self.chat_binding: ChatBindingManager = ChatBindingManager(self)
         self.commands: CommandsManager = CommandsManager(self)
+        self.chat_binding: ChatBindingManager = ChatBindingManager(self)
         self.master_messages: MasterMessageProcessor = MasterMessageProcessor(self)
         self.slave_messages: SlaveMessageProcessor = SlaveMessageProcessor(self)
 
@@ -248,30 +249,13 @@ class TelegramChannel(EFBChannel):
             msg = self._("The channel {group_name} ({group_id}) is linked to:") \
                 .format(group_name=chat.title,
                         group_id=chat.id)
-            for i in links:
-                channel_id, chat_id, _ = etm_utils.chat_id_str_to_id(i)
-                chat_object = self.chat_manager.get_chat(channel_id, chat_id)
-                if chat_object:
-                    msg += f"\n- {chat_object.full_name}"
-                else:
-                    try:
-                        module = coordinator.get_module_by_id(channel_id)
-                        msg += self._("\n- {channel_emoji} {channel_name}: Unknown chat ({chat_id})").format(
-                            channel_emoji=module.channel_emoji,
-                            channel_name=module.channel_name,
-                            chat_id=chat_id
-                        )
-                    except NameError:
-                        # TRANSLATORS: ‘channel’ here means an EFB channel.
-                        msg += self._("\n- Unknown channel {channel_id}: ({chat_id})").format(
-                            channel_id=channel_id,
-                            chat_id=chat_id
-                        )
+            msg += self.build_link_chats_info_str(links)
         else:
             # TRANSLATORS: ‘channel’ here means an EFB channel.
             msg = self._("The channel {group_name} ({group_id}) is "
-                         "not linked to any remote chat. ").format(group_name=chat.title,
-                                                                   group_id=chat.id)
+                         "not linked to any remote chat. "
+                         "To link one, use /link.").format(group_name=chat.title,
+                                                           group_id=chat.id)
         return msg
 
     def info_group(self, update):
@@ -281,30 +265,45 @@ class TelegramChannel(EFBChannel):
             msg = self._("The group {group_name} ({group_id}) is linked to:").format(
                 group_name=update.message.chat.title,
                 group_id=update.message.chat_id)
-            for i in links:
-                channel_id, chat_id, _ = etm_utils.chat_id_str_to_id(i)
-                chat_object = self.chat_manager.get_chat(channel_id, chat_id)
-                if chat_object:
-                    msg += "\n- %s (%s:%s)" % (chat_object.full_name,
-                                               channel_id, chat_id)
-                else:
-                    try:
-                        module = coordinator.get_module_by_id(channel_id)
-                        msg += self._("\n- {channel_emoji} {channel_name}: Unknown chat ({chat_id})").format(
-                            channel_emoji=module.channel_emoji,
-                            channel_name=module.channel_name,
-                            chat_id=chat_id
-                        )
-                    except NameError:
-                        # TRANSLATORS: ‘channel’ here means an EFB channel.
-                        msg += self._("\n- Unknown channel {channel_id}: ({chat_id})").format(
-                            channel_id=channel_id,
-                            chat_id=chat_id
-                        )
+            msg += self.build_link_chats_info_str(links)
         else:
             msg = self._("The group {group_name} ({group_id}) is not linked to any remote chat. "
                          "To link one, use /link.").format(group_name=update.message.chat.title,
                                                            group_id=update.message.chat_id)
+        return msg
+
+    def build_link_chats_info_str(self, links: List[EFBChannelChatIDStr]) -> str:
+        """Build a string indicating all linked chats in argument.
+
+        Returns:
+            String that starts with a line break.
+        """
+        msg = ""
+        for i in links:
+            channel_id, chat_id, _ = etm_utils.chat_id_str_to_id(i)
+            chat_object = self.chat_manager.get_chat(channel_id, chat_id)
+            if chat_object:
+                msg += "\n- %s (%s:%s)" % (chat_object.full_name,
+                                           channel_id, chat_id)
+            else:
+                try:
+                    module = coordinator.get_module_by_id(channel_id)
+                    if isinstance(module, EFBChannel):
+                        channel_name = f"{module.channel_emoji} {module.channel_name}"
+                    else:  # module is EFBMiddleware
+                        channel_name = module.middleware_name
+                    msg += self._(
+                        "\n- {channel_name}: Unknown chat ({channel_id}:{chat_id})").format(
+                        channel_name=channel_name,
+                        channel_id=channel_id,
+                        chat_id=chat_id
+                    )
+                except NameError:
+                    # TRANSLATORS: ‘channel’ here means an EFB channel.
+                    msg += self._("\n- Unknown channel {channel_id}: ({chat_id})").format(
+                        channel_id=channel_id,
+                        chat_id=chat_id
+                    )
         return msg
 
     def start(self, update: Update, context: CallbackContext):
@@ -350,9 +349,6 @@ class TelegramChannel(EFBChannel):
             return
 
         if not reaction:
-            if msg_log.pickle is None:
-                message.reply_text(self._("Reactors of this message are not recorded in database."))
-                return
             msg_log_obj: ETMMsg = msg_log.build_etm_msg(self.chat_manager)
             reactors = msg_log_obj.reactions
             if not reactors:
@@ -466,7 +462,7 @@ class TelegramChannel(EFBChannel):
             if e.message == "Message is not modified" and update.callback_query:
                 self.logger.error("Chill bro, don't click that fast.")
             else:
-                self.logger.error("Message request is invalid.\n%s\n%s", str(update), str(error))
+                self.logger.exception("Message request is invalid.\n%s\n%s", str(update), str(error))
                 self.bot_manager.send_message(self.config['admins'][0],
                                               self._("Message request is invalid.\n{error}\n"
                                                      "<code>{update}</code>").format(
@@ -543,11 +539,7 @@ class TelegramChannel(EFBChannel):
         msg_log = self.db.get_msg_log(slave_origin_uid=origin_uid,
                                       slave_msg_id=msg_id)
         if msg_log is not None:
-            if msg_log.pickle:
-                return msg_log.build_etm_msg(self.chat_manager)
-            else:
-                # Pickled data is not recorded.
-                raise EFBOperationNotSupported(self._("Message is not possible to be retrieved."))
+            return msg_log.build_etm_msg(self.chat_manager)
         else:
             # Message is not found.
             return None
@@ -555,6 +547,7 @@ class TelegramChannel(EFBChannel):
     def void_callback_handler(self, update: Update, context: CallbackContext):
         self.bot_manager.answer_callback_query(update.callback_query.id,
                                                text=self._("This button does nothing."),
+                                               message_id=update.effective_message.message_id,
                                                cache_time=180)
 
     def stop_polling(self):

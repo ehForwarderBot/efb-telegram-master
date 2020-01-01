@@ -34,9 +34,7 @@ class RPCUtilities:
         self.server.register_introspection_functions()
         self.server.register_multicall_functions()
         self.server.register_instance(self.channel.db)
-        self.server.register_function(self.get_slave_channels_id)
-        self.server.register_function(self.get_slave_channel_by_id)
-        self.server.register_function(self.get_chats_from_channel_by_id)
+        self.server.register_function(self.get_slave_channels_ids)
 
         threading.Thread(target=self.server.serve_forever, name="ETM RPC server thread")
 
@@ -46,32 +44,8 @@ class RPCUtilities:
             self.server.shutdown()
 
     @staticmethod
-    def get_slave_channels_id() -> KeysView[str]:
+    def get_slave_channels_ids() -> KeysView[str]:
         """Get the collection of slave channel IDs in current instance"""
         return coordinator.slaves.keys()
 
-    @staticmethod
-    def get_slave_channel_by_id(channel_id: ModuleID) -> Optional[EFBChannel]:
-        """
-        Get the slave channel instance if available. Otherwise return None.
-
-        Args:
-            channel_id: ID of the slave channel.
-        """
-        if channel_id in coordinator.slaves:
-            return coordinator.slaves[channel_id]
-        return None
-
-    @staticmethod
-    def get_chats_from_channel_by_id(channel_id: ModuleID) -> Optional[Iterable[EFBChat]]:
-        """
-        Get a list of chats from a specific slave channel if available.
-        Otherwise return None.
-
-        Args:
-            channel_id: ID of the slave channel.
-        """
-        channel = RPCUtilities.get_slave_channel_by_id(channel_id)
-        if channel:
-            return channel.get_chats()
-        return None
+    # TODO: add more utilities that could be useful for RPC?

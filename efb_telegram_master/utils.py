@@ -4,6 +4,7 @@ import base64
 import logging
 from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, IO
 
+from telegram.ext import BaseFilter
 from typing_extensions import NewType
 
 import telegram
@@ -44,6 +45,7 @@ class ExperimentalFlagsManager(LocaleMixin):
     }
 
     def __init__(self, channel: 'TelegramChannel'):
+        self.channel = channel
         self.config: Dict[str, Any] = ExperimentalFlagsManager.DEFAULT_VALUES.copy()
         self.config.update(channel.config.get('flags', dict()))
 
@@ -54,18 +56,18 @@ class ExperimentalFlagsManager(LocaleMixin):
 
 
 def b64en(s: str) -> str:
-    return base64.b64encode(s.encode(), b"-_").decode().rstrip("=")
+    return base64.urlsafe_b64encode(s.encode()).decode().replace("=", "~")
 
 
 def b64de(s: str) -> str:
-    return base64.b64decode((s + '=' * (- len(s) % 4)).encode(), b"-_").decode()
+    return base64.urlsafe_b64decode(s.replace("~", "=").encode()).decode()
 
 
 def message_id_to_str(chat_id: Optional[TelegramChatID] = None,
                       message_id: Optional[TelegramMessageID] = None,
                       update: Optional[telegram.Update] = None) -> TgChatMsgIDStr:
     """
-    Convert an unique identifier to telegram message to a string.
+    Convert an unique identifier of Telegram message to a string.
 
     Args:
         update: PTB update object, provide either this or the other 2 below
@@ -143,7 +145,7 @@ def chat_id_str_to_id(s: EFBChannelChatIDStr) -> Tuple[ModuleID, ChatID, Optiona
     return channel_id, chat_uid, group_id
 
 
-def convert_tgs_to_gif(tgs_file: IO[bytes], gif_file: IO[bytes]):
+def convert_tgs_to_gif(tgs_file: IO[bytes], gif_file: IO[bytes]) -> bool:
     # Import only upon calling the method due to added binary dependencies
     # (libcairo)
     from tgs.parsers.tgs import parse_tgs
@@ -160,3 +162,15 @@ def convert_tgs_to_gif(tgs_file: IO[bytes], gif_file: IO[bytes]):
     except Exception:
         logging.exception("Error occurred while converting TGS to GIF.")
         return False
+
+
+class PollFilter(BaseFilter):
+    """python-telegram-bot filter for poll messages.
+    TODO: remove this when PTB#1673 is merged and uploaded to PyPI
+
+    https://github.com/python-telegram-bot/python-telegram-bot/pull/1673
+    """
+    name = 'Filters.poll'
+
+    def filter(self, message):
+        return bool(message.poll)
