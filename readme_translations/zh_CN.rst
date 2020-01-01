@@ -6,6 +6,10 @@ EFB Telegram 主端（ETM）
    :target: https://pypi.org/project/efb-telegram-master/
    :alt: PyPI release
 
+.. image:: https://pepy.tech/badge/efb-telegram-master/month
+   :target: https://pepy.tech/project/efb-telegram-master
+   :alt: Downloads per month
+
 .. image:: https://d322cqt584bo4o.cloudfront.net/ehforwarderbot/localized.svg
    :target: https://crowdin.com/project/ehforwarderbot/
    :alt: Translate this project
@@ -199,10 +203,11 @@ API，``python-telegram-bot`` 建立。
    Channel: <Channel name>
    Channel ID: <Channel ID>
    Name: <Chat name>
-   Alias: <Chat Alias>
+   Alias: (<Chat Alias>|None)
    ID: <Chat Unique ID>
    Type: (User|Group)
    Mode: [Linked]
+   Notification: (ALL|MENTION|NONE)
    Other: <Python Dictionary String>
 
 注解: Type（类型）可以是「User」（私聊）或「Group」（群组）。Other（其他）对应的是从端提供的「供应商特定」信息。相关数据的具体格式请参照相应项目的文档。
@@ -211,7 +216,8 @@ API，``python-telegram-bot`` 建立。
 
 * 筛选所有微信（WeChat）群组：``Channel: WeChat.*Type: Group``
 
-* 筛选所有具有别名的会话：``Name: (.*?)\nAlias: (?!\1)``
+* Look for everyone who has no alias (and those with an alias called
+  “None”): ``Alias: None``
 
 * 搜索所有同时包含「John」和「Johnny」的条目，不分先后：``(?=.*John)(?=.*Johnny)``
 
@@ -241,6 +247,10 @@ API，``python-telegram-bot`` 建立。
 
 * 发送不受支持类型的消息
 
+注解: This only applies to Telegram groups that are linked to a single
+   remote chat, groups that are linked with multiple remote chats
+   shall work in the same way as non-linked chats.
+
 
 发送至未绑定的会话
 ~~~~~~~~~~~~~~~~~~
@@ -253,7 +263,11 @@ API，``python-telegram-bot`` 建立。
 在未绑定的会话中快速回复
 """"""""""""""""""""""""
 
-ETM 提供了一种无需每次引用回复即可持续向某一会话发送信息的功能。
+ETM provides a mechanism that allow you to keep sending messages to
+the same recipient without quoting every single time. ETM will store
+the remote chat you sent a message to in every Telegram chat (i.e. a
+Telegram group or the bot), which is known as the “last known
+recipient” of the Telegram chat.
 
 如果消息未指定收件人， ETM 仅会在满足以下条件时将起发送至该 Telegram 会话中的「最后一个已知收件人」：
 
@@ -577,9 +591,9 @@ ETM 2 中实现了一个标准的 `Python XML RPC 服务器
 ----------
 
 我们提供了 `db（数据库管理器）类
-<https://etm.1a23.studio/blob/master/efb_telegram_master/db.py>`_\ 和
-`RPCUtilities 类
 <https://etm.1a23.studio/blob/master/efb_telegram_master/rpc_utilities.py>`_\
+和 `RPCUtilities 类
+<https://etm.1a23.studio/blob/master/efb_telegram_master/db.py>`_\
 中的函数。详细文档请参考源代码。
 
 
