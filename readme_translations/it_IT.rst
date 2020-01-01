@@ -6,6 +6,10 @@ EFB Telegram Master Channel (ETM)
    :target: https://pypi.org/project/efb-telegram-master/
    :alt: PyPI release
 
+.. image:: https://pepy.tech/badge/efb-telegram-master/month
+   :target: https://pepy.tech/project/efb-telegram-master
+   :alt: Downloads per month
+
 .. image:: https://d322cqt584bo4o.cloudfront.net/ehforwarderbot/localized.svg
    :target: https://crowdin.com/project/ehforwarderbot/
    :alt: Translate this project
@@ -228,10 +232,11 @@ multiple criteria.
    Channel: <Channel name>
    Channel ID: <Channel ID>
    Name: <Chat name>
-   Alias: <Chat Alias>
+   Alias: (<Chat Alias>|None)
    ID: <Chat Unique ID>
    Type: (User|Group)
    Mode: [Linked]
+   Notification: (ALL|MENTION|NONE)
    Other: <Python Dictionary String>
 
 Nota: Type can be either “User” or “Group”Other is the vendor specific
@@ -242,7 +247,8 @@ Examples:
 
 * Look for all WeChat groups: ``Channel: WeChat.*Type: Group``
 
-* Look for everyone who has an alias ``Name: (.*?)\nAlias: (?!\1)``
+* Look for everyone who has no alias (and those with an alias called
+  “None”): ``Alias: None``
 
 * Look for all entries contain “John” and “Johnny” in any order:
   ``(?=.*John)(?=.*Johnny)``
@@ -273,6 +279,10 @@ What is NOT supported:
 
 * Messages with unsupported types
 
+Nota: This only applies to Telegram groups that are linked to a single
+   remote chat, groups that are linked with multiple remote chats
+   shall work in the same way as non-linked chats.
+
 
 Send to a non-linked chat
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -289,7 +299,10 @@ Quick reply in non-linked chats
 """""""""""""""""""""""""""""""
 
 ETM provides a mechanism that allow you to keep sending messages to
-the same recipient without quoting every single time.
+the same recipient without quoting every single time. ETM will store
+the remote chat you sent a message to in every Telegram chat (i.e. a
+Telegram group or the bot), which is known as the “last known
+recipient” of the Telegram chat.
 
 In case where recipient is not indicated for a message, ETM will try
 to deliver it to the “last known recipient” in the Telegram chat only
