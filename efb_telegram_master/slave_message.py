@@ -344,7 +344,7 @@ class SlaveMessageProcessor(LocaleMixin):
         msg_template = html.escape(msg_template)
         reactions = html.escape(reactions)
 
-        assert (isinstance(msg.attributes, EFBMsgLinkAttribute))
+        assert isinstance(msg.attributes, EFBMsgLinkAttribute)
         attributes: EFBMsgLinkAttribute = msg.attributes
 
         thumbnail = urllib.parse.quote(attributes.image or "", safe="?=&#:/")

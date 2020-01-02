@@ -178,7 +178,7 @@ class TelegramChannel(EFBChannel):
                 data['admins'] = [data['admins']]
             if isinstance(data.get('admins', None), str) and data['admins'].isdigit():
                 data['admins'] = [int(data['admins'])]
-            if not isinstance(data.get('admins', None), list) or len(data['admins']) < 1:
+            if not isinstance(data.get('admins', None), list) or not data['admins']:
                 raise ValueError(self._("Admins' user IDs must be a list of one number or more."))
             for i in range(len(data['admins'])):
                 if isinstance(data['admins'][i], str) and data['admins'][i].isdigit():
@@ -292,8 +292,7 @@ class TelegramChannel(EFBChannel):
                         channel_name = f"{module.channel_emoji} {module.channel_name}"
                     else:  # module is EFBMiddleware
                         channel_name = module.middleware_name
-                    msg += self._(
-                        "\n- {channel_name}: Unknown chat ({channel_id}:{chat_id})").format(
+                    msg += self._("\n- {channel_name}: Unknown chat ({channel_id}:{chat_id})").format(
                         channel_name=channel_name,
                         channel_id=channel_id,
                         chat_id=chat_id
