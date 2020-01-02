@@ -38,5 +38,13 @@ jobs:
       run: |
         mypy -p efb_telegram_master --ignore-missing-imports
     - name: Test with pytest (unit tests only)
+      env:
+        TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+        ADMINS: ${{ secrets.TELEGRAM_ADMINS }}
+        GROUPS: ${{ secrets.TELEGRAM_GROUPS }}
+        CHANNELS: ${{ secrets.TELEGRAM_CHANNELS }}
+        USER_SESSION: ${{ secrets.TELEGRAM_USER_SESSION }}
+        API_ID: ${{ secrets.TELEGRAM_API_ID }}
+        API_HASH: ${{ secrets.TELEGRAM_API_HASH }}
       run: |
         pytest -vv -r a -l --color=yes
