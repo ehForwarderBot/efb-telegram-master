@@ -3,10 +3,8 @@ import logging
 import time
 from typing import Set
 
-import peewee
 import pytest
 from telethon import TelegramClient
-from telethon.tl.types import InputStickerSetAnimatedEmoji
 
 from .helper.helper import TelegramIntegrationTestHelper
 from ..bot import get_user_session
