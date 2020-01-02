@@ -70,6 +70,7 @@ class ETMChat(EFBChat):
             ID: <Chat Unique ID>
             Type: (User|Group)
             Mode: [Linked]
+            Description: <Description>
             Notification: (ALL|MENTION|NONE)
             Other: <Python Dictionary String>
 
