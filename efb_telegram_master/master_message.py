@@ -243,7 +243,7 @@ class MasterMessageProcessor(LocaleMixin):
             else:
                 self.logger.info("[%s] Message type %s is not supported by ETM", message_id, mtype)
                 raise EFBMessageTypeNotSupported(
-                    self._("{type_name} messages are not supported by EFB Telegram Master channel")
+                    self._("{type_name} messages are not supported by EFB Telegram Master channel.")
                         .format(type_name=mtype.name))
 
             if m.type not in coordinator.slaves[channel].supported_message_types:
