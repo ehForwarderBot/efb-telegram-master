@@ -34,7 +34,6 @@ jobs:
         mkdir .cache
         mkdir -p EFBChannels/efb-telegram-master
         find . -mindepth 1 -maxdepth 1 '!' -name EFBChannels -exec mv '{}' EFBChannels/efb-telegram-master/ ';'
-        mv parent_dirextory ehForwarderBot
     - name: Setup configuration file
       env:
         CROWDIN_TOKEN: ${{ secrets.CROWDIN_TOKEN }}

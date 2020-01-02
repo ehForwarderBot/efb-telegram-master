@@ -33,7 +33,7 @@ jobs:
     - name: Install binary dependencies
       run: |
         sudo apt update
-        sudo apt install -y ffmpeg libmagic-dev libwebp
+        sudo apt install -y ffmpeg libmagic-dev libwebp6
     - name: Check with mypy
       run: |
         mypy -p efb_telegram_master --ignore-missing-imports
