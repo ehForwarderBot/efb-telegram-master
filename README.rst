@@ -4,6 +4,9 @@ EFB Telegram Master Channel (ETM)
 .. image:: https://img.shields.io/pypi/v/efb-telegram-master.svg
    :alt: PyPI release
    :target: https://pypi.org/project/efb-telegram-master/
+.. image:: https://github.com/blueset/efb-telegram-master/workflows/Tests/badge.svg
+   :alt: Tests status
+   :target: https://github.com/blueset/efb-telegram-master/actions
 .. image:: https://pepy.tech/badge/efb-telegram-master/month
    :alt: Downloads per month
    :target: https://pepy.tech/project/efb-telegram-master
