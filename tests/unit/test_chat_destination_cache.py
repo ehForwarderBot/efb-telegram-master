@@ -1,6 +1,7 @@
+import platform
 import time
 
-from pytest import fixture
+from pytest import fixture, mark
 
 from efb_telegram_master import chat_destination_cache
 from efb_telegram_master.utils import EFBChannelChatIDStr
@@ -11,6 +12,7 @@ def destination_cache():
     return chat_destination_cache.ChatDestinationCache("enabled", 2)
 
 
+@mark.xfail(platform.python_implementation() == "PyPy", "GC behaves differently in PyPy.")
 def test_destination_pop_out(destination_cache):
     destination_cache.set("key_1", EFBChannelChatIDStr("Value 1"))
     destination_cache.set("key_2", EFBChannelChatIDStr("Value 2"))

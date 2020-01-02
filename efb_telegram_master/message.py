@@ -1,8 +1,7 @@
+import logging
 import mimetypes
 import os
-import subprocess
 import tempfile
-import logging
 from pathlib import Path
 from typing import Optional, TYPE_CHECKING, Dict, Any
 
@@ -10,7 +9,6 @@ import ffmpeg
 import magic
 import telegram
 from PIL import Image
-from moviepy.video.io.VideoFileClip import VideoFileClip
 from telegram.error import BadRequest
 from typing.io import IO
 
@@ -18,8 +16,8 @@ from ehforwarderbot import EFBMsg, coordinator, MsgType, EFBChat, EFBChannel
 from ehforwarderbot.message import EFBMsgAttribute, EFBMsgCommands, EFBMsgSubstitutions
 from ehforwarderbot.types import Reactions, MessageID
 from . import utils
-from .chat_object_cache import ChatObjectCacheManager
 from .chat import ETMChat
+from .chat_object_cache import ChatObjectCacheManager
 from .msg_type import TGMsgType, get_msg_type
 
 if TYPE_CHECKING:
