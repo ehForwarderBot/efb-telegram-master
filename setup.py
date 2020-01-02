@@ -13,6 +13,8 @@ exec(open(version_path).read())
 
 long_description = open('README.rst').read()
 
+tests_require = ["pytest", "telethon", "cryptg", "pytest-dotenv", "flaky", "pytest-asyncio", "mypy"]
+
 setup(
     name='efb-telegram-master',
     packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
@@ -38,7 +40,7 @@ setup(
         "Topic :: Communications :: Chat",
         "Topic :: Utilities"
     ],
-    tests_require=["pytest", "telethon", "cryptg", "pytest-dotenv", "flaky", "pytest-asyncio"],
+    tests_require=tests_require,
     install_requires=[
         "ehforwarderbot>=2.0.0b24",
         "python-telegram-bot>=12.1.0",
@@ -58,6 +60,9 @@ setup(
         "typing-extensions>=3.7.4.1",
         "cairosvg",  # required by ``tgs`` to export GIF
     ],
+    extra_require={
+        'tests': tests_require
+    },
     entry_points={
         "ehforwarderbot.master": "blueset.telegram = efb_telegram_master:TelegramChannel",
         "ehforwarderbot.wizard": "blueset.telegram = efb_telegram_master.wizard:wizard"
