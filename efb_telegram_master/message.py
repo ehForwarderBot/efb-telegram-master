@@ -6,6 +6,7 @@ import logging
 from pathlib import Path
 from typing import Optional, TYPE_CHECKING, Dict, Any
 
+import ffmpeg
 import magic
 import telegram
 from PIL import Image
@@ -92,19 +93,15 @@ class ETMMsg(EFBMsg):
                 channel_id = self.deliver_to.channel_id
 
                 gif_file = tempfile.NamedTemporaryFile(suffix='.gif')
-                v = VideoFileClip(file.name)
+                metadata = ffmpeg.probe(file.name)
+                stream = ffmpeg.input(file.name)
                 # TODO: This would not work on Windows due to FS restriction
-                if channel_id == "blueset.wechat" and v.size[0] > 600:
+                if channel_id.startswith("blueset.wechat") and metadata.get('width', 0) > 600:
                     # Workaround: Compress GIF for slave channel `blueset.wechat`
                     # TODO: Move this logic to `blueset.wechat` in the future
-                    subprocess.Popen(
-                        ["ffmpeg", "-y", "-i", file.name, '-vf', "scale=600:-2", gif_file.name],
-                        bufsize=0
-                    ).wait()
-                    # TODO: This would not work on Windows due to FS restriction
-                else:
-                    v.write_gif(gif_file.name, program="ffmpeg")
-                    # TODO: This would not work on Windows due to FS restriction
+                    stream.filter("scale", 600, -2)
+                stream.output(gif_file.name)
+                # TODO: This would not work on Windows due to FS restriction
                 file.close()
                 gif_file.seek(0)
 
