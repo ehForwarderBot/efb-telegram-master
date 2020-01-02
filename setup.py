@@ -38,7 +38,7 @@ setup(
         "Topic :: Communications :: Chat",
         "Topic :: Utilities"
     ],
-    tests_require=["pytest", "telethon[fast]", "pytest-dotenv", "flaky"],
+    tests_require=["pytest", "telethon", "cryptg", "pytest-dotenv", "flaky", "pytest-asyncio"],
     install_requires=[
         "ehforwarderbot>=2.0.0b24",
         "python-telegram-bot>=12.1.0",
