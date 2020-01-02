@@ -60,7 +60,7 @@ setup(
         "typing-extensions>=3.7.4.1",
         "cairosvg",  # required by ``tgs`` to export GIF
     ],
-    extra_require={
+    extras_require={
         'tests': tests_require
     },
     entry_points={

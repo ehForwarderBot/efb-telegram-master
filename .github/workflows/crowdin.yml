@@ -1,11 +1,10 @@
 name: Update strings to Crowdin
 
-on: push
-#on:
-#  push:
-#    paths:
-#      - 'efb_telegram_master/**.py'
-#      - 'docs/**.rst'
+on:
+  push:
+    paths:
+      - 'efb_telegram_master/**.py'
+      - 'docs/**.rst'
 
 jobs:
   crowdin:
