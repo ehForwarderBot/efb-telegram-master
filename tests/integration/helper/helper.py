@@ -3,7 +3,7 @@ import logging
 import os
 import time
 from asyncio import QueueEmpty
-from typing import Tuple, Optional, Dict, cast, Iterable
+from typing import Tuple, Optional, Dict, Iterable
 
 from telethon import TelegramClient
 from telethon.events import NewMessage, UserUpdate, MessageDeleted, MessageEdited, ChatAction

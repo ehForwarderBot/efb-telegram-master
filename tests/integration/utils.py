@@ -1,9 +1,8 @@
-from typing import Iterable
 from contextlib import contextmanager
+from typing import Iterable
 
 from telethon import TelegramClient
-from telethon.tl.types import ChatParticipantAdmin, ChannelParticipantsAdmins
-from telethon.tl.types.messages import ChatFull
+from telethon.tl.types import ChannelParticipantsAdmins
 
 from efb_telegram_master import TelegramChannel
 from efb_telegram_master.utils import chat_id_to_str
