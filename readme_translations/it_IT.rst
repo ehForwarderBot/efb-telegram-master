@@ -6,6 +6,10 @@ EFB Telegram Master Channel (ETM)
    :target: https://pypi.org/project/efb-telegram-master/
    :alt: PyPI release
 
+.. image:: https://github.com/blueset/efb-telegram-master/workflows/Tests/badge.svg
+   :target: https://github.com/blueset/efb-telegram-master/actions
+   :alt: Tests status
+
 .. image:: https://pepy.tech/badge/efb-telegram-master/month
    :target: https://pepy.tech/project/efb-telegram-master
    :alt: Downloads per month
@@ -236,6 +240,7 @@ multiple criteria.
    ID: <Chat Unique ID>
    Type: (User|Group)
    Mode: [Linked]
+   Description: <Description>
    Notification: (ALL|MENTION|NONE)
    Other: <Python Dictionary String>
 
