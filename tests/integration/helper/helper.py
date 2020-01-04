@@ -85,7 +85,7 @@ class TelegramIntegrationTestHelper:
     async def new_message_handler(self, event: NewMessage.Event):
         # record the mapping of message ID and its chat
         message: Message = event.message
-        self.message_chat_map[message.id] = message.get_input_chat()
+        self.message_chat_map[message.id] = await message.get_input_chat()
         self.logger.debug("Got new message event, %s, %s", time.time(), event.to_dict())
         await self.queue.put(event)
 
