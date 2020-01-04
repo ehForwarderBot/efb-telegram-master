@@ -12,7 +12,7 @@ from contextlib import suppress
 from typing import List
 from unittest.mock import patch, MagicMock
 
-from pytest import mark
+from pytest import mark, raises
 from telethon.tl.custom import Message, MessageButton
 
 from .helper.filters import in_chats, has_button, edited, regex, text
@@ -61,6 +61,17 @@ async def test_master_master_quick_reply(helper, client, bot_id, slave, channel)
 
     assert message.text == content
     assert message.chat == chat
+
+    content = "test_master_master_quick_reply send another new message " \
+              "with quick reply, should give no warning"
+    await client.send_message(bot_id, content)
+    message = slave.messages.get(timeout=5)
+    slave.messages.task_done()
+    assert message.text == content
+    assert message.chat == chat
+    # Error message shall not appear again
+    with raises(asyncio.TimeoutError):
+        await helper.wait_for_message_text(in_chats(bot_id) & regex(chat.display_name), timeout=3)
 
     # Clear destination with new message from slave channel
     chat_alt = slave.chat_without_alias

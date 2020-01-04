@@ -1,3 +1,4 @@
+import re
 from io import BytesIO
 
 from pytest import raises
@@ -15,8 +16,12 @@ def test_flag(channel):
 
 
 def test_url_safe_base64():
-    data = "信じたものは、都合の良い妄想を繰り返し映し出す鏡。"
+    data = "信じたものは、\n都合の良い妄想を繰り返し映し出す鏡。"
     assert b64de(b64en(data)) == data
+    # Per docs, encoded base64 for startgroup shall only consist of [a-zA-Z0-9_-]+
+    # https://core.telegram.org/bots
+    encoded = b64en(data)
+    assert re.match(r"^[a-zA-Z0-9_-]+$", encoded)
 
 
 def test_message_id_str_conversion():

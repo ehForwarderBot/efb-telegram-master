@@ -56,11 +56,14 @@ class ExperimentalFlagsManager(LocaleMixin):
 
 
 def b64en(s: str) -> str:
-    return base64.urlsafe_b64encode(s.encode()).decode().replace("=", "~")
+    return base64.urlsafe_b64encode(s.encode()).decode().rstrip("=")
 
 
 def b64de(s: str) -> str:
-    return base64.urlsafe_b64decode(s.replace("~", "=").encode()).decode()
+    missing_padding = len(s) % 4
+    if missing_padding:
+        s += '=' * (4 - missing_padding)
+    return base64.urlsafe_b64decode(s).decode()
 
 
 def message_id_to_str(chat_id: Optional[TelegramChatID] = None,
