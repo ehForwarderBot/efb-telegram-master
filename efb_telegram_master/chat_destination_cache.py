@@ -31,6 +31,9 @@ class ChatDestination:
         self.expiry: float = time.time() + timeout
         self.warned: bool = False
 
+    def update_timeout(self, timeout: float):
+        self.expiry = time.time() + timeout
+
 
 class ChatDestinationCache:
     def __init__(self, mode: str, size: int = CHAT_DEST_CACHE_SIZE):
@@ -68,6 +71,9 @@ class ChatDestinationCache:
     def set(self, key: str, value: EFBChannelChatIDStr, timeout: float = CHAT_DEST_CACHE_TIMEOUT):
         if not self.enabled:
             return
+        # Just update timeout if destination is same
+        if key in self.weak and self.weak[key].destination == value:
+            self.weak[key].update_timeout(timeout)
         # strong_ref prevent object from being collected by gc.
         self.weak[key] = strong_ref = ChatDestination(value, timeout)
         # Enqueue the element and waiting to be collected by gc once popped.

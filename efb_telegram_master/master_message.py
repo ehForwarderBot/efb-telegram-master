@@ -150,6 +150,7 @@ class MasterMessageProcessor(LocaleMixin):
                 )
                 if dest_msg:
                     destination = dest_msg.slave_origin_uid
+                    self.chat_dest_cache.set(message.chat.id, destination)
                     self.logger.debug("[%s] Quoted message is found in database with destination: %s", mid, destination)
             elif cached_dest:
                 self.logger.debug("[%s] Cached destination found: %s", mid, cached_dest)
@@ -178,7 +179,6 @@ class MasterMessageProcessor(LocaleMixin):
                 message.reply_text(self._("Error: No recipient specified.\n"
                                           "Please reply to a previous message. (MS02)"), quote=True)
         else:
-            self.chat_dest_cache.set(message.chat.id, destination)
             return self.process_telegram_message(update, context, destination, quote=quote)
 
     def get_singly_linked_chat_id_str(self, chat: Chat) -> Optional[EFBChannelChatIDStr]:
@@ -417,7 +417,7 @@ class MasterMessageProcessor(LocaleMixin):
                 dest_name = dest_chat.full_name
             else:
                 dest_name = cached_dest
-            update.message.reply_text(
+            update.effective_message.reply_text(
                 self._(
                     "This message is sent to “{dest}” with quick reply feature.\n"
                     "\n"
