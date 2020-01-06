@@ -443,7 +443,7 @@ class TelegramChannel(EFBChannel):
         Triggered by python-telegram-bot error callback.
         """
         error = context.error
-        if "(409)" in str(error):
+        if "make sure that only one bot instance is running" in str(error):
             msg = self._('Conflicted polling detected. If this error persists, '
                          'please ensure you are running only one instance of this Telegram bot.')
             self.logger.critical(msg)
