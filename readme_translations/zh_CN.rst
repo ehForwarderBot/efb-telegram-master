@@ -59,14 +59,15 @@ API，``python-telegram-bot`` 建立。
     ::
        pip3 install efb-telegram-master
 
-3. 在配置档案中的 ``config.yaml`` 中启用 ETM。
+3. Enable and configure ETM using the *EFB configuration wizard*, or
+    enable it manually in the profile’s ``config.yaml``.
 
     根据您的个人配置档案，目录路径可能有所不同。
 
-    **（在 EFB 2.0.0a1 中: 默认的配置档案储存目录位于**
-    ``~/.ehforwarderbot/profiles/default`` **）**
+    **(As of EFB 2, default profile storage directory is located at**
+    ``~/.ehforwarderbot/profiles/default`` **)**
 
-1. 配置信道（步骤如下）
+4. Configure the channel (manual configure instructions as follows)
 
 
 其他安装方式
@@ -82,8 +83,8 @@ API，``python-telegram-bot`` 建立。
   <https://efb-modules.1a23.studio#scripts-and-containers-eg-docker>`_
 
 
-配置
-====
+Manual Configuration
+====================
 
 
 设置机器人
@@ -209,7 +210,7 @@ API，``python-telegram-bot`` 建立。
    Name: <Chat name>
    Alias: (<Chat Alias>|None)
    ID: <Chat Unique ID>
-   Type: (User|Group)
+   Type: (Private|Group|System)
    Mode: [Linked]
    Description: <Description>
    Notification: (ALL|MENTION|NONE)
@@ -590,9 +591,9 @@ ETM 2 中实现了一个标准的 `Python XML RPC 服务器
 ----------
 
 我们提供了 `db（数据库管理器）类
-<https://etm.1a23.studio/blob/master/efb_telegram_master/db.py>`_\ 和
-`RPCUtilities 类
 <https://etm.1a23.studio/blob/master/efb_telegram_master/rpc_utilities.py>`_\
+和 `RPCUtilities 类
+<https://etm.1a23.studio/blob/master/efb_telegram_master/db.py>`_\
 中的函数。详细文档请参考源代码。
 
 

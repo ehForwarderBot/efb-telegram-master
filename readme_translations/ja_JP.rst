@@ -59,15 +59,16 @@ Getting Started
     ::
        pip3 install efb-telegram-master
 
-3. Enable ETM in the profile’s ``config.yaml``
+3. Enable and configure ETM using the *EFB configuration wizard*, or
+    enable it manually in the profile’s ``config.yaml``.
 
     The path of your profile storage directory depends on your
     configuration.
 
-    **(As of EFB 2.0.0a1: Default profile storage directory is located
-    at** ``~/.ehforwarderbot/profiles/default`` **)**
+    **(As of EFB 2, default profile storage directory is located at**
+    ``~/.ehforwarderbot/profiles/default`` **)**
 
-1. Configure the channel (described as follows)
+4. Configure the channel (manual configure instructions as follows)
 
 
 Alternative installation methods
@@ -85,8 +86,8 @@ community, including:
   <https://efb-modules.1a23.studio#scripts-and-containers-eg-docker>`_
 
 
-Configuration
-=============
+Manual Configuration
+====================
 
 
 Set up a bot
@@ -237,7 +238,7 @@ multiple criteria.
    Name: <Chat name>
    Alias: (<Chat Alias>|None)
    ID: <Chat Unique ID>
-   Type: (User|Group)
+   Type: (Private|Group|System)
    Mode: [Linked]
    Description: <Description>
    Notification: (ALL|MENTION|NONE)

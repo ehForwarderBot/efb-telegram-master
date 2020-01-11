@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ehforwarderbot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-02 15:01+0000\n"
-"PO-Revision-Date: 2020-01-03 04:32\n"
+"POT-Creation-Date: 2020-01-04 08:58+0000\n"
+"PO-Revision-Date: 2020-01-11 17:33\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Spanish, Argentina\n"
 "Language: es_AR\n"
@@ -558,13 +558,13 @@ msgstr ""
 msgid "ETM message worker is not running due to unforeseen reason. This might be a bug. Please see log for details."
 msgstr ""
 
-#: efb_telegram_master/master_message.py:172
+#: efb_telegram_master/master_message.py:173
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message. (MS01)"
 msgstr "Error: no se especificó ningún destinatario.\n"
 "Por favor responde a un mensaje anterior. (MS01)"
 
-#: efb_telegram_master/master_message.py:178
+#: efb_telegram_master/master_message.py:179
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message. (MS02)"
 msgstr "Error: no se especificó ningún destinatario.\n"
