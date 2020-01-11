@@ -1,9 +1,8 @@
 import threading
-from typing import TYPE_CHECKING, KeysView, Optional, Iterable
+from typing import TYPE_CHECKING, KeysView, Optional
 from xmlrpc.server import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
 
-from ehforwarderbot import coordinator, EFBChannel, EFBChat
-from ehforwarderbot.types import ModuleID
+from ehforwarderbot import coordinator
 
 if TYPE_CHECKING:
     from . import TelegramChannel

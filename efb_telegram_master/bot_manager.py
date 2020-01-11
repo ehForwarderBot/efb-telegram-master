@@ -3,18 +3,15 @@ import collections
 import html
 import io
 import logging
-import operator
 import os
-from functools import reduce, wraps
-
-import telegram
-import telegram.ext
-import telegram.error
-import telegram.constants
-from retrying import retry
-
+from functools import wraps
 from typing import List, TYPE_CHECKING, Callable
 
+import telegram
+import telegram.constants
+import telegram.error
+import telegram.ext
+from retrying import retry
 from telegram import Update, InputFile
 from telegram.ext import CallbackContext, Filters, MessageHandler
 

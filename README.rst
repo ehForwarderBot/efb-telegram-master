@@ -223,7 +223,7 @@ E.g.: ``/chat Eana`` will give you all chats has the word “Eana”.
     Name: <Chat name>
     Alias: (<Chat Alias>|None)
     ID: <Chat Unique ID>
-    Type: (User|Group)
+    Type: (Private|Group|System)
     Mode: [Linked]
     Description: <Description>
     Notification: (ALL|MENTION|NONE)

@@ -2,14 +2,15 @@
 
 import base64
 import logging
-from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, IO
+from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, BinaryIO
 
 from telegram.ext import BaseFilter
 from typing_extensions import NewType
 
 import telegram
 
-from ehforwarderbot import EFBChat, EFBChannel
+from ehforwarderbot import Chat, Channel
+from ehforwarderbot.chat import BaseChat, ChatMember
 from ehforwarderbot.types import ChatID, ModuleID
 from .locale_mixin import LocaleMixin
 
@@ -102,7 +103,7 @@ def message_id_str_to_id(s: TgChatMsgIDStr) -> Tuple[TelegramChatID, TelegramMes
 
 def chat_id_to_str(channel_id: Optional[ModuleID] = None, chat_uid: Optional[ChatID] = None,
                    group_id: Optional[ChatID] = None,
-                   chat: Optional[EFBChat] = None, channel: Optional[EFBChannel] = None) -> EFBChannelChatIDStr:
+                   chat: Optional[BaseChat] = None, channel: Optional[Channel] = None) -> EFBChannelChatIDStr:
     """
     Convert an unique identifier to EFB chat to a string.
 
@@ -121,9 +122,9 @@ def chat_id_to_str(channel_id: Optional[ModuleID] = None, chat_uid: Optional[Cha
 
     if chat:
         channel_id = chat.module_id
-        chat_uid = chat.chat_uid
-        if chat.group:
-            group_id = chat.group.chat_uid or group_id
+        chat_uid = chat.id
+        if isinstance(chat, ChatMember):
+            group_id = chat.chat.id
     if channel:
         channel_id = channel.channel_id
     if group_id is None:
@@ -148,7 +149,7 @@ def chat_id_str_to_id(s: EFBChannelChatIDStr) -> Tuple[ModuleID, ChatID, Optiona
     return channel_id, chat_uid, group_id
 
 
-def convert_tgs_to_gif(tgs_file: IO[bytes], gif_file: IO[bytes]) -> bool:
+def convert_tgs_to_gif(tgs_file: BinaryIO, gif_file: BinaryIO) -> bool:
     # Import only upon calling the method due to added binary dependencies
     # (libcairo)
     from tgs.parsers.tgs import parse_tgs

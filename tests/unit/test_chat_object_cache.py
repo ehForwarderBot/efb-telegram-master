@@ -3,7 +3,8 @@ from unittest.mock import patch
 from pytest import fixture
 
 from efb_telegram_master.chat_object_cache import ChatObjectCacheManager
-from ehforwarderbot import EFBChat
+from ehforwarderbot import Chat
+from ehforwarderbot.chat import PrivateChat
 
 
 @fixture(scope="function")
@@ -15,49 +16,47 @@ def chat_manager(channel):
 
 def test_chat_manager_enrol_single(chat_manager, slave):
     chat = slave.chat_with_alias
-    assert chat_manager.get_chat(chat.module_id, chat.chat_uid) is None
+    assert chat_manager.get_chat(chat.module_id, chat.id) is None
     chat_manager.compound_enrol(chat)
-    cached = chat_manager.get_chat(chat.module_id, chat.chat_uid)
+    cached = chat_manager.get_chat(chat.module_id, chat.id)
     assert cached == chat  # checking module ID and chat ID
 
 
 def test_chat_manager_enrol_group(chat_manager, slave):
     group = slave.group
-    assert chat_manager.get_chat(group.module_id, group.chat_uid) is None
+    assert chat_manager.get_chat(group.module_id, group.id) is None
     chat_manager.compound_enrol(group)
-    assert chat_manager.get_chat(group.module_id, group.chat_uid) is not None
+    assert chat_manager.get_chat(group.module_id, group.id) is not None
     for i in group.members:
-        assert chat_manager.get_chat(i.module_id, i.chat_uid, group_id=group.chat_uid) is not None
+        assert chat_manager.get_chat_member(i.module_id, group.id, i.id) is not None
 
 
 def test_chat_manager_build_dummy(chat_manager):
     module_id = "__module_id__"
-    chat_uid = "__chat_id__"
-    assert chat_manager.get_chat(module_id, chat_uid) is None
-    generated = chat_manager.get_chat(module_id, chat_uid, build_dummy=True)
+    id = "__chat_id__"
+    assert chat_manager.get_chat(module_id, id) is None
+    generated = chat_manager.get_chat(module_id, id, build_dummy=True)
     assert generated is not None
     assert generated.module_id == module_id
-    assert generated.chat_uid == chat_uid
+    assert generated.id == id
 
 
 def test_chat_manager_update_chat_obj(chat_manager, slave):
-    chat = EFBChat(channel=slave)
-    chat.chat_uid = "unique_id"
-    chat.chat_name = "Chat name"
+    chat = PrivateChat(channel=slave, id="unique_id", name="Chat name")
     chat_manager.compound_enrol(chat)
-    chat.chat_alias = "Alias"
-    assert chat_manager.get_chat(chat.module_id, chat.chat_uid).chat_alias != chat.chat_alias
+    chat.alias = "Alias"
+    assert chat_manager.get_chat(chat.module_id, chat.id).alias != chat.alias
     chat_manager.update_chat_obj(chat)
-    assert chat_manager.get_chat(chat.module_id, chat.chat_uid).chat_alias == chat.chat_alias
+    assert chat_manager.get_chat(chat.module_id, chat.id).alias == chat.alias
 
 
 def test_chat_manager_delete_chat_object(chat_manager, slave):
     chat = slave.chat_with_alias
-    assert chat_manager.get_chat(chat.module_id, chat.chat_uid) is None
+    assert chat_manager.get_chat(chat.module_id, chat.id) is None
     chat_manager.compound_enrol(chat)
-    assert chat_manager.get_chat(chat.module_id, chat.chat_uid) is not None
-    chat_manager.delete_chat_object(chat.module_id, chat.chat_uid)
-    assert chat_manager.get_chat(chat.module_id, chat.chat_uid) is None
+    assert chat_manager.get_chat(chat.module_id, chat.id) is not None
+    chat_manager.delete_chat_object(chat.module_id, chat.id)
+    assert chat_manager.get_chat(chat.module_id, chat.id) is None
 
 
 def test_chat_manager_all_chats(channel, slave):

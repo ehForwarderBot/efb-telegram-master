@@ -1,7 +1,8 @@
 import re
 from pytest import fixture
-from efb_telegram_master.chat import ETMChat
-from ehforwarderbot import ChatType
+from efb_telegram_master.chat import convert_chat, ETMPrivateChat, ETMChatMember, ETMSelfChatMember, ETMSystemChat, \
+    ETMSystemChatMember, ETMGroupChat, unpickle
+from ehforwarderbot.chat import PrivateChat, SystemChat, GroupChat
 
 
 @fixture(scope="module")
@@ -10,52 +11,78 @@ def db(channel):
 
 
 def test_etm_chat_name(db, slave):
-    with_alias = ETMChat(db, chat=slave.chat_with_alias)
+    with_alias = convert_chat(db, slave.chat_with_alias)
     with_alias_full_name = with_alias.full_name
-    assert with_alias.chat_name in with_alias_full_name
-    assert with_alias.chat_alias in with_alias_full_name
+    assert with_alias.name in with_alias_full_name
+    assert with_alias.alias in with_alias_full_name
     assert slave.channel_emoji in with_alias_full_name
     assert slave.channel_name in with_alias_full_name
 
-    without_alias = ETMChat(db, chat=slave.chat_without_alias)
+    without_alias = convert_chat(db, slave.chat_without_alias)
     without_alias_full_name = without_alias.full_name
-    assert without_alias.chat_name in without_alias_full_name
-    assert str(without_alias.chat_alias) not in without_alias_full_name
+    assert without_alias.name in without_alias_full_name
+    assert str(without_alias.alias) not in without_alias_full_name
     assert slave.channel_emoji in without_alias_full_name
     assert slave.channel_name in without_alias_full_name
+
+
+def test_etm_chat_conversion_private(db, slave):
+    private_chat = slave.get_chat_by_criteria(chat_type='PrivateChat')
+    assert isinstance(private_chat, PrivateChat)
+    etm_private_chat = convert_chat(db, private_chat)
+    assert isinstance(etm_private_chat, ETMPrivateChat)
+    assert isinstance(etm_private_chat.other, ETMChatMember)
+    assert not isinstance(etm_private_chat.other, ETMSelfChatMember)
+    assert isinstance(etm_private_chat.self, ETMSelfChatMember)
+    assert etm_private_chat.other in etm_private_chat.members
+    assert etm_private_chat.self in etm_private_chat.members
+    assert all(isinstance(i, ETMChatMember) for i in etm_private_chat.members)
+    assert len(etm_private_chat.members) == len(private_chat.members)
+
+
+def test_etm_chat_conversion_system(db, slave):
+    system_chat = slave.get_chat_by_criteria(chat_type='SystemChat')
+    assert isinstance(system_chat, SystemChat)
+    etm_system_chat = convert_chat(db, system_chat)
+    assert isinstance(etm_system_chat, ETMSystemChat)
+    assert isinstance(etm_system_chat.other, ETMSystemChatMember)
+    assert isinstance(etm_system_chat.self, ETMSelfChatMember)
+    assert etm_system_chat.other in etm_system_chat.members
+    assert etm_system_chat.self in etm_system_chat.members
+    assert all(isinstance(i, ETMChatMember) for i in etm_system_chat.members)
+    assert len(etm_system_chat.members) == len(system_chat.members)
+
+
+def test_etm_chat_conversion_group(db, slave):
+    group_chat = slave.get_chat_by_criteria(chat_type='GroupChat')
+    assert isinstance(group_chat, GroupChat)
+    etm_group_chat = convert_chat(db, group_chat)
+    assert isinstance(etm_group_chat, ETMGroupChat)
+    assert isinstance(etm_group_chat.self, ETMSelfChatMember)
+    assert etm_group_chat.self in etm_group_chat.members
+    assert all(isinstance(i, ETMChatMember) for i in etm_group_chat.members)
+    assert len(etm_group_chat.members) == len(group_chat.members)
 
 
 def test_etm_chat_type_title_differ(db, slave):
     chat_name = "Chat Name"
 
-    user = ETMChat(db, channel=slave)
-    user.chat_uid = "c_user"
-    user.chat_name = chat_name
-    user.chat_type = ChatType.User
+    user = ETMPrivateChat(db, channel=slave, id="__id__", name=chat_name)
     user_title = user.chat_title
 
-    group = user.copy()
-    group.chat_type = ChatType.Group
+    group = ETMGroupChat(db, channel=slave, id="__id__", name=chat_name)
     group_title = group.chat_title
 
-    sys = user.copy()
-    sys.chat_type = ChatType.System
+    sys = ETMSystemChat(db, channel=slave, id="__id__", name=chat_name)
     sys_title = sys.chat_title
 
-    unknown = user.copy()
-    unknown.chat_type = ChatType.Unknown
-    unknown_title = unknown.chat_title
-
-    assert len({user_title, group_title, sys_title, unknown_title}) == 4
+    assert len({user_title, group_title, sys_title}) == 3
 
 
 def test_etm_chat_instance_title_differ(db, slave):
     chat_name = "Chat Name"
 
-    default_instance = ETMChat(db, channel=slave)
-    default_instance.chat_uid = "c_user"
-    default_instance.chat_name = chat_name
-    default_instance.chat_type = ChatType.User
+    default_instance = ETMSystemChat(db, channel=slave, id="__id__", name=chat_name)
     default_title = default_instance.chat_title
 
     custom_instance = default_instance.copy()
@@ -66,38 +93,29 @@ def test_etm_chat_instance_title_differ(db, slave):
 
 
 def test_etm_chat_match(db, slave):
-    chat = ETMChat(db, chat=slave.chat_with_alias)
-    assert chat.match(chat.chat_name)
-    assert chat.match(chat.chat_alias)
+    chat = convert_chat(db, slave.chat_with_alias)
+    assert chat.match(chat.name)
+    assert chat.match(chat.alias)
     assert chat.match(chat.module_name)
-    assert chat.match(chat.chat_uid)
-    assert chat.match("type: user"), "case insensitive search"
+    assert chat.match(chat.id)
+    assert chat.match("type: private"), "case insensitive search"
     assert chat.match(re.compile("Channel ID: .+mock")), "re compile object search"
     assert chat.match("Mode: \n")
 
-    assert chat.match(re.compile(f"Channel: {slave.channel_name}.*Type: User",
+    assert chat.match(re.compile(f"Channel: {slave.channel_name}.*Type: Private",
                                  re.DOTALL | re.IGNORECASE)), "docs example #0"
     assert not chat.match("Alias: None"), "docs example #1"
     assert chat.match(re.compile(r"(?=.*Chat)(?=.*Channel)",
                                  re.DOTALL | re.IGNORECASE)), "docs example #2"
 
-    no_alias = ETMChat(db, chat=slave.chat_without_alias)
+    no_alias = convert_chat(db, slave.chat_without_alias)
     assert no_alias.match("Alias: None")
 
 
-def test_etm_chat_group_id(db, slave):
-    group_chat = ETMChat(db, chat=slave.group)
-    member = slave.group.members[0]
-    member_chat = group_chat.members[0]
-    assert member_chat.group_id == slave.group.chat_uid
-
-    assert group_chat.group_id is None
-
-
 def test_etm_chat_pickle(db, slave):
-    chat = ETMChat(db, chat=slave.chat_with_alias)
-    recovered = ETMChat.unpickle(chat.pickle, db)
-    attributes = ('module_id', 'module_name', 'channel_emoji', 'chat_uid', 'chat_name', 'chat_alias', 'notification',
-                  'vendor_specific', 'chat_type', 'full_name', 'long_name', 'chat_title', 'group_id')
+    chat = convert_chat(db, chat=slave.chat_with_alias)
+    recovered = unpickle(chat.pickle, db)
+    attributes = ('module_id', 'module_name', 'channel_emoji', 'id', 'name', 'alias', 'notification',
+                  'vendor_specific', 'full_name', 'long_name', 'chat_title')
     for i in attributes:
         assert getattr(chat, i) == getattr(recovered, i)

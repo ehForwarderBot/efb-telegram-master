@@ -8,7 +8,7 @@ from contextlib import suppress
 from functools import partial
 from queue import Queue
 from threading import Thread
-from typing import List, Optional, Tuple, Callable, Sequence, Any, Dict, Collection
+from typing import List, Optional, Tuple, Callable, Sequence, Any, Dict, Collection, TYPE_CHECKING
 
 from peewee import Model, TextField, DateTimeField, CharField, SqliteDatabase, DoesNotExist, fn, BlobField, \
     OperationalError
@@ -16,23 +16,27 @@ from playhouse.migrate import SqliteMigrator, migrate
 from telegram import Message
 from typing_extensions import TypedDict
 
-from ehforwarderbot import utils, EFBChannel, EFBChat, EFBMsg, ChatType, coordinator, MsgType
-from ehforwarderbot.types import ModuleID, ChatID, MessageID, ReactionName
-from ehforwarderbot.message import EFBMsgSubstitutions, EFBMsgCommands, EFBMsgAttribute
-from . import ETMChat
+from ehforwarderbot import Message as EFBMessage
+from ehforwarderbot import utils, Channel, coordinator, MsgType
+from ehforwarderbot.message import Substitutions, MessageCommands, MessageAttribute
+from ehforwarderbot.types import ModuleID, ChatID, MessageID, ReactionName, Reactions
 from .chat_object_cache import ChatObjectCacheManager
 from .message import ETMMsg
 from .msg_type import TGMsgType
 from .utils import TelegramChatID, EFBChannelChatIDStr, TgChatMsgIDStr, message_id_to_str, \
     chat_id_to_str, OldMsgID, chat_id_str_to_id
 
+if TYPE_CHECKING:
+    from . import TelegramChannel
+    from .chat import ETMChatMember, ETMChatType, ETMBaseChatType
+
 database = SqliteDatabase(None)
 
 PickledDict = TypedDict('PickledDict', {
     "target": EFBChannelChatIDStr,
     "is_system": bool,
-    "attributes": EFBMsgAttribute,
-    "commands": EFBMsgCommands,
+    "attributes": MessageAttribute,
+    "commands": MessageCommands,
     "substitutions": Dict[Tuple[int, int], EFBChannelChatIDStr],
     "reactions": Dict[ReactionName, Collection[EFBChannelChatIDStr]]
 }, total=False)
@@ -99,13 +103,8 @@ class MsgLog(BaseModel):
                       recur: bool = True) -> ETMMsg:
         c_module, c_id, _ = chat_id_str_to_id(self.slave_origin_uid)
         a_module, a_id, a_grp = chat_id_str_to_id(self.slave_member_uid)
-        chat = chat_manager.get_chat(c_module, c_id, build_dummy=True)
-        if a_module == c_module and a_id == c_id:
-            author = chat
-        elif chat and chat.chat_type == ChatType.Group:
-            author = chat_manager.get_chat(a_module, a_id, c_id, build_dummy=True)
-        else:
-            author = chat_manager.get_chat(a_module, a_id, a_grp, build_dummy=True)
+        chat: 'ETMChatType' = chat_manager.get_chat(c_module, c_id, build_dummy=True)
+        author: 'ETMChatMember' = chat_manager.get_chat_member(a_module, a_grp, a_id, build_dummy=True)  # type: ignore
         msg = ETMMsg(
             uid=self.slave_message_id,
             chat=chat,
@@ -118,7 +117,7 @@ class MsgLog(BaseModel):
         )
         with suppress(NameError):
             to_module = coordinator.get_module_by_id(self.sent_to)
-            if isinstance(to_module, EFBChannel):
+            if isinstance(to_module, Channel):
                 msg.deliver_to = to_module
 
         # - ``target``: ``master_msg_id`` of the target message
@@ -141,17 +140,22 @@ class MsgLog(BaseModel):
             if 'commands' in misc_data:
                 msg.commands = misc_data['commands']
             if 'substitutions' in misc_data:
-                msg.substitutions = EFBMsgSubstitutions({
-                    k: chat_manager.get_chat(*chat_id_str_to_id(v), build_dummy=True)
-                    for k, v in misc_data['substitutions'].items()
-                })
+                subs = Substitutions({})
+                for sk, sv in misc_data['substitutions'].items():
+                    module_id, chat_id, group_id = chat_id_str_to_id(sv)
+                    if group_id:
+                        subs[sk] = chat_manager.get_chat_member(module_id, group_id, chat_id, build_dummy=True)
+                    else:
+                        subs[sk] = chat_manager.get_chat(module_id, chat_id, build_dummy=True)
+                msg.substitutions = subs
             if 'reactions' in misc_data:
-                msg.reactions = {
-                    k: [chat_manager.get_chat(*chat_id_str_to_id(i), build_dummy=True)
-                        for i in v]
-                    for k, v in misc_data['reactions'].items()
-                }
-
+                reactions: Dict[ReactionName, List[ETMChatMember]] = {}
+                for rk, rv in misc_data['reactions'].items():
+                    reactions[rk] = []
+                    for idx in rv:
+                        module_id, chat_id, group_id = chat_id_str_to_id(idx)
+                        reactions[rk].append(chat_manager.get_chat_member(module_id, group_id, chat_id, build_dummy=True))  # type: ignore
+                msg.reactions = reactions
         return msg
 
 
@@ -170,7 +174,7 @@ class DatabaseManager:
     logger = logging.getLogger(__name__)
     FAIL_FLAG = '__fail__'
 
-    def __init__(self, channel: EFBChannel):
+    def __init__(self, channel: 'TelegramChannel'):
         base_path = utils.get_data_path(channel.channel_id)
 
         database.init(str(base_path / 'tgdata.db'))
@@ -293,7 +297,7 @@ class DatabaseManager:
             return 0
 
     @staticmethod
-    def get_master_msg_id(message: EFBMsg) -> Optional[EFBChannelChatIDStr]:
+    def get_master_msg_id(message: EFBMessage) -> Optional[EFBChannelChatIDStr]:
         """Get master message ID from a message object."""
         log: Optional[MsgLog] = MsgLog.get_or_none(
             MsgLog.slave_origin_uid == chat_id_to_str(chat=message.chat),
@@ -303,11 +307,11 @@ class DatabaseManager:
             return log.master_msg_id
         return None
 
-    def pickle_misc_msg(self, message: EFBMsg) -> Optional[bytes]:
+    def pickle_misc_msg(self, message: EFBMessage) -> Optional[bytes]:
         """Pickle miscellaneous information of a message.
 
         Since 2.0.0b34, this would be a dict that reflects the following
-        attributes of an ``EFBMsg``/``ETMMsg`` object.
+        attributes of an ``EFBMessage``/``ETMMsg`` object.
 
         - ``target``: ``master_msg_id`` of the target message
         - ``is_system``
@@ -499,12 +503,12 @@ class DatabaseManager:
         except DoesNotExist:
             return None
 
-    def set_slave_chat_info(self, chat_object: EFBChat) -> SlaveChatInfo:
+    def set_slave_chat_info(self, chat_object: 'ETMChatType') -> SlaveChatInfo:
         """
         Insert or update slave chat info entry
 
         Args:
-            chat_object (EFBChat): Chat object for pickling
+            chat_object (ETMChatType): Chat object for pickling
 
         Returns:
             SlaveChatInfo: The inserted or updated row
@@ -512,14 +516,16 @@ class DatabaseManager:
         slave_channel_id = chat_object.module_id
         slave_channel_name = chat_object.module_name
         slave_channel_emoji = chat_object.channel_emoji
-        slave_chat_uid = chat_object.chat_uid
-        slave_chat_name = chat_object.chat_name
-        slave_chat_alias = chat_object.chat_alias
-        slave_chat_type = chat_object.chat_type.value
-        if chat_object.group is None:
-            slave_chat_group_id = None
+        slave_chat_uid = chat_object.id
+        slave_chat_name = chat_object.name
+        slave_chat_alias = chat_object.alias
+        slave_chat_type = chat_object.chat_type_name
+        parent_chat: Optional['ETMChatType'] = getattr(chat_object, 'chat', None)
+        slave_chat_group_id: Optional[ChatID]
+        if parent_chat:
+            slave_chat_group_id = parent_chat.id
         else:
-            slave_chat_group_id = chat_object.group.chat_uid
+            slave_chat_group_id = None
 
         chat_info = self.get_slave_chat_info(slave_channel_id=slave_channel_id,
                                              slave_chat_uid=slave_chat_uid,
@@ -529,12 +535,8 @@ class DatabaseManager:
             chat_info.slave_channel_emoji = slave_channel_emoji
             chat_info.slave_chat_name = slave_chat_name
             chat_info.slave_chat_alias = slave_chat_alias
-            if slave_chat_type is not None:
-                chat_info.slave_chat_type = slave_chat_type
-            if chat_object is not None:
-                if not isinstance(chat_object, ETMChat):
-                    chat_object = ETMChat(db=self, chat=chat_object)
-                chat_info.pickle = chat_object.pickle
+            chat_info.slave_chat_type = slave_chat_type
+            chat_info.pickle = chat_object.pickle
             chat_info.save()
             return chat_info
         else:
@@ -546,7 +548,7 @@ class DatabaseManager:
                                         slave_chat_name=slave_chat_name,
                                         slave_chat_alias=slave_chat_alias,
                                         slave_chat_type=slave_chat_type,
-                                        pickle=pickle.dumps(chat_object))
+                                        pickle=chat_object.pickle)
 
     @staticmethod
     def delete_slave_chat_info(slave_channel_id: ModuleID, slave_chat_uid: ChatID, slave_chat_group_id: ChatID = None):

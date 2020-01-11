@@ -37,7 +37,8 @@ class LocaleHandler(Handler):
     def check_update(self, update: Update):
         if not self.auto_locale:
             return False
-
+        if not update.effective_user or not update.effective_user.language_code:
+            return
         self.logger.debug("[%s] Update has language %s.", update.update_id, update.effective_user.language_code)
         if update.effective_user.language_code and update.effective_user.language_code != self.channel.locale:
             self.channel.locale = update.effective_user.language_code

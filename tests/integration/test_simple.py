@@ -68,19 +68,19 @@ async def test_info_chat(helper, client, bot_group, channel, slave):
 
         # Unknown channel
         assert slave.unknown_channel.module_id in text
-        assert slave.unknown_channel.chat_uid in text
+        assert slave.unknown_channel.id in text
 
         # Unknown chat
         assert slave.unknown_chat.module_id in text
         assert slave.unknown_chat.module_name in text
-        assert slave.unknown_chat.chat_uid in text
+        assert slave.unknown_chat.id in text
 
         # Known chat
         assert slave.chat_with_alias.module_id in text
         assert slave.chat_with_alias.module_name in text
-        assert slave.chat_with_alias.chat_uid in text
-        assert slave.chat_with_alias.chat_name in text
-        assert slave.chat_with_alias.chat_alias in text
+        assert slave.chat_with_alias.id in text
+        assert slave.chat_with_alias.name in text
+        assert slave.chat_with_alias.alias in text
 
 
 async def test_info_channel(helper, client, bot_id, bot_channel, channel, slave):
@@ -109,19 +109,19 @@ async def test_info_channel(helper, client, bot_id, bot_channel, channel, slave)
 
         # Unknown channel
         assert slave.unknown_channel.module_id in text
-        assert slave.unknown_channel.chat_uid in text
+        assert slave.unknown_channel.id in text
 
         # Unknown chat
         assert slave.unknown_chat.module_id in text
         assert slave.unknown_chat.module_name in text
-        assert slave.unknown_chat.chat_uid in text
+        assert slave.unknown_chat.id in text
 
         # Known chat
         assert slave.chat_with_alias.module_id in text
         assert slave.chat_with_alias.module_name in text
-        assert slave.chat_with_alias.chat_uid in text
-        assert slave.chat_with_alias.chat_name in text
-        assert slave.chat_with_alias.chat_alias in text
+        assert slave.chat_with_alias.id in text
+        assert slave.chat_with_alias.name in text
+        assert slave.chat_with_alias.alias in text
 
 
 async def test_extra_echo(helper, client, bot_id, bot_channel, channel, slave):

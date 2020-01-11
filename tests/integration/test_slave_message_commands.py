@@ -13,9 +13,9 @@ async def test_slave_message_command(helper, client, bot_group, slave, channel):
     chat = slave.chat_with_alias
     with link_chats(channel, (chat,), bot_group):
         # Ping / Pong
-        efb_msg = slave.send_text_message(chat=chat, author=chat, commands=True)
+        efb_msg = slave.send_text_message(chat=chat, author=chat.other, commands=True)
         tg_msg = await helper.wait_for_message(in_chats(bot_group) & regex(efb_msg.text))
-        assert tg_msg.button_count == len(efb_msg.commands.commands)
+        assert tg_msg.button_count == len(efb_msg.commands)
         assert tg_msg.buttons[0][0].text == "Ping!"
         assert tg_msg.buttons[1][0].text == "Bam"
         response: BotCallbackAnswer = await tg_msg.click(0)

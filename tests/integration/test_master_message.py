@@ -18,27 +18,21 @@ Send another message of same kind, quoting the previous one
     Assert message target is correct.
 """
 
-
-import asyncio
 import random
-import time
 from abc import ABC, abstractmethod
-from contextlib import suppress
-from typing import List, Optional
-from unittest.mock import patch, MagicMock
+from typing import Optional
+from uuid import uuid4
 
 from pytest import mark, approx
 from telethon import TelegramClient
-from telethon.tl.custom import Message, MessageButton
-from telethon.tl.types import MessageMediaGeo, GeoPoint, InputMediaGeoPoint, InputGeoPoint, InputMediaGeoLive, \
-    InputMediaVenue, MessageMediaVenue, InputMediaContact, DocumentAttributeAudio
+from telethon.tl.custom import Message
+from telethon.tl.types import InputMediaGeoPoint, InputGeoPoint, InputMediaGeoLive, \
+    InputMediaVenue, MessageMediaVenue, InputMediaContact
 
-from ehforwarderbot import EFBMsg, MsgType
-from ehforwarderbot.message import EFBMsgLocationAttribute
-from .helper.filters import in_chats, has_button, edited, regex
-
-from uuid import uuid4
-
+from ehforwarderbot import Message as EFBMessage
+from ehforwarderbot import MsgType
+from ehforwarderbot.chat import SelfChatMember
+from ehforwarderbot.message import LocationAttribute
 from .utils import link_chats
 
 pytestmark = mark.asyncio
@@ -56,7 +50,7 @@ class MessageFactory(ABC):
         """Build an initial message to send with."""
 
     @abstractmethod
-    def compare_message(self, tg_msg: Message, efb_msg: EFBMsg) -> None:
+    def compare_message(self, tg_msg: Message, efb_msg: EFBMessage) -> None:
         """Compare if the Telegram message matches with what is processed by ETM.
 
         This method should raises ``AssertionError`` if a mismatch is found.
@@ -75,7 +69,7 @@ class MessageFactory(ABC):
         Returns the edited message, or none if no edit is needed."""
         return
 
-    async def finalize_message(self, tg_msg: Message, efb_msg: EFBMsg):
+    async def finalize_message(self, tg_msg: Message, efb_msg: EFBMessage):
         """Finalize the message before discarding if needed."""
         pass
 
@@ -92,7 +86,7 @@ class TextMessageFactory(MessageFactory):
             reply_to=target
         )
 
-    def compare_message(self, tg_msg: Message, efb_msg: EFBMsg) -> None:
+    def compare_message(self, tg_msg: Message, efb_msg: EFBMessage) -> None:
         assert efb_msg.type == MsgType.Text
         assert tg_msg.text == efb_msg.text
 
@@ -111,9 +105,9 @@ class LocationMessageFactory(MessageFactory):
             reply_to=target
         )
 
-    def compare_message(self, tg_msg: Message, efb_msg: EFBMsg) -> None:
+    def compare_message(self, tg_msg: Message, efb_msg: EFBMessage) -> None:
         assert efb_msg.type == MsgType.Location
-        assert isinstance(efb_msg.attributes, EFBMsgLocationAttribute)
+        assert isinstance(efb_msg.attributes, LocationAttribute)
         assert tg_msg.geo.lat == approx(efb_msg.attributes.latitude, abs=1e-3)
         assert tg_msg.geo.long == approx(efb_msg.attributes.longitude, abs=1e-3)
 
@@ -130,9 +124,9 @@ class LiveLocationMessageFactory(MessageFactory):
             reply_to=target
         )
 
-    def compare_message(self, tg_msg: Message, efb_msg: EFBMsg) -> None:
+    def compare_message(self, tg_msg: Message, efb_msg: EFBMessage) -> None:
         assert efb_msg.type == MsgType.Location
-        assert isinstance(efb_msg.attributes, EFBMsgLocationAttribute)
+        assert isinstance(efb_msg.attributes, LocationAttribute)
         assert tg_msg.geo.lat == approx(efb_msg.attributes.latitude, abs=1e-3)
         assert tg_msg.geo.long == approx(efb_msg.attributes.longitude, abs=1e-3)
 
@@ -143,7 +137,7 @@ class LiveLocationMessageFactory(MessageFactory):
                 stopped=True)
         )
 
-    async def finalize_message(self, tg_msg: Message, efb_msg: EFBMsg):
+    async def finalize_message(self, tg_msg: Message, efb_msg: EFBMessage):
         """Only stop live location from the second message is to be closed."""
         if tg_msg.reply_to_msg_id:
             await self.edit_message(tg_msg.client, tg_msg)
@@ -158,9 +152,9 @@ class VenueMessageFactory(MessageFactory):
             reply_to=target
         )
 
-    def compare_message(self, tg_msg: Message, efb_msg: EFBMsg) -> None:
+    def compare_message(self, tg_msg: Message, efb_msg: EFBMessage) -> None:
         assert efb_msg.type == MsgType.Location
-        assert isinstance(efb_msg.attributes, EFBMsgLocationAttribute)
+        assert isinstance(efb_msg.attributes, LocationAttribute)
         assert tg_msg.geo.lat == approx(efb_msg.attributes.latitude, abs=1e-3)
         assert tg_msg.geo.long == approx(efb_msg.attributes.longitude, abs=1e-3)
         assert isinstance(tg_msg.media, MessageMediaVenue)
@@ -176,7 +170,7 @@ class ContactMessageFactory(MessageFactory):
             reply_to=target
         )
 
-    def compare_message(self, tg_msg: Message, efb_msg: EFBMsg) -> None:
+    def compare_message(self, tg_msg: Message, efb_msg: EFBMessage) -> None:
         assert efb_msg.type == MsgType.Text
         assert tg_msg.contact
         assert tg_msg.contact.phone_number in efb_msg.text
@@ -192,13 +186,13 @@ class StickerMessageFactory(MessageFactory):
             reply_to=target
         )
 
-    def compare_message(self, tg_msg: Message, efb_msg: EFBMsg) -> None:
+    def compare_message(self, tg_msg: Message, efb_msg: EFBMessage) -> None:
         assert efb_msg.type == MsgType.Sticker
         assert efb_msg.file
         assert efb_msg.file.seek(0, 2)
         # Cannot compare file size as WebP pictures are converted to PNG here.
 
-    async def finalize_message(self, tg_msg: Message, efb_msg: EFBMsg):
+    async def finalize_message(self, tg_msg: Message, efb_msg: EFBMessage):
         if efb_msg.file and not efb_msg.file.closed:
             efb_msg.file.close()
 
@@ -221,7 +215,7 @@ class DocumentMessageFactory(MessageFactory):
             file="tests/mocks/document_1.txt.gz"
         )
 
-    def compare_message(self, tg_msg: Message, efb_msg: EFBMsg) -> None:
+    def compare_message(self, tg_msg: Message, efb_msg: EFBMessage) -> None:
         assert efb_msg.type == MsgType.File
         assert tg_msg.raw_text == efb_msg.text
         assert efb_msg.file
@@ -230,7 +224,7 @@ class DocumentMessageFactory(MessageFactory):
         assert tg_msg.file.name == efb_msg.filename
         assert tg_msg.file.mime_type == efb_msg.mime
 
-    async def finalize_message(self, tg_msg: Message, efb_msg: EFBMsg):
+    async def finalize_message(self, tg_msg: Message, efb_msg: EFBMessage):
         if efb_msg.file and not efb_msg.file.closed:
             efb_msg.file.close()
 
@@ -253,14 +247,14 @@ class PhotoMessageFactory(MessageFactory):
             file="tests/mocks/image_1.png"
         )
 
-    def compare_message(self, tg_msg: Message, efb_msg: EFBMsg) -> None:
+    def compare_message(self, tg_msg: Message, efb_msg: EFBMessage) -> None:
         assert efb_msg.type == MsgType.Image
         assert tg_msg.raw_text == efb_msg.text
         assert efb_msg.file
         file_size = efb_msg.file.seek(0, 2)
         assert file_size == tg_msg.file.size
 
-    async def finalize_message(self, tg_msg: Message, efb_msg: EFBMsg):
+    async def finalize_message(self, tg_msg: Message, efb_msg: EFBMessage):
         if efb_msg.file and not efb_msg.file.closed:
             efb_msg.file.close()
 
@@ -278,14 +272,14 @@ class VoiceMessageFactory(MessageFactory):
     async def edit_message(self, client: TelegramClient, message: Message) -> Optional[Message]:
         return await message.edit(text=f"Edited voice caption {uuid4()}")
 
-    def compare_message(self, tg_msg: Message, efb_msg: EFBMsg) -> None:
+    def compare_message(self, tg_msg: Message, efb_msg: EFBMessage) -> None:
         assert efb_msg.type == MsgType.Voice
         assert tg_msg.text == efb_msg.text
         assert efb_msg.file
         file_size = efb_msg.file.seek(0, 2)
         assert file_size == tg_msg.file.size
 
-    async def finalize_message(self, tg_msg: Message, efb_msg: EFBMsg):
+    async def finalize_message(self, tg_msg: Message, efb_msg: EFBMessage):
         if efb_msg.file and not efb_msg.file.closed:
             efb_msg.file.close()
 
@@ -308,7 +302,7 @@ class AudioMessageFactory(MessageFactory):
             file="tests/mocks/audio_1.mp3"
         )
 
-    def compare_message(self, tg_msg: Message, efb_msg: EFBMsg) -> None:
+    def compare_message(self, tg_msg: Message, efb_msg: EFBMessage) -> None:
         assert efb_msg.type == MsgType.File
         assert tg_msg.raw_text in efb_msg.text
         assert efb_msg.file
@@ -318,7 +312,7 @@ class AudioMessageFactory(MessageFactory):
         assert tg_msg.file.performer in efb_msg.text
         assert tg_msg.file.title in efb_msg.text
 
-    async def finalize_message(self, tg_msg: Message, efb_msg: EFBMsg):
+    async def finalize_message(self, tg_msg: Message, efb_msg: EFBMessage):
         if efb_msg.file and not efb_msg.file.closed:
             efb_msg.file.close()
 
@@ -341,7 +335,7 @@ class VideoMessageFactory(MessageFactory):
             file="tests/mocks/video_1.mp4"
         )
 
-    def compare_message(self, tg_msg: Message, efb_msg: EFBMsg) -> None:
+    def compare_message(self, tg_msg: Message, efb_msg: EFBMessage) -> None:
         assert efb_msg.type == MsgType.Video
         assert tg_msg.raw_text == efb_msg.text
         assert efb_msg.file
@@ -349,7 +343,7 @@ class VideoMessageFactory(MessageFactory):
         assert file_size == tg_msg.file.size
         assert efb_msg.filename.endswith(".mp4")
 
-    async def finalize_message(self, tg_msg: Message, efb_msg: EFBMsg):
+    async def finalize_message(self, tg_msg: Message, efb_msg: EFBMessage):
         if efb_msg.file and not efb_msg.file.closed:
             efb_msg.file.close()
 
@@ -363,13 +357,13 @@ class VideoNoteMessageFactory(MessageFactory):
             reply_to=target
         )
 
-    def compare_message(self, tg_msg: Message, efb_msg: EFBMsg) -> None:
+    def compare_message(self, tg_msg: Message, efb_msg: EFBMessage) -> None:
         assert efb_msg.type == MsgType.Video
         assert efb_msg.file
         file_size = efb_msg.file.seek(0, 2)
         assert file_size == tg_msg.file.size
 
-    async def finalize_message(self, tg_msg: Message, efb_msg: EFBMsg):
+    async def finalize_message(self, tg_msg: Message, efb_msg: EFBMessage):
         if efb_msg.file and not efb_msg.file.closed:
             efb_msg.file.close()
 
@@ -392,14 +386,15 @@ class AnimationMessageFactory(MessageFactory):
             file="tests/mocks/animation_1.gif"
         )
 
-    def compare_message(self, tg_msg: Message, efb_msg: EFBMsg) -> None:
+    def compare_message(self, tg_msg: Message, efb_msg: EFBMessage) -> None:
         assert efb_msg.type == MsgType.Animation
         assert tg_msg.raw_text == efb_msg.text
         assert efb_msg.file
+        assert efb_msg.file.seek(0, 2)
         # Cannot compare file size due to format conversion
         assert efb_msg.filename.endswith(".gif")
 
-    async def finalize_message(self, tg_msg: Message, efb_msg: EFBMsg):
+    async def finalize_message(self, tg_msg: Message, efb_msg: EFBMessage):
         if efb_msg.file and not efb_msg.file.closed:
             efb_msg.file.close()
 
@@ -420,7 +415,7 @@ async def test_master_message(helper, client, bot_group, slave, channel, factory
         tg_msg = await factory.send_message(client, bot_group)
         efb_msg = slave.messages.get(timeout=5)
         assert efb_msg.chat == chat
-        assert efb_msg.author.is_self
+        assert isinstance(efb_msg.author, SelfChatMember)
         assert efb_msg.deliver_to is slave
         assert not efb_msg.edit
         assert not efb_msg.edit_media
@@ -432,7 +427,7 @@ async def test_master_message(helper, client, bot_group, slave, channel, factory
         if edited_msg is not None:
             efb_msg = slave.messages.get(timeout=5)
             assert efb_msg.chat == chat
-            assert efb_msg.author.is_self
+            assert isinstance(efb_msg.author, SelfChatMember)
             assert efb_msg.deliver_to is slave
             assert efb_msg.edit
             assert not efb_msg.edit_media
@@ -444,7 +439,7 @@ async def test_master_message(helper, client, bot_group, slave, channel, factory
         if media_edited is not None:
             efb_msg = slave.messages.get(timeout=5)
             assert efb_msg.chat == chat
-            assert efb_msg.author.is_self
+            assert isinstance(efb_msg.author, SelfChatMember)
             assert efb_msg.deliver_to is slave
             assert efb_msg.edit
             assert efb_msg.edit_media
@@ -456,7 +451,7 @@ async def test_master_message(helper, client, bot_group, slave, channel, factory
             quoted_message = await factory.send_message(client, bot_group, target=tg_msg)
             quoted_efb_msg = slave.messages.get(timeout=5)
             assert quoted_efb_msg.chat == chat
-            assert quoted_efb_msg.author.is_self
+            assert isinstance(quoted_efb_msg.author, SelfChatMember)
             assert quoted_efb_msg.deliver_to is slave
             assert not quoted_efb_msg.edit
             assert not quoted_efb_msg.edit_media

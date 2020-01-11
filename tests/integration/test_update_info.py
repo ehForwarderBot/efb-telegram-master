@@ -5,7 +5,6 @@ from telethon.tl.types import PeerChannel
 from telethon.tl.types.messages import ChatFull
 from telethon.utils import resolve_id
 
-from ehforwarderbot import ChatType
 from .helper.filters import in_chats, text, new_photo, new_title
 from .utils import link_chats, is_bot_admin
 
@@ -41,14 +40,14 @@ async def test_update_info_group_multi(helper, client, bot_group, channel, slave
 async def test_update_info_no_permission(helper, client, bot_group, bot_id):
     if not await is_bot_admin(client, bot_id, bot_group):
         await client.edit_admin(bot_group, bot_id,
-                                change_info=False, is_admin=False)
+                                change_info=False, is_admin=False, edit_messages=False)
     await client.send_message(bot_group, "/update_info")
     await helper.wait_for_event(text & in_chats(bot_group))
     # Should receive a text with error messages.
     # No assertions needed.
 
 
-@mark.parametrize("chat_type", [ChatType.User, ChatType.Group])
+@mark.parametrize("chat_type", ["PrivateChat", "GroupChat"])
 @mark.parametrize("alias", [False, True], ids=['no alias', 'alias'])
 @mark.parametrize("avatar", [False, True], ids=['no avatar', 'avatar'])
 async def test_update_info_group_user(helper, client, bot_group, channel, slave,
@@ -58,20 +57,20 @@ async def test_update_info_group_user(helper, client, bot_group, channel, slave,
     # Set bot as admin if needed
     if await is_bot_admin(client, bot_id, bot_group):
         await client.edit_admin(bot_group, bot_id,
-                                change_info=True, is_admin=True)
+                                change_info=True, is_admin=True, delete_messages=False)
 
     with link_chats(channel, (chat,), bot_group):
         await client.send_message(bot_group, "/update_info")
         title = (await helper.wait_for_event(in_chats(bot_group) & new_title)).new_title
         if alias:
-            assert chat.chat_alias in title
+            assert chat.alias in title
         else:
-            assert chat.chat_name in title
+            assert chat.name in title
 
         if avatar:
             await helper.wait_for_event(in_chats(bot_group) & new_photo)
 
-        if chat_type is ChatType.Group:
+        if chat_type == "GroupChat":
             # Get group description
             bot_group_t, peer_type = resolve_id(bot_group)
             if peer_type == PeerChannel:
@@ -81,8 +80,9 @@ async def test_update_info_group_user(helper, client, bot_group, channel, slave,
             desc = group.full_chat.about
 
             chats_found = sum(int(
-                (i.chat_name in desc) and  # Original name is found, and
-                (i.chat_alias is None or i.chat_alias in desc)  # alias is found too if available
+                (i.name in desc) and  # Original name is found, and
+                (i.alias is None or i.alias in desc)  # alias is found too if available
             ) for i in chat.members)
 
+            assert len(chat.members) >= 5
             assert chats_found >= 5, f"At least 5 members shall be found in the description: {desc}"
