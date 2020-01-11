@@ -1,7 +1,6 @@
 # coding=utf-8
 
 import logging
-import time
 from pickle import UnpicklingError
 from queue import Queue
 from threading import Thread
@@ -13,14 +12,13 @@ from telegram import Update, Message, Chat
 from telegram.ext import MessageHandler, Filters, CallbackContext, CommandHandler
 from telegram.utils.helpers import escape_markdown
 
-from efb_telegram_master import ETMChat
-from ehforwarderbot import EFBMsg, coordinator
-from ehforwarderbot.constants import MsgType, ChatType
+from ehforwarderbot import coordinator
+from ehforwarderbot.constants import MsgType
 from ehforwarderbot.exceptions import EFBMessageTypeNotSupported, EFBChatNotFound, \
     EFBMessageError, EFBMessageNotFound, EFBOperationNotSupported, EFBException
-from ehforwarderbot.message import EFBMsgLocationAttribute
-from ehforwarderbot.status import EFBMessageRemoval
-from ehforwarderbot.types import ModuleID, ChatID, MessageID
+from ehforwarderbot.message import LocationAttribute
+from ehforwarderbot.status import MessageRemoval
+from ehforwarderbot.types import ModuleID, MessageID
 from . import utils
 from .chat_destination_cache import ChatDestinationCache
 from .locale_mixin import LocaleMixin
@@ -31,7 +29,7 @@ from .utils import EFBChannelChatIDStr, TelegramChatID, PollFilter
 if TYPE_CHECKING:
     from . import TelegramChannel
     from .bot_manager import TelegramBotManager
-    from .db import DatabaseManager, MsgLog
+    from .db import DatabaseManager
     from .chat_object_cache import ChatObjectCacheManager
 
 
@@ -131,7 +129,7 @@ class MasterMessageProcessor(LocaleMixin):
         Process, wrap and dispatch messages from user.
         """
 
-        message: telegram.Message = update.effective_message
+        message: Message = update.effective_message
         mid = utils.message_id_to_str(update=update)
 
         self.logger.debug("[%s] Received message from Telegram: %s", mid, message.to_dict())
@@ -206,7 +204,7 @@ class MasterMessageProcessor(LocaleMixin):
         # Message ID for logging
         message_id = utils.message_id_to_str(update=update)
 
-        message: telegram.Message = update.effective_message
+        message: Message = update.effective_message
 
         edited = bool(update.edited_message or update.edited_channel_post)
         self.logger.debug('[%s] Message is edited: %s, %s',
@@ -224,11 +222,8 @@ class MasterMessageProcessor(LocaleMixin):
             m.put_telegram_file(message)
             mtype = m.type_telegram
             # Chat and author related stuff
-            m.chat = self.chat_manager.get_chat(channel, uid, gid, build_dummy=True)
-            if m.chat.chat_type == ChatType.Group:
-                m.author = self.chat_manager.get_self(m.chat.chat_uid)
-            else:
-                m.author = self.chat_manager.self
+            m.chat = self.chat_manager.get_chat(channel, uid, build_dummy=True)
+            m.author = m.chat.self or m.chat.add_self()
 
             m.deliver_to = coordinator.slaves[channel]
 
@@ -274,7 +269,7 @@ class MasterMessageProcessor(LocaleMixin):
                     raise EFBMessageNotFound()
                 m.uid = msg_log.slave_message_id
                 if text.startswith(self.DELETE_FLAG):
-                    coordinator.send_status(EFBMessageRemoval(
+                    coordinator.send_status(MessageRemoval(
                         source_channel=self.channel,
                         destination_channel=coordinator.slaves[channel],
                         message=m
@@ -292,7 +287,7 @@ class MasterMessageProcessor(LocaleMixin):
                 if m.file_id and m.file_id != msg_log.file_id:
                     m.edit_media = True
 
-            # Enclose message as an EFBMsg object by message type.
+            # Enclose message as an Message object by message type.
             if mtype is TGMsgType.Text:
                 m.text = msg_md_text
             elif mtype is TGMsgType.Photo:
@@ -335,13 +330,13 @@ class MasterMessageProcessor(LocaleMixin):
             elif mtype is TGMsgType.Location:
                 # TRANSLATORS: Message body text for location messages.
                 m.text = self._("Location")
-                m.attributes = EFBMsgLocationAttribute(
+                m.attributes = LocationAttribute(
                     message.location.latitude,
                     message.location.longitude
                 )
             elif mtype is TGMsgType.Venue:
                 m.text = f"📍 {message.location.title}\n{message.location.adderss}"
-                m.attributes = EFBMsgLocationAttribute(
+                m.attributes = LocationAttribute(
                     message.venue.location.latitude,
                     message.venue.location.longitude
                 )
@@ -397,7 +392,7 @@ class MasterMessageProcessor(LocaleMixin):
 
         self.logger.debug("[%s] This message replies to another message of the same channel.\n"
                           "Chat ID: %s; Message ID: %s.",
-                          tg_msg.message_id, target_msg.chat.chat_uid, target_msg.uid)
+                          tg_msg.message_id, target_msg.chat.id, target_msg.uid)
         return etm_msg
 
     def _send_cached_chat_warning(self, update: telegram.Update,
@@ -411,8 +406,8 @@ class MasterMessageProcessor(LocaleMixin):
         if not self.chat_dest_cache.is_warned(cache_key):
             self.chat_dest_cache.set_warned(cache_key)
 
-            dest_module, dest_chat_id, dest_grp_id = utils.chat_id_str_to_id(cached_dest)
-            dest_chat = self.chat_manager.get_chat(dest_module, dest_chat_id, dest_grp_id)
+            dest_module, dest_chat_id, _ = utils.chat_id_str_to_id(cached_dest)
+            dest_chat = self.chat_manager.get_chat(dest_module, dest_chat_id)
             if dest_chat:
                 dest_name = dest_chat.full_name
             else:
@@ -421,7 +416,7 @@ class MasterMessageProcessor(LocaleMixin):
                 self._(
                     "This message is sent to “{dest}” with quick reply feature.\n"
                     "\n"
-                    "Learn more about how this works, how to turn off this feature, "
+                    "Learn more about how this works, how to turn this feature off, "
                     "and how to stop this warning at {docs}."
                 ).format(dest=dest_name,
                          docs="https://etm.1a23.studio/"),
@@ -476,7 +471,7 @@ class MasterMessageProcessor(LocaleMixin):
             ).format(module_id=etm_msg.chat.module_id))
         # noinspection PyBroadException
         try:
-            coordinator.send_status(EFBMessageRemoval(
+            coordinator.send_status(MessageRemoval(
                 source_channel=self.channel, destination_channel=dest_channel, message=etm_msg
             ))
         except EFBException as e:

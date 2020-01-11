@@ -1,7 +1,5 @@
 # coding=utf-8
 
-from ehforwarderbot.constants import ChatType
-
 
 class Flags:
     # General Flags
@@ -25,23 +23,3 @@ class Emoji:
     LINK = "🔗"
     MUTED = "🔇"
     MULTI_LINKED = "🖇️"
-
-    @staticmethod
-    def get_source_emoji(t: ChatType) -> str:
-        """
-        Get the Emoji for the corresponding chat type.
-
-        Args:
-            t (ChatType): The chat type.
-
-        Returns:
-            str: Emoji string.
-        """
-        if t == ChatType.User:
-            return Emoji.USER
-        elif t == ChatType.Group:
-            return Emoji.GROUP
-        elif t == ChatType.System:
-            return Emoji.SYSTEM
-        else:
-            return Emoji.UNKNOWN

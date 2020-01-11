@@ -4,7 +4,7 @@ import html
 import logging
 import mimetypes
 from gettext import NullTranslations, translation
-from typing import Optional, IO, List
+from typing import Optional, List
 from xmlrpc.server import SimpleXMLRPCServer
 
 import telegram
@@ -13,23 +13,27 @@ import telegram.error
 import telegram.ext
 from PIL import Image
 from pkg_resources import resource_filename
+from ruamel.yaml import YAML
 from telegram import Message, Update
 from telegram.ext import CommandHandler, CallbackQueryHandler, CallbackContext, Filters
-from ruamel.yaml import YAML
 
 import ehforwarderbot
-from ehforwarderbot import EFBChannel, EFBMsg, EFBStatus, coordinator, EFBChat
+from ehforwarderbot import Channel, coordinator
 from ehforwarderbot import utils as efb_utils
-from ehforwarderbot.constants import MsgType, ChannelType
+from ehforwarderbot.channel import MasterChannel
+from ehforwarderbot.message import Message
+from ehforwarderbot.chat import Chat
+from ehforwarderbot.status import Status
+from ehforwarderbot.constants import MsgType
 from ehforwarderbot.exceptions import EFBException, EFBOperationNotSupported, EFBChatNotFound, \
     EFBMessageReactionNotPossible
-from ehforwarderbot.status import EFBReactToMessage
-from ehforwarderbot.types import ChatID, ModuleID, InstanceID, MessageID
+from ehforwarderbot.status import ReactToMessage
+from ehforwarderbot.types import ModuleID, InstanceID, MessageID
 from . import utils as etm_utils
 from .__version__ import __version__
 from .bot_manager import TelegramBotManager
-from .chat import ETMChat
 from .chat_binding import ChatBindingManager
+from .chat_destination_cache import ChatDestinationCache
 from .chat_object_cache import ChatObjectCacheManager
 from .commands import CommandsManager
 from .db import DatabaseManager
@@ -38,10 +42,9 @@ from .message import ETMMsg
 from .rpc_utils import RPCUtilities
 from .slave_message import SlaveMessageProcessor
 from .utils import ExperimentalFlagsManager, EFBChannelChatIDStr
-from .chat_destination_cache import ChatDestinationCache
 
 
-class TelegramChannel(EFBChannel):
+class TelegramChannel(MasterChannel):
     """
     EFB Channel - Telegram (Master)
     Based on python-telegram-bot, Telegram Bot API
@@ -64,7 +67,6 @@ class TelegramChannel(EFBChannel):
     channel_name = "Telegram Master"
     channel_emoji = "✈"
     channel_id = ModuleID("blueset.telegram")
-    channel_type = ChannelType.Master
     supported_message_types = {MsgType.Text, MsgType.File, MsgType.Voice,
                                MsgType.Image, MsgType.Link, MsgType.Location,
                                MsgType.Sticker, MsgType.Video, MsgType.Animation,
@@ -288,9 +290,9 @@ class TelegramChannel(EFBChannel):
             else:
                 try:
                     module = coordinator.get_module_by_id(channel_id)
-                    if isinstance(module, EFBChannel):
+                    if isinstance(module, Channel):
                         channel_name = f"{module.channel_emoji} {module.channel_name}"
-                    else:  # module is EFBMiddleware
+                    else:  # module is Middleware
                         channel_name = module.middleware_name
                     msg += self._("\n- {channel_name}: Unknown chat ({channel_id}:{chat_id})").format(
                         channel_name=channel_name,
@@ -394,7 +396,7 @@ class TelegramChannel(EFBChannel):
             reaction = None
 
         try:
-            coordinator.send_status(EFBReactToMessage(chat=chat_obj, msg_id=message_id, reaction=reaction))
+            coordinator.send_status(ReactToMessage(chat=chat_obj, msg_id=message_id, reaction=reaction))
         except EFBOperationNotSupported:
             message.reply_text(self._("You cannot react anything to this message."))
             return
@@ -526,14 +528,14 @@ class TelegramChannel(EFBChannel):
                 self.logger.exception('Unhandled telegram bot error!\n'
                                       'Update %s caused error %s. Exception', update, error)
 
-    def send_message(self, msg: EFBMsg) -> EFBMsg:
+    def send_message(self, msg: Message) -> Message:
         return self.slave_messages.send_message(msg)
 
-    def send_status(self, status: EFBStatus):
+    def send_status(self, status: Status):
         return self.slave_messages.send_status(status)
 
-    def get_message_by_id(self, chat: EFBChat,
-                          msg_id: MessageID) -> Optional['EFBMsg']:
+    def get_message_by_id(self, chat: Chat,
+                          msg_id: MessageID) -> Optional['Message']:
         origin_uid = etm_utils.chat_id_to_str(chat=chat)
         msg_log = self.db.get_msg_log(slave_origin_uid=origin_uid,
                                       slave_msg_id=msg_id)
@@ -557,11 +559,5 @@ class TelegramChannel(EFBChannel):
         self.db.stop_worker()
         self.logger.debug("%s (%s) gracefully stopped.", self.channel_name, self.channel_id)
 
-    def get_chats(self) -> List[EFBChat]:
-        raise EFBOperationNotSupported()
-
-    def get_chat(self, chat_uid: ChatID, member_uid: Optional[ChatID] = None) -> EFBChat:
-        raise EFBOperationNotSupported()
-
-    def get_chat_picture(self, chat: EFBChat) -> IO[bytes]:
+    def get_chats(self) -> List[Chat]:
         raise EFBOperationNotSupported()

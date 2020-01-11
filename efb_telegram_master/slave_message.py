@@ -17,13 +17,13 @@ import telegram.ext
 from PIL import Image
 from telegram import InputFile, ChatAction, InputMediaPhoto, InputMediaDocument, InputMediaVideo, InputMediaAnimation
 
-from ehforwarderbot import EFBMsg, EFBStatus, coordinator
-from ehforwarderbot.chat import EFBChatNotificationState
-from ehforwarderbot.constants import MsgType, ChatType
-from ehforwarderbot.message import EFBMsgLinkAttribute, EFBMsgLocationAttribute, EFBMsgCommand, Reactions, \
-    EFBMsgStatusAttribute
-from ehforwarderbot.status import EFBChatUpdates, EFBMemberUpdates, EFBMessageRemoval, EFBMessageReactionsUpdate
-from . import utils, ETMChat
+from ehforwarderbot import Message, Status, coordinator
+from ehforwarderbot.chat import ChatNotificationState, SelfChatMember, GroupChat, PrivateChat, SystemChat, Chat
+from ehforwarderbot.constants import MsgType
+from ehforwarderbot.message import LinkAttribute, LocationAttribute, MessageCommand, Reactions, \
+    StatusAttribute
+from ehforwarderbot.status import ChatUpdates, MemberUpdates, MessageRemoval, MessageReactionsUpdate
+from . import utils
 from .chat_destination_cache import ChatDestinationCache
 from .chat_object_cache import ChatObjectCacheManager
 from .commands import ETMCommandMsgStorage
@@ -39,7 +39,7 @@ if TYPE_CHECKING:
 
 
 class SlaveMessageProcessor(LocaleMixin):
-    """Process messages as EFBMsg objects from slave channels."""
+    """Process messages as Message objects from slave channels."""
 
     def __init__(self, channel: 'TelegramChannel'):
         self.channel: 'TelegramChannel' = channel
@@ -50,12 +50,12 @@ class SlaveMessageProcessor(LocaleMixin):
         self.chat_dest_cache: ChatDestinationCache = channel.chat_dest_cache
         self.chat_manager: ChatObjectCacheManager = channel.chat_manager
 
-    def is_silent(self, msg: EFBMsg) -> Optional[bool]:
+    def is_silent(self, msg: Message) -> Optional[bool]:
         """Determine if a message shall be sent silently.
         Returns None if the message shall not be sent at all.
         """
         xid = msg.uid
-        if msg.author.is_self:
+        if isinstance(msg.author, SelfChatMember):
             # Message is send by admin not through EFB
             your_slave_msg = self.flag('your_message_on_slave')
             if your_slave_msg == 'silent':
@@ -63,8 +63,8 @@ class SlaveMessageProcessor(LocaleMixin):
             elif your_slave_msg == 'mute':
                 self.logger.debug("[%s] Message is muted as it is from the admin.", xid)
                 return None
-        elif msg.chat.notification == EFBChatNotificationState.NONE or \
-                (msg.chat.notification == EFBChatNotificationState.MENTIONS and
+        elif msg.chat.notification == ChatNotificationState.NONE or \
+                (msg.chat.notification == ChatNotificationState.MENTIONS and
                  (not msg.substitutions or not msg.substitutions.is_mentioned)):
             # Shall not be notified in slave channel
             muted_on_slave = self.flag('message_muted_on_slave')
@@ -75,12 +75,12 @@ class SlaveMessageProcessor(LocaleMixin):
                 return None
         return False
 
-    def send_message(self, msg: EFBMsg) -> EFBMsg:
+    def send_message(self, msg: Message) -> Message:
         """
         Process a message from slave channel and deliver it to the user.
 
         Args:
-            msg (EFBMsg): The message.
+            msg (Message): The message.
         """
         try:
             xid = msg.uid
@@ -119,7 +119,7 @@ class SlaveMessageProcessor(LocaleMixin):
                               repr(msg), repr(e), traceback.format_exc())
         return msg
 
-    def dispatch_message(self, msg: EFBMsg, msg_template: str,
+    def dispatch_message(self, msg: Message, msg_template: str,
                          old_msg_id: Optional[OldMsgID], tg_dest: TelegramChatID,
                          silent: bool = False):
         """Dispatch with header, destination and Telegram message ID and destinations."""
@@ -128,7 +128,7 @@ class SlaveMessageProcessor(LocaleMixin):
 
         # When targeting a message (reply to)
         target_msg_id: Optional[TelegramMessageID] = None
-        if isinstance(msg.target, EFBMsg):
+        if isinstance(msg.target, Message):
             self.logger.debug("[%s] Message is replying to %s.", msg.uid, msg.target)
             log = self.db.get_msg_log(
                 slave_msg_id=msg.target.uid,
@@ -148,11 +148,11 @@ class SlaveMessageProcessor(LocaleMixin):
                     target_msg_id = target_msg[1]
 
         # Generate basic reply markup
-        commands: Optional[List[EFBMsgCommand]] = None
+        commands: Optional[List[MessageCommand]] = None
         reply_markup: Optional[telegram.InlineKeyboardMarkup] = None
 
         if msg.commands:
-            commands = msg.commands.commands
+            commands = msg.commands
             buttons = []
             for idx, i in enumerate(commands):
                 buttons.append([telegram.InlineKeyboardButton(i.name, callback_data=str(idx))])
@@ -220,7 +220,7 @@ class SlaveMessageProcessor(LocaleMixin):
         self.db.add_or_update_message_log(etm_msg, tg_msg, old_msg_id)
         # self.logger.debug("[%s] Message inserted/updated to the database.", xid)
 
-    def get_slave_msg_dest(self, msg: EFBMsg) -> Tuple[str, Optional[TelegramChatID]]:
+    def get_slave_msg_dest(self, msg: Message) -> Tuple[str, Optional[TelegramChatID]]:
         """Get the Telegram destination of a message with its header.
 
         Returns:
@@ -228,8 +228,8 @@ class SlaveMessageProcessor(LocaleMixin):
             tg_dest (Optional[str]): Telegram destination chat, None if muted.
         """
         xid = msg.uid
-        msg.author = self.chat_manager.update_chat_obj(msg.author)
         msg.chat = self.chat_manager.update_chat_obj(msg.chat)
+        msg.author = msg.chat.get_member(msg.author.id)
         chat_uid = utils.chat_id_to_str(chat=msg.chat)
         tg_chats = self.db.get_chat_assoc(slave_uid=chat_uid)
         tg_chat = None
@@ -263,7 +263,7 @@ class SlaveMessageProcessor(LocaleMixin):
 
         return msg_template, tg_dest
 
-    def html_substitutions(self, msg: EFBMsg) -> str:
+    def html_substitutions(self, msg: Message) -> str:
         """Build a Telegram-flavored HTML string for message text substitutions."""
         text = msg.text
         if msg.substitutions:
@@ -273,7 +273,7 @@ class SlaveMessageProcessor(LocaleMixin):
             for i in ranges:
                 t += html.escape(text[prev:i[0]])
                 sub_chat = msg.substitutions[i]
-                if sub_chat.is_self or (sub_chat.is_chat and sub_chat.has_self):
+                if isinstance(sub_chat, SelfChatMember) or (isinstance(sub_chat, Chat) and sub_chat.has_self):
                     t += f'<a href="tg://user?id={self.channel.config["admins"][0]}">'
                     t += html.escape(text[i[0]:i[1]])
                     t += "</a>"
@@ -288,7 +288,7 @@ class SlaveMessageProcessor(LocaleMixin):
             return html.escape(text)
         return text
 
-    def slave_message_text(self, msg: EFBMsg, tg_dest: TelegramChatID, msg_template: str, reactions: str,
+    def slave_message_text(self, msg: Message, tg_dest: TelegramChatID, msg_template: str, reactions: str,
                            old_msg_id: OldMsgID = None,
                            target_msg_id: Optional[TelegramMessageID] = None,
                            reply_markup: Optional[telegram.ReplyMarkup] = None,
@@ -334,7 +334,7 @@ class SlaveMessageProcessor(LocaleMixin):
         self.logger.debug("[%s] Processed and sent as text message", msg.uid)
         return tg_msg
 
-    def slave_message_link(self, msg: EFBMsg, tg_dest: TelegramChatID, msg_template: str, reactions: str,
+    def slave_message_link(self, msg: Message, tg_dest: TelegramChatID, msg_template: str, reactions: str,
                            old_msg_id: OldMsgID = None,
                            target_msg_id: Optional[TelegramMessageID] = None,
                            reply_markup: Optional[telegram.ReplyMarkup] = None,
@@ -344,8 +344,8 @@ class SlaveMessageProcessor(LocaleMixin):
         msg_template = html.escape(msg_template)
         reactions = html.escape(reactions)
 
-        assert isinstance(msg.attributes, EFBMsgLinkAttribute)
-        attributes: EFBMsgLinkAttribute = msg.attributes
+        assert isinstance(msg.attributes, LinkAttribute)
+        attributes: LinkAttribute = msg.attributes
 
         thumbnail = urllib.parse.quote(attributes.image or "", safe="?=&#:/")
         thumbnail = "<a href=\"%s\">🔗</a>" % thumbnail if thumbnail else "🔗"
@@ -380,7 +380,7 @@ class SlaveMessageProcessor(LocaleMixin):
     IMG_SIZE_MAX_RATIO = 10
     """Threshold of aspect ratio (longer side to shorter side) to send as file, used alone."""
 
-    def slave_message_image(self, msg: EFBMsg, tg_dest: TelegramChatID, msg_template: str, reactions: str,
+    def slave_message_image(self, msg: Message, tg_dest: TelegramChatID, msg_template: str, reactions: str,
                             old_msg_id: OldMsgID = None,
                             target_msg_id: Optional[TelegramMessageID] = None,
                             reply_markup: Optional[telegram.ReplyMarkup] = None,
@@ -393,8 +393,10 @@ class SlaveMessageProcessor(LocaleMixin):
 
         if msg.text:
             text = self.html_substitutions(msg)
-        else:
+        elif msg_template:
             text = "🖼️"
+        else:
+            text = ""
         try:
             # Avoid Telegram compression of pictures by sending high definition image messages as files
             # Code adopted from wolfsilver's fork:
@@ -424,7 +426,6 @@ class SlaveMessageProcessor(LocaleMixin):
                     send_as_file = False
             except IOError:  # Ignore when the image cannot be properly identified.
                 send_as_file = False
-
 
             if old_msg_id:
                 try:
@@ -468,7 +469,7 @@ class SlaveMessageProcessor(LocaleMixin):
             if msg.file:
                 msg.file.close()
 
-    def slave_message_animation(self, msg: EFBMsg, tg_dest: TelegramChatID, msg_template: str, reactions: str,
+    def slave_message_animation(self, msg: Message, tg_dest: TelegramChatID, msg_template: str, reactions: str,
                                 old_msg_id: OldMsgID = None,
                                 target_msg_id: Optional[TelegramMessageID] = None,
                                 reply_markup: Optional[telegram.ReplyMarkup] = None,
@@ -503,7 +504,7 @@ class SlaveMessageProcessor(LocaleMixin):
             if msg.file is not None:
                 msg.file.close()
 
-    def slave_message_sticker(self, msg: EFBMsg, tg_dest: TelegramChatID, msg_template: str, reactions: str,
+    def slave_message_sticker(self, msg: Message, tg_dest: TelegramChatID, msg_template: str, reactions: str,
                               old_msg_id: OldMsgID = None,
                               target_msg_id: Optional[TelegramMessageID] = None,
                               reply_markup: Optional[telegram.ReplyMarkup] = None,
@@ -556,7 +557,7 @@ class SlaveMessageProcessor(LocaleMixin):
                 msg.file.close()
 
     @staticmethod
-    def build_chat_info_inline_keyboard(msg: EFBMsg, msg_template: str, reactions: str,
+    def build_chat_info_inline_keyboard(msg: Message, msg_template: str, reactions: str,
                                         reply_markup: Optional[telegram.InlineKeyboardMarkup]
                                         ) -> telegram.InlineKeyboardMarkup:
         """
@@ -574,7 +575,7 @@ class SlaveMessageProcessor(LocaleMixin):
         sticker_reply_markup.inline_keyboard = description + sticker_reply_markup.inline_keyboard
         return sticker_reply_markup
 
-    def slave_message_file(self, msg: EFBMsg, tg_dest: TelegramChatID, msg_template: str, reactions: str,
+    def slave_message_file(self, msg: Message, tg_dest: TelegramChatID, msg_template: str, reactions: str,
                            old_msg_id: OldMsgID = None,
                            target_msg_id: Optional[TelegramMessageID] = None,
                            reply_markup: Optional[telegram.ReplyMarkup] = None,
@@ -594,8 +595,10 @@ class SlaveMessageProcessor(LocaleMixin):
 
         if msg.text:
             text = self.html_substitutions(msg)
-        else:
+        elif msg_template:
             text = "📄"
+        else:
+            text = ""
 
         try:
             if old_msg_id:
@@ -617,7 +620,7 @@ class SlaveMessageProcessor(LocaleMixin):
             if msg.file is not None:
                 msg.file.close()
 
-    def slave_message_voice(self, msg: EFBMsg, tg_dest: TelegramChatID, msg_template: str, reactions: str,
+    def slave_message_voice(self, msg: Message, tg_dest: TelegramChatID, msg_template: str, reactions: str,
                             old_msg_id: OldMsgID = None,
                             target_msg_id: Optional[TelegramMessageID] = None,
                             reply_markup: Optional[telegram.ReplyMarkup] = None,
@@ -652,15 +655,15 @@ class SlaveMessageProcessor(LocaleMixin):
             if msg.file is not None:
                 msg.file.close()
 
-    def slave_message_location(self, msg: EFBMsg, tg_dest: TelegramChatID, msg_template: str, reactions: str,
+    def slave_message_location(self, msg: Message, tg_dest: TelegramChatID, msg_template: str, reactions: str,
                                old_msg_id: OldMsgID = None,
                                target_msg_id: Optional[TelegramMessageID] = None,
                                reply_markup: Optional[telegram.ReplyMarkup] = None,
                                silent: bool = False) -> telegram.Message:
         # TODO: Move msg_template to caption during MTProto migration (if we ever had a chance to do that).
         self.bot.send_chat_action(tg_dest, telegram.ChatAction.FIND_LOCATION)
-        assert (isinstance(msg.attributes, EFBMsgLocationAttribute))
-        attributes: EFBMsgLocationAttribute = msg.attributes
+        assert (isinstance(msg.attributes, LocationAttribute))
+        attributes: LocationAttribute = msg.attributes
         self.logger.info("[%s] Sending as a Telegram venue.\nlat: %s, long: %s\ntitle: %s\naddress: %s",
                          msg.uid,
                          attributes.latitude, attributes.longitude,
@@ -681,7 +684,7 @@ class SlaveMessageProcessor(LocaleMixin):
                                       reply_markup=location_reply_markup,
                                       disable_notification=silent)
 
-    def slave_message_video(self, msg: EFBMsg, tg_dest: TelegramChatID, msg_template: str, reactions: str,
+    def slave_message_video(self, msg: Message, tg_dest: TelegramChatID, msg_template: str, reactions: str,
                             old_msg_id: OldMsgID = None,
                             target_msg_id: Optional[TelegramMessageID] = None,
                             reply_markup: Optional[telegram.ReplyMarkup] = None,
@@ -689,8 +692,10 @@ class SlaveMessageProcessor(LocaleMixin):
         self.bot.send_chat_action(tg_dest, telegram.ChatAction.UPLOAD_VIDEO)
         if msg.text:
             text = self.html_substitutions(msg)
-        else:
+        elif msg_template:
             text = "🎥"
+        else:
+            text = ""
         try:
             if old_msg_id:
                 if msg.edit_media:
@@ -708,7 +713,7 @@ class SlaveMessageProcessor(LocaleMixin):
             if msg.file is not None:
                 msg.file.close()
 
-    def slave_message_unsupported(self, msg: EFBMsg, tg_dest: TelegramChatID, msg_template: str, reactions: str,
+    def slave_message_unsupported(self, msg: Message, tg_dest: TelegramChatID, msg_template: str, reactions: str,
                                   old_msg_id: OldMsgID = None,
                                   target_msg_id: Optional[TelegramMessageID] = None,
                                   reply_markup: Optional[telegram.ReplyMarkup] = None,
@@ -740,41 +745,38 @@ class SlaveMessageProcessor(LocaleMixin):
         self.logger.debug("[%s] Processed and sent as text message", msg.uid)
         return tg_msg
 
-    def slave_message_status(self, msg: EFBMsg, tg_dest: TelegramChatID):
+    def slave_message_status(self, msg: Message, tg_dest: TelegramChatID):
         attributes = msg.attributes
-        assert isinstance(attributes, EFBMsgStatusAttribute)
-        if attributes.status_type is EFBMsgStatusAttribute.Types.TYPING:
+        assert isinstance(attributes, StatusAttribute)
+        if attributes.status_type is StatusAttribute.Types.TYPING:
             self.bot.send_chat_action(tg_dest, ChatAction.TYPING)
-        elif attributes.status_type is EFBMsgStatusAttribute.Types.UPLOADING_VOICE:
+        elif attributes.status_type is StatusAttribute.Types.UPLOADING_VOICE:
             self.bot.send_chat_action(tg_dest, ChatAction.RECORD_AUDIO)
-        elif attributes.status_type is EFBMsgStatusAttribute.Types.UPLOADING_IMAGE:
+        elif attributes.status_type is StatusAttribute.Types.UPLOADING_IMAGE:
             self.bot.send_chat_action(tg_dest, ChatAction.UPLOAD_PHOTO)
-        elif attributes.status_type is EFBMsgStatusAttribute.Types.UPLOADING_VIDEO:
+        elif attributes.status_type is StatusAttribute.Types.UPLOADING_VIDEO:
             self.bot.send_chat_action(tg_dest, ChatAction.UPLOAD_VIDEO)
-        elif attributes.status_type is EFBMsgStatusAttribute.Types.UPLOADING_FILE:
+        elif attributes.status_type is StatusAttribute.Types.UPLOADING_FILE:
             self.bot.send_chat_action(tg_dest, ChatAction.UPLOAD_DOCUMENT)
 
-    def send_status(self, status: EFBStatus):
-        if isinstance(status, EFBChatUpdates):
+    def send_status(self, status: Status):
+        if isinstance(status, ChatUpdates):
             self.logger.debug("Received chat updates from channel %s", status.channel)
             for i in status.removed_chats:
                 self.db.delete_slave_chat_info(status.channel.channel_id, i)
                 self.chat_manager.delete_chat_object(status.channel.channel_id, i)
             for i in itertools.chain(status.new_chats, status.modified_chats):
                 chat = status.channel.get_chat(i)
-                self.db.set_slave_chat_info(chat_object=chat)
                 self.chat_manager.update_chat_obj(chat, full_update=True)
-        elif isinstance(status, EFBMemberUpdates):
+        elif isinstance(status, MemberUpdates):
             self.logger.debug("Received member updates from channel %s about group %s",
                               status.channel, status.chat_id)
             for i in status.removed_members:
                 self.db.delete_slave_chat_info(status.channel.channel_id, i, status.chat_id)
-                self.chat_manager.delete_chat_object(status.channel.channel_id, i, status.chat_id)
-            for i in itertools.chain(status.new_members, status.modified_members):
-                chat = status.channel.get_chat(status.chat_id, i)
-                self.db.set_slave_chat_info(chat_object=chat)
-                self.chat_manager.update_chat_obj(chat, full_update=True)
-        elif isinstance(status, EFBMessageRemoval):
+            self.chat_manager.delete_chat_members(status.channel.channel_id, status.chat_id, status.removed_members)
+            chat = status.channel.get_chat(status.chat_id)
+            self.chat_manager.update_chat_obj(chat, full_update=True)
+        elif isinstance(status, MessageRemoval):
             self.logger.debug("Received message removal request from channel %s on message %s",
                               status.source_channel, status.message)
             old_msg = self.db.get_msg_log(
@@ -796,7 +798,7 @@ class SlaveMessageProcessor(LocaleMixin):
             else:
                 self.logger.info('Was supposed to delete a message, '
                                  'but it does not exist in database: %s', status)
-        elif isinstance(status, EFBMessageReactionsUpdate):
+        elif isinstance(status, MessageReactionsUpdate):
             self.update_reactions(status)
         else:
             self.logger.error('Received an unsupported type of status: %s', status)
@@ -811,7 +813,7 @@ class SlaveMessageProcessor(LocaleMixin):
             return ""
         return result
 
-    def update_reactions(self, status: EFBMessageReactionsUpdate):
+    def update_reactions(self, status: MessageReactionsUpdate):
         """Update reactions to a Telegram message."""
         old_msg_db = self.db.get_msg_log(slave_msg_id=status.msg_id,
                                          slave_origin_uid=utils.chat_id_to_str(chat=status.chat))
@@ -831,9 +833,9 @@ class SlaveMessageProcessor(LocaleMixin):
         # Go through the ordinary update process
         self.dispatch_message(old_msg, msg_template, old_msg_id=(chat_id, msg_id), tg_dest=chat_id)
 
-    def generate_message_template(self, msg: EFBMsg, singly_linked: bool) -> str:
+    def generate_message_template(self, msg: Message, singly_linked: bool) -> str:
         msg_prefix = ""  # For group member name
-        if msg.chat.chat_type == ChatType.Group:
+        if isinstance(msg.chat, GroupChat):
             self.logger.debug("[%s] Message is from a group. Sender: %s", msg.uid, msg.author)
             msg_prefix = msg.author.long_name
 
@@ -845,23 +847,22 @@ class SlaveMessageProcessor(LocaleMixin):
                     msg_template = f"{msg.author.long_name}:"
                 else:
                     msg_template = ""
-        elif msg.chat.chat_type == ChatType.User:
-            emoji_prefix = msg.chat.channel_emoji + Emoji.get_source_emoji(msg.chat.chat_type)
+        elif isinstance(msg.chat, PrivateChat):
+            emoji_prefix = msg.chat.channel_emoji + Emoji.USER
             name_prefix = msg.chat.long_name
-            if msg.chat != msg.author:
+            if msg.chat.other != msg.author:
                 name_prefix += f", {msg.author.long_name}"
             msg_template = f"{emoji_prefix} {name_prefix}:"
-        elif msg.chat.chat_type == ChatType.Group:
-            emoji_prefix = msg.chat.channel_emoji + Emoji.get_source_emoji(msg.chat.chat_type)
+        elif isinstance(msg.chat, GroupChat):
+            emoji_prefix = msg.chat.channel_emoji + Emoji.GROUP
             name_prefix = msg.chat.long_name
             msg_template = f"{emoji_prefix} {msg_prefix} [{name_prefix}]:"
-        elif msg.chat.chat_type == ChatType.System:
-            emoji_prefix = msg.chat.channel_emoji + Emoji.get_source_emoji(msg.chat.chat_type)
+        elif isinstance(msg.chat, SystemChat):
+            emoji_prefix = msg.chat.channel_emoji + Emoji.SYSTEM
             name_prefix = msg.chat.long_name
+            if msg.chat.other != msg.author:
+                name_prefix += f", {msg.author.long_name}"
             msg_template = f"{emoji_prefix} {name_prefix}:"
         else:
-            if msg.chat == msg.author:
-                msg_template = f"{Emoji.UNKNOWN} {msg.chat.long_name}:"
-            else:
-                msg_template = f"{Emoji.UNKNOWN} {msg.author.long_name} ({msg.chat.display_name}):"
+            msg_template = f"{Emoji.UNKNOWN} {msg.author.long_name} ({msg.chat.display_name}):"
         return msg_template

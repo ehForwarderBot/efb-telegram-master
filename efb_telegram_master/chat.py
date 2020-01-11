@@ -1,10 +1,13 @@
 import pickle
 import time
+from abc import ABC
 from datetime import datetime
-from typing import Optional, TYPE_CHECKING, Pattern, List, Dict, Any, Union, Sequence
+from typing import Optional, TYPE_CHECKING, Pattern, List, Dict, Any, Union, TypeVar, overload, MutableSequence
 
-from ehforwarderbot import EFBChat, EFBChannel, ChatType, EFBMiddleware
-from ehforwarderbot.chat import EFBChatNotificationState
+from ehforwarderbot import Middleware
+from ehforwarderbot.channel import SlaveChannel
+from ehforwarderbot.chat import ChatNotificationState, BaseChat, Chat, PrivateChat, ChatMember, SystemChatMember, \
+    SelfChatMember, GroupChat, SystemChat
 from ehforwarderbot.types import ChatID, ModuleID
 from . import utils
 from .constants import Emoji
@@ -13,51 +16,75 @@ from .utils import EFBChannelChatIDStr
 if TYPE_CHECKING:
     from .db import DatabaseManager
 
-__all__ = ['ETMChat']
+__all__ = ['ETMChatMember', 'ETMSelfChatMember', 'ETMSystemChatMember',
+           'ETMPrivateChat', 'ETMSystemChat', 'ETMGroupChat',
+           'convert_chat', 'unpickle',
+           'ETMChatType', 'ETMBaseChatType']
 
 
-class ETMChat(EFBChat):
+class ETMBaseChatMixin(BaseChat, ABC):
+    # Allow mypy to recognize subclass output for `return self` methods.
+    _Self = TypeVar('_Self', bound='ETMBaseChatMixin')
+    chat_type_name = "BaseChat"
+
+    # noinspection PyMissingConstructor
+    def __init__(self, db: 'DatabaseManager', *args, **kwargs):
+        self.db = db
+        super().__init__(*args, **kwargs)
+
+    def remove_from_db(self):
+        """Remove this chat from database."""
+        self.db.delete_slave_chat_info(self.module_id, self.id)
+
+    def __getstate__(self) -> Dict[str, Any]:
+        state = self.__dict__.copy()
+        if 'db' in state:
+            del state['db']
+        return state
+
+
+class ETMChatMember(ETMBaseChatMixin, ChatMember):
+    chat_type_name = "ChatMember"
+
+    def __init__(self, db: 'DatabaseManager', chat: 'Chat', *, name: str = "", alias: Optional[str] = None,
+                 id: ChatID = ChatID(""), vendor_specific: Dict[str, Any] = None, description: str = "",
+                 middleware: Optional[Middleware] = None):
+        super().__init__(db, chat, name=name, alias=alias, id=id, vendor_specific=vendor_specific,
+                         description=description, middleware=middleware)
+
+
+class ETMSelfChatMember(ETMChatMember, SelfChatMember):
+    chat_type_name = "SelfChatMember"
+
+    def __init__(self, db: 'DatabaseManager', chat: 'Chat', *, name: str = "", alias: Optional[str] = None,
+                 id: ChatID = ChatID(""), vendor_specific: Dict[str, Any] = None, description: str = "",
+                 middleware: Optional[Middleware] = None):
+        super().__init__(db, chat, name=name, alias=alias, id=id, vendor_specific=vendor_specific,
+                         description=description, middleware=middleware)
+
+
+class ETMSystemChatMember(ETMChatMember, SystemChatMember):
+    chat_type_name = "SystemChatMember"
+
+    def __init__(self, db: 'DatabaseManager', chat: 'Chat', *, name: str = "", alias: Optional[str] = None,
+                 id: ChatID = ChatID(""), vendor_specific: Dict[str, Any] = None, description: str = "",
+                 middleware: Optional[Middleware] = None):
+        super().__init__(db, chat, name=name, alias=alias, id=id, vendor_specific=vendor_specific,
+                         description=description, middleware=middleware)
+
+
+class ETMChatMixin(ETMBaseChatMixin, Chat, ABC):
     _last_message_time: Optional[datetime] = None
     _last_message_time_query: float = 0
     LAST_MESSAGE_QUERY_TIMEOUT_MS: float = 60000  # 60s
 
     _linked: Optional[List[EFBChannelChatIDStr]] = None
 
-    members: 'List[ETMChat]' = []
-    group: 'Optional[ETMChat]' = None
+    members: MutableSequence[ETMChatMember]  # type: ignore
+    self: Optional[ETMSelfChatMember]
 
-    def __init__(self, db: 'DatabaseManager',
-                 chat: Optional[EFBChat] = None, channel: Optional[EFBChannel] = None,
-                 middleware: Optional[EFBMiddleware] = None,
-                 module_name: str = "", channel_emoji: str = "", module_id: ModuleID = ModuleID(""),
-                 chat_name: str = "", chat_alias: Optional[str] = None, chat_type: ChatType = ChatType.Unknown,
-                 chat_uid: ChatID = ChatID(""), is_chat: bool = True,
-                 notification: EFBChatNotificationState = EFBChatNotificationState.ALL,
-                 members: 'Sequence[EFBChat]' = None, group: 'Optional[EFBChat]' = None,
-                 vendor_specific: Dict[str, Any] = None, description: str = "", has_self: bool = True):
-        assert db
-        self.db = db
-
-        if chat:
-            super().__init__(module_name=chat.module_name,
-                             channel_emoji=chat.channel_emoji,
-                             module_id=chat.module_id,
-                             chat_name=chat.chat_name,
-                             chat_type=chat.chat_type,
-                             chat_alias=chat.chat_alias,
-                             chat_uid=chat.chat_uid,
-                             notification=chat.notification,
-                             is_chat=chat.is_chat,
-                             members=[ETMChat(db=db, chat=i) for i in chat.members],
-                             vendor_specific=chat.vendor_specific.copy(),
-                             description=description,
-                             has_self=has_self)
-            for i in self.members:
-                i.group = self
-        else:
-            super().__init__(channel, middleware, module_name, channel_emoji,
-                             module_id, chat_name, chat_alias, chat_type,
-                             chat_uid, is_chat, notification, members, group, vendor_specific)
+    chat_type_name = "Chat"
+    chat_type_emoji = Emoji.UNKNOWN
 
     def match(self, pattern: Union[Pattern, str, None]) -> bool:
         """
@@ -95,10 +122,10 @@ class ETMChat(EFBChat):
         mode_str = ', '.join(mode)
         entry_string = f"Channel: {self.module_name}\n" \
                        f"Channel ID: {self.module_id}\n" \
-                       f"Name: {self.chat_name}\n" \
-                       f"Alias: {self.chat_alias}\n" \
-                       f"ID: {self.chat_uid}\n" \
-                       f"Type: {self.chat_type.value}\n" \
+                       f"Name: {self.name}\n" \
+                       f"Alias: {self.alias}\n" \
+                       f"ID: {self.id}\n" \
+                       f"Type: {self.chat_type_name}\n" \
                        f"Mode: {mode_str}\n" \
                        f"Description: {self.description}\n" \
                        f"Notification: {self.notification.name}\n" \
@@ -110,12 +137,12 @@ class ETMChat(EFBChat):
 
     def unlink(self):
         """ Unlink this chat from any Telegram group."""
-        self.db.remove_chat_assoc(slave_uid=utils.chat_id_to_str(self.module_id, self.chat_uid))
+        self.db.remove_chat_assoc(slave_uid=utils.chat_id_to_str(self.module_id, self.id))
         self._update_linked()
 
     def link(self, channel_id: ModuleID, chat_id: ChatID, multiple_slave: bool):
         self.db.add_chat_assoc(master_uid=utils.chat_id_to_str(channel_id, chat_id),
-                               slave_uid=utils.chat_id_to_str(self.module_id, self.chat_uid),
+                               slave_uid=utils.chat_id_to_str(self.module_id, self.id),
                                multiple_slave=multiple_slave)
         self._update_linked()
 
@@ -127,7 +154,7 @@ class ETMChat(EFBChat):
 
     def _update_linked(self):
         self._linked = self.db.get_chat_assoc(
-            slave_uid=utils.chat_id_to_str(self.module_id, self.chat_uid)
+            slave_uid=utils.chat_id_to_str(self.module_id, self.id)
         )
 
     @property
@@ -155,7 +182,7 @@ class ETMChat(EFBChat):
         """
         non_default_instance_flag = "*" if "#" in self.module_id else ""
         return f"{non_default_instance_flag}" \
-               f"{self.channel_emoji}{Emoji.get_source_emoji(self.chat_type)} " \
+               f"{self.channel_emoji}{self.chat_type_emoji} " \
                f"{self.display_name}"
 
     @property
@@ -175,39 +202,192 @@ class ETMChat(EFBChat):
         assert self._last_message_time
         return self._last_message_time
 
-    @property
-    def group_id(self) -> Optional[ChatID]:
-        if self.group:
-            return self.group.chat_uid
-        else:
-            return None
+    def update_to_db(self):
+        """Update this object to database."""
+        self.db.set_slave_chat_info(self)
 
     @property
     def pickle(self) -> bytes:
         return pickle.dumps(self)
 
-    @staticmethod
-    def unpickle(data: bytes, db: 'DatabaseManager') -> 'ETMChat':
-        obj = pickle.loads(data)
-        obj.db = db
-        return obj
-
-    def update_to_db(self):
-        """Update this object to database."""
-        self.db.set_slave_chat_info(self)
-
     def remove_from_db(self):
-        """Remove this chat from database."""
-        self.db.delete_slave_chat_info(self.module_id, self.chat_uid, self.group_id)
-        if self.members:
-            for i in self.members:
-                i.remove_from_db()
+        super().remove_from_db()
+        for i in self.members:
+            self.db.delete_slave_chat_info(self.module_id, i.id, self.id)
 
-    def __getstate__(self) -> Dict[str, Any]:
-        state = self.__dict__.copy()
-        if 'db' in state:
-            del state['db']
-        return state
+    def add_self(self) -> ETMSelfChatMember:
+        if getattr(self, 'self', None) and isinstance(self.self, ETMSelfChatMember):
+            return self.self
+        assert not any(isinstance(i, SelfChatMember) for i in self.members)
+        s = ETMSelfChatMember(self.db, self)
+        self.members.append(s)
+        return s
 
-    def __setstate__(self, state: Dict[str, Any]):
-        self.__dict__.update(state)
+    def add_member(self, name: str, id: ChatID, alias: Optional[str] = None,  # type: ignore
+                   vendor_specific: Dict[str, Any] = None,
+                   description: str = "") -> ETMChatMember:
+        member = ETMChatMember(self.db, self, name=name, alias=alias, id=id,
+                               vendor_specific=vendor_specific, description=description)
+        self.members.append(member)
+        return member
+
+    # type: ignore
+    def add_system_member(self, name: str = "", alias: Optional[str] = None, id: ChatID = ChatID(""),  # type: ignore
+                          vendor_specific: Dict[str, Any] = None, description: str = "",
+                          middleware: Optional[Middleware] = None) -> ETMSystemChatMember:
+        member = ETMSystemChatMember(self.db, self, name=name, alias=alias, id=id,
+                                     vendor_specific=vendor_specific, description=description, middleware=middleware)
+        self.members.append(member)
+        return member
+
+    def get_member(self, member_id: ChatID) -> ETMChatMember:
+        return super().get_member(member_id)  # type: ignore
+
+
+class ETMPrivateChat(ETMChatMixin, PrivateChat):
+    chat_type_name = "Private"
+    chat_type_emoji = Emoji.USER
+
+    other: ETMChatMember
+
+    def __init__(self, db: 'DatabaseManager', *, channel: Optional[SlaveChannel] = None,
+                 middleware: Optional[Middleware] = None,
+                 module_name: str = "", channel_emoji: str = "", module_id: ModuleID = ModuleID(""), name: str = "",
+                 alias: Optional[str] = None, id: ChatID = ChatID(""), vendor_specific: Dict[str, Any] = None,
+                 description: str = "", notification: ChatNotificationState = ChatNotificationState.ALL,
+                 with_self: bool = True, other_is_self: bool = False):
+        super().__init__(db, channel=channel, middleware=middleware, module_name=module_name,
+                         channel_emoji=channel_emoji,
+                         module_id=module_id, name=name, alias=alias, id=id, vendor_specific=vendor_specific,
+                         description=description, notification=notification, with_self=with_self, other_is_self=other_is_self)
+
+
+class ETMSystemChat(ETMChatMixin, SystemChat):
+    chat_type_name = "System"
+    chat_type_emoji = Emoji.SYSTEM
+
+    other: ETMSystemChatMember
+
+    def __init__(self, db: 'DatabaseManager', *, channel: Optional[SlaveChannel] = None,
+                 middleware: Optional[Middleware] = None,
+                 module_name: str = "", channel_emoji: str = "", module_id: ModuleID = ModuleID(""), name: str = "",
+                 alias: Optional[str] = None, id: ChatID = ChatID(""), vendor_specific: Dict[str, Any] = None,
+                 description: str = "", notification: ChatNotificationState = ChatNotificationState.ALL,
+                 with_self: bool = True):
+        super().__init__(db, channel=channel, middleware=middleware, module_name=module_name,
+                         channel_emoji=channel_emoji,
+                         module_id=module_id, name=name, alias=alias, id=id, vendor_specific=vendor_specific,
+                         description=description, notification=notification, with_self=with_self)
+
+
+class ETMGroupChat(ETMChatMixin, GroupChat):
+    chat_type_name = "Group"
+    chat_type_emoji = Emoji.GROUP
+
+    def __init__(self, db: 'DatabaseManager', *, channel: Optional[SlaveChannel] = None,
+                 middleware: Optional[Middleware] = None,
+                 module_name: str = "", channel_emoji: str = "", module_id: ModuleID = ModuleID(""), name: str = "",
+                 alias: Optional[str] = None, id: ChatID = ChatID(""), vendor_specific: Dict[str, Any] = None,
+                 description: str = "", notification: ChatNotificationState = ChatNotificationState.ALL,
+                 with_self: bool = True):
+        super().__init__(db, channel=channel, middleware=middleware, module_name=module_name,
+                         channel_emoji=channel_emoji,
+                         module_id=module_id, name=name, alias=alias, id=id, vendor_specific=vendor_specific,
+                         description=description, notification=notification, with_self=with_self)
+
+
+# Class name alias for type checking
+ETMChatType = ETMChatMixin
+ETMBaseChatType = ETMBaseChatMixin
+
+
+@overload
+def convert_chat(db: 'DatabaseManager', chat: PrivateChat) -> ETMPrivateChat: ...
+
+
+@overload
+def convert_chat(db: 'DatabaseManager', chat: GroupChat) -> ETMGroupChat: ...
+
+
+@overload
+def convert_chat(db: 'DatabaseManager', chat: SystemChat) -> ETMSystemChat: ...
+
+
+@overload
+def convert_chat(db: 'DatabaseManager', chat: Chat) -> ETMChatType: ...
+
+
+def convert_chat(db: 'DatabaseManager', chat: Chat) -> ETMChatType:
+    """Convert an EFB chat object to a ETM extended version.
+
+    Raises:
+        TypeError: if the chat type is not supported.
+    """
+    if isinstance(chat, ETMBaseChatMixin):
+        return chat
+    etm_chat: ETMBaseChatType
+    if isinstance(chat, PrivateChat):
+        etm_chat = ETMPrivateChat(db, module_id=chat.module_id, module_name=chat.module_name,
+                                  channel_emoji=chat.channel_emoji, name=chat.name, alias=chat.alias, id=chat.id,
+                                  vendor_specific=chat.vendor_specific.copy(), description=chat.description,
+                                  notification=chat.notification, with_self=chat.has_self, other_is_self=chat.other is chat.self)
+        if chat.self and etm_chat.self:
+            copy_member(chat.self, etm_chat.self)
+        if chat.self is not chat.other and chat.other and etm_chat.other:
+            copy_member(chat.other, etm_chat.other)
+        return etm_chat
+    if isinstance(chat, SystemChat):
+        etm_chat = ETMSystemChat(db, module_id=chat.module_id, module_name=chat.module_name,
+                                 channel_emoji=chat.channel_emoji, name=chat.name, alias=chat.alias, id=chat.id,
+                                 vendor_specific=chat.vendor_specific.copy(), description=chat.description,
+                                 notification=chat.notification, with_self=chat.has_self)
+        if chat.self and etm_chat.self:
+            copy_member(chat.self, etm_chat.self)
+        if chat.other and etm_chat.other:
+            copy_member(chat.other, etm_chat.other)
+        return etm_chat
+    if isinstance(chat, GroupChat):
+        etm_chat = ETMGroupChat(db, module_id=chat.module_id, module_name=chat.module_name,
+                                channel_emoji=chat.channel_emoji, name=chat.name, alias=chat.alias, id=chat.id,
+                                vendor_specific=chat.vendor_specific.copy(), description=chat.description,
+                                notification=chat.notification, with_self=False)
+        for i in chat.members:
+            if isinstance(i, ETMChatMember):
+                etm_chat.members.append(i)
+            elif isinstance(i, SystemChatMember):
+                etm_chat.add_system_member(
+                    name=i.name, alias=i.alias, id=i.id,
+                    description=i.description, vendor_specific=i.vendor_specific.copy()
+                )
+            elif isinstance(i, SelfChatMember):
+                etm_chat.self = ETMSelfChatMember(
+                    db, etm_chat,
+                    name=i.name, alias=i.alias, id=i.id,
+                    description=i.description, vendor_specific=i.vendor_specific.copy()
+                )
+                etm_chat.members.append(etm_chat.self)
+            else:
+                etm_chat.add_member(
+                    name=i.name, alias=i.alias, id=i.id,
+                    description=i.description, vendor_specific=i.vendor_specific.copy()
+                )
+        return etm_chat
+    raise TypeError(f"Chat type unknown: {type(chat)}, {chat!r}")
+
+
+def copy_member(source: ChatMember, dest: ETMChatMember):
+    """Copy values from source object to destination object."""
+    dest.name = source.name
+    dest.alias = source.alias
+    dest.id = source.id
+    dest.vendor_specific = source.vendor_specific.copy()
+    dest.module_id = source.module_id
+    dest.module_name = source.module_name
+    dest.channel_emoji = source.channel_emoji
+    dest.description = source.description
+
+
+def unpickle(data: bytes, db: 'DatabaseManager') -> ETMChatType:
+    obj = pickle.loads(data)
+    obj.db = db
+    return obj

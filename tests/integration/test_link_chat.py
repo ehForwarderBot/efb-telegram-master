@@ -7,7 +7,7 @@ from telethon.errors import MessageIdInvalidError
 from telethon.tl.custom import Message, MessageButton
 from telethon.tl.types import MessageEntityCode
 
-from ehforwarderbot import ChatType, EFBChat
+from ehforwarderbot import Chat
 from .helper.filters import in_chats, has_button, edited, regex, text
 from .utils import link_chats, assert_is_linked, unlink_all_chats
 
@@ -37,7 +37,7 @@ async def test_link_chat_private_filter(helper, client, bot_id, slave):
     await client.send_message(bot_id, "/link type: user")
     message = await helper.wait_for_message(in_chats(bot_id) & has_button)
 
-    slave_users = slave.get_chats_by_criteria(chat_type=ChatType.User)
+    slave_users = slave.get_chats_by_criteria(chat_type="PrivateChat")
     for row in message.buttons[:-1]:
         button: MessageButton = row[0]
         assert any(user.display_name in button.text for user in slave_users), f"{button.text} should be a user"
@@ -87,7 +87,7 @@ async def test_link_chat_private(helper, client, bot_id, bot_group, slave, chann
     chat_0 = slave.chat_with_alias
     chat_1 = slave.chat_without_alias
 
-    await client.send_message(bot_id, f"/link {chat_0.chat_uid}")
+    await client.send_message(bot_id, f"/link {chat_0.id}")
     message: Message = await helper.wait_for_message(in_chats(bot_id) & has_button)
     choose_chat: MessageButton = message.buttons[0][0]
     assert chat_0.display_name in choose_chat.text
@@ -166,7 +166,7 @@ async def test_link_chat_group_linked_unlink(helper, client, bot_id, bot_group, 
         await message.click(0)
 
         message: Message = await helper.wait_for_message(in_chats(bot_group) & edited(message.id) & has_button)
-        assert await message.click(text="Restore") is not None, "Restore"
+        assert (await message.click(text="Restore")) is not None, "Restore"
 
         await helper.wait_for_message(in_chats(bot_group) & edited(message.id) & ~has_button)
 
@@ -194,7 +194,7 @@ async def test_link_chat_channel_linked_cancel(helper, client, bot_id, bot_chann
 
 async def test_link_chat_target_incoming_message(helper, client, bot_id, slave, channel):
     chat = slave.chat_with_alias
-    efb_msg = slave.send_text_message(chat, chat)
+    efb_msg = slave.send_text_message(chat, chat.other)
 
     incoming_msg = await helper.wait_for_message(in_chats(bot_id) & regex(re.escape(efb_msg.text)))
     await client.send_message(bot_id, f"/link", reply_to=incoming_msg)
@@ -204,17 +204,17 @@ async def test_link_chat_target_incoming_message(helper, client, bot_id, slave, 
     await message.click(text="Cancel")
 
 
-async def simulate_link_chat(client, helper, chat: EFBChat, command_chat: int, dest_chat: int,
+async def simulate_link_chat(client, helper, chat: Chat, command_chat: int, dest_chat: int,
                              command_channel: Optional[int] = None):
     """Simulate the procedure of linking a chat.
 
     Provide command_channel to link from a channel.
     """
     if command_channel is not None:
-        message = await client.send_message(command_channel, f"/link {chat.chat_uid}")
+        message = await client.send_message(command_channel, f"/link {chat.id}")
         await message.forward_to(command_chat)
     else:
-        await client.send_message(command_chat, f"/link {chat.chat_uid}")
+        await client.send_message(command_chat, f"/link {chat.id}")
     message: Message = await helper.wait_for_message(in_chats(command_chat) & has_button)  # chat list
     await message.buttons[0][0].click()  # choose chat
     message: Message = await helper.wait_for_message(in_chats(command_chat) & has_button)  # operation panel

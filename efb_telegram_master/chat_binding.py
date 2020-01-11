@@ -9,16 +9,17 @@ from typing import Tuple, Dict, Optional, List, TYPE_CHECKING, IO, Sequence, Uni
 
 import telegram
 from PIL import Image
-from telegram import Update, Message, Chat, TelegramError, CallbackQuery
+from telegram import Update, Message, Chat, TelegramError
 from telegram.error import BadRequest
 from telegram.ext import ConversationHandler, CommandHandler, CallbackQueryHandler, CallbackContext, Filters, \
     MessageHandler
 
-from ehforwarderbot import coordinator, EFBChat, EFBChannel, MsgType
+from ehforwarderbot import coordinator, Chat, Channel, MsgType
+from ehforwarderbot.channel import SlaveChannel
 from ehforwarderbot.exceptions import EFBChatNotFound, EFBOperationNotSupported
 from ehforwarderbot.types import ModuleID, ChatID, MessageID
 from . import utils
-from .chat import ETMChat
+from .chat import ETMChatType
 from .constants import Emoji, Flags
 from .locale_mixin import LocaleMixin
 from .message import ETMMsg
@@ -40,13 +41,13 @@ class ChatListStorage:
 
     Attributes:
         chats (List[ETMChat]): List of chats to display
-        channels (Dict[str, EFBChannel]): List of channels involved
+        channels (Dict[str, SlaveChannel]): List of channels involved
         offset (int): Current offset to display
     """
 
-    def __init__(self, chats: List[ETMChat], offset: int = 0):
-        self.__chats: List[ETMChat] = []
-        self.channels: Dict[ModuleID, EFBChannel] = dict()
+    def __init__(self, chats: List[ETMChatType], offset: int = 0):
+        self.__chats: List[ETMChatType] = []
+        self.channels: Dict[ModuleID, SlaveChannel] = dict()
         self.chats = chats.copy()  # initialize chats with setter.
         self.offset: int = offset
         self.update: Optional[telegram.Update] = None
@@ -57,11 +58,11 @@ class ChatListStorage:
         return len(self.chats)
 
     @property
-    def chats(self) -> List[ETMChat]:
+    def chats(self) -> List[ETMChatType]:
         return self.__chats
 
     @chats.setter
-    def chats(self, value: List[ETMChat]):
+    def chats(self, value: List[ETMChatType]):
         self.__chats = value
         self.channels = dict()
         for i in value:
@@ -170,8 +171,8 @@ class ChatBindingManager(LocaleMixin):
                 master_msg_id=utils.message_id_to_str(
                     chat_id=rtm.chat_id, message_id=rtm.message_id))
             if msg_log:
-                chat: ETMChat = self.chat_manager.get_chat(
-                    *utils.chat_id_str_to_id(msg_log.slave_origin_uid))
+                channel_id, chat_id, _ = utils.chat_id_str_to_id(msg_log.slave_origin_uid)
+                chat: ETMChatType = self.chat_manager.get_chat(channel_id, chat_id, build_dummy=True)
                 tg_chat_id = message.chat_id
                 tg_msg_id = message.reply_text(self._("Processing...")).message_id
                 storage_id = (tg_chat_id, tg_msg_id)
@@ -242,7 +243,7 @@ class ChatBindingManager(LocaleMixin):
                         re_filter = re.compile(pattern, re.DOTALL | re.IGNORECASE)
                     except re.error:
                         re_filter = pattern
-            chats: List[ETMChat] = []
+            chats: List[ETMChatType] = []
             if source_chats:
                 for s_chat in source_chats:
                     channel_id, chat_uid, _ = utils.chat_id_str_to_id(s_chat)
@@ -278,7 +279,7 @@ class ChatBindingManager(LocaleMixin):
                 mode = Emoji.LINK
             else:
                 mode = ""
-            chat_type = Emoji.get_source_emoji(chat.chat_type)
+            chat_type = chat.chat_type_emoji
             chat_name = chat.long_name
             button_text = f"{chat.channel_emoji}{chat_type}{mode}: {chat_name}"
             button_callback = f"chat {idx}"
@@ -298,17 +299,6 @@ class ChatBindingManager(LocaleMixin):
         chat_btn_list.append(page_number_row)
 
         return legend, chat_btn_list
-
-    def _db_update_slave_chats_cache(self, chats: Sequence[EFBChat]):
-        """
-        Update all slave chats info cache to database. Triggered by retrieving
-        the entire list of chats from all slaves by the method `slave_chats_pagination`.
-
-        Args:
-            chats: List of chats generated
-        """
-        for i in chats:
-            self.db.add_task(self.db.set_slave_chat_info, tuple(), {'chat_object': i})
 
     def link_chat_gen_list(self, chat_id: TelegramChatID,
                            message_id: TelegramMessageID = None, offset: int = 0,
@@ -388,14 +378,14 @@ class ChatBindingManager(LocaleMixin):
             return ConversationHandler.END
 
         callback_idx: int = int(callback_uid.split()[1])
-        chat: ETMChat = self.msg_storage[(tg_chat_id, tg_msg_id)].chats[callback_idx]
+        chat: ETMChatType = self.msg_storage[(tg_chat_id, tg_msg_id)].chats[callback_idx]
 
         self.build_link_action_message(chat, tg_chat_id, tg_msg_id)
 
         update.callback_query.answer()
         return Flags.LINK_EXEC
 
-    def build_link_action_message(self, chat: ETMChat,
+    def build_link_action_message(self, chat: ETMChatType,
                                   tg_chat_id: TelegramChatID,
                                   tg_msg_id: TelegramMessageID):
         chat_display_name = chat.full_name
@@ -442,7 +432,7 @@ class ChatBindingManager(LocaleMixin):
             return ConversationHandler.END
 
         cmd, chat_lid = callback_uid.split()
-        chat: ETMChat = self.msg_storage[(tg_chat_id, tg_msg_id)].chats[int(chat_lid)]
+        chat: ETMChatType = self.msg_storage[(tg_chat_id, tg_msg_id)].chats[int(chat_lid)]
         chat_display_name = chat.full_name
         if cmd == "unlink":
             chat.unlink()
@@ -484,9 +474,9 @@ class ChatBindingManager(LocaleMixin):
             data = self.msg_storage[storage_key]
         except KeyError:
             return update.message.reply_text(self._("Session expired or unknown parameter. (SE02)"))
-        chat: ETMChat = data.chats[0]
+        chat: ETMChatType = data.chats[0]
         chat_display_name = chat.full_name
-        slave_channel, slave_chat_uid = chat.module_id, chat.chat_uid
+        slave_channel, slave_chat_uid = chat.module_id, chat.id
         try:
             coordinator.get_module_by_id(slave_channel)
         except NameError:
@@ -567,7 +557,7 @@ class ChatBindingManager(LocaleMixin):
         """
         args = context.args or []
         chats = None
-        if update.message.chat.type != Chat.PRIVATE:
+        if update.message.chat.type != telegram.Chat.PRIVATE:
             chats = self.db.get_chat_assoc(
                 master_uid=utils.chat_id_to_str(self.channel.channel_id, update.message.chat_id))
             chats = chats or None
@@ -608,7 +598,7 @@ class ChatBindingManager(LocaleMixin):
                 else:
                     try:
                         channel = coordinator.get_module_by_id(slave_channel_id)
-                        if isinstance(channel, EFBChannel):
+                        if isinstance(channel, Channel):
                             name = channel.channel_name
                         else:
                             name = channel.middleware_name
@@ -682,13 +672,13 @@ class ChatBindingManager(LocaleMixin):
             return ConversationHandler.END
 
         callback_idx = int(callback_uid.split()[1])
-        chat: ETMChat = self.msg_storage[(tg_chat_id, tg_msg_id)].chats[callback_idx]
+        chat: ETMChatType = self.msg_storage[(tg_chat_id, tg_msg_id)].chats[callback_idx]
         chat_display_name = chat.full_name
         self.msg_storage.pop((tg_chat_id, tg_msg_id), None)
         txt = self._("Reply to this message to chat with {0}.").format(chat_display_name)
         chat_head_etm = ETMMsg()
         chat_head_etm.chat = chat
-        chat_head_etm.author = self.chat_manager.self
+        chat_head_etm.author = chat.self or chat.add_self()
         chat_head_etm.uid = MessageID("__chathead__")
         chat_head_etm.type = MsgType.Text
         chat_head_etm.text = txt
@@ -781,11 +771,11 @@ class ChatBindingManager(LocaleMixin):
 
         Triggered by ``/update_info`` command.
         """
-        if update.effective_chat.type == Chat.PRIVATE:
+        if update.effective_chat.type == telegram.Chat.PRIVATE:
             return self.bot.reply_error(update, self._('Send /update_info to a group where this bot is a group admin '
                                                        'to update group title, description and profile picture.'))
         forwarded_from_chat = update.effective_message.forward_from_chat
-        if forwarded_from_chat and forwarded_from_chat.type == Chat.CHANNEL:
+        if forwarded_from_chat and forwarded_from_chat.type == telegram.Chat.CHANNEL:
             tg_chat = forwarded_from_chat.id
         else:
             tg_chat = update.effective_chat.id

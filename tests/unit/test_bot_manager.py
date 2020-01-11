@@ -1,6 +1,6 @@
 import string
 import random
-from typing import IO, Iterator
+from typing import IO, Iterator, BinaryIO
 from unittest.mock import patch
 
 import pytest
@@ -19,7 +19,7 @@ def test_text_prefix_suffix(channel, bot_admin):
 
 
 @pytest.fixture(scope='function')
-def image() -> Iterator[IO[bytes]]:
+def image() -> Iterator[BinaryIO]:
     f = open('tests/mocks/image.png', 'rb')
     yield f
     f.close()

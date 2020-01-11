@@ -42,7 +42,7 @@ async def test_master_master_quick_reply(helper, client, bot_id, slave, channel)
     chat = slave.chat_with_alias
     content = "test_master_master_quick_reply set cache with chat head"
     # Send a message to ``chat`` via chat head
-    await client.send_message(bot_id, f"/chat {chat.chat_uid}")
+    await client.send_message(bot_id, f"/chat {chat.id}")
     message = await helper.wait_for_message(in_chats(bot_id) & has_button)
     await message.click(0)
     message = await helper.wait_for_message(in_chats(bot_id) & edited(message.id) & ~has_button)
@@ -75,7 +75,7 @@ async def test_master_master_quick_reply(helper, client, bot_id, slave, channel)
 
     # Clear destination with new message from slave channel
     chat_alt = slave.chat_without_alias
-    message = slave.send_text_message(chat_alt, author=chat_alt)
+    message = slave.send_text_message(chat_alt, author=chat_alt.other)
     text = await helper.wait_for_message_text(in_chats(bot_id))
     assert message.text in text  # there might be message header in ``text``
 
@@ -94,7 +94,7 @@ async def test_master_master_quick_reply_cache_expiry(helper, client, bot_id, sl
     content = "test_master_master_quick_reply_cache_expiry set cache with chat head"
     # slave.send_text_message(chat, author=chat)
     # Send a message to ``chat`` via chat head
-    await client.send_message(bot_id, f"/chat {chat.chat_uid}")
+    await client.send_message(bot_id, f"/chat {chat.id}")
     message = await helper.wait_for_message(in_chats(bot_id) & has_button)
     await message.click(0)
     message = await helper.wait_for_message(in_chats(bot_id) & edited(message.id) & ~has_button)
@@ -117,7 +117,7 @@ async def test_master_master_destination_suggestion(helper, client, bot_id, slav
         assert not channel.chat_dest_cache.enabled
         slave.clear_messages()
         chat = slave.chat_with_alias
-        slave.send_text_message(chat, author=chat)
+        slave.send_text_message(chat, author=chat.other)
         await helper.wait_for_message_text(in_chats(bot_id) & regex(chat.display_name))
 
         content = "test_master_master_destination_suggestion this shall be replied with a list of candidates"

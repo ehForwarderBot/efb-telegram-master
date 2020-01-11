@@ -1,7 +1,7 @@
 from pytest import mark
 from unittest.mock import patch
 
-from ehforwarderbot.status import EFBMessageRemoval
+from ehforwarderbot.status import MessageRemoval
 from tests.integration.helper.filters import in_chats, regex, deleted, has_button
 from tests.integration.utils import link_chats
 
@@ -17,7 +17,7 @@ async def test_rm_command_help(helper, client, bot_id):
 async def test_rm_command_removal(helper, client, bot_group, slave, channel):
     chat = slave.chat_with_alias
     with link_chats(channel, (chat,), bot_group):
-        message = slave.send_text_message(chat, chat)
+        message = slave.send_text_message(chat, chat.other)
         with slave.set_message_removal(False):
             tg_msg = await helper.wait_for_message(in_chats(bot_group) & regex(message.text))
             await tg_msg.reply("/rm")
@@ -29,7 +29,7 @@ async def test_rm_command_removal(helper, client, bot_group, slave, channel):
         # wait for message removal prompt
         await helper.wait_for_message(in_chats(bot_group))
         removal_status = slave.statuses.get(timeout=5)
-        assert isinstance(removal_status, EFBMessageRemoval)
+        assert isinstance(removal_status, MessageRemoval)
         assert removal_status.message.chat == message.chat
         assert removal_status.message.uid == message.uid
 
@@ -45,7 +45,7 @@ async def test_rm_edit(helper, client, bot_group, slave, channel):
         # wait for message removal prompt
         await helper.wait_for_message(in_chats(bot_group))
         removal_status = slave.statuses.get(timeout=5)
-        assert isinstance(removal_status, EFBMessageRemoval)
+        assert isinstance(removal_status, MessageRemoval)
         assert removal_status.message.chat == message.chat
         assert removal_status.message.uid == message.uid
 
@@ -56,7 +56,7 @@ async def test_rm_command_delete(helper, client, bot_id, bot_group, slave, chann
         # successful case: send to private chat
 
         # get chat head
-        await client.send_message(bot_id, f"/chat {chat.chat_uid}")
+        await client.send_message(bot_id, f"/chat {chat.id}")
         tg_msg = await helper.wait_for_message(in_chats(bot_id) & has_button)
         await tg_msg.click(0)
         tg_msg = await helper.wait_for_message(in_chats(bot_id) & ~has_button)

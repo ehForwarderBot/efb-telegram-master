@@ -1,26 +1,37 @@
 from pytest import mark
 
-from ehforwarderbot import EFBChat
+from ehforwarderbot import Chat
+from ehforwarderbot.chat import BaseChat, ChatMember
 
 
-def compare_chats(self: EFBChat, other: EFBChat):
+def compare_base_chat(self: BaseChat, other: BaseChat):
     assert self.module_id == other.module_id
     assert self.module_name == other.module_name
     assert self.channel_emoji == other.channel_emoji
-    assert self.chat_uid == other.chat_uid
-    assert self.chat_type == other.chat_type
-    assert self.chat_name == other.chat_name
-    assert self.chat_alias == other.chat_alias
-    assert self.notification == other.notification
-    assert self.is_chat == other.is_chat
+    assert self.id == other.id
+    assert self.name == other.name
+    assert self.alias == other.alias
+    assert self.vendor_specific == other.vendor_specific
     assert self.description == other.description
+
+
+def compare_chats(self: Chat, other: Chat):
+    compare_base_chat(self, other)
+    assert self.notification == other.notification
     assert self.has_self == other.has_self
-    if self.group:
-        assert self.group.chat_uid == other.group.chat_uid
+    assert len(self.members) == len(other.members)
 
 
-@mark.parametrize("method", ["send_chat_update_status", "send_member_update_status"])
-def test_slave_chat_update(bot_group, slave, channel, method):
+def compare_members(self: ChatMember, other: ChatMember):
+    compare_base_chat(self, other)
+    assert self.chat == other.chat
+
+
+@mark.parametrize("method,compare", [
+    ("send_chat_update_status", compare_chats),
+    ("send_member_update_status", compare_members)
+])
+def test_slave_chat_update(bot_group, slave, channel, method, compare):
     added, edited, removed = getattr(slave, method)()
     chat_manager = channel.chat_manager
 
@@ -32,5 +43,5 @@ def test_slave_chat_update(bot_group, slave, channel, method):
     assert removed_key not in chat_manager.cache
     added_cache = chat_manager.cache[added_key]
     edited_cache = chat_manager.cache[edited_key]
-    compare_chats(added, added_cache)
-    compare_chats(edited, edited_cache)
+    compare(added, added_cache)
+    compare(edited, edited_cache)

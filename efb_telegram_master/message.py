@@ -3,20 +3,20 @@ import mimetypes
 import os
 import tempfile
 from pathlib import Path
-from typing import Optional, TYPE_CHECKING, Dict, Any
+from typing import Optional, TYPE_CHECKING, Dict, Any, BinaryIO
 
 import ffmpeg
 import magic
 import telegram
 from PIL import Image
 from telegram.error import BadRequest
-from typing.io import IO
 
-from ehforwarderbot import EFBMsg, coordinator, MsgType, EFBChat, EFBChannel
-from ehforwarderbot.message import EFBMsgAttribute, EFBMsgCommands, EFBMsgSubstitutions
+from ehforwarderbot import Message, coordinator, MsgType, Chat, Channel
+from ehforwarderbot.chat import ChatMember
+from ehforwarderbot.message import MessageAttribute, MessageCommands, Substitutions
 from ehforwarderbot.types import Reactions, MessageID
 from . import utils
-from .chat import ETMChat
+from .chat import ETMChatType, ETMChatMember
 from .chat_object_cache import ChatObjectCacheManager
 from .msg_type import TGMsgType, get_msg_type
 
@@ -28,28 +28,30 @@ logger = logging.Logger(__name__)
 __all__ = ['ETMMsg']
 
 
-class ETMMsg(EFBMsg):
+class ETMMsg(Message):
     file_id: Optional[str] = None
     """File ID from Telegram Bot API"""
     type_telegram: TGMsgType
     """Type of message in Telegram Bot API"""
-    chat: ETMChat
-    author: ETMChat
+    chat: ETMChatType
+    author: ETMChatMember
 
     __file = None
     __path = None
     __filename = None
 
-    def __init__(self, attributes: Optional[EFBMsgAttribute] = None, author: EFBChat = None, chat: EFBChat = None,
-                 commands: Optional[EFBMsgCommands] = None, deliver_to: EFBChannel = None, edit: bool = False,
-                 edit_media: bool = False, file: Optional[IO[bytes]] = None, filename: Optional[str] = None,
+    def __init__(self, attributes: Optional[MessageAttribute] = None, author: ChatMember = None, chat: Chat = None,
+                 commands: Optional[MessageCommands] = None, deliver_to: Channel = None, edit: bool = False,
+                 edit_media: bool = False, file: Optional[BinaryIO] = None, filename: Optional[str] = None,
                  is_system: bool = False, mime: Optional[str] = None, path: Optional[Path] = None,
-                 reactions: Reactions = None, substitutions: Optional[EFBMsgSubstitutions] = None,
-                 target: 'Optional[EFBMsg]' = None, text: str = "", type: MsgType = MsgType.Unsupported,
+                 reactions: Reactions = None, substitutions: Optional[Substitutions] = None,
+                 target: 'Optional[Message]' = None, text: str = "", type: MsgType = MsgType.Unsupported,
                  uid: Optional[MessageID] = None, vendor_specific: Dict[str, Any] = None,
                  type_telegram: TGMsgType = TGMsgType.System, file_id: Optional[str] = None):
-        super().__init__(attributes, author, chat, commands, deliver_to, edit, edit_media, file, filename, is_system,
-                         mime, path, reactions, substitutions, target, text, type, uid, vendor_specific)
+        super().__init__(attributes=attributes, chat=chat, author=author, commands=commands, deliver_to=deliver_to,
+                         edit=edit, edit_media=edit_media, file=file, filename=filename, is_system=is_system, mime=mime,
+                         path=path, reactions=reactions, substitutions=substitutions, target=target, text=text,
+                         type=type, uid=uid, vendor_specific=vendor_specific)
         self.__initialized = False
         self.type_telegram = type_telegram
         self.file_id = file_id
@@ -97,8 +99,8 @@ class ETMMsg(EFBMsg):
                 if channel_id.startswith("blueset.wechat") and metadata.get('width', 0) > 600:
                     # Workaround: Compress GIF for slave channel `blueset.wechat`
                     # TODO: Move this logic to `blueset.wechat` in the future
-                    stream.filter("scale", 600, -2)
-                stream.output(gif_file.name)
+                    stream = stream.filter("scale", 600, -2)
+                stream.output(gif_file.name).overwrite_output().run()
                 # TODO: This would not work on Windows due to FS restriction
                 file.close()
                 gif_file.seek(0)
@@ -135,12 +137,12 @@ class ETMMsg(EFBMsg):
 
         self.__initialized = True
 
-    def get_file(self) -> Optional[IO[bytes]]:
+    def get_file(self) -> Optional[BinaryIO]:
         if not self.__initialized:
             self._load_file()
         return self.__file
 
-    def set_file(self, value: Optional[IO[bytes]]):
+    def set_file(self, value: Optional[BinaryIO]):
         # Stop initialization-on-demand as new file info is written
         # This is added for compatibility with middleware behaviors
         self.__initialized = True
@@ -166,23 +168,23 @@ class ETMMsg(EFBMsg):
         self.__filename = value
 
     # Override properties
-    file: Optional[IO[bytes]] = property(get_file, set_file)  # type: ignore
+    file: Optional[BinaryIO] = property(get_file, set_file)  # type: ignore
     path: Optional[str] = property(get_path, set_path)  # type: ignore
     filename: Optional[str] = property(get_filename, set_filename)  # type: ignore
 
     @staticmethod
-    def from_efbmsg(source: EFBMsg, chat_manager: ChatObjectCacheManager) -> 'ETMMsg':
+    def from_efbmsg(source: Message, chat_manager: ChatObjectCacheManager) -> 'ETMMsg':
         target = ETMMsg()
         target.__dict__.update(source.__dict__)
-        if not isinstance(target.chat, ETMChat):
+        if not isinstance(target.chat, ETMChatType):
             target.chat = chat_manager.update_chat_obj(target.chat)
-        if not isinstance(target.author, ETMChat):
-            target.author = chat_manager.update_chat_obj(target.author)
+        if not isinstance(target.author, ETMChatMember):
+            target.author = target.chat.get_member(target.author.id)
         if isinstance(target.reactions, dict):
             for i in target.reactions:
-                if any(not isinstance(j, ETMChat) for j in target.reactions[i]):
+                if any(not isinstance(j, ETMChatMember) for j in target.reactions[i]):
                     # noinspection PyTypeChecker
-                    target.reactions[i] = list(map(lambda a: chat_manager.update_chat_obj(a), target.reactions[i]))
+                    target.reactions[i] = list(map(lambda a: target.chat.get_member(a.id), target.reactions[i]))
         return target
 
     def put_telegram_file(self, message: telegram.Message):

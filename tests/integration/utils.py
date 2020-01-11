@@ -6,12 +6,12 @@ from telethon.tl.types import ChannelParticipantsAdmins
 
 from efb_telegram_master import TelegramChannel
 from efb_telegram_master.utils import chat_id_to_str
-from ehforwarderbot import EFBChat
+from ehforwarderbot import Chat
 
 
 @contextmanager
 def link_chats(channel: TelegramChannel,
-               slave_chats: Iterable[EFBChat],
+               slave_chats: Iterable[Chat],
                telegram_chat_id: int):
     """Link a list of remote chats to a Telegram chat and revert the changes
     upon finishing.
@@ -43,7 +43,7 @@ async def is_bot_admin(client: TelegramClient, bot_id: int, group):
 
 
 def assert_is_linked(channel: TelegramChannel,
-                     slave_chats: Iterable[EFBChat],
+                     slave_chats: Iterable[Chat],
                      telegram_chat_id: int):
     master_str = chat_id_to_str(channel.channel_id, str(telegram_chat_id))
     chats_str = set(channel.db.get_chat_assoc(master_uid=master_str))

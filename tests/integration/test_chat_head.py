@@ -4,7 +4,6 @@ from typing import List
 from pytest import mark
 from telethon.tl.custom import Message, MessageButton
 
-from ehforwarderbot import ChatType
 from .helper.filters import in_chats, has_button, edited, regex
 from .utils import link_chats
 
@@ -66,10 +65,10 @@ async def test_chat_head_singly_linked(helper, client, bot_group, slave, channel
     chat = slave.chat_with_alias
     with link_chats(channel, (chat, ), bot_group):
         await client.send_message(bot_group, "/chat")
-        content: str = await helper.wait_for_message_text(in_chats(bot_group) & regex(chat.chat_name))
+        content: str = await helper.wait_for_message_text(in_chats(bot_group) & regex(chat.name))
 
-        assert chat.chat_name in content
-        assert chat.chat_alias in content
+        assert chat.name in content
+        assert chat.alias in content
         assert chat.channel_emoji in content
         assert chat.module_name in content
 
@@ -78,9 +77,9 @@ async def test_chat_head_singly_linked_unknown_chat(helper, client, bot_group, s
     chat = slave.unknown_chat
     with link_chats(channel, (chat,), bot_group):
         await client.send_message(bot_group, "/chat")
-        content: str = await helper.wait_for_message_text(in_chats(bot_group) & regex(chat.chat_uid))
+        content: str = await helper.wait_for_message_text(in_chats(bot_group) & regex(chat.id))
 
-        assert chat.chat_uid in content
+        assert chat.id in content
         assert chat.module_name in content
         assert chat.module_id in content
 
@@ -89,9 +88,9 @@ async def test_chat_head_singly_linked_unknown_channel(helper, client, bot_group
     chat = slave.unknown_channel
     with link_chats(channel, (chat,), bot_group):
         await client.send_message(bot_group, "/chat")
-        content: str = await helper.wait_for_message_text(in_chats(bot_group) & regex(chat.chat_uid))
+        content: str = await helper.wait_for_message_text(in_chats(bot_group) & regex(chat.id))
 
-        assert chat.chat_uid in content
+        assert chat.id in content
         assert chat.module_id in content
 
 
@@ -105,7 +104,7 @@ async def test_chat_head_multi_linked(helper, client, bot_group, slave, channel)
         assert len(chats) + 1 == len(message.buttons), f"buttons should have {len(chats)} + 1 rows"
 
         # Click the button for ``chat``
-        pattern = r"(^|\W)" + re.escape(chat.chat_name) + r"(\W|$)"
+        pattern = r"(^|\W)" + re.escape(chat.name) + r"(\W|$)"
         await message.click(text=re.compile(pattern).search)
 
         # Wait for the chad head
@@ -127,7 +126,7 @@ async def test_chat_head_private_filter(helper, client, bot_id, slave):
     await client.send_message(bot_id, "/chat type: group")
     message = await helper.wait_for_message(in_chats(bot_id) & has_button)
 
-    slave_groups = slave.get_chats_by_criteria(chat_type=ChatType.Group)
+    slave_groups = slave.get_chats_by_criteria(chat_type='GroupChat')
     for row in message.buttons[:-1]:
         button: MessageButton = row[0]
         assert any(group.display_name in button.text for group in slave_groups), f"{button.text} should be a group"
