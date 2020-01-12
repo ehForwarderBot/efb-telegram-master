@@ -90,9 +90,11 @@ class ChatObjectCacheManager:
 
         c_log = self.db.get_slave_chat_info(module_id, chat_id)
         if c_log is not None and c_log.pickle:
-            obj = unpickle(c_log.pickle, self.db)
-            self.enrol(obj)
-            return obj
+            # Suppress AttributeError caused by change of class name in EFB 2.0.0b26, ETM 2.0.0b40
+            with suppress(AttributeError):
+                obj = unpickle(c_log.pickle, self.db)
+                self.enrol(obj)
+                return obj
 
         # Only look up from slave channels as middlewares don’t have get_chat_by_id method.
         if module_id in coordinator.slaves:
