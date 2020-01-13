@@ -16,19 +16,19 @@ def chat_manager(channel):
 
 def test_chat_manager_enrol_single(chat_manager, slave):
     chat = slave.chat_with_alias
-    assert chat_manager.get_chat(chat.module_id, chat.id) is None
+    assert chat_manager.get_chat(chat.module_id, chat.uid) is None
     chat_manager.compound_enrol(chat)
-    cached = chat_manager.get_chat(chat.module_id, chat.id)
+    cached = chat_manager.get_chat(chat.module_id, chat.uid)
     assert cached == chat  # checking module ID and chat ID
 
 
 def test_chat_manager_enrol_group(chat_manager, slave):
     group = slave.group
-    assert chat_manager.get_chat(group.module_id, group.id) is None
+    assert chat_manager.get_chat(group.module_id, group.uid) is None
     chat_manager.compound_enrol(group)
-    assert chat_manager.get_chat(group.module_id, group.id) is not None
+    assert chat_manager.get_chat(group.module_id, group.uid) is not None
     for i in group.members:
-        assert chat_manager.get_chat_member(i.module_id, group.id, i.id) is not None
+        assert chat_manager.get_chat_member(i.module_id, group.uid, i.uid) is not None
 
 
 def test_chat_manager_build_dummy(chat_manager):
@@ -38,25 +38,25 @@ def test_chat_manager_build_dummy(chat_manager):
     generated = chat_manager.get_chat(module_id, id, build_dummy=True)
     assert generated is not None
     assert generated.module_id == module_id
-    assert generated.id == id
+    assert generated.uid == id
 
 
 def test_chat_manager_update_chat_obj(chat_manager, slave):
-    chat = PrivateChat(channel=slave, id="unique_id", name="Chat name")
+    chat = PrivateChat(channel=slave, uid="unique_id", name="Chat name")
     chat_manager.compound_enrol(chat)
     chat.alias = "Alias"
-    assert chat_manager.get_chat(chat.module_id, chat.id).alias != chat.alias
+    assert chat_manager.get_chat(chat.module_id, chat.uid).alias != chat.alias
     chat_manager.update_chat_obj(chat)
-    assert chat_manager.get_chat(chat.module_id, chat.id).alias == chat.alias
+    assert chat_manager.get_chat(chat.module_id, chat.uid).alias == chat.alias
 
 
 def test_chat_manager_delete_chat_object(chat_manager, slave):
     chat = slave.chat_with_alias
-    assert chat_manager.get_chat(chat.module_id, chat.id) is None
+    assert chat_manager.get_chat(chat.module_id, chat.uid) is None
     chat_manager.compound_enrol(chat)
-    assert chat_manager.get_chat(chat.module_id, chat.id) is not None
-    chat_manager.delete_chat_object(chat.module_id, chat.id)
-    assert chat_manager.get_chat(chat.module_id, chat.id) is None
+    assert chat_manager.get_chat(chat.module_id, chat.uid) is not None
+    chat_manager.delete_chat_object(chat.module_id, chat.uid)
+    assert chat_manager.get_chat(chat.module_id, chat.uid) is None
 
 
 def test_chat_manager_all_chats(channel, slave):

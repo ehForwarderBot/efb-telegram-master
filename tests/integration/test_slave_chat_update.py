@@ -1,4 +1,4 @@
-from pytest import mark
+from pytest import raises
 
 from ehforwarderbot import Chat
 from ehforwarderbot.chat import BaseChat, ChatMember
@@ -8,7 +8,7 @@ def compare_base_chat(self: BaseChat, other: BaseChat):
     assert self.module_id == other.module_id
     assert self.module_name == other.module_name
     assert self.channel_emoji == other.channel_emoji
-    assert self.id == other.id
+    assert self.uid == other.uid
     assert self.name == other.name
     assert self.alias == other.alias
     assert self.vendor_specific == other.vendor_specific
@@ -27,12 +27,8 @@ def compare_members(self: ChatMember, other: ChatMember):
     assert self.chat == other.chat
 
 
-@mark.parametrize("method,compare", [
-    ("send_chat_update_status", compare_chats),
-    ("send_member_update_status", compare_members)
-])
-def test_slave_chat_update(bot_group, slave, channel, method, compare):
-    added, edited, removed = getattr(slave, method)()
+def test_slave_chat_update_chat(bot_group, slave, channel):
+    added, edited, removed = slave.send_chat_update_status()
     chat_manager = channel.chat_manager
 
     added_key = chat_manager.get_cache_key(added)
@@ -43,5 +39,22 @@ def test_slave_chat_update(bot_group, slave, channel, method, compare):
     assert removed_key not in chat_manager.cache
     added_cache = chat_manager.cache[added_key]
     edited_cache = chat_manager.cache[edited_key]
-    compare(added, added_cache)
-    compare(edited, edited_cache)
+    compare_chats(added, added_cache)
+    compare_chats(edited, edited_cache)
+
+
+def test_slave_chat_update_member(bot_group, slave, channel):
+    added, edited, removed = slave.send_member_update_status()
+    group = added.chat
+    chat_manager = channel.chat_manager
+
+    group_key = chat_manager.get_cache_key(group)
+
+    assert group_key in chat_manager.cache
+    group_cache = chat_manager.cache[group_key]
+    added_cache = group_cache.get_member(added.uid)
+    edited_cache = group_cache.get_member(edited.uid)
+    with raises(KeyError):
+        group_cache.get_member(removed.uid)
+    compare_members(added, added_cache)
+    compare_members(edited, edited_cache)

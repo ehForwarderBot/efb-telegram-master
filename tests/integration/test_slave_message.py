@@ -251,7 +251,7 @@ class StickerMessageFactory(MessageFactory):
             chat, target=target, reactions=True, commands=True, substitution=True)
 
     def compare_message(self, tg_msg: Message, efb_msg: EFBMessage) -> None:
-        assert tg_msg.sticker
+        assert tg_msg.sticker is not None
         # Cannot do further assertion here as Telegram has converted the
         # pictures sent out
         self.assert_metadata_in_buttons(tg_msg, efb_msg)

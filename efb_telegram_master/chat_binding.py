@@ -477,7 +477,7 @@ class ChatBindingManager(LocaleMixin):
             return update.message.reply_text(self._("Session expired or unknown parameter. (SE02)"))
         chat: ETMChatType = data.chats[0]
         chat_display_name = chat.full_name
-        slave_channel, slave_chat_uid = chat.module_id, chat.id
+        slave_channel, slave_chat_uid = chat.module_id, chat.uid
         try:
             coordinator.get_module_by_id(slave_channel)
         except NameError:
@@ -490,7 +490,7 @@ class ChatBindingManager(LocaleMixin):
         # Use channel ID if command is forwarded from a channel.
         forwarded_chat: Chat = update.effective_message.forward_from_chat
         if forwarded_chat and forwarded_chat.type == telegram.Chat.CHANNEL:
-            tg_chat_to_link = forwarded_chat.id
+            tg_chat_to_link = forwarded_chat.uid
         else:
             tg_chat_to_link = update.effective_chat.id
 

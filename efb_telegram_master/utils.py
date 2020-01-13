@@ -122,9 +122,9 @@ def chat_id_to_str(channel_id: Optional[ModuleID] = None, chat_uid: Optional[Cha
 
     if chat:
         channel_id = chat.module_id
-        chat_uid = chat.id
+        chat_uid = chat.uid
         if isinstance(chat, ChatMember):
-            group_id = chat.chat.id
+            group_id = chat.chat.uid
     if channel:
         channel_id = channel.channel_id
     if group_id is None:

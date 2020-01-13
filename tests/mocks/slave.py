@@ -129,8 +129,8 @@ class MockSlaveChannel(SlaveChannel):
         # chat/member changes
         self.chat_to_toggle: PrivateChat = self.get_chat(self.CHAT_ID_FORMAT.format(hash=hash("I")))
         self.chat_to_edit: PrivateChat = self.get_chat(self.CHAT_ID_FORMAT.format(hash=hash("われ")))
-        self.member_to_toggle: ChatMember = self.get_chat(self.group.id).get_member(self.CHAT_ID_FORMAT.format(hash=hash("Ю")))
-        self.member_to_edit: ChatMember = self.get_chat(self.group.id).get_member(self.CHAT_ID_FORMAT.format(hash=hash("Я")))
+        self.member_to_toggle: ChatMember = self.get_chat(self.group.uid).get_member(self.CHAT_ID_FORMAT.format(hash=hash("Ю")))
+        self.member_to_edit: ChatMember = self.get_chat(self.group.uid).get_member(self.CHAT_ID_FORMAT.format(hash=hash("Я")))
 
     # region [Clear queues]
 
@@ -187,10 +187,10 @@ class MockSlaveChannel(SlaveChannel):
                 channel=self,
                 name=name,
                 alias=alias,
-                id=ChatID(self.CHAT_ID_FORMAT.format(hash=hash(name))),
+                uid=ChatID(self.CHAT_ID_FORMAT.format(hash=hash(name))),
                 notification=notification
             )
-            self.__picture_dict[chat.id] = avatar
+            self.__picture_dict[chat.uid] = avatar
 
             if chat_type == GroupChat:
                 self.fill_group(chat)
@@ -206,7 +206,7 @@ class MockSlaveChannel(SlaveChannel):
             channel=self,
             name=name,
             alias="不知道",
-            id=ChatID(self.CHAT_ID_FORMAT.format(hash=hash(name))),
+            uid=ChatID(self.CHAT_ID_FORMAT.format(hash=hash(name))),
             notification=ChatNotificationState.ALL
         )
 
@@ -217,7 +217,7 @@ class MockSlaveChannel(SlaveChannel):
             channel_emoji="‼️",
             name=name,
             alias="知らんでぇ",
-            id=ChatID(self.CHAT_ID_FORMAT.format(hash=hash(name))),
+            uid=ChatID(self.CHAT_ID_FORMAT.format(hash=hash(name))),
             notification=ChatNotificationState.ALL
         )
 
@@ -225,7 +225,7 @@ class MockSlaveChannel(SlaveChannel):
         self.backup_chat: PrivateChat = PrivateChat(
             channel=self,
             name=name,
-            id=ChatID(self.CHAT_ID_FORMAT.format(hash=hash(name))),
+            uid=ChatID(self.CHAT_ID_FORMAT.format(hash=hash(name))),
             notification=ChatNotificationState.ALL
         )
 
@@ -233,7 +233,7 @@ class MockSlaveChannel(SlaveChannel):
         self.backup_member: ChatMember = ChatMember(
             self.chats_by_chat_type['GroupChat'][0],
             name=name,
-            id=ChatID(self.CHAT_ID_FORMAT.format(hash=hash(name)))
+            uid=ChatID(self.CHAT_ID_FORMAT.format(hash=hash(name)))
         )
 
     def fill_group(self, group: Chat):
@@ -242,7 +242,7 @@ class MockSlaveChannel(SlaveChannel):
             group.add_member(
                 name=name,
                 alias=f"{alias} @ {group.name[::-1]}" if alias is not None else None,
-                id=ChatID(self.CHAT_ID_FORMAT.format(hash=hash(name))),
+                uid=ChatID(self.CHAT_ID_FORMAT.format(hash=hash(name))),
             )
 
     # endregion [Populate chats]
@@ -271,7 +271,7 @@ class MockSlaveChannel(SlaveChannel):
 
     def get_chat(self, chat_uid: str) -> Chat:
         for i in self.chats:
-            if chat_uid == i.id:
+            if chat_uid == i.uid:
                 return i
         raise EFBChatNotFound()
 
@@ -279,8 +279,8 @@ class MockSlaveChannel(SlaveChannel):
         return self.chats.copy()
 
     def get_chat_picture(self, chat: Chat) -> Optional[BinaryIO]:
-        if self.__picture_dict.get(chat.id):
-            return open(f'tests/mocks/{self.__picture_dict[chat.id]}', 'rb')
+        if self.__picture_dict.get(chat.uid):
+            return open(f'tests/mocks/{self.__picture_dict[chat.uid]}', 'rb')
 
     # endregion [Necessities]
 
@@ -671,9 +671,9 @@ class MockSlaveChannel(SlaveChannel):
         self.chats.remove(to_remove)
         coordinator.send_status(ChatUpdates(
             self,
-            new_chats=[to_add.id],
-            modified_chats=[self.chat_to_edit.id],
-            removed_chats=[to_remove.id],
+            new_chats=[to_add.uid],
+            modified_chats=[self.chat_to_edit.uid],
+            removed_chats=[to_remove.uid],
         ))
         return to_add, self.chat_to_edit, to_remove
 
@@ -693,10 +693,10 @@ class MockSlaveChannel(SlaveChannel):
         self.group.members.append(to_add)
         self.group.members.remove(to_remove)
         coordinator.send_status(MemberUpdates(
-            self, self.group.id,
-            new_members=[to_add.id],
-            modified_members=[self.member_to_edit.id],
-            removed_members=[to_remove.id],
+            self, self.group.uid,
+            new_members=[to_add.uid],
+            modified_members=[self.member_to_edit.uid],
+            removed_members=[to_remove.uid],
         ))
         return to_add, self.member_to_edit, to_remove
 

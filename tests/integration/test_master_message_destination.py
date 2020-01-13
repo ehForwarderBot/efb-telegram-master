@@ -42,7 +42,7 @@ async def test_master_master_quick_reply(helper, client, bot_id, slave, channel)
     chat = slave.chat_with_alias
     content = "test_master_master_quick_reply set cache with chat head"
     # Send a message to ``chat`` via chat head
-    await client.send_message(bot_id, f"/chat {chat.id}")
+    await client.send_message(bot_id, f"/chat {chat.uid}")
     message = await helper.wait_for_message(in_chats(bot_id) & has_button)
     await message.click(0)
     message = await helper.wait_for_message(in_chats(bot_id) & edited(message.id) & ~has_button)
@@ -94,7 +94,7 @@ async def test_master_master_quick_reply_cache_expiry(helper, client, bot_id, sl
     content = "test_master_master_quick_reply_cache_expiry set cache with chat head"
     # slave.send_text_message(chat, author=chat)
     # Send a message to ``chat`` via chat head
-    await client.send_message(bot_id, f"/chat {chat.id}")
+    await client.send_message(bot_id, f"/chat {chat.uid}")
     message = await helper.wait_for_message(in_chats(bot_id) & has_button)
     await message.click(0)
     message = await helper.wait_for_message(in_chats(bot_id) & edited(message.id) & ~has_button)
