@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Optional, Dict, Tuple, Iterator, overload, cas
 from typing_extensions import Literal
 
 from ehforwarderbot import coordinator
-from ehforwarderbot.chat import Chat, ChatMember, BaseChat
+from ehforwarderbot.chat import Chat, ChatMember, BaseChat, SystemChat, SystemChatMember, SelfChatMember
 from ehforwarderbot.exceptions import EFBChatNotFound
 from ehforwarderbot.types import ModuleID, ChatID
 from .chat import convert_chat, ETMChatType, ETMBaseChatType, ETMChatMember, unpickle, ETMSystemChat, \
@@ -111,14 +111,17 @@ class ChatObjectCacheManager:
         return None
 
     @overload
-    def get_chat_member(self, module_id: ModuleID, chat_id: ChatID, member_id: ChatID, build_dummy: Literal[True]) -> ETMChatMember:
+    def get_chat_member(self, module_id: ModuleID, chat_id: ChatID, member_id: ChatID,
+                        build_dummy: Literal[True]) -> ETMChatMember:
         ...
 
     @overload
-    def get_chat_member(self, module_id: ModuleID, chat_id: ChatID, member_id: ChatID, build_dummy: bool = False) -> Optional[ETMChatMember]:
+    def get_chat_member(self, module_id: ModuleID, chat_id: ChatID, member_id: ChatID, build_dummy: bool = False) -> \
+            Optional[ETMChatMember]:
         ...
 
-    def get_chat_member(self, module_id: ModuleID, chat_id: ChatID, member_id: ChatID, build_dummy: bool = False) -> Optional[ETMChatMember]:
+    def get_chat_member(self, module_id: ModuleID, chat_id: ChatID, member_id: ChatID, build_dummy: bool = False) -> \
+            Optional[ETMChatMember]:
         chat = self.get_chat(module_id, chat_id, build_dummy)
         if chat is None:
             return None
@@ -182,7 +185,28 @@ class ChatObjectCacheManager:
         return chat.members
 
     @staticmethod
-    def update_chat_member_obj(cached: ETMChatMember, member: ETMChatMember, full_update: bool = False) -> ETMChatMember:
+    def get_or_enrol_member(cached: ETMChatType, member: ChatMember) -> ETMChatMember:
+        try:
+            return cached.get_member(member.uid)
+        except KeyError:
+            if isinstance(member, SystemChatMember):
+                cached_member = cached.add_system_member(name=member.name, alias=member.alias, uid=member.uid,
+                                                         vendor_specific=member.vendor_specific.copy(),
+                                                         description=member.description)
+            elif isinstance(member, SelfChatMember):
+                cached_member = cached.add_self()
+            else:
+                cached_member = cached.add_member(name=member.name, alias=member.alias, uid=member.uid,
+                                                  vendor_specific=member.vendor_specific.copy(),
+                                                  description=member.description)
+            cached_member.module_id = member.module_id
+            cached_member.module_name = member.module_name
+            cached_member.channel_emoji = member.channel_emoji
+            return cached_member
+
+    @staticmethod
+    def update_chat_member_obj(cached: ETMChatMember, member: ETMChatMember,
+                               full_update: bool = False) -> ETMChatMember:
         """Insert or update chat member object to cache.
         Only checking name and alias, not checking group/member association,
         unless full update is requested.
