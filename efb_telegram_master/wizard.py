@@ -1,6 +1,7 @@
 import shutil
 from getpass import getpass
 from gettext import translation
+from typing import Optional
 
 from PIL import Image
 from bullet import YesNo, Numbers, Bullet
@@ -12,6 +13,7 @@ from ruamel.yaml import YAML
 from telegram import Bot, TelegramError
 from telegram.ext.filters import Filters
 from telegram.ext import MessageHandler, Updater
+from telegram.utils.request import Request
 
 from ehforwarderbot import coordinator, utils
 from ehforwarderbot.types import ModuleID
@@ -35,6 +37,7 @@ ngettext = translator.ngettext
 
 class DataModel:
     data: dict
+    request: Optional[Request] = None
     building_default = False
 
     def __init__(self, profile: str, instance_id: str):
@@ -163,7 +166,7 @@ class DataModel:
                 self.yaml.dump(self.data, f)
 
 
-def input_bot_token(default=None):
+def input_bot_token(data: DataModel, default=None):
     prompt = _("Your Telegram Bot token: ")
     if default:
         prompt += f"[{default}] "
@@ -177,12 +180,53 @@ def input_bot_token(default=None):
                 continue
         else:
             try:
-                Bot(ans).get_me()
+                Bot(ans, request=data.request).get_me()
             except TelegramError as e:
                 print_wrapped(str(e))
+                print()
                 print(_("Please try again."))
                 continue
             return ans
+
+
+def setup_proxy(data):
+    if YesNo(prompt=_("Do you want to run ETM behind a proxy? "),
+             prompt_prefix="[yN] ").launch(default='n'):
+        if data.data.get('request_kwargs') is None:
+            data.data['request_kwargs'] = {}
+        proxy_type = Bullet(prompt=_("Select proxy type"),
+                            choices=['http', 'socks5']).launch()
+        host = input(_("Proxy host (domain/IP): "))
+        port = input(_("Proxy port: "))
+        username = None
+        password = None
+        if YesNo(prompt=_("Does it require authentication? "),
+                 prompt_prefix="[yN] ").launch(default='n'):
+            username = input(_("Username: "))
+            password = getpass(_("Password: "))
+        if proxy_type == 'http':
+            data.data['request_kwargs']['proxy_url'] = f"http://{host}:{port}/"
+            if username is not None and password is not None:
+                data.data['request_kwargs']['username'] = username
+                data.data['request_kwargs']['password'] = password
+        elif proxy_type == 'socks5':
+            try:
+                import socks
+            except ModuleNotFoundError as e:
+                print_wrapped(_("You have not installed required extra package "
+                                "to use SOCKS5 proxy, please install with the "
+                                "following command:"))
+                print()
+                print("pip install 'python-telegram-bot[socks]'")
+                print()
+                raise e
+            data.data['request_kwargs']['proxy_url'] = f"socks5://{host}:{port}"
+            if username is not None and password is not None:
+                data.data['request_kwargs']['urllib3_proxy_kwargs'] = {
+                    "username": username,
+                    "password": password
+                }
+        data.request = Request(**data.data['request_kwargs'])
 
 
 def setup_telegram_bot(data):
@@ -195,7 +239,7 @@ def setup_telegram_bot(data):
     if data.data['token']:
         # Config has token ready.
         # Assuming user doesn't need help creating one
-        data.data['token'] = input_bot_token(data.data['token'])
+        data.data['token'] = input_bot_token(data, data.data['token'])
     else:
         # No config is ready.
         # prompt to guide user to create one.
@@ -261,7 +305,7 @@ def setup_telegram_bot(data):
             print()
             input(_("Press ENTER/RETURN to continue..."))
         print()
-        data.data['token'] = input_bot_token()
+        data.data['token'] = input_bot_token(data)
 
 
 def input_admin_ids(default=None):
@@ -309,7 +353,8 @@ def setup_admins(data):
         if answer == prompt_yes:
             print(_("Starting ID bot..."), end="", flush=True)
 
-            updater = Updater(token=data.data['token'])
+            updater = Updater(token=data.data['token'],
+                              request_kwargs=data.data.get('request_kwargs', None))
             updater.dispatcher.add_handler(
                 MessageHandler(
                     Filters.all,
@@ -449,7 +494,7 @@ def setup_experimental_flags(data):
 def setup_network_configurations(data):
     print()
     proceed = YesNo(prompt=_("Do you want to adjust network configurations? "
-                             "(connection timeout and proxy) "),
+                             "(connection timeout) "),
                     prompt_prefix="[yN] ").launch(default='n')
     if not proceed:
         return
@@ -470,43 +515,6 @@ def setup_network_configurations(data):
             Numbers(prompt=_("read_timeout (in seconds): ")).launch()
         data.data['request_kwargs']['connect_timeout'] = \
             Numbers(prompt=_("connect_timeout (in seconds): ")).launch()
-
-    if YesNo(prompt=_("Do you want to run ETM behind a proxy? "),
-             prompt_prefix="[yN] ").launch(default='n'):
-        if data.data.get('request_kwargs') is None:
-            data.data['request_kwargs'] = {}
-        proxy_type = Bullet(prompt=_("Select proxy type"),
-                            choices=['http', 'socks5']).launch()
-        host = input(_("Proxy host (domain/IP): "))
-        port = input(_("Proxy port: "))
-        username = None
-        password = None
-        if YesNo(prompt=_("Does it require authentication?"),
-                 prompt_prefix="[yN] ").launch(default='n'):
-            username = input(_("Username: "))
-            password = getpass(_("Password: "))
-        if proxy_type == 'http':
-            data.data['request_kwargs']['proxy_url'] = f"http://{host}:{port}/"
-            if username is not None and password is not None:
-                data.data['request_kwargs']['username'] = username
-                data.data['request_kwargs']['password'] = password
-        elif proxy_type == 'socks5':
-            try:
-                import socks
-            except ModuleNotFoundError as e:
-                print_wrapped(_("You have not installed required extra package "
-                                "to use SOCKS5 proxy, please install with the "
-                                "following command:"))
-                print()
-                print("pip install python-telegram-bot[socks]")
-                print()
-                raise e
-            data.data['request_kwargs']['proxy_url'] = f"socks5://{host}:{port}"
-            if username is not None and password is not None:
-                data.data['request_kwargs']['urllib3_proxy_kwargs'] = {
-                    "username": username,
-                    "password": password
-                }
 
 
 def setup_rpc(data):
@@ -582,6 +590,7 @@ def wizard(profile, instance_id):
         "(ETM). This would be really fast and simple."
     ))
     print()
+    setup_proxy(data)
     setup_telegram_bot(data)
     setup_admins(data)
     setup_experimental_flags(data)
