@@ -229,7 +229,7 @@ class SlaveMessageProcessor(LocaleMixin):
         """
         xid = msg.uid
         msg.chat = self.chat_manager.update_chat_obj(msg.chat)
-        msg.author = msg.chat.get_member(msg.author.id)
+        msg.author = msg.chat.get_member(msg.author.uid)
         chat_uid = utils.chat_id_to_str(chat=msg.chat)
         tg_chats = self.db.get_chat_assoc(slave_uid=chat_uid)
         tg_chat = None

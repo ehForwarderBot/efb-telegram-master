@@ -87,7 +87,7 @@ async def test_link_chat_private(helper, client, bot_id, bot_group, slave, chann
     chat_0 = slave.chat_with_alias
     chat_1 = slave.chat_without_alias
 
-    await client.send_message(bot_id, f"/link {chat_0.id}")
+    await client.send_message(bot_id, f"/link {chat_0.uid}")
     message: Message = await helper.wait_for_message(in_chats(bot_id) & has_button)
     choose_chat: MessageButton = message.buttons[0][0]
     assert chat_0.display_name in choose_chat.text
@@ -211,10 +211,10 @@ async def simulate_link_chat(client, helper, chat: Chat, command_chat: int, dest
     Provide command_channel to link from a channel.
     """
     if command_channel is not None:
-        message = await client.send_message(command_channel, f"/link {chat.id}")
+        message = await client.send_message(command_channel, f"/link {chat.uid}")
         await message.forward_to(command_chat)
     else:
-        await client.send_message(command_chat, f"/link {chat.id}")
+        await client.send_message(command_chat, f"/link {chat.uid}")
     message: Message = await helper.wait_for_message(in_chats(command_chat) & has_button)  # chat list
     await message.buttons[0][0].click()  # choose chat
     message: Message = await helper.wait_for_message(in_chats(command_chat) & has_button)  # operation panel

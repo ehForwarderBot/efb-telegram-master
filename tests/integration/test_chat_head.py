@@ -77,9 +77,9 @@ async def test_chat_head_singly_linked_unknown_chat(helper, client, bot_group, s
     chat = slave.unknown_chat
     with link_chats(channel, (chat,), bot_group):
         await client.send_message(bot_group, "/chat")
-        content: str = await helper.wait_for_message_text(in_chats(bot_group) & regex(chat.id))
+        content: str = await helper.wait_for_message_text(in_chats(bot_group) & regex(chat.uid))
 
-        assert chat.id in content
+        assert chat.uid in content
         assert chat.module_name in content
         assert chat.module_id in content
 
@@ -88,9 +88,9 @@ async def test_chat_head_singly_linked_unknown_channel(helper, client, bot_group
     chat = slave.unknown_channel
     with link_chats(channel, (chat,), bot_group):
         await client.send_message(bot_group, "/chat")
-        content: str = await helper.wait_for_message_text(in_chats(bot_group) & regex(chat.id))
+        content: str = await helper.wait_for_message_text(in_chats(bot_group) & regex(chat.uid))
 
-        assert chat.id in content
+        assert chat.uid in content
         assert chat.module_id in content
 
 

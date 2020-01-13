@@ -179,12 +179,12 @@ class ETMMsg(Message):
         if not isinstance(target.chat, ETMChatType):
             target.chat = chat_manager.update_chat_obj(target.chat)
         if not isinstance(target.author, ETMChatMember):
-            target.author = target.chat.get_member(target.author.id)
+            target.author = target.chat.get_member(target.author.uid)
         if isinstance(target.reactions, dict):
             for i in target.reactions:
                 if any(not isinstance(j, ETMChatMember) for j in target.reactions[i]):
                     # noinspection PyTypeChecker
-                    target.reactions[i] = list(map(lambda a: target.chat.get_member(a.id), target.reactions[i]))
+                    target.reactions[i] = list(map(lambda a: target.chat.get_member(a.uid), target.reactions[i]))
         return target
 
     def put_telegram_file(self, message: telegram.Message):

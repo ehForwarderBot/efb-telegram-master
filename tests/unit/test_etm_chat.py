@@ -67,13 +67,13 @@ def test_etm_chat_conversion_group(db, slave):
 def test_etm_chat_type_title_differ(db, slave):
     chat_name = "Chat Name"
 
-    user = ETMPrivateChat(db, channel=slave, id="__id__", name=chat_name)
+    user = ETMPrivateChat(db, channel=slave, uid="__id__", name=chat_name)
     user_title = user.chat_title
 
-    group = ETMGroupChat(db, channel=slave, id="__id__", name=chat_name)
+    group = ETMGroupChat(db, channel=slave, uid="__id__", name=chat_name)
     group_title = group.chat_title
 
-    sys = ETMSystemChat(db, channel=slave, id="__id__", name=chat_name)
+    sys = ETMSystemChat(db, channel=slave, uid="__id__", name=chat_name)
     sys_title = sys.chat_title
 
     assert len({user_title, group_title, sys_title}) == 3
@@ -82,7 +82,7 @@ def test_etm_chat_type_title_differ(db, slave):
 def test_etm_chat_instance_title_differ(db, slave):
     chat_name = "Chat Name"
 
-    default_instance = ETMSystemChat(db, channel=slave, id="__id__", name=chat_name)
+    default_instance = ETMSystemChat(db, channel=slave, uid="__id__", name=chat_name)
     default_title = default_instance.chat_title
 
     custom_instance = default_instance.copy()
@@ -97,7 +97,7 @@ def test_etm_chat_match(db, slave):
     assert chat.match(chat.name)
     assert chat.match(chat.alias)
     assert chat.match(chat.module_name)
-    assert chat.match(chat.id)
+    assert chat.match(chat.uid)
     assert chat.match("type: private"), "case insensitive search"
     assert chat.match(re.compile("Channel ID: .+mock")), "re compile object search"
     assert chat.match("Mode: \n")
@@ -115,7 +115,7 @@ def test_etm_chat_match(db, slave):
 def test_etm_chat_pickle(db, slave):
     chat = convert_chat(db, chat=slave.chat_with_alias)
     recovered = unpickle(chat.pickle, db)
-    attributes = ('module_id', 'module_name', 'channel_emoji', 'id', 'name', 'alias', 'notification',
+    attributes = ('module_id', 'module_name', 'channel_emoji', 'uid', 'name', 'alias', 'notification',
                   'vendor_specific', 'full_name', 'long_name', 'chat_title')
     for i in attributes:
         assert getattr(chat, i) == getattr(recovered, i)

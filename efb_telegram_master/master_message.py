@@ -392,7 +392,7 @@ class MasterMessageProcessor(LocaleMixin):
 
         self.logger.debug("[%s] This message replies to another message of the same channel.\n"
                           "Chat ID: %s; Message ID: %s.",
-                          tg_msg.message_id, target_msg.chat.id, target_msg.uid)
+                          tg_msg.message_id, target_msg.chat.uid, target_msg.uid)
         return etm_msg
 
     def _send_cached_chat_warning(self, update: telegram.Update,

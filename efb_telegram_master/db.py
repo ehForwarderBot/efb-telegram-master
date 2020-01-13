@@ -516,14 +516,14 @@ class DatabaseManager:
         slave_channel_id = chat_object.module_id
         slave_channel_name = chat_object.module_name
         slave_channel_emoji = chat_object.channel_emoji
-        slave_chat_uid = chat_object.id
+        slave_chat_uid = chat_object.uid
         slave_chat_name = chat_object.name
         slave_chat_alias = chat_object.alias
         slave_chat_type = chat_object.chat_type_name
         parent_chat: Optional['ETMChatType'] = getattr(chat_object, 'chat', None)
         slave_chat_group_id: Optional[ChatID]
         if parent_chat:
-            slave_chat_group_id = parent_chat.id
+            slave_chat_group_id = parent_chat.uid
         else:
             slave_chat_group_id = None
 

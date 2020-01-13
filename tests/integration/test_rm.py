@@ -56,7 +56,7 @@ async def test_rm_command_delete(helper, client, bot_id, bot_group, slave, chann
         # successful case: send to private chat
 
         # get chat head
-        await client.send_message(bot_id, f"/chat {chat.id}")
+        await client.send_message(bot_id, f"/chat {chat.uid}")
         tg_msg = await helper.wait_for_message(in_chats(bot_id) & has_button)
         await tg_msg.click(0)
         tg_msg = await helper.wait_for_message(in_chats(bot_id) & ~has_button)

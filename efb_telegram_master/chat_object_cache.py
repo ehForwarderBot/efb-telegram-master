@@ -63,7 +63,7 @@ class ChatObjectCacheManager:
     @staticmethod
     def get_cache_key(chat: BaseChat) -> CacheKey:
         module_id = chat.module_id
-        chat_id = chat.id
+        chat_id = chat.uid
         return module_id, chat_id
 
     @overload
@@ -106,7 +106,7 @@ class ChatObjectCacheManager:
             return ETMSystemChat(self.db,
                                  module_id=module_id,
                                  module_name=module_id,
-                                 id=chat_id,
+                                 uid=chat_id,
                                  name=chat_id)
         return None
 
@@ -128,7 +128,7 @@ class ChatObjectCacheManager:
             pass
         if not build_dummy:
             return None
-        return chat.add_system_member(name=member_id, id=member_id)
+        return chat.add_system_member(name=member_id, uid=member_id)
 
     def update_chat_obj(self, chat: Chat, full_update: bool = False) -> ETMChatType:
         """Insert or update chat object to cache.
@@ -170,10 +170,10 @@ class ChatObjectCacheManager:
                             members: MutableSequence[ETMChatMember],
                             full_update: bool = False) -> MutableSequence[ETMChatMember]:
         """Update chat members. Overwrite, add, and remove member objects if needed."""
-        cached_objs = {(i.module_id, i.id): i for i in chat.members}
+        cached_objs = {(i.module_id, i.uid): i for i in chat.members}
         chat.members = []
         for i in members:
-            idx = (i.module_id, i.id)
+            idx = (i.module_id, i.uid)
             if idx in cached_objs:
                 chat.members.append(self.update_chat_member_obj(cached_objs[idx], i))
             else:
@@ -215,7 +215,7 @@ class ChatObjectCacheManager:
             return
         chat = self.cache[key]
         member_ids = set(member_ids)
-        chat.members = [i for i in chat.members if i.id not in member_ids]
+        chat.members = [i for i in chat.members if i.uid not in member_ids]
 
     @property
     def all_chats(self) -> Iterator[ETMChatType]:
