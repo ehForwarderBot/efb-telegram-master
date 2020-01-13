@@ -122,7 +122,8 @@ class DataModel:
                 ))
                 f.write("\n")
                 if self.data.get('request_kwargs'):
-                    self.yaml.dump({"request_kwargs": self.data['request_kwargs']}, f)
+                    self.yaml.dump(
+                        {"request_kwargs": self.data['request_kwargs']}, f)
                 else:
                     f.write(
                         "# request_kwargs:\n"
@@ -220,7 +221,8 @@ def setup_proxy(data):
                 print("pip install 'python-telegram-bot[socks]'")
                 print()
                 raise e
-            data.data['request_kwargs']['proxy_url'] = f"socks5://{host}:{port}"
+            protocol = input(_("Protocol [socks5]: ")) or "socks5"
+            data.data['request_kwargs']['proxy_url'] = f"{protocol}://{host}:{port}"
             if username is not None and password is not None:
                 data.data['request_kwargs']['urllib3_proxy_kwargs'] = {
                     "username": username,
@@ -354,11 +356,13 @@ def setup_admins(data):
             print(_("Starting ID bot..."), end="", flush=True)
 
             updater = Updater(token=data.data['token'],
-                              request_kwargs=data.data.get('request_kwargs', None))
+                              request_kwargs=data.data.get(
+                                  'request_kwargs', None),
+                              use_context=True)
             updater.dispatcher.add_handler(
                 MessageHandler(
                     Filters.all,
-                    lambda bot, update:
+                    lambda update, context:
                     update.effective_message.reply_text(
                         _("Your Telegram user ID is {id}.").format(
                             id=update.effective_user.id
