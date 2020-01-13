@@ -186,9 +186,11 @@ class ChatObjectCacheManager:
 
     @staticmethod
     def get_or_enrol_member(cached: ETMChatType, member: ChatMember) -> ETMChatMember:
+        # TODO: Add test case for this
         try:
             return cached.get_member(member.uid)
         except KeyError:
+            cached_member: ETMChatMember
             if isinstance(member, SystemChatMember):
                 cached_member = cached.add_system_member(name=member.name, alias=member.alias, uid=member.uid,
                                                          vendor_specific=member.vendor_specific.copy(),
