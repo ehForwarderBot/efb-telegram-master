@@ -91,7 +91,7 @@ def task_commit_lang_file():
             ["git", "add", "*.po", "readme_translations/*.rst"],
             CmdAction(git_actions)
         ],
-        "task_dep": ["crowdin", "crowdin_pull"]
+        "task_dep": ["crowdin", "msgfmt"]
     }
 
 
