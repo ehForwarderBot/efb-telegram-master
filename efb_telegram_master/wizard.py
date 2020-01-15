@@ -3,7 +3,7 @@ from getpass import getpass
 from gettext import translation
 from typing import Optional
 
-from PIL import Image
+from PIL import Image, WebPImagePlugin
 from bullet import YesNo, Numbers, Bullet
 from pkg_resources import resource_filename
 
@@ -571,7 +571,7 @@ def prerequisites_check():
 
     print(_("Checking libwebp installation..."), end="", flush=True)
     Image.init()
-    if 'WEBP' not in Image.ID:
+    if 'WEBP' not in Image.ID or not WebPImagePlugin.SUPPORTED:
         print(_("FAILED"))
         print_wrapped(_("libwebp plugin is not detected by Pillow."))
         exit(1)
