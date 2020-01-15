@@ -11,7 +11,7 @@ import telegram
 import telegram.constants
 import telegram.error
 import telegram.ext
-from PIL import Image
+from PIL import Image, WebPImagePlugin
 from pkg_resources import resource_filename
 from ruamel.yaml import YAML
 from telegram import Message, Update
@@ -97,7 +97,7 @@ class TelegramChannel(MasterChannel):
 
         # Check PIL support for WebP
         Image.init()
-        if 'WEBP' not in Image.ID:
+        if 'WEBP' not in Image.ID or not WebPImagePlugin.SUPPORTED:
             raise EFBException(self._("WebP support of Pillow is required.\n"
                                       "Please refer to Pillow Documentation for instructions.\n"
                                       "https://pillow.readthedocs.io/"))
