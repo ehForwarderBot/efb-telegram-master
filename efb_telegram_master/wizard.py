@@ -415,7 +415,7 @@ flags_settings = {
          ),
     "auto_locale":
         (True, 'bool', None,
-         _('Detect the locale from admin’s messages automatically. Locale '
+         _('Detect the locale from admins’ messages automatically. Locale '
            'defined in environment variables will be used otherwise.')
          ),
     "retry_on_error":
