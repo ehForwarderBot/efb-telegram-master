@@ -266,7 +266,7 @@ class ETMChatMixin(ETMBaseChatMixin, Chat, ABC):
 
     def make_system_member(self, name: str = "", alias: Optional[str] = None, id: ChatID = ChatID(""),
                            uid: ChatID = ChatID(""), vendor_specific: Dict[str, Any] = None, description: str = "",
-                           middleware: Optional[Middleware] = None) -> SystemChatMember:
+                           middleware: Optional[Middleware] = None) -> ETMSystemChatMember:
         # TODO: remove deprecated ID
         assert not id, f"id is {id!r}"
         return ETMSystemChatMember(self.db, self, name=name, alias=alias, uid=uid,
