@@ -1,6 +1,7 @@
 import logging
 import mimetypes
 import os
+import subprocess
 import tempfile
 from pathlib import Path
 from typing import Optional, TYPE_CHECKING, Dict, Any, BinaryIO
@@ -90,20 +91,8 @@ class ETMMsg(Message):
             self.__filename = self.__filename or os.path.basename(file.name)
 
             if self.type_telegram == TGMsgType.Animation:
-                channel_id = self.deliver_to.channel_id
 
-                gif_file = tempfile.NamedTemporaryFile(suffix='.gif')
-                metadata = ffmpeg.probe(file.name)
-                stream = ffmpeg.input(file.name)
-                # TODO: This would not work on Windows due to FS restriction
-                if channel_id.startswith("blueset.wechat") and metadata.get('width', 0) > 600:
-                    # Workaround: Compress GIF for slave channel `blueset.wechat`
-                    # TODO: Move this logic to `blueset.wechat` in the future
-                    stream = stream.filter("scale", 600, -2)
-                stream.output(gif_file.name).overwrite_output().run()
-                # TODO: This would not work on Windows due to FS restriction
-                file.close()
-                gif_file.seek(0)
+                gif_file = utils.gif_conversion(file, self.deliver_to.channel_id)
 
                 self.__file = gif_file
                 self.__path = gif_file.name

@@ -1,15 +1,22 @@
 # coding=utf-8
 
 import base64
+import json
 import logging
-from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, BinaryIO
+import os
+import subprocess
+import sys
+from shutil import copyfileobj
+from tempfile import NamedTemporaryFile
+from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, BinaryIO, IO
 
+import ffmpeg
+import telegram
+from ffmpeg._utils import convert_kwargs_to_cmd_line_args
 from telegram.ext import BaseFilter
 from typing_extensions import NewType
 
-import telegram
-
-from ehforwarderbot import Chat, Channel
+from ehforwarderbot import Channel
 from ehforwarderbot.chat import BaseChat, ChatMember
 from ehforwarderbot.types import ChatID, ModuleID
 from .locale_mixin import LocaleMixin
@@ -178,3 +185,90 @@ class PollFilter(BaseFilter):
 
     def filter(self, message):
         return bool(message.poll)
+
+
+if os.name == "nt":
+    # Workaround for Windows which cannot open the same file as "read" twice.
+    # Using stdin/stdout pipe for IO with ffmpeg.
+    # Said to be only working with a few encodings. It seems that Telegram GIF
+    # (MP4, h264, soundless) luckily felt in that range.
+    #
+    # See: https://etm.1a23.studio/issues/90
+
+    def ffprobe(stream: IO[bytes], cmd='ffprobe', **kwargs):
+        """Run ffprobe on an input stream and return a JSON representation of the output.
+
+        Code adopted from ffmpeg-python by Karl Kroening (Apache License 2.0).
+        Copyright 2017 Karl Kroening
+
+        Raises:
+            :class:`ffmpeg.Error`: if ffprobe returns a non-zero exit code,
+                an :class:`Error` is returned with a generic error message.
+                The stderr output can be retrieved by accessing the
+                ``stderr`` property of the exception.
+        """
+        args = [cmd, '-show_format', '-show_streams', '-of', 'json']
+        args += convert_kwargs_to_cmd_line_args(kwargs)
+        args += ["-"]
+
+        p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        copyfileobj(p.stdin, stream)
+        out, err = p.communicate()
+        if p.returncode != 0:
+            raise ffmpeg.Error('ffprobe', out, err)
+        return json.loads(out.decode('utf-8'))
+
+
+    def gif_conversion(file: IO[bytes], channel_id: str) -> IO[bytes]:
+        """Convert Telegram GIF to real GIF, the NT way."""
+        gif_file = NamedTemporaryFile(suffix='.gif')
+        file.seek(0)
+
+        # Use custom ffprobe command to read from stream
+        metadata = ffprobe(file)
+
+        # Set input/output of ffmpeg to stream
+        stream = ffmpeg.input("pipe:")
+        if channel_id.startswith("blueset.wechat") and metadata.get('width', 0) > 600:
+            # Workaround: Compress GIF for slave channel `blueset.wechat`
+            # TODO: Move this logic to `blueset.wechat` in the future
+            stream = stream.filter("scale", 600, -2)
+        # Need to specify file format here as no extension hint presents.
+        args = stream.output("pipe:", format="gif").compile()
+        file.seek(0)
+
+        # subprocess.Popen would still try to access the file handle instead of
+        # using standard IO interface. Not sure if that would work on Windows.
+        # Using the most classic buffer and copy via IO interface just to play
+        # safe.
+        p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        copyfileobj(file, p.stdin)
+        p.stdin.close()
+
+        # Raise exception if error occurs, just like ffmpeg-python.
+        if p.returncode != 0:
+            err = p.stderr.read().decode()
+            print(err, file=sys.stderr)
+            raise ffmpeg.Error('ffmpeg', "", err)
+
+        copyfileobj(p.stdout, gif_file)
+        file.close()
+        gif_file.seek(0)
+        return gif_file
+
+else:
+    def gif_conversion(file: IO[bytes], channel_id: str) -> IO[bytes]:
+        """Convert Telegram GIF to real GIF, the non-NT way."""
+        gif_file = NamedTemporaryFile(suffix='.gif')
+        file.seek(0)
+        metadata = ffmpeg.probe(file.name)
+        stream = ffmpeg.input(file.name)
+        if channel_id.startswith("blueset.wechat") and metadata.get('width', 0) > 600:
+            # Workaround: Compress GIF for slave channel `blueset.wechat`
+            # TODO: Move this logic to `blueset.wechat` in the future
+            stream = stream.filter("scale", 600, -2)
+        stream.output(gif_file.name).overwrite_output().run()
+        file.close()
+        gif_file.seek(0)
+        return gif_file
