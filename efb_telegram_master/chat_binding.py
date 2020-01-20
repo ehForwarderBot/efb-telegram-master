@@ -5,6 +5,7 @@ import io
 import logging
 import re
 import urllib.parse
+from contextlib import suppress
 from typing import Tuple, Dict, Optional, List, TYPE_CHECKING, IO, Sequence, Union, Pattern
 
 import telegram
@@ -248,10 +249,8 @@ class ChatBindingManager(LocaleMixin):
             if source_chats:
                 for s_chat in source_chats:
                     channel_id, chat_uid, _ = utils.chat_id_str_to_id(s_chat)
-                    try:
+                    with suppress(NameError):
                         coordinator.get_module_by_id(channel_id)
-                    except NameError:
-                        continue
                     chat = self.chat_manager.get_chat(channel_id, chat_uid)
                     if not chat:
                         self.logger.debug("slave_chats_pagination with chat list: Chat %s not found.", s_chat)
