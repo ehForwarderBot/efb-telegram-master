@@ -460,7 +460,8 @@ ETM 不能：
 
 * ``auto_locale`` *(str)* [默认: ``true``]
 
-  从 bot 管理员的语言设定中自动设定 ETM 语言。当该值为 false 时，ETM 会从系统的环境变量中读取语言设定。
+  Detect the locale from admins’ messages automatically. Locale
+  defined in environment variables will be used otherwise.
 
 * ``retry_on_error`` *(bool)* [默认: ``false``]
 
@@ -584,16 +585,16 @@ ETM 2 中实现了一个标准的 `Python XML RPC 服务器
        server: 127.0.0.1
        port: 8000
 
-警告: ``xmlrpc`` 模块对恶意构建的数据是不安全的。不要将此接口暴露给不被信任的当事方或公共网络，并在使用后应该关闭此接口。
+警告: ``xmlrpc`` 组件对恶意构建的数据是不安全的。不要将此接口暴露给不被信任的当事方或公共网络，并在使用后应该关闭此接口。
 
 
 提供的函数
 ----------
 
 我们提供了 `db（数据库管理器）类
-<https://etm.1a23.studio/blob/master/efb_telegram_master/db.py>`_\ 和
-`RPCUtilities 类
 <https://etm.1a23.studio/blob/master/efb_telegram_master/rpc_utilities.py>`_\
+和 `RPCUtilities 类
+<https://etm.1a23.studio/blob/master/efb_telegram_master/db.py>`_\
 中的函数。详细文档请参考源代码。
 
 

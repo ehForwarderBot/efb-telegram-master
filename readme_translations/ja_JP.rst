@@ -548,7 +548,7 @@ e.g.:
 
 * ``auto_locale`` *(str)* [Default: ``true``]
 
-  Detect the locale from admin’s messages automatically. Locale
+  Detect the locale from admins’ messages automatically. Locale
   defined in environment variables will be used otherwise.
 
 * ``retry_on_error`` *(bool)* [Default: ``false``]
