@@ -1,10 +1,12 @@
+import copy
 import pickle
 import time
 from abc import ABC
+from contextlib import suppress
 from datetime import datetime
 from typing import Optional, TYPE_CHECKING, Pattern, List, Dict, Any, Union, TypeVar, overload, MutableSequence
 
-from ehforwarderbot import Middleware
+from ehforwarderbot import Middleware, coordinator
 from ehforwarderbot.channel import SlaveChannel
 from ehforwarderbot.chat import ChatNotificationState, BaseChat, Chat, PrivateChat, ChatMember, SystemChatMember, \
     SelfChatMember, GroupChat, SystemChat
@@ -41,6 +43,22 @@ class ETMBaseChatMixin(BaseChat, ABC):
         if 'db' in state:
             del state['db']
         return state
+
+    def __setstate__(self, state: Dict[str, Any]):
+        from . import TelegramChannel
+        # Import inline to prevent cyclic import
+        self.__dict__.update(state)
+        with suppress(NameError, AttributeError):
+            if isinstance(coordinator.master, TelegramChannel):
+                self.db = coordinator.master.db
+
+    def __copy__(self):
+        rv = self.__reduce_ex__(4)
+        if isinstance(rv, str):
+            return self
+        obj = copy._reconstruct(self, None, *rv)
+        obj.db = self.db
+        return obj
 
 
 class ETMChatMember(ETMBaseChatMixin, ChatMember):
@@ -240,10 +258,19 @@ class ETMChatMixin(ETMBaseChatMixin, Chat, ABC):
                           middleware: Optional[Middleware] = None) -> ETMSystemChatMember:
         # TODO: remove deprecated ID
         assert not id, f"id is {id!r}"
-        member = ETMSystemChatMember(self.db, self, name=name, alias=alias, uid=uid,
-                                     vendor_specific=vendor_specific, description=description, middleware=middleware)
+        member = self.make_system_member(name=name, alias=alias, uid=uid,
+                                         vendor_specific=vendor_specific, description=description,
+                                         middleware=middleware)
         self.members.append(member)
         return member
+
+    def make_system_member(self, name: str = "", alias: Optional[str] = None, id: ChatID = ChatID(""),
+                           uid: ChatID = ChatID(""), vendor_specific: Dict[str, Any] = None, description: str = "",
+                           middleware: Optional[Middleware] = None) -> SystemChatMember:
+        # TODO: remove deprecated ID
+        assert not id, f"id is {id!r}"
+        return ETMSystemChatMember(self.db, self, name=name, alias=alias, uid=uid,
+                                   vendor_specific=vendor_specific, description=description, middleware=middleware)
 
     def get_member(self, member_id: ChatID) -> ETMChatMember:
         return super().get_member(member_id)  # type: ignore
@@ -264,7 +291,8 @@ class ETMPrivateChat(ETMChatMixin, PrivateChat):
         super().__init__(db, channel=channel, middleware=middleware, module_name=module_name,
                          channel_emoji=channel_emoji,
                          module_id=module_id, name=name, alias=alias, uid=uid, vendor_specific=vendor_specific,
-                         description=description, notification=notification, with_self=with_self, other_is_self=other_is_self)
+                         description=description, notification=notification, with_self=with_self,
+                         other_is_self=other_is_self)
 
 
 class ETMSystemChat(ETMChatMixin, SystemChat):
@@ -335,7 +363,9 @@ def convert_chat(db: 'DatabaseManager', chat: Chat) -> ETMChatType:
         etm_chat = ETMPrivateChat(db, module_id=chat.module_id, module_name=chat.module_name,
                                   channel_emoji=chat.channel_emoji, name=chat.name, alias=chat.alias, uid=chat.uid,
                                   vendor_specific=chat.vendor_specific.copy(), description=chat.description,
-                                  notification=chat.notification, with_self=chat.has_self, other_is_self=chat.other is chat.self)
+                                  notification=chat.notification, with_self=chat.has_self,
+                                  other_is_self=chat.other is chat.self)
+        assert isinstance(etm_chat, ETMPrivateChat)  # for type check
         if chat.self and etm_chat.self:
             copy_member(chat.self, etm_chat.self)
         if chat.self is not chat.other and chat.other and etm_chat.other:
@@ -346,6 +376,7 @@ def convert_chat(db: 'DatabaseManager', chat: Chat) -> ETMChatType:
                                  channel_emoji=chat.channel_emoji, name=chat.name, alias=chat.alias, uid=chat.uid,
                                  vendor_specific=chat.vendor_specific.copy(), description=chat.description,
                                  notification=chat.notification, with_self=chat.has_self)
+        assert isinstance(etm_chat, ETMSystemChat)  # for type check
         if chat.self and etm_chat.self:
             copy_member(chat.self, etm_chat.self)
         if chat.other and etm_chat.other:
@@ -356,6 +387,7 @@ def convert_chat(db: 'DatabaseManager', chat: Chat) -> ETMChatType:
                                 channel_emoji=chat.channel_emoji, name=chat.name, alias=chat.alias, uid=chat.uid,
                                 vendor_specific=chat.vendor_specific.copy(), description=chat.description,
                                 notification=chat.notification, with_self=False)
+        assert isinstance(etm_chat, ETMGroupChat)  # for type check
         for i in chat.members:
             if isinstance(i, ETMChatMember):
                 etm_chat.members.append(i)

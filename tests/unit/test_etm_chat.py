@@ -119,3 +119,14 @@ def test_etm_chat_pickle(db, slave):
                   'vendor_specific', 'full_name', 'long_name', 'chat_title')
     for i in attributes:
         assert getattr(chat, i) == getattr(recovered, i)
+    assert chat.db is recovered.db
+
+
+def test_etm_chat_copy(db, slave):
+    chat = convert_chat(db, chat=slave.chat_with_alias)
+    copied = chat.copy()
+    attributes = ('module_id', 'module_name', 'channel_emoji', 'uid', 'name', 'alias', 'notification',
+                  'vendor_specific', 'full_name', 'long_name', 'chat_title')
+    for i in attributes:
+        assert getattr(chat, i) == getattr(copied, i)
+    assert chat.db is copied.db
