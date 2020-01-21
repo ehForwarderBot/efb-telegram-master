@@ -37,6 +37,8 @@ class ChatObjectCacheManager:
             try:
                 chats = module.get_chats()
             except Exception:
+                self.logger.exception("Error occurred while getting chats from %. "
+                                      "ETM will report no chat from this channel until further noticed.", channel_id)
                 continue
             for chat in chats:
                 self.compound_enrol(chat)
