@@ -43,7 +43,7 @@ class TelegramBotManager(LocaleMixin):
     class Decorators:
         logger = logging.getLogger(__name__)
 
-        enabled = False
+        enable_retry = False
 
         @classmethod
         def exception_filter(cls, exception: Exception):
@@ -53,7 +53,7 @@ class TelegramBotManager(LocaleMixin):
         @classmethod
         def retry_on_timeout(cls, fn: Callable):
             """Infinitely retry for timed-out exceptions."""
-            if not cls.enabled:
+            if not cls.enable_retry:
                 return fn
             cls.logger.debug("Trying to call %s with infinite retry.", fn)
             return retry(wait_exponential_multiplier=1e3, wait_exponential_max=180e3,
@@ -151,28 +151,37 @@ class TelegramBotManager(LocaleMixin):
         if isinstance(conf_req_kwargs, collections.abc.Mapping):
             req_kwargs.update(conf_req_kwargs)
 
+        self.logger.debug("Setting up Telegram bot updater...")
         self.updater: telegram.ext.Updater = telegram.ext.Updater(config['token'],
                                                                   request_kwargs=req_kwargs,
                                                                   use_context=True)
 
         if isinstance(config.get('webhook'), dict):
+            self.logger.debug("Setting up webhook...")
             self.webhook = True
             webhook_conf = config['webhook']
             if webhook_conf.get('set_webhook'):
                 set_webhook = webhook_conf['set_webhook']
                 if set_webhook.get('certificate'):
                     set_webhook['certificate'] = open(set_webhook['certificate'], 'rb')
+                self.logger.debug("Setting webhook URL...")
                 self.updater.bot.set_webhook(**set_webhook)
+                self.logger.debug("Webhook URL is set...")
+            self.logger.debug("Webhook is set...")
 
+        self.logger.debug("Checking connection to Telegram bot API...")
         self.me: telegram.User = self.updater.bot.get_me()
+        self.logger.debug("Connection to Telegram bot API is OK...")
         self.admins: List[int] = config['admins']
         self.dispatcher: telegram.ext.Dispatcher = self.updater.dispatcher
+        self.logger.debug("Adding base dispatchers...")
         # New whitelist handler
         whitelist_filter = ~Filters.user(user_id=self.admins)
         self.dispatcher.add_handler(
             MessageHandler(whitelist_filter, lambda update, context: ...))
         self.dispatcher.add_handler(LocaleHandler(channel))
-        self.Decorators.enabled = channel.flag('retry_on_error')
+        self.Decorators.enable_retry = channel.flag('retry_on_error')
+        self.logger.debug("Base dispatchers added...")
 
     @Decorators.retry_on_timeout
     @Decorators.retry_on_chat_migration

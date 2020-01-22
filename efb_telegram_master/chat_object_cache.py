@@ -31,17 +31,21 @@ class ChatObjectCacheManager:
 
         self.cache: Dict[CacheKey, ETMChatType] = dict()
 
+        self.logger.debug("Loading chats from slave channels...")
         # load all chats from all slave channels and convert to ETMChat object
         for channel_id, module in coordinator.slaves.items():
             # noinspection PyBroadException
             try:
+                self.logger.debug("Loading chats from '%s'...", channel_id)
                 chats = module.get_chats()
             except Exception:
                 self.logger.exception("Error occurred while getting chats from %. "
                                       "ETM will report no chat from this channel until further noticed.", channel_id)
                 continue
+            self.logger.debug("Found %s chats from '%s'.", len(chats), channel_id)
             for chat in chats:
                 self.compound_enrol(chat)
+            self.logger.debug("All %s chats from '%s' are enrolled.", len(chats), channel_id)
 
     def compound_enrol(self, chat: Chat) -> ETMChatType:
         """Convert and enrol a chat object for the first time.
