@@ -177,13 +177,16 @@ class DatabaseManager:
     def __init__(self, channel: 'TelegramChannel'):
         base_path = utils.get_data_path(channel.channel_id)
 
+        self.logger.debug("Loading database...")
         database.init(str(base_path / 'tgdata.db'))
         database.connect()
+        self.logger.debug("Database loaded.")
 
         self.task_queue: 'Queue[Optional[Tuple[Callable, Sequence[Any], Dict[str, Any]]]]' = Queue()
         self.worker_thread = Thread(target=self.task_worker, name="ETM database worker thread")
         self.worker_thread.start()
 
+        self.logger.debug("Checking database migration...")
         if not ChatAssoc.table_exists():
             self._create()
         else:
@@ -195,6 +198,7 @@ class DatabaseManager:
                 self._migrate(1)
             elif "slave_chat_group_id" not in slave_chat_info_columns:
                 self._migrate(2)
+        self.logger.debug("Database migration finished...")
 
     def task_worker(self):
         while True:
