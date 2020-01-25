@@ -27,12 +27,6 @@ EFB Telegram Master Channel (ETM)
 ETM is a Telegram Master Channel for EH Forwarder Bot, based on Telegram
 Bot API, ``python-telegram-bot``.
 
-Beta version
--------------
-
-This is an unstable beta version, and its functionality may change at any
-time.
-
 Requirements
 ------------
 
