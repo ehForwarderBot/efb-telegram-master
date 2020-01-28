@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ehforwarderbot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-19 16:17+0000\n"
-"PO-Revision-Date: 2020-01-20 16:22\n"
+"POT-Creation-Date: 2020-01-22 05:46+0000\n"
+"PO-Revision-Date: 2020-01-28 06:58\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Chinese Simplified\n"
 "Language: zh_CN\n"
@@ -146,24 +146,24 @@ msgstr "无法从远端会话中删除此消息。\n\n"
 msgid "Caption is truncated due to its length. Full message is sent as attachment."
 msgstr "文字由于过长而被截取。完整内容将以附件发送。"
 
-#: efb_telegram_master/bot_manager.py:220
-#: efb_telegram_master/bot_manager.py:261
+#: efb_telegram_master/bot_manager.py:229
+#: efb_telegram_master/bot_manager.py:270
 msgid "Message is truncated due to its length. Full message is sent as attachment."
 msgstr "消息由于过长而被截取。完整的消息将以附件发送。"
 
-#: efb_telegram_master/bot_manager.py:471
+#: efb_telegram_master/bot_manager.py:480
 msgid "Session expired. Please try again. (SE01)"
 msgstr "消息已过期。请重试。(SE01)"
 
-#: efb_telegram_master/bot_manager.py:528
+#: efb_telegram_master/bot_manager.py:537
 msgid "Response is truncated due to its length. Full message is sent as attachment."
 msgstr "返回内容因长度过长而被截断。完整消息会作为附件发送。"
 
-#: efb_telegram_master/bot_manager.py:582
+#: efb_telegram_master/bot_manager.py:591
 msgid "Empty attachment detected."
 msgstr "发现了空附件。"
 
-#: efb_telegram_master/utils.py:55
+#: efb_telegram_master/utils.py:62
 #, python-brace-format
 msgid "{0} is not a valid experimental flag"
 msgstr "{0} 不是有效的实验性开关"
@@ -351,7 +351,7 @@ msgstr "代理服务器端口："
 
 #: efb_telegram_master/wizard.py:204
 msgid "Does it require authentication? "
-msgstr ""
+msgstr "此代理是否需要认证？"
 
 #: efb_telegram_master/wizard.py:206
 msgid "Username: "
@@ -367,7 +367,7 @@ msgstr "您尚未安装 SOCKS5 代理所需的额外软件包。请用以下命�
 
 #: efb_telegram_master/wizard.py:224
 msgid "Protocol [socks5]: "
-msgstr ""
+msgstr "协议 [socks5]："
 
 #: efb_telegram_master/wizard.py:236
 msgid "1. Set up your Telegram Bot\n"
@@ -509,7 +509,7 @@ msgstr "当从端要求删除特定消息时，ETM 将以通知替代删除操�
 
 #: efb_telegram_master/wizard.py:418
 msgid "Detect the locale from admins’ messages automatically. Locale defined in environment variables will be used otherwise."
-msgstr ""
+msgstr "从 bot 管理员的语言设定中自动设定 ETM 语言。当该值为 false 时，ETM 会从系统的环境变量中读取语言设定。"
 
 #: efb_telegram_master/wizard.py:423
 msgid "Retry infinitely when an error occurred while sending request to Telegram Bot API. Note that this may lead to repetitive message delivery, as the respond of Telegram Bot API is not reliable, and may not reflect the actual result."
@@ -549,7 +549,7 @@ msgstr "您想要配置实验性功能吗？ "
 
 #: efb_telegram_master/wizard.py:500
 msgid "Do you want to adjust network configurations? (connection timeout) "
-msgstr ""
+msgstr "您想调整网络配置吗？（连接超时设定）"
 
 #: efb_telegram_master/wizard.py:507
 msgid "For meanings and significances of the following values, please consult the module documentations."
@@ -626,79 +626,79 @@ msgstr "正在保存配置..."
 msgid "Congratulations! You have finished the setup wizard for EFB Telegram Master Channel."
 msgstr "恭喜！您已完成了 EFB Telegram 主端的设置向导。"
 
-#: efb_telegram_master/chat_binding.py:178
-#: efb_telegram_master/chat_binding.py:322
-#: efb_telegram_master/chat_binding.py:586
+#: efb_telegram_master/chat_binding.py:179
+#: efb_telegram_master/chat_binding.py:321
+#: efb_telegram_master/chat_binding.py:585
 msgid "Processing..."
 msgstr "处理中…"
 
-#: efb_telegram_master/chat_binding.py:225
+#: efb_telegram_master/chat_binding.py:226
 #, python-brace-format
 msgid "{0}: Linked"
 msgstr "{0}: 绑定"
 
-#: efb_telegram_master/chat_binding.py:226
+#: efb_telegram_master/chat_binding.py:227
 #, python-brace-format
 msgid "{0}: User"
 msgstr "{0}：用户"
 
-#: efb_telegram_master/chat_binding.py:227
+#: efb_telegram_master/chat_binding.py:228
 #, python-brace-format
 msgid "{0}: Group"
 msgstr "{0}：群组"
 
-#: efb_telegram_master/chat_binding.py:293
+#: efb_telegram_master/chat_binding.py:292
 msgid "< Prev"
 msgstr "< 上一页"
 
-#: efb_telegram_master/chat_binding.py:295
-#: efb_telegram_master/chat_binding.py:411
-#: efb_telegram_master/chat_binding.py:456
+#: efb_telegram_master/chat_binding.py:294
+#: efb_telegram_master/chat_binding.py:410
+#: efb_telegram_master/chat_binding.py:455
 msgid "Cancel"
 msgstr "取消"
 
-#: efb_telegram_master/chat_binding.py:298
+#: efb_telegram_master/chat_binding.py:297
 msgid "Next >"
 msgstr "下一页 >"
 
-#: efb_telegram_master/chat_binding.py:325
+#: efb_telegram_master/chat_binding.py:324
 msgid "This Telegram group is currently linked with..."
 msgstr "该 Telegram 群组已绑定至…"
 
-#: efb_telegram_master/chat_binding.py:327
+#: efb_telegram_master/chat_binding.py:326
 msgid "Please choose the chat you want to link with..."
 msgstr "请选择要绑定的会话…"
 
-#: efb_telegram_master/chat_binding.py:328
-#: efb_telegram_master/chat_binding.py:631
+#: efb_telegram_master/chat_binding.py:327
+#: efb_telegram_master/chat_binding.py:630
 msgid "\n\n"
 "Legend:\n"
 msgstr "\n\n"
 "图例:\n"
 
-#: efb_telegram_master/chat_binding.py:363
-#: efb_telegram_master/chat_binding.py:429
-#: efb_telegram_master/chat_binding.py:657
+#: efb_telegram_master/chat_binding.py:362
+#: efb_telegram_master/chat_binding.py:428
+#: efb_telegram_master/chat_binding.py:656
 msgid "Cancelled."
 msgstr "已取消。"
 
-#: efb_telegram_master/chat_binding.py:373
+#: efb_telegram_master/chat_binding.py:372
 #, python-brace-format
 msgid "Invalid parameter ({0}). (IP01)"
 msgstr "无效的参数：({0})。(IP01)"
 
-#: efb_telegram_master/chat_binding.py:394
+#: efb_telegram_master/chat_binding.py:393
 #, python-brace-format
 msgid "You've selected chat {0}."
 msgstr "你选择了会话 {0} 。"
 
-#: efb_telegram_master/chat_binding.py:396
+#: efb_telegram_master/chat_binding.py:395
 msgid "\n"
 "This chat has already linked to Telegram."
 msgstr "\n"
 "该会话已被绑定至 Telegram。"
 
-#: efb_telegram_master/chat_binding.py:397
+#: efb_telegram_master/chat_binding.py:396
 msgid "\n"
 "What would you like to do?\n\n"
 "<i>* If the link button doesn't work for you, please try to link manually.</i>"
@@ -706,28 +706,28 @@ msgstr "\n"
 "接下来要做什么？\n\n"
 "<i>* 如果你无法使用绑定按钮，请尝试手动绑定。</i>"
 
-#: efb_telegram_master/chat_binding.py:403
+#: efb_telegram_master/chat_binding.py:402
 msgid "Relink"
 msgstr "重新绑定"
 
-#: efb_telegram_master/chat_binding.py:404
+#: efb_telegram_master/chat_binding.py:403
 msgid "Restore"
 msgstr "还原"
 
-#: efb_telegram_master/chat_binding.py:406
+#: efb_telegram_master/chat_binding.py:405
 msgid "Link"
 msgstr "绑定"
 
-#: efb_telegram_master/chat_binding.py:407
+#: efb_telegram_master/chat_binding.py:406
 #, python-brace-format
 msgid "Manual {link_or_relink}"
 msgstr "手动{link_or_relink}"
 
-#: efb_telegram_master/chat_binding.py:440
+#: efb_telegram_master/chat_binding.py:439
 msgid "Chat {} is restored."
 msgstr "会话 {} 已还原。"
 
-#: efb_telegram_master/chat_binding.py:443
+#: efb_telegram_master/chat_binding.py:442
 #, python-brace-format
 msgid "To link {chat_display_name} manually, please:\n\n"
 "1. Add me to the Telegram Group you want to link to.\n"
@@ -742,86 +742,86 @@ msgstr "若要手动对 {chat_display_name} 进行链接，请按以下步骤进
 "3. 若链接成功，你将会收到提示。\n\n"
 "<i>* 若要绑定频道，请把上面的代码发送至你的频道，然后将该消息转发给 Bot。请注意，Bot 不会接收任何人发送至频道的消息。</i>"
 
-#: efb_telegram_master/chat_binding.py:461
+#: efb_telegram_master/chat_binding.py:460
 #, python-brace-format
 msgid "Command ‘{command}’ ({query}) is not recognised, please try again."
 msgstr "未能成功识别命令「{command}」（{query}），请重试。"
 
-#: efb_telegram_master/chat_binding.py:477
+#: efb_telegram_master/chat_binding.py:476
 msgid "Session expired or unknown parameter. (SE02)"
 msgstr "会话过期或未知参数。(SE02)"
 
-#: efb_telegram_master/chat_binding.py:485
+#: efb_telegram_master/chat_binding.py:484
 #, python-brace-format
 msgid "{module_id} is not activated in current profile. It cannot be linked."
 msgstr "{module_id} 没有在当前配置档案中启用。无法绑定此会话。"
 
-#: efb_telegram_master/chat_binding.py:497
+#: efb_telegram_master/chat_binding.py:496
 #, python-brace-format
 msgid "Trying to link chat {0}..."
 msgstr "正在尝试绑定会话 {0}…"
 
-#: efb_telegram_master/chat_binding.py:502
+#: efb_telegram_master/chat_binding.py:501
 #, python-brace-format
 msgid "Chat {0} is now linked."
 msgstr "会话 {0} 已成功绑定。"
 
-#: efb_telegram_master/chat_binding.py:520
+#: efb_telegram_master/chat_binding.py:519
 msgid "No chat is linked to the group."
 msgstr "尚无会话被绑定至该群组。"
 
-#: efb_telegram_master/chat_binding.py:526
+#: efb_telegram_master/chat_binding.py:525
 #, python-brace-format
 msgid "All {0} chat has been unlinked from this group."
 msgid_plural "All {0} chats has been unlinked from this group."
 msgstr[0] "所有 {0} 个会话已从该群组解绑。"
 
-#: efb_telegram_master/chat_binding.py:537
+#: efb_telegram_master/chat_binding.py:536
 msgid "No chat is linked to the channel."
 msgstr "尚无会话被绑定至该频道。"
 
-#: efb_telegram_master/chat_binding.py:543
+#: efb_telegram_master/chat_binding.py:542
 #, python-brace-format
 msgid "All {0} chat has been unlinked from this channel."
 msgid_plural "All {0} chats has been unlinked from this channel."
 msgstr[0] "所有 {0} 个会话已从该频道解绑。"
 
-#: efb_telegram_master/chat_binding.py:549
+#: efb_telegram_master/chat_binding.py:548
 msgid "Send `/unlink_all` to a group to unlink all remote chats from it."
 msgstr "将 \"/unlink_all\" 发送至一个群组, 以解绑所有绑定到该群组的会话。"
 
-#: efb_telegram_master/chat_binding.py:595
+#: efb_telegram_master/chat_binding.py:594
 #, python-brace-format
 msgid "This group is linked to {0}Send a message to this group to deliver it to the chat.\n"
 "Do NOT reply to this system message."
 msgstr "该群组已与 {0} 绑定，向该群组发送消息以将其传至该会话中。\n"
 "请 不要 回复该系统消息。"
 
-#: efb_telegram_master/chat_binding.py:606
+#: efb_telegram_master/chat_binding.py:605
 #, python-brace-format
 msgid "This group is linked to an unknown chat ({chat_id}) on channel {channel_name} ({channel_id}). Possibly you can no longer reach this chat. Send /unlink_all to unlink all chats from this group."
 msgstr "该群组绑定到了来自 {channel_name}（{channel_id}）的未知会话（{chat_id}）。该会话有可能已不存在。发送 /unlink_all 以解绑所有绑定至此的会话。"
 
-#: efb_telegram_master/chat_binding.py:613
+#: efb_telegram_master/chat_binding.py:612
 #, python-brace-format
 msgid "This group is linked to a chat from a channel that is not activated ({channel_id}, {chat_id}). You cannot reach this chat unless the channel is enabled. Send /unlink_all to unlink all chats from this group."
 msgstr "该群组绑定到了来自未激活信道的会话（{channel_id}、{chat_id}）。该会话有可能已不存在。发送 /unlink_all 以解绑所有绑定至此的会话。"
 
-#: efb_telegram_master/chat_binding.py:623
+#: efb_telegram_master/chat_binding.py:622
 msgid "This Telegram group is linked to the following chats, choose one to start a conversation with."
 msgstr "此 Telegram 群组已被绑定至以下会话，请选择其中一个来开始聊天。"
 
-#: efb_telegram_master/chat_binding.py:667
+#: efb_telegram_master/chat_binding.py:666
 #, python-brace-format
 msgid "Invalid command. ({0})"
 msgstr "无效命令。({0})"
 
-#: efb_telegram_master/chat_binding.py:679
+#: efb_telegram_master/chat_binding.py:678
 #, python-brace-format
 msgid "Reply to this message to chat with {0}."
 msgstr "回复该消息以与 {0} 对话。"
 
-#: efb_telegram_master/chat_binding.py:705
+#: efb_telegram_master/chat_binding.py:704
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message, or choose a recipient:\n\n"
 "Legend:\n"
@@ -829,8 +829,8 @@ msgstr "错误：未指定消息接收者。\n"
 "请回复一条过去的消息，或选择一个收件人：\n\n"
 "图例：\n"
 
-#: efb_telegram_master/chat_binding.py:724
-#: efb_telegram_master/chat_binding.py:732
+#: efb_telegram_master/chat_binding.py:723
+#: efb_telegram_master/chat_binding.py:731
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message.\n\n"
 "Session expired, please try again."
@@ -838,23 +838,23 @@ msgstr "错误：未指定消息接收者。\n"
 "请回复一条过去的消息。\n\n"
 "会话超时，请重试。"
 
-#: efb_telegram_master/chat_binding.py:744
+#: efb_telegram_master/chat_binding.py:743
 #, python-brace-format
 msgid "Delivering the message to {0}."
 msgstr "发送消息至 {0}。"
 
-#: efb_telegram_master/chat_binding.py:748
+#: efb_telegram_master/chat_binding.py:747
 #, python-brace-format
 msgid "Delivering the message to {module_id} {chat_uid}."
 msgstr "发送消息至 {module_id} {chat_uid}。"
 
-#: efb_telegram_master/chat_binding.py:753
+#: efb_telegram_master/chat_binding.py:752
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message."
 msgstr "错误：未指定消息接收者。\n"
 "请回复一条过去的消息。"
 
-#: efb_telegram_master/chat_binding.py:758
+#: efb_telegram_master/chat_binding.py:757
 #, python-brace-format
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message.\n\n"
@@ -863,53 +863,53 @@ msgstr "错误：未指定消息接收者。\n"
 "请回复一条过去的消息。\n\n"
 "参数无效 ({0}) 。"
 
-#: efb_telegram_master/chat_binding.py:776
+#: efb_telegram_master/chat_binding.py:775
 msgid "Send /update_info to a group where this bot is a group admin to update group title, description and profile picture."
 msgstr "将本 bot 添加进 Telegram 群组，并设置为群组管理员。在群组中发送 /update_info 以更新群组名称、简介和头像。"
 
-#: efb_telegram_master/chat_binding.py:786
+#: efb_telegram_master/chat_binding.py:785
 #, python-brace-format
 msgid "This only works in a group linked with one chat. Currently {0} chat linked to this group."
 msgid_plural "This only works in a group linked with one chat. Currently {0} chats linked to this group."
 msgstr[0] "该指令只适用于单一绑定的群组。目前该群组已绑定了 {0} 个会话。"
 
-#: efb_telegram_master/chat_binding.py:796
+#: efb_telegram_master/chat_binding.py:795
 #, python-brace-format
 msgid "Channel linked ({channel}) is not found."
 msgstr "绑定的从端（{channel}）不存在。"
 
 #. TRANSLATORS: Separator between group members in a Telegram group description generated by /update_info
-#: efb_telegram_master/chat_binding.py:809
+#: efb_telegram_master/chat_binding.py:808
 msgid ", "
 msgstr "、"
 
-#: efb_telegram_master/chat_binding.py:812
+#: efb_telegram_master/chat_binding.py:811
 #, python-brace-format
 msgid "{count} group member: {list}"
 msgid_plural "{count} group members: {list}"
 msgstr[0] "{count} 名成员：{list}"
 
-#: efb_telegram_master/chat_binding.py:843
+#: efb_telegram_master/chat_binding.py:842
 msgid "Chat details updated."
 msgstr "会话详情已更新。"
 
-#: efb_telegram_master/chat_binding.py:847
+#: efb_telegram_master/chat_binding.py:846
 #, python-brace-format
 msgid "Chat linked ({chat_uid}) is not found in the slave channel ({channel_name}, {channel_id})."
 msgstr "未在从端「{channel_name}」（{channel_id}）中找到绑定的会话（{chat_uid}）。"
 
-#: efb_telegram_master/chat_binding.py:853
+#: efb_telegram_master/chat_binding.py:852
 #, python-brace-format
 msgid "Error occurred while update chat details.\n"
 "{0}"
 msgstr "更新会话详情时出错。\n"
 "{0}"
 
-#: efb_telegram_master/chat_binding.py:856
+#: efb_telegram_master/chat_binding.py:855
 msgid "No profile picture provided from this chat."
 msgstr "该会话没有头像。"
 
-#: efb_telegram_master/chat_binding.py:859
+#: efb_telegram_master/chat_binding.py:858
 #, python-brace-format
 msgid "Error occurred while update chat details. \n"
 "{0}"
