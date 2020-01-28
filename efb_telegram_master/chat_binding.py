@@ -489,7 +489,7 @@ class ChatBindingManager(LocaleMixin):
         # Use channel ID if command is forwarded from a channel.
         forwarded_chat: Chat = update.effective_message.forward_from_chat
         if forwarded_chat and forwarded_chat.type == telegram.Chat.CHANNEL:
-            tg_chat_to_link = forwarded_chat.uid
+            tg_chat_to_link = forwarded_chat.id
         else:
             tg_chat_to_link = update.effective_chat.id
 

@@ -181,6 +181,13 @@ async def test_link_chat_group_linked_relink(helper, client, bot_id, bot_group, 
         assert_is_linked(channel, (chat,), bot_group)
 
 
+async def test_link_chat_channel(helper, client, bot_id, bot_group, bot_channel, slave, channel):
+    chat = slave.chat_with_alias
+    with link_chats(channel, tuple(), bot_channel):
+        await simulate_link_chat(client, helper, chat, bot_id, bot_id, dest_channel=bot_channel)
+        assert_is_linked(channel, (chat,), bot_channel)
+
+
 async def test_link_chat_channel_linked_cancel(helper, client, bot_id, bot_channel, slave, channel):
     chat = slave.chat_with_alias
     with link_chats(channel, (chat,), bot_channel):
@@ -205,7 +212,7 @@ async def test_link_chat_target_incoming_message(helper, client, bot_id, slave, 
 
 
 async def simulate_link_chat(client, helper, chat: Chat, command_chat: int, dest_chat: int,
-                             command_channel: Optional[int] = None):
+                             command_channel: Optional[int] = None, dest_channel: Optional[int] = None):
     """Simulate the procedure of linking a chat.
 
     Provide command_channel to link from a channel.
@@ -215,9 +222,9 @@ async def simulate_link_chat(client, helper, chat: Chat, command_chat: int, dest
         await message.forward_to(command_chat)
     else:
         await client.send_message(command_chat, f"/link {chat.uid}")
-    message: Message = await helper.wait_for_message(in_chats(command_chat) & has_button)  # chat list
+    message = await helper.wait_for_message(in_chats(command_chat) & has_button)  # chat list
     await message.buttons[0][0].click()  # choose chat
-    message: Message = await helper.wait_for_message(in_chats(command_chat) & has_button)  # operation panel
+    message = await helper.wait_for_message(in_chats(command_chat) & has_button)  # operation panel
     url = None
     # print("STIMULATE_LINK_CHAT_MESSAGE_DICT", message.to_dict())
     for i in chain.from_iterable(message.buttons):
@@ -226,5 +233,9 @@ async def simulate_link_chat(client, helper, chat: Chat, command_chat: int, dest
             break
     token = re.search(r"\?startgroup=(.+)", url).groups()[0]
     command = f"/start {token}"
-    await client.send_message(dest_chat, command)
+    if dest_channel:
+        message = await client.send_message(dest_channel, command)
+        await message.forward_to(dest_chat)
+    else:
+        await client.send_message(dest_chat, command)
     await helper.wait_for_message(in_chats(command_chat) & text)
