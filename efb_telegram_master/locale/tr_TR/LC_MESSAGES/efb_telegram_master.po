@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ehforwarderbot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-19 16:17+0000\n"
-"PO-Revision-Date: 2020-01-19 17:21\n"
+"POT-Creation-Date: 2020-01-22 05:46+0000\n"
+"PO-Revision-Date: 2020-01-28 06:59\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Turkish\n"
 "Language: tr_TR\n"
@@ -138,24 +138,24 @@ msgstr ""
 msgid "Caption is truncated due to its length. Full message is sent as attachment."
 msgstr "Başlık, uzunluğundan dolayı kesiliyor. Tam mesaj ek olarak gönderilir."
 
-#: efb_telegram_master/bot_manager.py:220
-#: efb_telegram_master/bot_manager.py:261
+#: efb_telegram_master/bot_manager.py:229
+#: efb_telegram_master/bot_manager.py:270
 msgid "Message is truncated due to its length. Full message is sent as attachment."
 msgstr "İleti çok uzun olduğu için kesildi. Tam mesaj ek olarak gönderilir."
 
-#: efb_telegram_master/bot_manager.py:471
+#: efb_telegram_master/bot_manager.py:480
 msgid "Session expired. Please try again. (SE01)"
 msgstr "Oturum süresi doldu. Lütfen tekrar deneyin. (SE01)"
 
-#: efb_telegram_master/bot_manager.py:528
+#: efb_telegram_master/bot_manager.py:537
 msgid "Response is truncated due to its length. Full message is sent as attachment."
 msgstr ""
 
-#: efb_telegram_master/bot_manager.py:582
+#: efb_telegram_master/bot_manager.py:591
 msgid "Empty attachment detected."
 msgstr "Boş ek tespit edildi."
 
-#: efb_telegram_master/utils.py:55
+#: efb_telegram_master/utils.py:62
 #, python-brace-format
 msgid "{0} is not a valid experimental flag"
 msgstr "{0} geçerli bir deneysel bayrak değildir"
@@ -564,79 +564,79 @@ msgstr ""
 msgid "Congratulations! You have finished the setup wizard for EFB Telegram Master Channel."
 msgstr ""
 
-#: efb_telegram_master/chat_binding.py:178
-#: efb_telegram_master/chat_binding.py:322
-#: efb_telegram_master/chat_binding.py:586
+#: efb_telegram_master/chat_binding.py:179
+#: efb_telegram_master/chat_binding.py:321
+#: efb_telegram_master/chat_binding.py:585
 msgid "Processing..."
 msgstr "İşleniyor..."
 
-#: efb_telegram_master/chat_binding.py:225
+#: efb_telegram_master/chat_binding.py:226
 #, python-brace-format
 msgid "{0}: Linked"
 msgstr "{0}: Bağlı"
 
-#: efb_telegram_master/chat_binding.py:226
+#: efb_telegram_master/chat_binding.py:227
 #, python-brace-format
 msgid "{0}: User"
 msgstr "{0}: Kullanıcı"
 
-#: efb_telegram_master/chat_binding.py:227
+#: efb_telegram_master/chat_binding.py:228
 #, python-brace-format
 msgid "{0}: Group"
 msgstr "{0}: Grup"
 
-#: efb_telegram_master/chat_binding.py:293
+#: efb_telegram_master/chat_binding.py:292
 msgid "< Prev"
 msgstr "< Önceki"
 
-#: efb_telegram_master/chat_binding.py:295
-#: efb_telegram_master/chat_binding.py:411
-#: efb_telegram_master/chat_binding.py:456
+#: efb_telegram_master/chat_binding.py:294
+#: efb_telegram_master/chat_binding.py:410
+#: efb_telegram_master/chat_binding.py:455
 msgid "Cancel"
 msgstr "Vazgeç"
 
-#: efb_telegram_master/chat_binding.py:298
+#: efb_telegram_master/chat_binding.py:297
 msgid "Next >"
 msgstr "Sonraki >"
 
-#: efb_telegram_master/chat_binding.py:325
+#: efb_telegram_master/chat_binding.py:324
 msgid "This Telegram group is currently linked with..."
 msgstr "Bu Telegram grubu şu anda bağlantılı..."
 
-#: efb_telegram_master/chat_binding.py:327
+#: efb_telegram_master/chat_binding.py:326
 msgid "Please choose the chat you want to link with..."
 msgstr "Lütfen bağlanmak istediğiniz sohbeti seçiniz..."
 
-#: efb_telegram_master/chat_binding.py:328
-#: efb_telegram_master/chat_binding.py:631
+#: efb_telegram_master/chat_binding.py:327
+#: efb_telegram_master/chat_binding.py:630
 msgid "\n\n"
 "Legend:\n"
 msgstr "\n\n"
 "Açıklama:\n"
 
-#: efb_telegram_master/chat_binding.py:363
-#: efb_telegram_master/chat_binding.py:429
-#: efb_telegram_master/chat_binding.py:657
+#: efb_telegram_master/chat_binding.py:362
+#: efb_telegram_master/chat_binding.py:428
+#: efb_telegram_master/chat_binding.py:656
 msgid "Cancelled."
 msgstr "İptal edildi."
 
-#: efb_telegram_master/chat_binding.py:373
+#: efb_telegram_master/chat_binding.py:372
 #, python-brace-format
 msgid "Invalid parameter ({0}). (IP01)"
 msgstr "Geçersiz parametre ({0}). (IP01)"
 
-#: efb_telegram_master/chat_binding.py:394
+#: efb_telegram_master/chat_binding.py:393
 #, python-brace-format
 msgid "You've selected chat {0}."
 msgstr "{0} sohbetini seçtiniz."
 
-#: efb_telegram_master/chat_binding.py:396
+#: efb_telegram_master/chat_binding.py:395
 msgid "\n"
 "This chat has already linked to Telegram."
 msgstr "\n"
 "Bu sohbet zaten Telegram'a bağlı."
 
-#: efb_telegram_master/chat_binding.py:397
+#: efb_telegram_master/chat_binding.py:396
 msgid "\n"
 "What would you like to do?\n\n"
 "<i>* If the link button doesn't work for you, please try to link manually.</i>"
@@ -644,28 +644,28 @@ msgstr "\n"
 "Ne yapmak istiyorsunuz?\n\n"
 "<i>* Eğer link butonu işinize yaramıyorsa, lütfen manuel olarak bağlanmaya çalışınız.</i>"
 
-#: efb_telegram_master/chat_binding.py:403
+#: efb_telegram_master/chat_binding.py:402
 msgid "Relink"
 msgstr "Yeniden bağlan"
 
-#: efb_telegram_master/chat_binding.py:404
+#: efb_telegram_master/chat_binding.py:403
 msgid "Restore"
 msgstr "Yeniden yükle"
 
-#: efb_telegram_master/chat_binding.py:406
+#: efb_telegram_master/chat_binding.py:405
 msgid "Link"
 msgstr "Bağlan"
 
-#: efb_telegram_master/chat_binding.py:407
+#: efb_telegram_master/chat_binding.py:406
 #, python-brace-format
 msgid "Manual {link_or_relink}"
 msgstr "Manuel {link_or_relink}"
 
-#: efb_telegram_master/chat_binding.py:440
+#: efb_telegram_master/chat_binding.py:439
 msgid "Chat {} is restored."
 msgstr ""
 
-#: efb_telegram_master/chat_binding.py:443
+#: efb_telegram_master/chat_binding.py:442
 #, python-brace-format
 msgid "To link {chat_display_name} manually, please:\n\n"
 "1. Add me to the Telegram Group you want to link to.\n"
@@ -680,88 +680,88 @@ msgstr "{chat_display_name}'e manuel olarak bağlanmak için lütfen:\n\n"
 "3. Sonra, eğer sohbete başarıyla bağlanıldıysa size bildirebilirim.\n\n"
 "<i>* Bir kanala bağlanmak için, kanalınızın altındaki kodu gönderin ve bota iletin. Şunu unutmayın ki bot diğerlerinin kanallara yolladığı hiçbir mesajı işlemeyecektir.</i>"
 
-#: efb_telegram_master/chat_binding.py:461
+#: efb_telegram_master/chat_binding.py:460
 #, python-brace-format
 msgid "Command ‘{command}’ ({query}) is not recognised, please try again."
 msgstr ""
 
-#: efb_telegram_master/chat_binding.py:477
+#: efb_telegram_master/chat_binding.py:476
 msgid "Session expired or unknown parameter. (SE02)"
 msgstr "Oturumun süresi geçmiştir veya bilinmeyen parametre. (SE02)"
 
-#: efb_telegram_master/chat_binding.py:485
+#: efb_telegram_master/chat_binding.py:484
 #, python-brace-format
 msgid "{module_id} is not activated in current profile. It cannot be linked."
 msgstr ""
 
-#: efb_telegram_master/chat_binding.py:497
+#: efb_telegram_master/chat_binding.py:496
 #, python-brace-format
 msgid "Trying to link chat {0}..."
 msgstr "{0} sohbetine bağlanılmaya çalışılıyor..."
 
-#: efb_telegram_master/chat_binding.py:502
+#: efb_telegram_master/chat_binding.py:501
 #, python-brace-format
 msgid "Chat {0} is now linked."
 msgstr "{0} sohbetine şimdi bağlanıldı."
 
-#: efb_telegram_master/chat_binding.py:520
+#: efb_telegram_master/chat_binding.py:519
 msgid "No chat is linked to the group."
 msgstr "Bu gruba bağlanmış bir sohbet yoktur."
 
-#: efb_telegram_master/chat_binding.py:526
+#: efb_telegram_master/chat_binding.py:525
 #, python-brace-format
 msgid "All {0} chat has been unlinked from this group."
 msgid_plural "All {0} chats has been unlinked from this group."
 msgstr[0] "Tüm sohbetlerin {0} bu grupla bağlantısı kesilmiştir."
 msgstr[1] "Tüm sohbetlerin {0} bu grupla bağlantısı kesilmiştir."
 
-#: efb_telegram_master/chat_binding.py:537
+#: efb_telegram_master/chat_binding.py:536
 msgid "No chat is linked to the channel."
 msgstr "Kanala bağlanmış bir sohbet yoktur."
 
-#: efb_telegram_master/chat_binding.py:543
+#: efb_telegram_master/chat_binding.py:542
 #, python-brace-format
 msgid "All {0} chat has been unlinked from this channel."
 msgid_plural "All {0} chats has been unlinked from this channel."
 msgstr[0] "Tüm sohbetlerin {0} bu grupla bağlantısı kesilmiştir."
 msgstr[1] "Tüm sohbetlerin {0} bu grupla bağlantısı kesilmiştir."
 
-#: efb_telegram_master/chat_binding.py:549
+#: efb_telegram_master/chat_binding.py:548
 msgid "Send `/unlink_all` to a group to unlink all remote chats from it."
 msgstr "Tüm uzaktan sohbetlerin bir grupla olan bağlantısını kesmek için gruba `/unlink_all` yollayın."
 
-#: efb_telegram_master/chat_binding.py:595
+#: efb_telegram_master/chat_binding.py:594
 #, python-brace-format
 msgid "This group is linked to {0}Send a message to this group to deliver it to the chat.\n"
 "Do NOT reply to this system message."
 msgstr "Bu grup {0}'a bağlıdır Sohbete aktarmak için bu gruba bir mesaj yollayın.\n"
 "Bu sistem mesajına cevap vermeyin."
 
-#: efb_telegram_master/chat_binding.py:606
+#: efb_telegram_master/chat_binding.py:605
 #, python-brace-format
 msgid "This group is linked to an unknown chat ({chat_id}) on channel {channel_name} ({channel_id}). Possibly you can no longer reach this chat. Send /unlink_all to unlink all chats from this group."
 msgstr ""
 
-#: efb_telegram_master/chat_binding.py:613
+#: efb_telegram_master/chat_binding.py:612
 #, python-brace-format
 msgid "This group is linked to a chat from a channel that is not activated ({channel_id}, {chat_id}). You cannot reach this chat unless the channel is enabled. Send /unlink_all to unlink all chats from this group."
 msgstr ""
 
-#: efb_telegram_master/chat_binding.py:623
+#: efb_telegram_master/chat_binding.py:622
 msgid "This Telegram group is linked to the following chats, choose one to start a conversation with."
 msgstr "Bu Telegram grubu aşağıdaki sohbetlere bağlıdır, konuşma başlatmak için birini seçin."
 
-#: efb_telegram_master/chat_binding.py:667
+#: efb_telegram_master/chat_binding.py:666
 #, python-brace-format
 msgid "Invalid command. ({0})"
 msgstr "Geçersiz komut. ({0})"
 
-#: efb_telegram_master/chat_binding.py:679
+#: efb_telegram_master/chat_binding.py:678
 #, python-brace-format
 msgid "Reply to this message to chat with {0}."
 msgstr "{0} ile sohbet etmek için bu mesaja cevap verin."
 
-#: efb_telegram_master/chat_binding.py:705
+#: efb_telegram_master/chat_binding.py:704
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message, or choose a recipient:\n\n"
 "Legend:\n"
@@ -769,30 +769,30 @@ msgstr "Hata: Alıcı belirtilmemiş.\n"
 "Lütfen bir önceki mesaja cevap verin ya da bir alıcı seçin:\n\n"
 "Açıklama:\n"
 
-#: efb_telegram_master/chat_binding.py:724
-#: efb_telegram_master/chat_binding.py:732
+#: efb_telegram_master/chat_binding.py:723
+#: efb_telegram_master/chat_binding.py:731
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message.\n\n"
 "Session expired, please try again."
 msgstr ""
 
-#: efb_telegram_master/chat_binding.py:744
+#: efb_telegram_master/chat_binding.py:743
 #, python-brace-format
 msgid "Delivering the message to {0}."
 msgstr ""
 
-#: efb_telegram_master/chat_binding.py:748
+#: efb_telegram_master/chat_binding.py:747
 #, python-brace-format
 msgid "Delivering the message to {module_id} {chat_uid}."
 msgstr ""
 
-#: efb_telegram_master/chat_binding.py:753
+#: efb_telegram_master/chat_binding.py:752
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message."
 msgstr "Hata: Alıcı belirtilmemiş.\n"
 "Lütfen önceki mesaja cevap verin."
 
-#: efb_telegram_master/chat_binding.py:758
+#: efb_telegram_master/chat_binding.py:757
 #, python-brace-format
 msgid "Error: No recipient specified.\n"
 "Please reply to a previous message.\n\n"
@@ -801,54 +801,54 @@ msgstr "Hata: Alıcı belirtilmemiş.\n"
 "Lütfen önceki mesaja cevap verin.\n\n"
 "Geçersiz parametre ({0})."
 
-#: efb_telegram_master/chat_binding.py:776
+#: efb_telegram_master/chat_binding.py:775
 msgid "Send /update_info to a group where this bot is a group admin to update group title, description and profile picture."
 msgstr ""
 
-#: efb_telegram_master/chat_binding.py:786
+#: efb_telegram_master/chat_binding.py:785
 #, python-brace-format
 msgid "This only works in a group linked with one chat. Currently {0} chat linked to this group."
 msgid_plural "This only works in a group linked with one chat. Currently {0} chats linked to this group."
 msgstr[0] "Bu sadece tek bir sohbete bağlı olan bir grupta çalışır. Mevcut durumda {0} sohbetleri bu gruba bağlıdır."
 msgstr[1] "Bu sadece tek bir sohbete bağlı olan bir grupta çalışır. Mevcut durumda {0} sohbeti bu gruba bağlıdır."
 
-#: efb_telegram_master/chat_binding.py:796
+#: efb_telegram_master/chat_binding.py:795
 #, python-brace-format
 msgid "Channel linked ({channel}) is not found."
 msgstr ""
 
 #. TRANSLATORS: Separator between group members in a Telegram group description generated by /update_info
-#: efb_telegram_master/chat_binding.py:809
+#: efb_telegram_master/chat_binding.py:808
 msgid ", "
 msgstr ""
 
-#: efb_telegram_master/chat_binding.py:812
+#: efb_telegram_master/chat_binding.py:811
 #, python-brace-format
 msgid "{count} group member: {list}"
 msgid_plural "{count} group members: {list}"
 msgstr[0] ""
 msgstr[1] ""
 
-#: efb_telegram_master/chat_binding.py:843
+#: efb_telegram_master/chat_binding.py:842
 msgid "Chat details updated."
 msgstr ""
 
-#: efb_telegram_master/chat_binding.py:847
+#: efb_telegram_master/chat_binding.py:846
 #, python-brace-format
 msgid "Chat linked ({chat_uid}) is not found in the slave channel ({channel_name}, {channel_id})."
 msgstr ""
 
-#: efb_telegram_master/chat_binding.py:853
+#: efb_telegram_master/chat_binding.py:852
 #, python-brace-format
 msgid "Error occurred while update chat details.\n"
 "{0}"
 msgstr ""
 
-#: efb_telegram_master/chat_binding.py:856
+#: efb_telegram_master/chat_binding.py:855
 msgid "No profile picture provided from this chat."
 msgstr "Bu sohbetten bir profil fotoğrafı bulunamamıştır."
 
-#: efb_telegram_master/chat_binding.py:859
+#: efb_telegram_master/chat_binding.py:858
 #, python-brace-format
 msgid "Error occurred while update chat details. \n"
 "{0}"

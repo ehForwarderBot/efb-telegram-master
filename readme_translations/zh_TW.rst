@@ -29,12 +29,6 @@ ETM 是一个用于 EH Forwarder Bot 的 Telegram 主端，基于 Telegram Bot
 API，``python-telegram-bot`` 建立。
 
 
-测试版
-======
-
-该从端非稳定版本，且其功能随时可能会被更改。
-
-
 依赖
 ====
 
@@ -59,15 +53,14 @@ API，``python-telegram-bot`` 建立。
     ::
        pip3 install efb-telegram-master
 
-3. Enable and configure ETM using the *EFB configuration wizard*, or
-    enable it manually in the profile’s ``config.yaml``.
+3. 使用 *EFB 配置向导* 启用和配置 ETM，或在配置档案的 ``config.yaml`` 中手动启用。
 
     根据您的个人配置档案，目录路径可能有所不同。
 
-    **(As of EFB 2, default profile storage directory is located at**
-    ``~/.ehforwarderbot/profiles/default`` **)**
+    **（在 EFB 2 中: 默认的配置档案储存目录位于**
+    ``~/.ehforwarderbot/profiles/default`` **）**
 
-4. Configure the channel (manual configure instructions as follows)
+4. 配置主端（手动配置说明如下）
 
 
 其他安装方式
@@ -83,8 +76,8 @@ API，``python-telegram-bot`` 建立。
   <https://efb-modules.1a23.studio#scripts-and-containers-eg-docker>`_
 
 
-Manual Configuration
-====================
+手动配置
+========
 
 
 设置机器人
@@ -460,8 +453,7 @@ ETM 不能：
 
 * ``auto_locale`` *(str)* [默认: ``true``]
 
-  Detect the locale from admins’ messages automatically. Locale
-  defined in environment variables will be used otherwise.
+  从 bot 管理员的语言设定中自动设定 ETM 语言。当该值为 false 时，ETM 会从系统的环境变量中读取语言设定。
 
 * ``retry_on_error`` *(bool)* [默认: ``false``]
 

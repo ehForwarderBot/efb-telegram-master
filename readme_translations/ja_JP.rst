@@ -29,12 +29,6 @@ ETM is a Telegram Master Channel for EH Forwarder Bot, based on
 Telegram Bot API, ``python-telegram-bot``.
 
 
-ベータバージョン
-================
-
-このバージョンは不安定のバージョンであり、機能を変わる場合もあります。
-
-
 条件
 ====
 
