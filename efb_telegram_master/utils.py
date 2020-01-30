@@ -168,7 +168,7 @@ def convert_tgs_to_gif(tgs_file: BinaryIO, gif_file: BinaryIO) -> bool:
         # heavy_strip(animation)
         # heavy_strip(animation)
         # animation.tgs_sanitize()
-        export_gif(animation, gif_file, skip_frames=1)
+        export_gif(animation, gif_file, skip_frames=5, dpi=48)
         return True
     except Exception:
         logging.exception("Error occurred while converting TGS to GIF.")
