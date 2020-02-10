@@ -573,7 +573,7 @@ class SlaveMessageProcessor(LocaleMixin):
                                               text=file_too_large)
                     else:
                         message = self.bot.send_message(chat_id=tg_dest, reply_to_message_id=target_msg_id,
-                                                        text=self.html_substitutions(msg.text),
+                                                        text=self.html_substitutions(msg),
                                                         parse_mode="HTML", reply_markup=reply_markup,
                                                         disable_notification=silent,
                                                         prefix=msg_template, suffix=reactions)
@@ -957,7 +957,7 @@ class SlaveMessageProcessor(LocaleMixin):
             msg_template = f"{Emoji.UNKNOWN} {msg.author.long_name} ({msg.chat.display_name}):"
         return msg_template
 
-    def check_file_size(self, file: IO[bytes]) -> Optional[str]:
+    def check_file_size(self, file: Optional[IO[bytes]]) -> Optional[str]:
         """
         Return an error message if the file is too large to upload,
         None otherwise.
@@ -968,8 +968,8 @@ class SlaveMessageProcessor(LocaleMixin):
         file_size = file.tell()
         file.seek(0)
         if file_size > telegram.constants.MAX_FILESIZE_UPLOAD:
-            size_str = humanize.naturalsize(file_size, binary=True)
-            max_size_str = humanize.naturalsize(telegram.constants.MAX_FILESIZE_UPLOAD, binary=True)
+            size_str = humanize.naturalsize(file_size)
+            max_size_str = humanize.naturalsize(telegram.constants.MAX_FILESIZE_UPLOAD)
             return self._(
                 "Attachment is too large ({size}). Maximum allowed by Telegram Bot API is {max_size}. (AT02)").format(
                 size=size_str, max_size=max_size_str)
