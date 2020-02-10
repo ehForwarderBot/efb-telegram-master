@@ -23,7 +23,7 @@ from abc import ABC, abstractmethod
 from typing import Optional
 from uuid import uuid4
 
-from pytest import mark, approx
+from pytest import mark, approx, param
 from telethon import TelegramClient
 from telethon.tl.custom import Message
 from telethon.tl.types import InputMediaGeoPoint, InputGeoPoint, InputMediaGeoLive, \
@@ -402,10 +402,16 @@ class AnimationMessageFactory(MessageFactory):
 
 
 @mark.parametrize("factory", [
-    TextMessageFactory(), LocationMessageFactory(), LiveLocationMessageFactory(),
-    ContactMessageFactory(), StickerMessageFactory(), DocumentMessageFactory(),
-    PhotoMessageFactory(), VoiceMessageFactory(), AudioMessageFactory(),
-    VideoMessageFactory(), VideoNoteMessageFactory(), AnimationMessageFactory()
+    TextMessageFactory(), LocationMessageFactory(),
+    LiveLocationMessageFactory(), ContactMessageFactory(),
+    StickerMessageFactory(),
+    param(DocumentMessageFactory(), marks=mark.xfail(reason="PTB does not support Bot API 4.5")),
+    param(PhotoMessageFactory(), marks=mark.xfail(reason="PTB does not support Bot API 4.5")),
+    param(VoiceMessageFactory(), marks=mark.xfail(reason="PTB does not support Bot API 4.5")),
+    param(AudioMessageFactory(), marks=mark.xfail(reason="PTB does not support Bot API 4.5")),
+    param(VideoMessageFactory(), marks=mark.xfail(reason="PTB does not support Bot API 4.5")),
+    param(VideoNoteMessageFactory(), marks=mark.xfail(reason="PTB does not support Bot API 4.5")),
+    param(AnimationMessageFactory(), marks=mark.xfail(reason="PTB does not support Bot API 4.5"))
 ], ids=str)
 async def test_master_message(helper, client, bot_group, slave, channel, factory: MessageFactory):
     chat = slave.chat_without_alias
