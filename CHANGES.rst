@@ -28,9 +28,13 @@ Removed
 
 Fixed
 -----
+- Detection of updated file is fixed by the inclusion of ``file_unique_id``
+  attribute. NOTE: this will only work when `PTB supports Bot API 4.5`__.
+
+__ https://github.com/python-telegram-bot/python-telegram-bot/pull/1508
 
 2.0.0_ - 2020-01-31
-======
+===================
 First release.
 
 .. _2.0.0: https://etm.1a23.studio/releases/tag/v2.0.0

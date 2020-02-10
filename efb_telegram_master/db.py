@@ -88,6 +88,8 @@ class MsgLog(BaseModel):
     """MIME type of attachment."""
     file_id = TextField(null=True)
     """File ID of attachment in Telegram."""
+    file_unique_id = TextField(null=True)
+    """Unique file ID of attachment in Telegram."""
     msg_type = TextField()
     """Message type in EFB framework."""
     pickle = BlobField(null=True)
@@ -198,6 +200,8 @@ class DatabaseManager:
                 self._migrate(1)
             elif "slave_chat_group_id" not in slave_chat_info_columns:
                 self._migrate(2)
+            elif "file_unique_id" not in msg_log_columns:
+                self._migrate(3)
         self.logger.debug("Database migration finished...")
 
     def task_worker(self):
@@ -260,6 +264,12 @@ class DatabaseManager:
             # 2019NOV18
             migrate(
                 migrator.add_column("slavechatinfo", "slave_chat_group_id", SlaveChatInfo.slave_chat_group_id)
+            )
+        if i <= 3:
+            # Migration 3: Add column for unique file ID to message log table
+            # 2019NOV18
+            migrate(
+                migrator.add_column("msglog", "file_unique_id", MsgLog.file_unique_id)
             )
 
     def add_chat_assoc(self, master_uid: EFBChannelChatIDStr,
@@ -422,6 +432,7 @@ class DatabaseManager:
         row.slave_message_id = msg.uid or f"{self.FAIL_FLAG}.{time.time()}"
         row.media_type = msg.type_telegram.value
         row.file_id = msg.file_id
+        row.file_unique_id = msg.file_unique_id
         row.mime = msg.mime
         pickle_data = self.pickle_misc_msg(msg)
         if pickle_data:
