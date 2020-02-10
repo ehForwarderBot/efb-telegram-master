@@ -125,7 +125,6 @@ class TelegramChannel(MasterChannel):
         self.bot_manager: TelegramBotManager = TelegramBotManager(self)
         self.commands: CommandsManager = CommandsManager(self)
         self.chat_binding: ChatBindingManager = ChatBindingManager(self)
-        self.master_messages: MasterMessageProcessor = MasterMessageProcessor(self)
         self.slave_messages: SlaveMessageProcessor = SlaveMessageProcessor(self)
 
         if not self.flag('auto_locale'):
@@ -148,6 +147,10 @@ class TelegramChannel(MasterChannel):
         self.bot_manager.dispatcher.add_handler(
             CommandHandler("react", self.react, filters=non_edit_filter)
         )
+
+        # Register master message handlers after commands to prevent commands
+        # commands to be delivered as messages
+        self.master_messages: MasterMessageProcessor = MasterMessageProcessor(self)
 
         self.bot_manager.dispatcher.add_error_handler(self.error)
 

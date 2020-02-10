@@ -175,18 +175,6 @@ def convert_tgs_to_gif(tgs_file: BinaryIO, gif_file: BinaryIO) -> bool:
         return False
 
 
-class PollFilter(BaseFilter):
-    """python-telegram-bot filter for poll messages.
-    TODO: remove this when PTB#1673 is merged and uploaded to PyPI
-
-    https://github.com/python-telegram-bot/python-telegram-bot/pull/1673
-    """
-    name = 'Filters.poll'
-
-    def filter(self, message):
-        return bool(message.poll)
-
-
 if os.name == "nt":
     # Workaround for Windows which cannot open the same file as "read" twice.
     # Using stdin/stdout pipe for IO with ffmpeg.
