@@ -436,8 +436,8 @@ class MasterMessageProcessor(LocaleMixin):
         """
         size = getattr(file_obj, "file_size", None)
         if size and size > telegram.constants.MAX_FILESIZE_DOWNLOAD:
-            size_str = humanize.naturalsize(size, binary=True)
-            max_size_str = humanize.naturalsize(telegram.constants.MAX_FILESIZE_DOWNLOAD, binary=True)
+            size_str = humanize.naturalsize(size)
+            max_size_str = humanize.naturalsize(telegram.constants.MAX_FILESIZE_DOWNLOAD)
             raise EFBMessageError(
                 self._(
                     "Attachment is too large ({size}). Maximum allowed by Telegram Bot API is {max_size}. (AT01)").format(
