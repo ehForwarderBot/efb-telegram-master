@@ -29,8 +29,14 @@ Removed
 Fixed
 -----
 
+Known issue
+-----------
+- All edited messages from Telegram are seen as edited with media due to the
+  update of Telegram Bot API 4.5. This will be fixed only after Python Telegram
+  Bot introduce supports to Bot API 4.5. No workaround is available for now.
+
 2.0.0_ - 2020-01-31
-======
+===================
 First release.
 
 .. _2.0.0: https://etm.1a23.studio/releases/tag/v2.0.0
