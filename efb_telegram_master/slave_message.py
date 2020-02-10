@@ -962,6 +962,8 @@ class SlaveMessageProcessor(LocaleMixin):
         Return an error message if the file is too large to upload,
         None otherwise.
         """
+        if not file or getattr(file, "closed", True):
+            return None
         file.seek(0, 2)
         file_size = file.tell()
         file.seek(0)
