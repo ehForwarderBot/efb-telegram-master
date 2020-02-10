@@ -16,18 +16,33 @@ Unreleased
 
 Added
 -----
-- `#93`_: Send error message to user when size of media from slave channel
-  exceeds Telegram Bot API limit
 
 Changed
 -------
-- Improved compatibility with Python Telegram Bot 12.4.1
 
 Removed
 -------
 
 Fixed
 -----
+
+Known issue
+-----------
+- All edited messages from Telegram are seen as edited with media due to the
+  update of Telegram Bot API 4.5. This will be fixed only after Python Telegram
+  Bot introduce supports to Bot API 4.5. No workaround is available for now.
+
+2.0.1_ - 2020-02-10
+===================
+
+Added
+-----
+- `#93`_: Send error message to user when size of media from slave channel
+  exceeds Telegram Bot API limit
+
+Changed
+-------
+- Improved compatibility with Python Telegram Bot 12.4.1
 
 Known issue
 -----------
