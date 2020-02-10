@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ehforwarderbot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-28 07:01+0000\n"
-"PO-Revision-Date: 2020-01-31 06:50\n"
+"POT-Creation-Date: 2020-02-10 09:41+0000\n"
+"PO-Revision-Date: 2020-02-10 10:00\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Spanish, Argentina\n"
 "Language: es_AR\n"
@@ -14,151 +14,6 @@ msgstr ""
 "X-Crowdin-Project: ehforwarderbot\n"
 "X-Crowdin-Language: es-AR\n"
 "X-Crowdin-File: /EFBChannels/efb-telegram-master/efb_telegram_master/locale/efb_telegram_master.pot\n"
-
-#: efb_telegram_master/master_message.py:107
-msgid "Unknown error has occurred while trying to process this message. See log for details.\n\n"
-"{error!r}"
-msgstr ""
-
-#: efb_telegram_master/master_message.py:125
-msgid "ETM message worker is not running due to unforeseen reason. This might be a bug. Please see log for details."
-msgstr ""
-
-#: efb_telegram_master/master_message.py:171
-msgid "Error: No recipient specified.\n"
-"Please reply to a previous message. (MS01)"
-msgstr "Error: no se especificó ningún destinatario.\n"
-"Por favor responde a un mensaje anterior. (MS01)"
-
-#: efb_telegram_master/master_message.py:177
-msgid "Error: No recipient specified.\n"
-"Please reply to a previous message. (MS02)"
-msgstr "Error: no se especificó ningún destinatario.\n"
-"Por favor responde a un mensaje anterior. (MS02)"
-
-#: efb_telegram_master/master_message.py:216
-#, python-brace-format
-msgid "Internal error: Slave channel “{0}” not found."
-msgstr ""
-
-#: efb_telegram_master/master_message.py:241
-#: efb_telegram_master/master_message.py:499
-#, python-brace-format
-msgid "{type_name} messages are not supported by EFB Telegram Master channel."
-msgstr ""
-
-#: efb_telegram_master/master_message.py:248
-#, python-brace-format
-msgid "{type_name} messages are not supported by slave channel {channel_name}."
-msgstr ""
-
-#: efb_telegram_master/master_message.py:281
-#: efb_telegram_master/master_message.py:283
-#: efb_telegram_master/master_message.py:491
-#: efb_telegram_master/master_message.py:493
-#: efb_telegram_master/slave_message.py:797
-msgid "Message is removed in remote chat."
-msgstr ""
-
-#. TRANSLATORS: Message body text for location messages.
-#: efb_telegram_master/master_message.py:332
-msgid "Location"
-msgstr ""
-
-#: efb_telegram_master/master_message.py:345
-#, python-brace-format
-msgid "Shared a contact: {first_name} {last_name}\n"
-"{phone_number}"
-msgstr ""
-
-#: efb_telegram_master/master_message.py:349
-#, python-brace-format
-msgid "Message type {0} is not supported."
-msgstr "El tipo de mensaje {0} no es compatible."
-
-#: efb_telegram_master/master_message.py:357
-msgid "Chat is not found."
-msgstr "Chat no encontrado."
-
-#: efb_telegram_master/master_message.py:359
-msgid "Message type is not supported."
-msgstr "El tipo de mensaje no es compatible."
-
-#: efb_telegram_master/master_message.py:362
-msgid "Message editing is not supported.\n\n"
-"{exception!s}"
-msgstr ""
-
-#: efb_telegram_master/master_message.py:364
-msgid "Message is not sent.\n\n"
-"{exception!s}"
-msgstr ""
-
-#: efb_telegram_master/master_message.py:367
-msgid "Message is not sent.\n\n"
-"{exception!r}"
-msgstr ""
-
-#: efb_telegram_master/master_message.py:417
-#, python-brace-format
-msgid "This message is sent to “{dest}” with quick reply feature.\n\n"
-"Learn more about how this works, how to turn this feature off, and how to stop this warning at {docs}."
-msgstr ""
-
-#: efb_telegram_master/master_message.py:442
-#, python-brace-format
-msgid "Attachment is too large ({size}). Maximum allowed by Telegram Bot API is {max_size}. (AT01)"
-msgstr ""
-
-#: efb_telegram_master/master_message.py:452
-msgid "Reply /rm to a message to remove it from its remote chat."
-msgstr ""
-
-#: efb_telegram_master/master_message.py:459
-#: efb_telegram_master/master_message.py:465
-msgid "This message is not found in ETM database. You cannot remove it from its remote chat."
-msgstr ""
-
-#: efb_telegram_master/master_message.py:470
-#, python-brace-format
-msgid "Module of this message ({module_id}) could not be found, or is not a slave channel."
-msgstr ""
-
-#: efb_telegram_master/master_message.py:480
-msgid "Failed to remove this message from remote chat.\n\n"
-"{error!s}"
-msgstr ""
-
-#: efb_telegram_master/master_message.py:485
-msgid "Failed to remove this message from remote chat.\n\n"
-"{error!r}"
-msgstr ""
-
-#: efb_telegram_master/bot_manager.py:116
-msgid "Caption is truncated due to its length. Full message is sent as attachment."
-msgstr "La leyenda se trunca debido a su longitud. El mensaje completo se envía como archivo adjunto."
-
-#: efb_telegram_master/bot_manager.py:229
-#: efb_telegram_master/bot_manager.py:270
-msgid "Message is truncated due to its length. Full message is sent as attachment."
-msgstr "El mensaje se trunca debido a su longitud. El mensaje completo se envía como archivo adjunto."
-
-#: efb_telegram_master/bot_manager.py:480
-msgid "Session expired. Please try again. (SE01)"
-msgstr "Sesión expirada. Inténtalo de nuevo. (SE01)"
-
-#: efb_telegram_master/bot_manager.py:537
-msgid "Response is truncated due to its length. Full message is sent as attachment."
-msgstr ""
-
-#: efb_telegram_master/bot_manager.py:591
-msgid "Empty attachment detected."
-msgstr "Se ha detectado un archivo adjunto vacío."
-
-#: efb_telegram_master/utils.py:62
-#, python-brace-format
-msgid "{0} is not a valid experimental flag"
-msgstr "{0} no es un indicador experimental válido"
 
 #: efb_telegram_master/commands.py:95
 #, python-brace-format
@@ -208,23 +63,686 @@ msgstr "Error: el comando no se encuentra en el canal.\n"
 "Argumentos: {args!r}\n"
 "Argumentos de las palabras clave: {kwargs!r}"
 
-#: efb_telegram_master/slave_message.py:207
+#: efb_telegram_master/bot_manager.py:116
+msgid "Caption is truncated due to its length. Full message is sent as attachment."
+msgstr "La leyenda se trunca debido a su longitud. El mensaje completo se envía como archivo adjunto."
+
+#: efb_telegram_master/bot_manager.py:229
+#: efb_telegram_master/bot_manager.py:270
+msgid "Message is truncated due to its length. Full message is sent as attachment."
+msgstr "El mensaje se trunca debido a su longitud. El mensaje completo se envía como archivo adjunto."
+
+#: efb_telegram_master/bot_manager.py:480
+msgid "Session expired. Please try again. (SE01)"
+msgstr "Sesión expirada. Inténtalo de nuevo. (SE01)"
+
+#: efb_telegram_master/bot_manager.py:537
+msgid "Response is truncated due to its length. Full message is sent as attachment."
+msgstr ""
+
+#: efb_telegram_master/bot_manager.py:591
+msgid "Empty attachment detected."
+msgstr "Se ha detectado un archivo adjunto vacío."
+
+#: efb_telegram_master/utils.py:62
+#, python-brace-format
+msgid "{0} is not a valid experimental flag"
+msgstr "{0} no es un indicador experimental válido"
+
+#: efb_telegram_master/__init__.py:101
+msgid "WebP support of Pillow is required.\n"
+"Please refer to Pillow Documentation for instructions.\n"
+"https://pillow.readthedocs.io/"
+msgstr "Se requiere soporte WebP de Pillow.\n"
+"Consulte la documentación de Pillow para obtener instrucciones.\n"
+"https://pillow.readthedocs.io/"
+
+#: efb_telegram_master/__init__.py:175
+#, python-brace-format
+msgid "Config File does not exist. ({path})"
+msgstr "Archivo de configuración no existe. ({path})"
+
+#: efb_telegram_master/__init__.py:181
+msgid "Telegram bot token must be a string"
+msgstr "El token del bot de Telegram debe ser una cadena"
+
+#: efb_telegram_master/__init__.py:187
+msgid "Admins' user IDs must be a list of one number or more."
+msgstr "Seudónimos de administradores deben ser una lista de un número o más."
+
+#: efb_telegram_master/__init__.py:192
+#, python-brace-format
+msgid "Admin ID is expected to be an int, but {data} is found."
+msgstr "Se espera que el ID de administrador sea un int, pero se encuentra {data}."
+
+#: efb_telegram_master/__init__.py:217
+#, python-brace-format
+msgid "This is EFB Telegram Master Channel {version}, running on profile “{profile}”, instance “{instance}”, on EFB {fw_version}."
+msgstr ""
+
+#: efb_telegram_master/__init__.py:221
+#, python-brace-format
+msgid "This is EFB Telegram Master Channel {version}, running on default profile, instance “{instance}”, on EFB {fw_version}."
+msgstr ""
+
+#: efb_telegram_master/__init__.py:226
+#, python-brace-format
+msgid "This is EFB Telegram Master Channel {version}, running on profile “{profile}”, default instance, on EFB {fw_version}."
+msgstr ""
+
+#: efb_telegram_master/__init__.py:230
+#, python-brace-format
+msgid "This is EFB Telegram Master Channel {version}, running on default profile and instance, on EFB {fw_version}."
+msgstr ""
+
+#: efb_telegram_master/__init__.py:234
+#, python-brace-format
+msgid "{count} slave channel activated:"
+msgid_plural "{count} slave channels activated:"
+msgstr[0] ""
+msgstr[1] ""
+
+#: efb_telegram_master/__init__.py:242
+#, python-brace-format
+msgid "\n\n"
+"{count} middleware activated:"
+msgid_plural "\n\n"
+"{count} middlewares activated:"
+msgstr[0] "\n\n"
+"{count} middleware activado:"
+msgstr[1] "\n\n"
+"{count} middlewares activados:"
+
+#. TRANSLATORS: ‘channel’ here refers to a Telegram channel.
+#: efb_telegram_master/__init__.py:254
+#, python-brace-format
+msgid "The channel {group_name} ({group_id}) is linked to:"
+msgstr "El canal {group_name} ({group_id}) está vinculado a:"
+
+#. TRANSLATORS: ‘channel’ here means an EFB channel.
+#: efb_telegram_master/__init__.py:260
+#, python-brace-format
+msgid "The channel {group_name} ({group_id}) is not linked to any remote chat. To link one, use /link."
+msgstr ""
+
+#: efb_telegram_master/__init__.py:270
+#, python-brace-format
+msgid "The group {group_name} ({group_id}) is linked to:"
+msgstr "El grupo {group_name} ({group_id}) se encuentra vinculado a:"
+
+#: efb_telegram_master/__init__.py:275
+#, python-brace-format
+msgid "The group {group_name} ({group_id}) is not linked to any remote chat. To link one, use /link."
+msgstr "El grupo {group_name} ({group_id}) no está vinculado a ningún chat remoto. Para vincular utilice /link."
+
+#: efb_telegram_master/__init__.py:300
+#, python-brace-format
+msgid "\n"
+"- {channel_name}: Unknown chat ({channel_id}:{chat_id})"
+msgstr ""
+
+#. TRANSLATORS: ‘channel’ here means an EFB channel.
+#: efb_telegram_master/__init__.py:307
+#, python-brace-format
+msgid "\n"
+"- Unknown channel {channel_id}: ({chat_id})"
+msgstr ""
+
+#: efb_telegram_master/__init__.py:324
+msgid "You cannot link remote chats to here. Please try again."
+msgstr "No puede vincular chats remotos aquí. Inténtelo de nuevo."
+
+#: efb_telegram_master/__init__.py:326
+msgid "This is EFB Telegram Master Channel.\n\n"
+"To learn more, please visit https://etm.1a23.studio ."
+msgstr ""
+
+#: efb_telegram_master/__init__.py:340
+msgid "Reply to a message with this command and an emoji to send a reaction. Ex.: <code>/react 👍</code>.\n"
+"Send <code>/react -</code> to remove your reaction from a message."
+msgstr ""
+
+#: efb_telegram_master/__init__.py:351
+msgid "The message you replied to is not recorded in ETM database. You cannot react to this message."
+msgstr ""
+
+#: efb_telegram_master/__init__.py:359
+msgid "This message has no reactions yet. Reply to a message with this command and an emoji to send a reaction. Ex.: <code>/react 👍</code>."
+msgstr ""
+
+#: efb_telegram_master/__init__.py:380
+msgid "The slave channel involved in this message ({}) is not available. You cannot react to this message."
+msgstr ""
+
+#: efb_telegram_master/__init__.py:387
+msgid "The channel involved in this message ({}) does not accept reactions. You cannot react to this message."
+msgstr ""
+
+#: efb_telegram_master/__init__.py:394
+msgid "The chat involved in this message ({}) is not found. You cannot react to this message."
+msgstr ""
+
+#: efb_telegram_master/__init__.py:404
+msgid "You cannot react anything to this message."
+msgstr ""
+
+#: efb_telegram_master/__init__.py:407
+msgid "{} is not accepted as a reaction to this message."
+msgstr ""
+
+#. TRANSLATORS: {} is a list of names of possible reactions, separated with comma.
+#: efb_telegram_master/__init__.py:410
+msgid "You may want to try: {}"
+msgstr ""
+
+#: efb_telegram_master/__init__.py:415
+msgid "EFB Telegram Master Channel\n"
+"/link\n"
+"    Link a remote chat to an empty Telegram group.\n"
+"    Followed by a regular expression to filter results.\n"
+"/chat\n"
+"    Generate a chat head to start a conversation.\n"
+"    Followed by a regular expression to filter results.\n"
+"/extra\n"
+"    List all additional features from slave channels.\n"
+"/unlink_all\n"
+"    Unlink all remote chats in this chat.\n"
+"/info\n"
+"    Show information of the current Telegram chat.\n"
+"/react [emoji]\n"
+"    React to a message with an emoji, or show a list of members reacted.\n"
+"/update_info\n"
+"    Update info of linked Telegram group.\n"
+"    Only works in singly linked group where the bot is an admin.\n"
+"/rm\n"
+"    Remove the quoted message from its remote chat.\n"
+"/help\n"
+"    Print this command list."
+msgstr ""
+
+#: efb_telegram_master/__init__.py:452
+msgid "Conflicted polling detected. If this error persists, please ensure you are running only one instance of this Telegram bot."
+msgstr "Se detectó una encuesta conflictiva. Si este error persiste, asegúrese de ejecutar solo una instancia de este bot de Telegram."
+
+#: efb_telegram_master/__init__.py:471
+#, python-brace-format
+msgid "Message request is invalid.\n"
+"{error}\n"
+"<code>{update}</code>"
+msgstr "Petición de mensaje no es válida.\n"
+"{error}\n"
+"<code>{update}</code>"
+
+#: efb_telegram_master/__init__.py:481
+#, python-brace-format
+msgid "This message is not processed due to poor internet environment of the server.\n"
+"<code>{code}</code>"
+msgstr "Este mensaje no es procesado debido al deficiente entorno de internet del servidor.\n"
+"<code>{code}</code>"
+
+#: efb_telegram_master/__init__.py:490
+#, python-brace-format
+msgid "<b>EFB Telegram Master channel</b>\n"
+"You may have a poor internet connection on your server. Currently {count} network error is detected.\n"
+"For more details, please refer to the log."
+msgid_plural "<b>EFB Telegram Master channel</b>\n"
+"You may have a poor internet connection on your server. Currently {count} network errors are detected.\n"
+"For more details, please refer to the log."
+msgstr[0] "<b>Canal Maestro del EFB Telegram</b>\n"
+"Es posible que tengas una mala conexión a Internet en tu servidor. Actualmente se detecta un error de red de {count}.\n"
+"Para más detalles, consulte el registro."
+msgstr[1] "<b>Canal Maestro del EFB Telegram</b> Es posible que tengas una mala conexión a Internet en tu servidor. Actualmente se detecta un error de red de {count}. Para más detalles, consulte el registro."
+
+#: efb_telegram_master/__init__.py:511
+#, python-brace-format
+msgid "Chat migration detected.\n"
+"All {count} remote chat are now linked to this new group."
+msgid_plural "Chat migration detected.\n"
+"All {count} remote chats are now linked to this new group."
+msgstr[0] "Se detectó la migración de chat.\n"
+"Todos los {count} del chat remoto ahora están vinculados a este nuevo grupo."
+msgstr[1] "Se detectó la migración de chat. Todos los {count} del chat remoto ahora están vinculados a este nuevo grupo."
+
+#: efb_telegram_master/__init__.py:521
+#, python-brace-format
+msgid "EFB Telegram Master channel encountered error <code>{error}</code> caused by update <code>{update}</code>. See log for details."
+msgstr ""
+
+#: efb_telegram_master/__init__.py:553
+msgid "This button does nothing."
+msgstr ""
+
+#: efb_telegram_master/slave_message.py:208
 #, python-brace-format
 msgid "Unknown type of message \"{0}\". (UT01)"
 msgstr ""
 
-#: efb_telegram_master/slave_message.py:639
+#: efb_telegram_master/slave_message.py:713
 msgid "[Edited]"
 msgstr ""
 
 #. TRANSLATORS: Flag for messages edited on slave channels, but cannot be edited on Telegram.
-#: efb_telegram_master/slave_message.py:676
+#: efb_telegram_master/slave_message.py:750
 msgid "[edited]"
 msgstr "[edited]"
 
-#: efb_telegram_master/slave_message.py:733
-#: efb_telegram_master/slave_message.py:742
+#: efb_telegram_master/slave_message.py:822
+#: efb_telegram_master/slave_message.py:831
 msgid "(unsupported)"
+msgstr ""
+
+#: efb_telegram_master/slave_message.py:886
+#: efb_telegram_master/master_message.py:281
+#: efb_telegram_master/master_message.py:283
+#: efb_telegram_master/master_message.py:492
+#: efb_telegram_master/master_message.py:494
+msgid "Message is removed in remote chat."
+msgstr ""
+
+#: efb_telegram_master/slave_message.py:974
+#, python-brace-format
+msgid "Attachment is too large ({size}). Maximum allowed by Telegram Bot API is {max_size}. (AT02)"
+msgstr ""
+
+#: efb_telegram_master/master_message.py:107
+msgid "Unknown error has occurred while trying to process this message. See log for details.\n\n"
+"{error!r}"
+msgstr ""
+
+#: efb_telegram_master/master_message.py:125
+msgid "ETM message worker is not running due to unforeseen reason. This might be a bug. Please see log for details."
+msgstr ""
+
+#: efb_telegram_master/master_message.py:171
+msgid "Error: No recipient specified.\n"
+"Please reply to a previous message. (MS01)"
+msgstr "Error: no se especificó ningún destinatario.\n"
+"Por favor responde a un mensaje anterior. (MS01)"
+
+#: efb_telegram_master/master_message.py:177
+msgid "Error: No recipient specified.\n"
+"Please reply to a previous message. (MS02)"
+msgstr "Error: no se especificó ningún destinatario.\n"
+"Por favor responde a un mensaje anterior. (MS02)"
+
+#: efb_telegram_master/master_message.py:216
+#, python-brace-format
+msgid "Internal error: Slave channel “{0}” not found."
+msgstr ""
+
+#: efb_telegram_master/master_message.py:241
+#: efb_telegram_master/master_message.py:500
+#, python-brace-format
+msgid "{type_name} messages are not supported by EFB Telegram Master channel."
+msgstr ""
+
+#: efb_telegram_master/master_message.py:248
+#, python-brace-format
+msgid "{type_name} messages are not supported by slave channel {channel_name}."
+msgstr ""
+
+#. TRANSLATORS: Message body text for location messages.
+#: efb_telegram_master/master_message.py:333
+msgid "Location"
+msgstr ""
+
+#: efb_telegram_master/master_message.py:346
+#, python-brace-format
+msgid "Shared a contact: {first_name} {last_name}\n"
+"{phone_number}"
+msgstr ""
+
+#: efb_telegram_master/master_message.py:350
+#, python-brace-format
+msgid "Message type {0} is not supported."
+msgstr "El tipo de mensaje {0} no es compatible."
+
+#: efb_telegram_master/master_message.py:358
+msgid "Chat is not found."
+msgstr "Chat no encontrado."
+
+#: efb_telegram_master/master_message.py:360
+msgid "Message type is not supported."
+msgstr "El tipo de mensaje no es compatible."
+
+#: efb_telegram_master/master_message.py:363
+msgid "Message editing is not supported.\n\n"
+"{exception!s}"
+msgstr ""
+
+#: efb_telegram_master/master_message.py:365
+msgid "Message is not sent.\n\n"
+"{exception!s}"
+msgstr ""
+
+#: efb_telegram_master/master_message.py:368
+msgid "Message is not sent.\n\n"
+"{exception!r}"
+msgstr ""
+
+#: efb_telegram_master/master_message.py:418
+#, python-brace-format
+msgid "This message is sent to “{dest}” with quick reply feature.\n\n"
+"Learn more about how this works, how to turn this feature off, and how to stop this warning at {docs}."
+msgstr ""
+
+#: efb_telegram_master/master_message.py:443
+#, python-brace-format
+msgid "Attachment is too large ({size}). Maximum allowed by Telegram Bot API is {max_size}. (AT01)"
+msgstr ""
+
+#: efb_telegram_master/master_message.py:453
+msgid "Reply /rm to a message to remove it from its remote chat."
+msgstr ""
+
+#: efb_telegram_master/master_message.py:460
+#: efb_telegram_master/master_message.py:466
+msgid "This message is not found in ETM database. You cannot remove it from its remote chat."
+msgstr ""
+
+#: efb_telegram_master/master_message.py:471
+#, python-brace-format
+msgid "Module of this message ({module_id}) could not be found, or is not a slave channel."
+msgstr ""
+
+#: efb_telegram_master/master_message.py:481
+msgid "Failed to remove this message from remote chat.\n\n"
+"{error!s}"
+msgstr ""
+
+#: efb_telegram_master/master_message.py:486
+msgid "Failed to remove this message from remote chat.\n\n"
+"{error!r}"
+msgstr ""
+
+#: efb_telegram_master/chat_binding.py:179
+#: efb_telegram_master/chat_binding.py:321
+#: efb_telegram_master/chat_binding.py:585
+msgid "Processing..."
+msgstr "Procesando..."
+
+#: efb_telegram_master/chat_binding.py:226
+#, python-brace-format
+msgid "{0}: Linked"
+msgstr "{0}: Vinculado"
+
+#: efb_telegram_master/chat_binding.py:227
+#, python-brace-format
+msgid "{0}: User"
+msgstr "{0}: Usuario"
+
+#: efb_telegram_master/chat_binding.py:228
+#, python-brace-format
+msgid "{0}: Group"
+msgstr "{0}: Grupo"
+
+#: efb_telegram_master/chat_binding.py:292
+msgid "< Prev"
+msgstr "< Previo"
+
+#: efb_telegram_master/chat_binding.py:294
+#: efb_telegram_master/chat_binding.py:410
+#: efb_telegram_master/chat_binding.py:455
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: efb_telegram_master/chat_binding.py:297
+msgid "Next >"
+msgstr "Próximo >"
+
+#: efb_telegram_master/chat_binding.py:324
+msgid "This Telegram group is currently linked with..."
+msgstr "Este grupo de Telegram actualmente está vinculado con..."
+
+#: efb_telegram_master/chat_binding.py:326
+msgid "Please choose the chat you want to link with..."
+msgstr "Elija el chat con el que desea vincular..."
+
+#: efb_telegram_master/chat_binding.py:327
+#: efb_telegram_master/chat_binding.py:630
+msgid "\n\n"
+"Legend:\n"
+msgstr "\n\n"
+"Leyenda:\n"
+
+#: efb_telegram_master/chat_binding.py:362
+#: efb_telegram_master/chat_binding.py:428
+#: efb_telegram_master/chat_binding.py:656
+msgid "Cancelled."
+msgstr "Cancelado."
+
+#: efb_telegram_master/chat_binding.py:372
+#, python-brace-format
+msgid "Invalid parameter ({0}). (IP01)"
+msgstr "Parámetro no válido ({0}). (IP01)"
+
+#: efb_telegram_master/chat_binding.py:393
+#, python-brace-format
+msgid "You've selected chat {0}."
+msgstr "Has seleccionado el chat {0}."
+
+#: efb_telegram_master/chat_binding.py:395
+msgid "\n"
+"This chat has already linked to Telegram."
+msgstr "\n"
+"Este chat ya está vinculado a Telegram."
+
+#: efb_telegram_master/chat_binding.py:396
+msgid "\n"
+"What would you like to do?\n\n"
+"<i>* If the link button doesn't work for you, please try to link manually.</i>"
+msgstr "\n"
+"¿Qué le gustaría hacer?\n\n"
+"<i>* Si el botón de enlace no funciona, por favor intente vincularlo manualmente</i>"
+
+#: efb_telegram_master/chat_binding.py:402
+msgid "Relink"
+msgstr "Revincular"
+
+#: efb_telegram_master/chat_binding.py:403
+msgid "Restore"
+msgstr "Restaurar"
+
+#: efb_telegram_master/chat_binding.py:405
+msgid "Link"
+msgstr "Vincular"
+
+#: efb_telegram_master/chat_binding.py:406
+#, python-brace-format
+msgid "Manual {link_or_relink}"
+msgstr "Manual {link_or_relink}"
+
+#: efb_telegram_master/chat_binding.py:439
+msgid "Chat {} is restored."
+msgstr ""
+
+#: efb_telegram_master/chat_binding.py:442
+#, python-brace-format
+msgid "To link {chat_display_name} manually, please:\n\n"
+"1. Add me to the Telegram Group you want to link to.\n"
+"2. Send the following code.\n\n"
+"<code>/start {code}</code>\n\n"
+"3. Then I would notify you if the chat is linked successfully.\n\n"
+"<i>* To link a channel, send the code above to your channel, and forward it to the bot. Note that the bot will not process any message others sent in channels.</i>"
+msgstr "Para vincular {chat_display_name} de forma manual, por favor:\n\n"
+"1. Agrégueme al Grupo de Telegram al que desea vincularse.\n"
+"2. Envía el siguiente código.\n\n"
+"<code>/start {code}</code>\n\n"
+"3. Luego, le notificaría si el chat está vinculado con éxito.\n\n"
+"<i>* Para vincular un canal, envíe el código anterior a su canal y reenvíelo al bot. Tenga en cuenta que el bot no procesará ningún mensaje que otros envíen en canales.</i>"
+
+#: efb_telegram_master/chat_binding.py:460
+#, python-brace-format
+msgid "Command ‘{command}’ ({query}) is not recognised, please try again."
+msgstr ""
+
+#: efb_telegram_master/chat_binding.py:476
+msgid "Session expired or unknown parameter. (SE02)"
+msgstr "Sesión expirada o parámetro desconocido. (SE02)"
+
+#: efb_telegram_master/chat_binding.py:484
+#, python-brace-format
+msgid "{module_id} is not activated in current profile. It cannot be linked."
+msgstr ""
+
+#: efb_telegram_master/chat_binding.py:496
+#, python-brace-format
+msgid "Trying to link chat {0}..."
+msgstr "Intentando vincular chat {0}..."
+
+#: efb_telegram_master/chat_binding.py:501
+#, python-brace-format
+msgid "Chat {0} is now linked."
+msgstr "El chat {0} ahora está vinculado."
+
+#: efb_telegram_master/chat_binding.py:519
+msgid "No chat is linked to the group."
+msgstr "Ningún chat está vinculado al grupo."
+
+#: efb_telegram_master/chat_binding.py:525
+#, python-brace-format
+msgid "All {0} chat has been unlinked from this group."
+msgid_plural "All {0} chats has been unlinked from this group."
+msgstr[0] "Todo el chat {0} ha sido desvinculado de este grupo."
+msgstr[1] "Todo el chat {0} ha sido desvinculado de este grupo."
+
+#: efb_telegram_master/chat_binding.py:536
+msgid "No chat is linked to the channel."
+msgstr "Ningún chat está vinculado al canal."
+
+#: efb_telegram_master/chat_binding.py:542
+#, python-brace-format
+msgid "All {0} chat has been unlinked from this channel."
+msgid_plural "All {0} chats has been unlinked from this channel."
+msgstr[0] "Todo el chat {0} ha sido desvinculado de este canal."
+msgstr[1] "Todo el chat {0} ha sido desvinculado de este canal."
+
+#: efb_telegram_master/chat_binding.py:548
+msgid "Send `/unlink_all` to a group to unlink all remote chats from it."
+msgstr "Envíe `/unlink_all` a un grupo para desvincular todos los chats remotos."
+
+#: efb_telegram_master/chat_binding.py:594
+#, python-brace-format
+msgid "This group is linked to {0}Send a message to this group to deliver it to the chat.\n"
+"Do NOT reply to this system message."
+msgstr "Este grupo está vinculado a {0} Enviar un mensaje a este grupo para enviarlo al chat.\n"
+"NO responda a este mensaje del sistema."
+
+#: efb_telegram_master/chat_binding.py:605
+#, python-brace-format
+msgid "This group is linked to an unknown chat ({chat_id}) on channel {channel_name} ({channel_id}). Possibly you can no longer reach this chat. Send /unlink_all to unlink all chats from this group."
+msgstr ""
+
+#: efb_telegram_master/chat_binding.py:612
+#, python-brace-format
+msgid "This group is linked to a chat from a channel that is not activated ({channel_id}, {chat_id}). You cannot reach this chat unless the channel is enabled. Send /unlink_all to unlink all chats from this group."
+msgstr ""
+
+#: efb_telegram_master/chat_binding.py:622
+msgid "This Telegram group is linked to the following chats, choose one to start a conversation with."
+msgstr "Este grupo de Telegram está vinculado a los siguientes chats, elija uno para iniciar una conversación."
+
+#: efb_telegram_master/chat_binding.py:666
+#, python-brace-format
+msgid "Invalid command. ({0})"
+msgstr "Comando inválido. ({0})"
+
+#: efb_telegram_master/chat_binding.py:678
+#, python-brace-format
+msgid "Reply to this message to chat with {0}."
+msgstr "Responda a este mensaje para chatear con {0}."
+
+#: efb_telegram_master/chat_binding.py:704
+msgid "Error: No recipient specified.\n"
+"Please reply to a previous message, or choose a recipient:\n\n"
+"Legend:\n"
+msgstr "Error: no se especificó ningún destinatario.\n"
+"Responda a un mensaje anterior o elija un destinatario:\n\n"
+"Leyenda:\n"
+
+#: efb_telegram_master/chat_binding.py:723
+#: efb_telegram_master/chat_binding.py:731
+msgid "Error: No recipient specified.\n"
+"Please reply to a previous message.\n\n"
+"Session expired, please try again."
+msgstr ""
+
+#: efb_telegram_master/chat_binding.py:743
+#, python-brace-format
+msgid "Delivering the message to {0}."
+msgstr ""
+
+#: efb_telegram_master/chat_binding.py:747
+#, python-brace-format
+msgid "Delivering the message to {module_id} {chat_uid}."
+msgstr ""
+
+#: efb_telegram_master/chat_binding.py:752
+msgid "Error: No recipient specified.\n"
+"Please reply to a previous message."
+msgstr "Error: No se especificó ningún destinatario.\n"
+"Por favor responde a un mensaje anterior."
+
+#: efb_telegram_master/chat_binding.py:757
+#, python-brace-format
+msgid "Error: No recipient specified.\n"
+"Please reply to a previous message.\n\n"
+"Invalid parameter ({0})."
+msgstr "Error: No se especificó ningún destinatario.\n"
+"Por favor responder a un mensaje anterior.\n\n"
+"Parámetro no válido ({0})."
+
+#: efb_telegram_master/chat_binding.py:775
+msgid "Send /update_info to a group where this bot is a group admin to update group title, description and profile picture."
+msgstr ""
+
+#: efb_telegram_master/chat_binding.py:785
+#, python-brace-format
+msgid "This only works in a group linked with one chat. Currently {0} chat linked to this group."
+msgid_plural "This only works in a group linked with one chat. Currently {0} chats linked to this group."
+msgstr[0] "Esto solo funciona en un grupo vinculado con un chat. Actualmente {0} chats vinculados a este grupo."
+msgstr[1] "Esto solo funciona en un grupo vinculado con un chat. Actualmente {0} chats vinculados a este grupo."
+
+#: efb_telegram_master/chat_binding.py:795
+#, python-brace-format
+msgid "Channel linked ({channel}) is not found."
+msgstr ""
+
+#. TRANSLATORS: Separator between group members in a Telegram group description generated by /update_info
+#: efb_telegram_master/chat_binding.py:808
+msgid ", "
+msgstr ""
+
+#: efb_telegram_master/chat_binding.py:811
+#, python-brace-format
+msgid "{count} group member: {list}"
+msgid_plural "{count} group members: {list}"
+msgstr[0] ""
+msgstr[1] ""
+
+#: efb_telegram_master/chat_binding.py:842
+msgid "Chat details updated."
+msgstr ""
+
+#: efb_telegram_master/chat_binding.py:846
+#, python-brace-format
+msgid "Chat linked ({chat_uid}) is not found in the slave channel ({channel_name}, {channel_id})."
+msgstr ""
+
+#: efb_telegram_master/chat_binding.py:852
+#, python-brace-format
+msgid "Error occurred while update chat details.\n"
+"{0}"
+msgstr ""
+
+#: efb_telegram_master/chat_binding.py:855
+msgid "No profile picture provided from this chat."
+msgstr "No se proporcionó una foto de perfil de este chat."
+
+#: efb_telegram_master/chat_binding.py:858
+#, python-brace-format
+msgid "Error occurred while update chat details. \n"
+"{0}"
 msgstr ""
 
 #. TRANSLATORS: This part of text must be formatted in a monospaced font and no line shall exceed the width of a 70-cell-wide terminal.
@@ -562,518 +1080,5 @@ msgstr ""
 
 #: efb_telegram_master/wizard.py:610
 msgid "Congratulations! You have finished the setup wizard for EFB Telegram Master Channel."
-msgstr ""
-
-#: efb_telegram_master/chat_binding.py:179
-#: efb_telegram_master/chat_binding.py:321
-#: efb_telegram_master/chat_binding.py:585
-msgid "Processing..."
-msgstr "Procesando..."
-
-#: efb_telegram_master/chat_binding.py:226
-#, python-brace-format
-msgid "{0}: Linked"
-msgstr "{0}: Vinculado"
-
-#: efb_telegram_master/chat_binding.py:227
-#, python-brace-format
-msgid "{0}: User"
-msgstr "{0}: Usuario"
-
-#: efb_telegram_master/chat_binding.py:228
-#, python-brace-format
-msgid "{0}: Group"
-msgstr "{0}: Grupo"
-
-#: efb_telegram_master/chat_binding.py:292
-msgid "< Prev"
-msgstr "< Previo"
-
-#: efb_telegram_master/chat_binding.py:294
-#: efb_telegram_master/chat_binding.py:410
-#: efb_telegram_master/chat_binding.py:455
-msgid "Cancel"
-msgstr "Cancelar"
-
-#: efb_telegram_master/chat_binding.py:297
-msgid "Next >"
-msgstr "Próximo >"
-
-#: efb_telegram_master/chat_binding.py:324
-msgid "This Telegram group is currently linked with..."
-msgstr "Este grupo de Telegram actualmente está vinculado con..."
-
-#: efb_telegram_master/chat_binding.py:326
-msgid "Please choose the chat you want to link with..."
-msgstr "Elija el chat con el que desea vincular..."
-
-#: efb_telegram_master/chat_binding.py:327
-#: efb_telegram_master/chat_binding.py:630
-msgid "\n\n"
-"Legend:\n"
-msgstr "\n\n"
-"Leyenda:\n"
-
-#: efb_telegram_master/chat_binding.py:362
-#: efb_telegram_master/chat_binding.py:428
-#: efb_telegram_master/chat_binding.py:656
-msgid "Cancelled."
-msgstr "Cancelado."
-
-#: efb_telegram_master/chat_binding.py:372
-#, python-brace-format
-msgid "Invalid parameter ({0}). (IP01)"
-msgstr "Parámetro no válido ({0}). (IP01)"
-
-#: efb_telegram_master/chat_binding.py:393
-#, python-brace-format
-msgid "You've selected chat {0}."
-msgstr "Has seleccionado el chat {0}."
-
-#: efb_telegram_master/chat_binding.py:395
-msgid "\n"
-"This chat has already linked to Telegram."
-msgstr "\n"
-"Este chat ya está vinculado a Telegram."
-
-#: efb_telegram_master/chat_binding.py:396
-msgid "\n"
-"What would you like to do?\n\n"
-"<i>* If the link button doesn't work for you, please try to link manually.</i>"
-msgstr "\n"
-"¿Qué le gustaría hacer?\n\n"
-"<i>* Si el botón de enlace no funciona, por favor intente vincularlo manualmente</i>"
-
-#: efb_telegram_master/chat_binding.py:402
-msgid "Relink"
-msgstr "Revincular"
-
-#: efb_telegram_master/chat_binding.py:403
-msgid "Restore"
-msgstr "Restaurar"
-
-#: efb_telegram_master/chat_binding.py:405
-msgid "Link"
-msgstr "Vincular"
-
-#: efb_telegram_master/chat_binding.py:406
-#, python-brace-format
-msgid "Manual {link_or_relink}"
-msgstr "Manual {link_or_relink}"
-
-#: efb_telegram_master/chat_binding.py:439
-msgid "Chat {} is restored."
-msgstr ""
-
-#: efb_telegram_master/chat_binding.py:442
-#, python-brace-format
-msgid "To link {chat_display_name} manually, please:\n\n"
-"1. Add me to the Telegram Group you want to link to.\n"
-"2. Send the following code.\n\n"
-"<code>/start {code}</code>\n\n"
-"3. Then I would notify you if the chat is linked successfully.\n\n"
-"<i>* To link a channel, send the code above to your channel, and forward it to the bot. Note that the bot will not process any message others sent in channels.</i>"
-msgstr "Para vincular {chat_display_name} de forma manual, por favor:\n\n"
-"1. Agrégueme al Grupo de Telegram al que desea vincularse.\n"
-"2. Envía el siguiente código.\n\n"
-"<code>/start {code}</code>\n\n"
-"3. Luego, le notificaría si el chat está vinculado con éxito.\n\n"
-"<i>* Para vincular un canal, envíe el código anterior a su canal y reenvíelo al bot. Tenga en cuenta que el bot no procesará ningún mensaje que otros envíen en canales.</i>"
-
-#: efb_telegram_master/chat_binding.py:460
-#, python-brace-format
-msgid "Command ‘{command}’ ({query}) is not recognised, please try again."
-msgstr ""
-
-#: efb_telegram_master/chat_binding.py:476
-msgid "Session expired or unknown parameter. (SE02)"
-msgstr "Sesión expirada o parámetro desconocido. (SE02)"
-
-#: efb_telegram_master/chat_binding.py:484
-#, python-brace-format
-msgid "{module_id} is not activated in current profile. It cannot be linked."
-msgstr ""
-
-#: efb_telegram_master/chat_binding.py:496
-#, python-brace-format
-msgid "Trying to link chat {0}..."
-msgstr "Intentando vincular chat {0}..."
-
-#: efb_telegram_master/chat_binding.py:501
-#, python-brace-format
-msgid "Chat {0} is now linked."
-msgstr "El chat {0} ahora está vinculado."
-
-#: efb_telegram_master/chat_binding.py:519
-msgid "No chat is linked to the group."
-msgstr "Ningún chat está vinculado al grupo."
-
-#: efb_telegram_master/chat_binding.py:525
-#, python-brace-format
-msgid "All {0} chat has been unlinked from this group."
-msgid_plural "All {0} chats has been unlinked from this group."
-msgstr[0] "Todo el chat {0} ha sido desvinculado de este grupo."
-msgstr[1] "Todo el chat {0} ha sido desvinculado de este grupo."
-
-#: efb_telegram_master/chat_binding.py:536
-msgid "No chat is linked to the channel."
-msgstr "Ningún chat está vinculado al canal."
-
-#: efb_telegram_master/chat_binding.py:542
-#, python-brace-format
-msgid "All {0} chat has been unlinked from this channel."
-msgid_plural "All {0} chats has been unlinked from this channel."
-msgstr[0] "Todo el chat {0} ha sido desvinculado de este canal."
-msgstr[1] "Todo el chat {0} ha sido desvinculado de este canal."
-
-#: efb_telegram_master/chat_binding.py:548
-msgid "Send `/unlink_all` to a group to unlink all remote chats from it."
-msgstr "Envíe `/unlink_all` a un grupo para desvincular todos los chats remotos."
-
-#: efb_telegram_master/chat_binding.py:594
-#, python-brace-format
-msgid "This group is linked to {0}Send a message to this group to deliver it to the chat.\n"
-"Do NOT reply to this system message."
-msgstr "Este grupo está vinculado a {0} Enviar un mensaje a este grupo para enviarlo al chat.\n"
-"NO responda a este mensaje del sistema."
-
-#: efb_telegram_master/chat_binding.py:605
-#, python-brace-format
-msgid "This group is linked to an unknown chat ({chat_id}) on channel {channel_name} ({channel_id}). Possibly you can no longer reach this chat. Send /unlink_all to unlink all chats from this group."
-msgstr ""
-
-#: efb_telegram_master/chat_binding.py:612
-#, python-brace-format
-msgid "This group is linked to a chat from a channel that is not activated ({channel_id}, {chat_id}). You cannot reach this chat unless the channel is enabled. Send /unlink_all to unlink all chats from this group."
-msgstr ""
-
-#: efb_telegram_master/chat_binding.py:622
-msgid "This Telegram group is linked to the following chats, choose one to start a conversation with."
-msgstr "Este grupo de Telegram está vinculado a los siguientes chats, elija uno para iniciar una conversación."
-
-#: efb_telegram_master/chat_binding.py:666
-#, python-brace-format
-msgid "Invalid command. ({0})"
-msgstr "Comando inválido. ({0})"
-
-#: efb_telegram_master/chat_binding.py:678
-#, python-brace-format
-msgid "Reply to this message to chat with {0}."
-msgstr "Responda a este mensaje para chatear con {0}."
-
-#: efb_telegram_master/chat_binding.py:704
-msgid "Error: No recipient specified.\n"
-"Please reply to a previous message, or choose a recipient:\n\n"
-"Legend:\n"
-msgstr "Error: no se especificó ningún destinatario.\n"
-"Responda a un mensaje anterior o elija un destinatario:\n\n"
-"Leyenda:\n"
-
-#: efb_telegram_master/chat_binding.py:723
-#: efb_telegram_master/chat_binding.py:731
-msgid "Error: No recipient specified.\n"
-"Please reply to a previous message.\n\n"
-"Session expired, please try again."
-msgstr ""
-
-#: efb_telegram_master/chat_binding.py:743
-#, python-brace-format
-msgid "Delivering the message to {0}."
-msgstr ""
-
-#: efb_telegram_master/chat_binding.py:747
-#, python-brace-format
-msgid "Delivering the message to {module_id} {chat_uid}."
-msgstr ""
-
-#: efb_telegram_master/chat_binding.py:752
-msgid "Error: No recipient specified.\n"
-"Please reply to a previous message."
-msgstr "Error: No se especificó ningún destinatario.\n"
-"Por favor responde a un mensaje anterior."
-
-#: efb_telegram_master/chat_binding.py:757
-#, python-brace-format
-msgid "Error: No recipient specified.\n"
-"Please reply to a previous message.\n\n"
-"Invalid parameter ({0})."
-msgstr "Error: No se especificó ningún destinatario.\n"
-"Por favor responder a un mensaje anterior.\n\n"
-"Parámetro no válido ({0})."
-
-#: efb_telegram_master/chat_binding.py:775
-msgid "Send /update_info to a group where this bot is a group admin to update group title, description and profile picture."
-msgstr ""
-
-#: efb_telegram_master/chat_binding.py:785
-#, python-brace-format
-msgid "This only works in a group linked with one chat. Currently {0} chat linked to this group."
-msgid_plural "This only works in a group linked with one chat. Currently {0} chats linked to this group."
-msgstr[0] "Esto solo funciona en un grupo vinculado con un chat. Actualmente {0} chats vinculados a este grupo."
-msgstr[1] "Esto solo funciona en un grupo vinculado con un chat. Actualmente {0} chats vinculados a este grupo."
-
-#: efb_telegram_master/chat_binding.py:795
-#, python-brace-format
-msgid "Channel linked ({channel}) is not found."
-msgstr ""
-
-#. TRANSLATORS: Separator between group members in a Telegram group description generated by /update_info
-#: efb_telegram_master/chat_binding.py:808
-msgid ", "
-msgstr ""
-
-#: efb_telegram_master/chat_binding.py:811
-#, python-brace-format
-msgid "{count} group member: {list}"
-msgid_plural "{count} group members: {list}"
-msgstr[0] ""
-msgstr[1] ""
-
-#: efb_telegram_master/chat_binding.py:842
-msgid "Chat details updated."
-msgstr ""
-
-#: efb_telegram_master/chat_binding.py:846
-#, python-brace-format
-msgid "Chat linked ({chat_uid}) is not found in the slave channel ({channel_name}, {channel_id})."
-msgstr ""
-
-#: efb_telegram_master/chat_binding.py:852
-#, python-brace-format
-msgid "Error occurred while update chat details.\n"
-"{0}"
-msgstr ""
-
-#: efb_telegram_master/chat_binding.py:855
-msgid "No profile picture provided from this chat."
-msgstr "No se proporcionó una foto de perfil de este chat."
-
-#: efb_telegram_master/chat_binding.py:858
-#, python-brace-format
-msgid "Error occurred while update chat details. \n"
-"{0}"
-msgstr ""
-
-#: efb_telegram_master/__init__.py:101
-msgid "WebP support of Pillow is required.\n"
-"Please refer to Pillow Documentation for instructions.\n"
-"https://pillow.readthedocs.io/"
-msgstr "Se requiere soporte WebP de Pillow.\n"
-"Consulte la documentación de Pillow para obtener instrucciones.\n"
-"https://pillow.readthedocs.io/"
-
-#: efb_telegram_master/__init__.py:172
-#, python-brace-format
-msgid "Config File does not exist. ({path})"
-msgstr "Archivo de configuración no existe. ({path})"
-
-#: efb_telegram_master/__init__.py:178
-msgid "Telegram bot token must be a string"
-msgstr "El token del bot de Telegram debe ser una cadena"
-
-#: efb_telegram_master/__init__.py:184
-msgid "Admins' user IDs must be a list of one number or more."
-msgstr "Seudónimos de administradores deben ser una lista de un número o más."
-
-#: efb_telegram_master/__init__.py:189
-#, python-brace-format
-msgid "Admin ID is expected to be an int, but {data} is found."
-msgstr "Se espera que el ID de administrador sea un int, pero se encuentra {data}."
-
-#: efb_telegram_master/__init__.py:214
-#, python-brace-format
-msgid "This is EFB Telegram Master Channel {version}, running on profile “{profile}”, instance “{instance}”, on EFB {fw_version}."
-msgstr ""
-
-#: efb_telegram_master/__init__.py:218
-#, python-brace-format
-msgid "This is EFB Telegram Master Channel {version}, running on default profile, instance “{instance}”, on EFB {fw_version}."
-msgstr ""
-
-#: efb_telegram_master/__init__.py:223
-#, python-brace-format
-msgid "This is EFB Telegram Master Channel {version}, running on profile “{profile}”, default instance, on EFB {fw_version}."
-msgstr ""
-
-#: efb_telegram_master/__init__.py:227
-#, python-brace-format
-msgid "This is EFB Telegram Master Channel {version}, running on default profile and instance, on EFB {fw_version}."
-msgstr ""
-
-#: efb_telegram_master/__init__.py:231
-#, python-brace-format
-msgid "{count} slave channel activated:"
-msgid_plural "{count} slave channels activated:"
-msgstr[0] ""
-msgstr[1] ""
-
-#: efb_telegram_master/__init__.py:239
-#, python-brace-format
-msgid "\n\n"
-"{count} middleware activated:"
-msgid_plural "\n\n"
-"{count} middlewares activated:"
-msgstr[0] "\n\n"
-"{count} middleware activado:"
-msgstr[1] "\n\n"
-"{count} middlewares activados:"
-
-#. TRANSLATORS: ‘channel’ here refers to a Telegram channel.
-#: efb_telegram_master/__init__.py:251
-#, python-brace-format
-msgid "The channel {group_name} ({group_id}) is linked to:"
-msgstr "El canal {group_name} ({group_id}) está vinculado a:"
-
-#. TRANSLATORS: ‘channel’ here means an EFB channel.
-#: efb_telegram_master/__init__.py:257
-#, python-brace-format
-msgid "The channel {group_name} ({group_id}) is not linked to any remote chat. To link one, use /link."
-msgstr ""
-
-#: efb_telegram_master/__init__.py:267
-#, python-brace-format
-msgid "The group {group_name} ({group_id}) is linked to:"
-msgstr "El grupo {group_name} ({group_id}) se encuentra vinculado a:"
-
-#: efb_telegram_master/__init__.py:272
-#, python-brace-format
-msgid "The group {group_name} ({group_id}) is not linked to any remote chat. To link one, use /link."
-msgstr "El grupo {group_name} ({group_id}) no está vinculado a ningún chat remoto. Para vincular utilice /link."
-
-#: efb_telegram_master/__init__.py:297
-#, python-brace-format
-msgid "\n"
-"- {channel_name}: Unknown chat ({channel_id}:{chat_id})"
-msgstr ""
-
-#. TRANSLATORS: ‘channel’ here means an EFB channel.
-#: efb_telegram_master/__init__.py:304
-#, python-brace-format
-msgid "\n"
-"- Unknown channel {channel_id}: ({chat_id})"
-msgstr ""
-
-#: efb_telegram_master/__init__.py:321
-msgid "You cannot link remote chats to here. Please try again."
-msgstr "No puede vincular chats remotos aquí. Inténtelo de nuevo."
-
-#: efb_telegram_master/__init__.py:323
-msgid "This is EFB Telegram Master Channel.\n\n"
-"To learn more, please visit https://etm.1a23.studio ."
-msgstr ""
-
-#: efb_telegram_master/__init__.py:337
-msgid "Reply to a message with this command and an emoji to send a reaction. Ex.: <code>/react 👍</code>.\n"
-"Send <code>/react -</code> to remove your reaction from a message."
-msgstr ""
-
-#: efb_telegram_master/__init__.py:348
-msgid "The message you replied to is not recorded in ETM database. You cannot react to this message."
-msgstr ""
-
-#: efb_telegram_master/__init__.py:356
-msgid "This message has no reactions yet. Reply to a message with this command and an emoji to send a reaction. Ex.: <code>/react 👍</code>."
-msgstr ""
-
-#: efb_telegram_master/__init__.py:377
-msgid "The slave channel involved in this message ({}) is not available. You cannot react to this message."
-msgstr ""
-
-#: efb_telegram_master/__init__.py:384
-msgid "The channel involved in this message ({}) does not accept reactions. You cannot react to this message."
-msgstr ""
-
-#: efb_telegram_master/__init__.py:391
-msgid "The chat involved in this message ({}) is not found. You cannot react to this message."
-msgstr ""
-
-#: efb_telegram_master/__init__.py:401
-msgid "You cannot react anything to this message."
-msgstr ""
-
-#: efb_telegram_master/__init__.py:404
-msgid "{} is not accepted as a reaction to this message."
-msgstr ""
-
-#. TRANSLATORS: {} is a list of names of possible reactions, separated with comma.
-#: efb_telegram_master/__init__.py:407
-msgid "You may want to try: {}"
-msgstr ""
-
-#: efb_telegram_master/__init__.py:412
-msgid "EFB Telegram Master Channel\n"
-"/link\n"
-"    Link a remote chat to an empty Telegram group.\n"
-"    Followed by a regular expression to filter results.\n"
-"/chat\n"
-"    Generate a chat head to start a conversation.\n"
-"    Followed by a regular expression to filter results.\n"
-"/extra\n"
-"    List all additional features from slave channels.\n"
-"/unlink_all\n"
-"    Unlink all remote chats in this chat.\n"
-"/info\n"
-"    Show information of the current Telegram chat.\n"
-"/react [emoji]\n"
-"    React to a message with an emoji, or show a list of members reacted.\n"
-"/update_info\n"
-"    Update info of linked Telegram group.\n"
-"    Only works in singly linked group where the bot is an admin.\n"
-"/rm\n"
-"    Remove the quoted message from its remote chat.\n"
-"/help\n"
-"    Print this command list."
-msgstr ""
-
-#: efb_telegram_master/__init__.py:449
-msgid "Conflicted polling detected. If this error persists, please ensure you are running only one instance of this Telegram bot."
-msgstr "Se detectó una encuesta conflictiva. Si este error persiste, asegúrese de ejecutar solo una instancia de este bot de Telegram."
-
-#: efb_telegram_master/__init__.py:468
-#, python-brace-format
-msgid "Message request is invalid.\n"
-"{error}\n"
-"<code>{update}</code>"
-msgstr "Petición de mensaje no es válida.\n"
-"{error}\n"
-"<code>{update}</code>"
-
-#: efb_telegram_master/__init__.py:478
-#, python-brace-format
-msgid "This message is not processed due to poor internet environment of the server.\n"
-"<code>{code}</code>"
-msgstr "Este mensaje no es procesado debido al deficiente entorno de internet del servidor.\n"
-"<code>{code}</code>"
-
-#: efb_telegram_master/__init__.py:487
-#, python-brace-format
-msgid "<b>EFB Telegram Master channel</b>\n"
-"You may have a poor internet connection on your server. Currently {count} network error is detected.\n"
-"For more details, please refer to the log."
-msgid_plural "<b>EFB Telegram Master channel</b>\n"
-"You may have a poor internet connection on your server. Currently {count} network errors are detected.\n"
-"For more details, please refer to the log."
-msgstr[0] "<b>Canal Maestro del EFB Telegram</b>\n"
-"Es posible que tengas una mala conexión a Internet en tu servidor. Actualmente se detecta un error de red de {count}.\n"
-"Para más detalles, consulte el registro."
-msgstr[1] "<b>Canal Maestro del EFB Telegram</b> Es posible que tengas una mala conexión a Internet en tu servidor. Actualmente se detecta un error de red de {count}. Para más detalles, consulte el registro."
-
-#: efb_telegram_master/__init__.py:508
-#, python-brace-format
-msgid "Chat migration detected.\n"
-"All {count} remote chat are now linked to this new group."
-msgid_plural "Chat migration detected.\n"
-"All {count} remote chats are now linked to this new group."
-msgstr[0] "Se detectó la migración de chat.\n"
-"Todos los {count} del chat remoto ahora están vinculados a este nuevo grupo."
-msgstr[1] "Se detectó la migración de chat. Todos los {count} del chat remoto ahora están vinculados a este nuevo grupo."
-
-#: efb_telegram_master/__init__.py:518
-#, python-brace-format
-msgid "EFB Telegram Master channel encountered error <code>{error}</code> caused by update <code>{update}</code>. See log for details."
-msgstr ""
-
-#: efb_telegram_master/__init__.py:550
-msgid "This button does nothing."
 msgstr ""
 
