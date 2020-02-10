@@ -7,8 +7,9 @@ import os
 import tempfile
 import traceback
 import urllib.parse
-from typing import Tuple, Optional, TYPE_CHECKING, List
+from typing import Tuple, Optional, TYPE_CHECKING, List, IO
 
+import humanize
 import pydub
 import telegram
 import telegram.constants
@@ -428,9 +429,23 @@ class SlaveMessageProcessor(LocaleMixin):
             except IOError:  # Ignore when the image cannot be properly identified.
                 send_as_file = False
 
+            file_too_large = self.check_file_size(msg.file)
+            edit_media = msg.edit_media
+            if file_too_large:
+                if old_msg_id:
+                    if msg.edit_media:
+                        edit_media = False
+                    self.bot.send_message(chat_id=old_msg_id[0], reply_to_message_id=old_msg_id[1], text=file_too_large)
+                else:
+                    message = self.bot.send_message(chat_id=tg_dest, reply_to_message_id=target_msg_id, text=text,
+                                                    parse_mode="HTML", reply_markup=reply_markup, disable_notification=silent,
+                                                    prefix=msg_template, suffix=reactions)
+                    message.reply_text(file_too_large)
+                    return message
+
             if old_msg_id:
                 try:
-                    if msg.edit_media:
+                    if edit_media:
                         if send_as_file:
                             media = InputMediaDocument(msg.file)
                         else:
@@ -487,8 +502,23 @@ class SlaveMessageProcessor(LocaleMixin):
             text = ""
 
         try:
+            file_too_large = self.check_file_size(msg.file)
+            edit_media = msg.edit_media
+            if file_too_large:
+                if old_msg_id:
+                    if msg.edit_media:
+                        edit_media = False
+                    self.bot.send_message(chat_id=old_msg_id[0], reply_to_message_id=old_msg_id[1], text=file_too_large)
+                else:
+                    message = self.bot.send_message(chat_id=tg_dest, reply_to_message_id=target_msg_id, text=text,
+                                                    parse_mode="HTML", reply_markup=reply_markup,
+                                                    disable_notification=silent,
+                                                    prefix=msg_template, suffix=reactions)
+                    message.reply_text(file_too_large)
+                    return message
+
             if old_msg_id:
-                if msg.edit_media:
+                if edit_media:
                     self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=InputMediaAnimation(msg.file))
                 return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1],
                                                      prefix=msg_template, suffix=reactions,
@@ -535,6 +565,20 @@ class SlaveMessageProcessor(LocaleMixin):
 
             else:
                 webp_img = None
+
+                file_too_large = self.check_file_size(msg.file)
+                if file_too_large:
+                    if old_msg_id:
+                        self.bot.send_message(chat_id=old_msg_id[0], reply_to_message_id=old_msg_id[1],
+                                              text=file_too_large)
+                    else:
+                        message = self.bot.send_message(chat_id=tg_dest, reply_to_message_id=target_msg_id,
+                                                        text=self.html_substitutions(msg.text),
+                                                        parse_mode="HTML", reply_markup=reply_markup,
+                                                        disable_notification=silent,
+                                                        prefix=msg_template, suffix=reactions)
+                        message.reply_text(file_too_large)
+                        return message
 
                 try:
                     pic_img: Image = Image.open(msg.file)
@@ -602,8 +646,23 @@ class SlaveMessageProcessor(LocaleMixin):
             text = ""
 
         try:
+            file_too_large = self.check_file_size(msg.file)
+            edit_media = msg.edit_media
+            if file_too_large:
+                if old_msg_id:
+                    if msg.edit_media:
+                        edit_media = False
+                    self.bot.send_message(chat_id=old_msg_id[0], reply_to_message_id=old_msg_id[1], text=file_too_large)
+                else:
+                    message = self.bot.send_message(chat_id=tg_dest, reply_to_message_id=target_msg_id, text=text,
+                                                    parse_mode="HTML", reply_markup=reply_markup,
+                                                    disable_notification=silent,
+                                                    prefix=msg_template, suffix=reactions)
+                    message.reply_text(file_too_large)
+                    return message
+
             if old_msg_id:
-                if msg.edit_media:
+                if edit_media:
                     assert msg.file is not None
                     self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=InputMediaDocument(msg.file))
                 return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1], reply_markup=reply_markup,
@@ -633,8 +692,23 @@ class SlaveMessageProcessor(LocaleMixin):
             text = ""
         self.logger.debug("[%s] Message is a voice file.", msg.uid)
         try:
+            file_too_large = self.check_file_size(msg.file)
+            edit_media = msg.edit_media
+            if file_too_large:
+                if old_msg_id:
+                    if msg.edit_media:
+                        edit_media = False
+                    self.bot.send_message(chat_id=old_msg_id[0], reply_to_message_id=old_msg_id[1], text=file_too_large)
+                else:
+                    message = self.bot.send_message(chat_id=tg_dest, reply_to_message_id=target_msg_id, text=text,
+                                                    parse_mode="HTML", reply_markup=reply_markup,
+                                                    disable_notification=silent,
+                                                    prefix=msg_template, suffix=reactions)
+                    message.reply_text(file_too_large)
+                    return message
+
             if old_msg_id:
-                if msg.edit_media:
+                if edit_media:
                     # Cannot edit voice message content, send a new one instead
                     msg_template += " " + self._("[Edited]")
                     if str(tg_dest) == old_msg_id[0]:
@@ -698,8 +772,23 @@ class SlaveMessageProcessor(LocaleMixin):
         else:
             text = ""
         try:
+            file_too_large = self.check_file_size(msg.file)
+            edit_media = msg.edit_media
+            if file_too_large:
+                if old_msg_id:
+                    if msg.edit_media:
+                        edit_media = False
+                    self.bot.send_message(chat_id=old_msg_id[0], reply_to_message_id=old_msg_id[1], text=file_too_large)
+                else:
+                    message = self.bot.send_message(chat_id=tg_dest, reply_to_message_id=target_msg_id, text=text,
+                                                    parse_mode="HTML", reply_markup=reply_markup,
+                                                    disable_notification=silent,
+                                                    prefix=msg_template, suffix=reactions)
+                    message.reply_text(file_too_large)
+                    return message
+
             if old_msg_id:
-                if msg.edit_media:
+                if edit_media:
                     assert msg.file is not None
                     self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=InputMediaVideo(msg.file))
                 return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1], reply_markup=reply_markup,
@@ -867,3 +956,19 @@ class SlaveMessageProcessor(LocaleMixin):
         else:
             msg_template = f"{Emoji.UNKNOWN} {msg.author.long_name} ({msg.chat.display_name}):"
         return msg_template
+
+    def check_file_size(self, file: IO[bytes]) -> Optional[str]:
+        """
+        Return an error message if the file is too large to upload,
+        None otherwise.
+        """
+        file.seek(0, 2)
+        file_size = file.tell()
+        file.seek(0)
+        if file_size > telegram.constants.MAX_FILESIZE_UPLOAD:
+            size_str = humanize.naturalsize(file_size, binary=True)
+            max_size_str = humanize.naturalsize(telegram.constants.MAX_FILESIZE_UPLOAD, binary=True)
+            return self._(
+                "Attachment is too large ({size}). Maximum allowed by Telegram Bot API is {max_size}. (AT02)").format(
+                size=size_str, max_size=max_size_str)
+        return None
