@@ -21,6 +21,7 @@ Added
 
 Changed
 -------
+- Improved compatibility with Python Telegram Bot 12.4.1
 
 Removed
 -------

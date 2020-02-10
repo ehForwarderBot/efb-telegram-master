@@ -24,7 +24,7 @@ from .chat_destination_cache import ChatDestinationCache
 from .locale_mixin import LocaleMixin
 from .message import ETMMsg
 from .msg_type import TGMsgType, get_msg_type
-from .utils import EFBChannelChatIDStr, TelegramChatID, PollFilter
+from .utils import EFBChannelChatIDStr, TelegramChatID
 
 if TYPE_CHECKING:
     from . import TelegramChannel
@@ -75,7 +75,7 @@ class MasterMessageProcessor(LocaleMixin):
         ))
         self.bot.dispatcher.add_handler(MessageHandler(
             (Filters.passport_data | Filters.invoice | Filters.game | Filters.successful_payment |
-             PollFilter()) & Filters.update,
+             Filters.poll) & Filters.update,
             self.unsupported_message
         ))
         self.logger: logging.Logger = logging.getLogger(__name__)
