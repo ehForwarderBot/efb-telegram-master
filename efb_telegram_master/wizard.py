@@ -41,6 +41,7 @@ class DataModel:
     building_default = False
 
     def __init__(self, profile: str, instance_id: str):
+        print("==== etm_wizard, data mod, init", profile)
         coordinator.profile = profile
         self.profile = profile
         self.instance_id = instance_id
@@ -491,7 +492,7 @@ def setup_experimental_flags(data):
             print(key)
             print_wrapped(desc)
             ans = Bullet(prompt=f"{key}?", choices=params) \
-                .launch(default=default)
+                .launch(default=params.index(default))
             data.data['flags'][key] = ans
 
 
