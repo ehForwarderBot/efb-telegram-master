@@ -25,6 +25,7 @@ Removed
 
 Fixed
 -----
+- Experimental flags settings breaks the ETM wizard.
 
 Known issue
 -----------
