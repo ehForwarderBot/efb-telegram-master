@@ -219,8 +219,19 @@ class MasterMessageProcessor(LocaleMixin):
         log_message = True
         try:
             m.uid = MessageID(message_id)
+            # Store Telegram message type
+            m.type_telegram = mtype = get_msg_type(message)
+
+            if self.TYPE_DICT.get(mtype, None):
+                m.type = self.TYPE_DICT[mtype]
+                self.logger.debug("[%s] EFB message type: %s", message_id, mtype)
+            else:
+                self.logger.info("[%s] Message type %s is not supported by ETM", message_id, mtype)
+                raise EFBMessageTypeNotSupported(
+                    self._("{type_name} messages are not supported by EFB Telegram Master channel.")
+                        .format(type_name=mtype.name))
+
             m.put_telegram_file(message)
-            mtype = m.type_telegram
             # Chat and author related stuff
             m.chat = self.chat_manager.get_chat(channel, uid, build_dummy=True)
             m.author = m.chat.self or m.chat.add_self()
@@ -231,15 +242,6 @@ class MasterMessageProcessor(LocaleMixin):
                 self.attach_target_message(message, m, channel)
             # Type specific stuff
             self.logger.debug("[%s] Message type from Telegram: %s", message_id, mtype)
-
-            if self.TYPE_DICT.get(mtype, None):
-                m.type = self.TYPE_DICT[mtype]
-                self.logger.debug("[%s] EFB message type: %s", message_id, mtype)
-            else:
-                self.logger.info("[%s] Message type %s is not supported by ETM", message_id, mtype)
-                raise EFBMessageTypeNotSupported(
-                    self._("{type_name} messages are not supported by EFB Telegram Master channel.")
-                        .format(type_name=mtype.name))
 
             if m.type not in coordinator.slaves[channel].supported_message_types:
                 self.logger.info("[%s] Message type %s is not supported by channel %s",

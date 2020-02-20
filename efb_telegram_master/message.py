@@ -177,9 +177,6 @@ class ETMMsg(Message):
         return target
 
     def put_telegram_file(self, message: telegram.Message):
-        # Store Telegram message type
-        self.type_telegram = get_msg_type(message)
-
         is_common_file = False
 
         # Store media related information to local database
