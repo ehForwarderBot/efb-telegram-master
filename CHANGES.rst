@@ -26,6 +26,7 @@ Removed
 Fixed
 -----
 - Experimental flags settings breaks the ETM wizard.
+- Exception requiring ``libcairo`` when ``animation_sticker`` flag is not enabled.
 
 Known issue
 -----------

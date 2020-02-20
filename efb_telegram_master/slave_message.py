@@ -31,6 +31,7 @@ from .commands import ETMCommandMsgStorage
 from .constants import Emoji
 from .locale_mixin import LocaleMixin
 from .message import ETMMsg
+from .msg_type import get_msg_type
 from .utils import TelegramChatID, TelegramMessageID, OldMsgID
 
 if TYPE_CHECKING:
@@ -217,6 +218,7 @@ class SlaveMessageProcessor(LocaleMixin):
                           xid, tg_msg.chat.id, tg_msg.message_id)
 
         etm_msg = ETMMsg.from_efbmsg(msg, self.chat_manager)
+        etm_msg.type_telegram = get_msg_type(tg_msg)
         etm_msg.put_telegram_file(tg_msg)
         self.db.add_or_update_message_log(etm_msg, tg_msg, old_msg_id)
         # self.logger.debug("[%s] Message inserted/updated to the database.", xid)
