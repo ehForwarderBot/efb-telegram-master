@@ -222,6 +222,7 @@ class DatabaseManager:
         self.task_queue.put((method, args, kwargs))
 
     @staticmethod
+    @database.atomic()
     def _create():
         """
         Initializing tables.
@@ -230,6 +231,7 @@ class DatabaseManager:
         database.create_tables([ChatAssoc, MsgLog, SlaveChatInfo])
 
     @staticmethod
+    @database.atomic()
     def _migrate(i: int):
         """
         Run migrations.
@@ -262,6 +264,7 @@ class DatabaseManager:
                 migrator.add_column("slavechatinfo", "slave_chat_group_id", SlaveChatInfo.slave_chat_group_id)
             )
 
+    @database.atomic()
     def add_chat_assoc(self, master_uid: EFBChannelChatIDStr,
                        slave_uid: EFBChannelChatIDStr,
                        multiple_slave: bool = False):
@@ -280,6 +283,7 @@ class DatabaseManager:
         return ChatAssoc.create(master_uid=master_uid, slave_uid=slave_uid)
 
     @staticmethod
+    @database.atomic()
     def remove_chat_assoc(master_uid: Optional[EFBChannelChatIDStr] = None,
                           slave_uid: Optional[EFBChannelChatIDStr] = None):
         """
@@ -370,13 +374,15 @@ class DatabaseManager:
             if bool(master_uid) == bool(slave_uid):
                 raise ValueError("Only one parameter is to be provided.")
             elif master_uid:
-                slaves = ChatAssoc.select().where(ChatAssoc.master_uid == master_uid)
+                slaves = ChatAssoc.select(ChatAssoc.slave_uid, ChatAssoc.master_uid)\
+                    .where(ChatAssoc.master_uid == master_uid)
                 if len(slaves) > 0:
                     return [i.slave_uid for i in slaves]
                 else:
                     return []
             elif slave_uid:
-                masters = ChatAssoc.select().where(ChatAssoc.slave_uid == slave_uid)
+                masters = ChatAssoc.select(ChatAssoc.slave_uid, ChatAssoc.master_uid)\
+                    .where(ChatAssoc.slave_uid == slave_uid)
                 if len(masters) > 0:
                     return [i.master_uid for i in masters]
                 else:
@@ -386,6 +392,7 @@ class DatabaseManager:
         except DoesNotExist:
             return []
 
+    @database.atomic()
     def add_or_update_message_log(self,
                                   msg: ETMMsg,
                                   master_message: Message,
@@ -461,6 +468,7 @@ class DatabaseManager:
             return None
 
     @staticmethod
+    @database.atomic()
     def delete_msg_log(master_msg_id: Optional[TgChatMsgIDStr] = None,
                        slave_msg_id: Optional[EFBChannelChatIDStr] = None,
                        slave_origin_uid: Optional[EFBChannelChatIDStr] = None):
@@ -507,6 +515,7 @@ class DatabaseManager:
         except DoesNotExist:
             return None
 
+    @database.atomic()
     def set_slave_chat_info(self, chat_object: 'ETMChatType') -> SlaveChatInfo:
         """
         Insert or update slave chat info entry
@@ -555,6 +564,7 @@ class DatabaseManager:
                                         pickle=chat_object.pickle)
 
     @staticmethod
+    @database.atomic()
     def delete_slave_chat_info(slave_channel_id: ModuleID, slave_chat_uid: ChatID, slave_chat_group_id: ChatID = None):
         return SlaveChatInfo.delete() \
             .where((SlaveChatInfo.slave_channel_id == slave_channel_id) &

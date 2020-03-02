@@ -25,6 +25,8 @@ Removed
 
 Fixed
 -----
+- Attempt to fix “*Database is locked*” issue by wrapping all database write
+  operations with an atomic transaction.
 
 Known issue
 -----------
