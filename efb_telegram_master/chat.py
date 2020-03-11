@@ -356,7 +356,7 @@ def convert_chat(db: 'DatabaseManager', chat: Chat) -> ETMChatType:
     Raises:
         TypeError: if the chat type is not supported.
     """
-    if isinstance(chat, ETMBaseChatMixin):
+    if isinstance(chat, ETMChatType):
         return chat
     etm_chat: ETMBaseChatType
     if isinstance(chat, PrivateChat):

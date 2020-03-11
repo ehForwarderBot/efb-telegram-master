@@ -236,6 +236,7 @@ if os.name == "nt":
 
         p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
+        assert p.stdin
         copyfileobj(p.stdin, stream)
         out, err = p.communicate()
         if p.returncode != 0:
@@ -266,15 +267,17 @@ if os.name == "nt":
         # Using the most classic buffer and copy via IO interface just to play
         # safe.
         p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        assert p.stdin
         copyfileobj(file, p.stdin)
         p.stdin.close()
 
         # Raise exception if error occurs, just like ffmpeg-python.
-        if p.returncode != 0:
+        if p.returncode != 0 and p.stderr:
             err = p.stderr.read().decode()
             print(err, file=sys.stderr)
             raise ffmpeg.Error('ffmpeg', "", err)
 
+        assert p.stdout
         copyfileobj(p.stdout, gif_file)
         file.close()
         gif_file.seek(0)
