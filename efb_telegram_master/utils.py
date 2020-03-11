@@ -6,14 +6,15 @@ import logging
 import os
 import subprocess
 import sys
+from io import BytesIO
 from shutil import copyfileobj
 from tempfile import NamedTemporaryFile
 from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, BinaryIO, IO
 
 import ffmpeg
 import telegram
+from PIL import Image
 from ffmpeg._utils import convert_kwargs_to_cmd_line_args
-from telegram.ext import BaseFilter
 from typing_extensions import NewType
 
 from ehforwarderbot import Channel
@@ -156,11 +157,45 @@ def chat_id_str_to_id(s: EFBChannelChatIDStr) -> Tuple[ModuleID, ChatID, Optiona
     return channel_id, chat_uid, group_id
 
 
+def export_gif(animation, fp, dpi=96, skip_frames=5):
+    """ Fork of tgs.exporters.gif.export_gif
+    Adapted from jqqqqqqqqqq/UnifiedMessageRelay
+    https://github.com/jqqqqqqqqqq/UnifiedMessageRelay/blob/c920d005714a33fbd50594ef8013ce7ec2f3b240/src/Core/UMRFile.py#L141
+    License:
+        MIT (Unified Message Relay)
+        AGPL 3.0 (Telegram Animated Stickers Tools)
+    """
+    # Import only upon calling the method due to added binary dependencies
+    # (libcairo)
+    from tgs.exporters.cairo import export_png
+    from tgs.exporters.gif import _png_gif_prepare
+
+    start = int(animation.in_point)
+    end = int(animation.out_point)
+    frames = []
+    for i in range(start, end+1, skip_frames):
+        file = BytesIO()
+        export_png(animation, file, i, dpi)
+        file.seek(0)
+        frames.append(_png_gif_prepare(Image.open(file)))
+
+    duration = 1000 / animation.frame_rate * (1 + skip_frames) / 2
+    frames[0].save(
+        fp,
+        format='GIF',
+        append_images=frames[1:],
+        save_all=True,
+        duration=duration,
+        loop=0,
+        transparency=255,
+        disposal=2,
+    )
+
+
 def convert_tgs_to_gif(tgs_file: BinaryIO, gif_file: BinaryIO) -> bool:
     # Import only upon calling the method due to added binary dependencies
     # (libcairo)
     from tgs.parsers.tgs import parse_tgs
-    from tgs.exporters.gif import export_gif
 
     # noinspection PyBroadException
     try:
