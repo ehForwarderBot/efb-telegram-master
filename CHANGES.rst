@@ -19,6 +19,9 @@ Added
 
 Changed
 -------
+- Improvements on TGS to GIF conversion logic (by `Curtis Jiang`__)
+
+__ https://github.com/jqqqqqqqqqq/UnifiedMessageRelay/blob/c920d005714a33fbd50594ef8013ce7ec2f3b240/src/Core/UMRFile.py#L141
 
 Removed
 -------
