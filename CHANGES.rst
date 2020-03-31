@@ -30,12 +30,11 @@ Fixed
 -----
 - Attempt to fix “*Database is locked*” issue by wrapping all database write
   operations with an atomic transaction.
+- Edited messages from Telegram can now be correctly detected for
+  caption-only or media edits.
 
 Known issue
 -----------
-- All edited messages from Telegram are seen as edited with media due to the
-  update of Telegram Bot API 4.5. This will be fixed only after Python Telegram
-  Bot introduce supports to Bot API 4.5. No workaround is available for now.
 
 2.0.2_ - 2020-02-26
 ===================
