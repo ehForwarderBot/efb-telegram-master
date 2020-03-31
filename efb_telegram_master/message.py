@@ -32,6 +32,8 @@ __all__ = ['ETMMsg']
 class ETMMsg(Message):
     file_id: Optional[str] = None
     """File ID from Telegram Bot API"""
+    file_unique_id: Optional[str] = None
+    """Unique file ID from Telegram Bot API"""
     type_telegram: TGMsgType
     """Type of message in Telegram Bot API"""
     chat: ETMChatType
@@ -185,26 +187,32 @@ class ETMMsg(Message):
             if attachment:
                 is_common_file = True
                 self.file_id = attachment.file_id
+                self.file_unique_id = attachment.file_unique_id
                 self.mime = attachment.mime_type
                 break
 
         if not is_common_file:
             if self.type_telegram is TGMsgType.Audio:
                 self.file_id = message.audio.file_id
+                self.file_unique_id = message.audio.file_unique_id
                 self.mime = message.audio.mime_type
                 extension = mimetypes.guess_extension(message.audio.mime_type)
                 self.filename = f"{message.audio.title} - {message.audio.performer}{extension}"
             elif self.type_telegram is TGMsgType.Sticker:
                 self.file_id = message.sticker.file_id
+                self.file_unique_id = message.sticker.file_unique_id
                 self.mime = 'image/webp'
             elif self.type_telegram is TGMsgType.AnimatedSticker:
                 self.file_id = message.sticker.file_id
+                self.file_unique_id = message.sticker.file_unique_id
                 self.mime = 'application/json+tgs'
                 self.type = MsgType.Animation
             elif getattr(message, 'photo', None):
                 attachment = message.photo[-1]
                 self.file_id = attachment.file_id
+                self.file_unique_id = attachment.file_unique_id
                 self.mime = 'image/jpeg'
             elif self.type_telegram is TGMsgType.VideoNote:
                 self.file_id = message.video_note.file_id
+                self.file_unique_id = message.video_note.file_unique_id
                 self.mime = 'video/mpeg'
