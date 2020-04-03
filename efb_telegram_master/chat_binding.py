@@ -152,6 +152,39 @@ class ChatBindingManager(LocaleMixin):
         self.bot.dispatcher.add_handler(
             MessageHandler(Filters.status_update.migrate, self.chat_migration))
 
+    def pre_link_check(self, message: Message):
+        """Check if the bot would work properly in a linked group.
+        If potential error is found, reply error messages to the user.
+
+        Args:
+            message: /link command message.
+        """
+        err_msg = []
+
+        # self.bot.me is not refreshed after startup, need to refresh it here
+        # to check if user has updated the setting with bot father.
+        # Assuming user will not revert the settings back.
+
+        # Refresh bot status if any of the settings is not enabled.
+        if not self.bot.me.can_join_groups or not self.bot.me.can_read_all_group_messages:
+            self.bot.me = self.bot.get_me()
+
+        if not self.bot.me.can_join_groups:
+            err_msg.append(self._(
+                "This bot cannot join groups. "
+                "Chat linking might not work properly. "
+                "Please enable this setting with @BotFather."
+            ))
+        if not self.bot.me.can_read_all_group_messages:
+            err_msg.append(self._(
+                "This bot cannot read all messages in a group chat. "
+                "Message delivery in linked groups might not work properly. "
+                "Please adjust my privacy settings with @BotFather."
+            ))
+
+        if err_msg:
+            message.reply_text("\n".join(err_msg))
+
     def link_chat_show_list(self, update: Update, context: CallbackContext):
         """
         Show the list of available chats for linking.
@@ -164,6 +197,9 @@ class ChatBindingManager(LocaleMixin):
         """
         args = context.args or []
         message: Message = update.effective_message
+
+        # Perform pre-link check
+        self.pre_link_check(message)
 
         # Send link confirmation message when replying to a Telegram message
         # that is recorded in database.

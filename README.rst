@@ -257,7 +257,8 @@ What is NOT supported:
 
 -  @ reference
 -  Markdown/HTML formatting
--  Messages with unsupported types
+-  Inline buttons
+-  Messages with unsupported types.
 
 .. note::
 
