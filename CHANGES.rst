@@ -16,6 +16,7 @@ Unreleased
 
 Added
 -----
+- Check if the bot would work properly in linked Telegram groups before linking.
 
 Changed
 -------
@@ -35,6 +36,8 @@ Fixed
 
 Known issue
 -----------
+- 🎲 messages are not supported until Python Telegram Bot introduce supports
+  to Bot API 4.7. No workaround is available for now.
 
 2.0.2_ - 2020-02-26
 ===================
