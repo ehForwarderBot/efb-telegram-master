@@ -286,8 +286,8 @@ class MasterMessageProcessor(LocaleMixin):
                     log_message = False
                     return
                 self.logger.debug('[%s] Message is edited (%s)', m.uid, m.edit)
-                if m.file_id and m.file_id != msg_log.file_id:
-                    self.logger.debug("[%s] Message media is edited (%s -> %s)", m.uid, msg_log.file_id, m.file_id)
+                if m.file_unique_id and m.file_unique_id != msg_log.file_unique_id:
+                    self.logger.debug("[%s] Message media is edited (%s -> %s)", m.uid, msg_log.file_unique_id, m.file_unique_id)
                     m.edit_media = True
 
             # Enclose message as an Message object by message type.
