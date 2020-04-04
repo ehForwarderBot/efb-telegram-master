@@ -16,6 +16,26 @@ Unreleased
 
 Added
 -----
+
+Changed
+-------
+
+Removed
+-------
+
+Fixed
+-----
+
+Known issue
+-----------
+- 🎲 messages are not supported until Python Telegram Bot introduce supports
+  to Bot API 4.7. No workaround is available for now.
+
+2.0.3_ - 2020-04-04
+===================
+
+Added
+-----
 - Check if the bot would work properly in linked Telegram groups before linking.
 
 Changed
@@ -23,9 +43,6 @@ Changed
 - Improvements on TGS to GIF conversion logic (by `Curtis Jiang`__)
 
 __ https://github.com/jqqqqqqqqqq/UnifiedMessageRelay/blob/c920d005714a33fbd50594ef8013ce7ec2f3b240/src/Core/UMRFile.py#L141
-
-Removed
--------
 
 Fixed
 -----
@@ -78,4 +95,5 @@ First release.
 .. _2.0.0: https://etm.1a23.studio/releases/tag/v2.0.0
 .. _2.0.1: https://etm.1a23.studio/compare/v2.0.0...v2.0.1
 .. _2.0.2: https://etm.1a23.studio/compare/v2.0.1...v2.0.2
+.. _2.0.3: https://etm.1a23.studio/compare/v2.0.2...v2.0.3
 .. _#93: https://etm.1a23.studio/issues/93
