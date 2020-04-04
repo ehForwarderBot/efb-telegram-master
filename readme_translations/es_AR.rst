@@ -276,7 +276,9 @@ What is NOT supported:
 
 * Markdown/HTML formatting
 
-* Messages with unsupported types
+* Inline buttons
+
+* Messages with unsupported types.
 
 Nota: This only applies to Telegram groups that are linked to a single
    remote chat, groups that are linked with multiple remote chats
