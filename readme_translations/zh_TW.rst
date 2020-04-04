@@ -243,7 +243,9 @@ API，``python-telegram-bot`` 建立。
 
 * Markdown/HTML 格式
 
-* 发送不受支持类型的消息
+* Inline buttons
+
+* Messages with unsupported types.
 
 備註: 这仅适用于单独绑定（仅绑定到一个远端会话）的 Telegram 群组。在绑定多个远端会话的群组中的操作方式应未绑定会话的相同。
 

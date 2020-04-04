@@ -243,7 +243,9 @@ API，``python-telegram-bot`` 建立。
 
 * Markdown/HTML 格式
 
-* 发送不受支持类型的消息
+* Inline buttons
+
+* Messages with unsupported types.
 
 注解: 这仅适用于单独绑定（仅绑定到一个远端会话）的 Telegram 群组。在绑定多个远端会话的群组中的操作方式应未绑定会话的相同。
 
@@ -584,9 +586,9 @@ ETM 2 中实现了一个标准的 `Python XML RPC 服务器
 ----------
 
 我们提供了 `db（数据库管理器）类
-<https://etm.1a23.studio/blob/master/efb_telegram_master/db.py>`_\ 和
-`RPCUtilities 类
 <https://etm.1a23.studio/blob/master/efb_telegram_master/rpc_utilities.py>`_\
+和 `RPCUtilities 类
+<https://etm.1a23.studio/blob/master/efb_telegram_master/db.py>`_\
 中的函数。详细文档请参考源代码。
 
 
