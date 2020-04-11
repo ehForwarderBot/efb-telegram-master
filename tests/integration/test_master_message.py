@@ -431,7 +431,7 @@ class DiceMessageFactory(MessageFactory):
     VideoMessageFactory(),
     VideoNoteMessageFactory(),
     AnimationMessageFactory(),
-    param(DiceMessageFactory(), mark=mark.xfail(reason="Telethon has not uploaded the feature to PyPI."))
+    param(DiceMessageFactory(), marks=mark.xfail(reason="Telethon has not uploaded the feature to PyPI."))
 ], ids=str)
 async def test_master_message(helper, client, bot_group, slave, channel, factory: MessageFactory):
     chat = slave.chat_without_alias
