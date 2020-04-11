@@ -27,7 +27,7 @@ from pytest import mark, approx, param
 from telethon import TelegramClient
 from telethon.tl.custom import Message
 from telethon.tl.types import InputMediaGeoPoint, InputGeoPoint, InputMediaGeoLive, \
-    InputMediaVenue, MessageMediaVenue, InputMediaContact
+    InputMediaVenue, MessageMediaVenue, InputMediaContact, InputMediaDice, MessageMediaDice
 
 from ehforwarderbot import Message as EFBMessage
 from ehforwarderbot import MsgType
@@ -398,6 +398,23 @@ class AnimationMessageFactory(MessageFactory):
         if efb_msg.file and not efb_msg.file.closed:
             efb_msg.file.close()
 
+
+class DiceMessageFactory(MessageFactory):
+    async def send_message(self, client: TelegramClient, chat_id: int, target: Message = None) -> Message:
+        return await client.send_message(
+            chat_id,
+            f"Dice caption {uuid4()}",
+            file=InputMediaDice(),
+            reply_to=target
+        )
+
+    def compare_message(self, tg_msg: Message, efb_msg: EFBMessage) -> None:
+        assert efb_msg.type == MsgType.Text
+        media = tg_msg.media
+        assert isinstance(media, MessageMediaDice)
+        assert str(media.value) in efb_msg.text
+
+
 # endregion Message factory classes
 
 
@@ -411,7 +428,8 @@ class AnimationMessageFactory(MessageFactory):
     AudioMessageFactory(),
     VideoMessageFactory(),
     VideoNoteMessageFactory(),
-    AnimationMessageFactory()
+    AnimationMessageFactory(),
+    DiceMessageFactory()
 ], ids=str)
 async def test_master_message(helper, client, bot_group, slave, channel, factory: MessageFactory):
     chat = slave.chat_without_alias
