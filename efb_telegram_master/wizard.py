@@ -286,29 +286,41 @@ def setup_telegram_bot(data):
                 "\n"
                 "Send /setprivacy to BotFather, choose the bot you just "
                 "created, then choose “Disable”. This will allow your bot to "
-                "process all messages in groups it joined, not just commands.\n"
-                "\n"
-                "Send /setcommands to BotFather, choose the bot you just "
-                "created, then copy and paste the following few lines to "
-                "BotFather. This will allow your bot to give you a list of "
-                "commands when you need them."
-            ))
-            print()
-            print(_(
-                "help - Show commands list.\n"
-                "link - Link a remote chat to a group.\n"
-                "unlink_all - Unlink all remote chats from a group.\n"
-                "info - Display information of the current Telegram chat.\n"
-                "chat - Generate a chat head.\n"
-                "extra - Access additional features from Slave Channels.\n"
-                "update_info - Update info of linked Telegram group.\n"
-                "react - Send a reaction to a message, or show a list of reactors.\n"
-                "rm - Remove a message from its remote chat."
+                "process all messages in groups it joined, not just commands."
             ))
             print()
             input(_("Press ENTER/RETURN to continue..."))
         print()
         data.data['token'] = input_bot_token(data)
+
+
+def setup_telegram_bot_commands_list(data):
+    prompt_yes = _("Yes, please update.")
+    prompt_no = _("No, I want to keep the old commands list.")
+
+    choices = bullet.Bullet(prompt=_("Do you want to update the list of commands of your bot?"),
+                            choices=[prompt_yes, prompt_no])
+    answer = choices.launch()
+
+    if answer == prompt_yes:
+        print(_("Updating commands list..."), end="", flush=True)
+        Bot(data.data['token'], request=data.request).set_my_commands(
+            [
+                ("help", _("Show commands list.")),
+                ("link", _("Link a remote chat to a group.")),
+                ("unlink_all", _("Unlink all remote chats from a group.")),
+                ("info", _("Display information of the current Telegram chat.")),
+                ("chat", _("Generate a chat head.")),
+                ("extra", _("Access additional features from Slave Channels.")),
+                ("update_info", _("Update info of linked Telegram group.")),
+                ("react", _("Send a reaction to a message, or show a list of reactors.")),
+                ("rm", _("Remove a message from its remote chat.")),
+            ]
+        )
+
+        print(_("OK"))
+        print()
+        input(_("Press ENTER/RETURN to continue..."))
 
 
 def input_admin_ids(default=None):
@@ -597,6 +609,7 @@ def wizard(profile, instance_id):
     print()
     setup_proxy(data)
     setup_telegram_bot(data)
+    setup_telegram_bot_commands_list(data)
     setup_admins(data)
     setup_experimental_flags(data)
     setup_network_configurations(data)
