@@ -351,7 +351,7 @@ class MasterMessageProcessor(LocaleMixin):
                 m.text = self._("Shared a contact: {first_name} {last_name}\n{phone_number}").format(
                     first_name=contact.first_name, last_name=contact.last_name, phone_number=contact.phone_number
                 )
-            if mtype is TGMsgType.Dice:
+            elif mtype is TGMsgType.Dice:
                 # Per docs, message.dice must be one of [1, 2, 3, 4, 5, 6],
                 # DICE_CHAR is of length 7, so should be safe.
                 m.text = f"{self.DICE_CHAR[message.dice.value]} ({message.dice.value})"
