@@ -17,6 +17,7 @@ Unreleased
 Added
 -----
 - Add support to outgoing 🎲 messages from Telegram
+- Allow wizard to set commands list of the bot
 
 Changed
 -------
