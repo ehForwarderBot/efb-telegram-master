@@ -27,7 +27,7 @@ from pytest import mark, approx, param
 from telethon import TelegramClient
 from telethon.tl.custom import Message
 from telethon.tl.types import InputMediaGeoPoint, InputGeoPoint, InputMediaGeoLive, \
-    InputMediaVenue, MessageMediaVenue, InputMediaContact, InputMediaDice, MessageMediaDice
+    InputMediaVenue, MessageMediaVenue, InputMediaContact
 
 from ehforwarderbot import Message as EFBMessage
 from ehforwarderbot import MsgType
@@ -401,6 +401,7 @@ class AnimationMessageFactory(MessageFactory):
 
 class DiceMessageFactory(MessageFactory):
     async def send_message(self, client: TelegramClient, chat_id: int, target: Message = None) -> Message:
+        from telethon.tl.types import InputMediaDice
         return await client.send_message(
             chat_id,
             f"Dice caption {uuid4()}",
@@ -409,6 +410,7 @@ class DiceMessageFactory(MessageFactory):
         )
 
     def compare_message(self, tg_msg: Message, efb_msg: EFBMessage) -> None:
+        from telethon.tl.types import MessageMediaDice
         assert efb_msg.type == MsgType.Text
         media = tg_msg.media
         assert isinstance(media, MessageMediaDice)
@@ -429,7 +431,7 @@ class DiceMessageFactory(MessageFactory):
     VideoMessageFactory(),
     VideoNoteMessageFactory(),
     AnimationMessageFactory(),
-    DiceMessageFactory()
+    param(DiceMessageFactory(), mark=mark.xfail(reason="Telethon has not uploaded the feature to PyPI."))
 ], ids=str)
 async def test_master_message(helper, client, bot_group, slave, channel, factory: MessageFactory):
     chat = slave.chat_without_alias
