@@ -16,6 +16,7 @@ Unreleased
 
 Added
 -----
+- Add support to outgoing 🎲 messages from Telegram
 
 Changed
 -------
@@ -28,8 +29,6 @@ Fixed
 
 Known issue
 -----------
-- 🎲 messages are not supported until Python Telegram Bot introduce supports
-  to Bot API 4.7. No workaround is available for now.
 
 2.0.3_ - 2020-04-04
 ===================

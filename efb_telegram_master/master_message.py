@@ -54,8 +54,11 @@ class MasterMessageProcessor(LocaleMixin):
         TGMsgType.Location: MsgType.Location,
         TGMsgType.Venue: MsgType.Location,
         TGMsgType.Animation: MsgType.Animation,
-        TGMsgType.Contact: MsgType.Text
+        TGMsgType.Contact: MsgType.Text,
+        TGMsgType.Dice: MsgType.Text,
     }
+
+    DICE_CHAR = " \u2680\u2681\u2682\u2683\u2684\u2685"  # ⚀⚁⚂⚃⚄⚅
 
     def __init__(self, channel: 'TelegramChannel'):
         self.channel: 'TelegramChannel' = channel
@@ -69,7 +72,7 @@ class MasterMessageProcessor(LocaleMixin):
         self.bot.dispatcher.add_handler(MessageHandler(
             (Filters.text | Filters.photo | Filters.sticker | Filters.document |
              Filters.venue | Filters.location | Filters.audio | Filters.voice |
-             Filters.video | Filters.contact | Filters.video_note) &
+             Filters.video | Filters.contact | Filters.video_note | Filters.dice) &
             Filters.update,
             self.enqueue_message
         ))
@@ -348,6 +351,10 @@ class MasterMessageProcessor(LocaleMixin):
                 m.text = self._("Shared a contact: {first_name} {last_name}\n{phone_number}").format(
                     first_name=contact.first_name, last_name=contact.last_name, phone_number=contact.phone_number
                 )
+            if mtype is TGMsgType.Dice:
+                # Per docs, message.dice must be one of [1, 2, 3, 4, 5, 6],
+                # DICE_CHAR is of length 7, so should be safe.
+                m.text = f"{self.DICE_CHAR[message.dice.value]} ({message.dice.value})"
             else:
                 raise EFBMessageTypeNotSupported(self._("Message type {0} is not supported.").format(mtype.name))
 
