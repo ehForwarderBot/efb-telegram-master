@@ -97,7 +97,7 @@ class TelegramChannel(MasterChannel):
 
         # Check PIL support for WebP
         Image.init()
-        if 'WEBP' not in Image.ID or not WebPImagePlugin.SUPPORTED:
+        if 'WEBP' not in Image.ID or not getattr(WebPImagePlugin, "SUPPORTED", None):
             raise EFBException(self._("WebP support of Pillow is required.\n"
                                       "Please refer to Pillow Documentation for instructions.\n"
                                       "https://pillow.readthedocs.io/"))

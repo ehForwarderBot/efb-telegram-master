@@ -27,6 +27,7 @@ Removed
 
 Fixed
 -----
+- Program breaks when older version of Pillow is encountered
 
 Known issue
 -----------
