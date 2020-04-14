@@ -584,7 +584,7 @@ def prerequisites_check():
 
     print(_("Checking libwebp installation..."), end="", flush=True)
     Image.init()
-    if 'WEBP' not in Image.ID or not WebPImagePlugin.SUPPORTED:
+    if 'WEBP' not in Image.ID or not getattr(WebPImagePlugin, "SUPPORTED", None):
         print(_("FAILED"))
         print_wrapped(_("libwebp plugin is not detected by Pillow."))
         exit(1)
