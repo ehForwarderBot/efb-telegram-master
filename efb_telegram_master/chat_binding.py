@@ -71,11 +71,9 @@ class ChatListStorage:
             if i.module_id not in self.channels and i.module_id in coordinator.slaves:
                 self.channels[i.module_id] = coordinator.slaves[i.module_id]
 
-    def set_chat_suggestion(self, update: telegram.Update,
-                            candidates: List[EFBChannelChatIDStr]):
-        """Set suggested chats of a message without recipient indicated."""
+    def set_chat_suggestion(self, update: telegram.Update):
+        """Set suggestion message without recipient indicated."""
         self.update = update
-        self.candidates = candidates
 
 
 class ChatBindingManager(LocaleMixin):
@@ -736,7 +734,8 @@ class ChatBindingManager(LocaleMixin):
             # Remove message from cache and return
             del self.msg_storage[storage_id]
             return
-        self.msg_storage[storage_id].set_chat_suggestion(update, candidates)
+        # chat_list: Optional[ChatListStorage] = self.msg_storage.get(storage_id, None)
+        self.msg_storage[storage_id].set_chat_suggestion(update)
         self.bot.edit_message_text(text=self._("Error: No recipient specified.\n"
                                                "Please reply to a previous message, "
                                                "or choose a recipient:\n\nLegend:\n") + "\n".join(legends),
@@ -762,8 +761,8 @@ class ChatBindingManager(LocaleMixin):
                                            chat_id=chat_id,
                                            message_id=msg_id)
             update = self.msg_storage[storage_id].update
-            candidates = self.msg_storage[storage_id].candidates
-            if candidates is None:
+            chats = self.msg_storage[storage_id].chats
+            if not chats:
                 self.bot.edit_message_text(text=self._("Error: No recipient specified.\n"
                                                        "Please reply to a previous message.\n\n"
                                                        "Session expired, please try again."),
@@ -771,19 +770,12 @@ class ChatBindingManager(LocaleMixin):
                                            message_id=msg_id)
                 update.callback_query.answer()
                 return ConversationHandler.END
-            slave_chat_id = candidates[int(param.split(' ', 1)[1])]
-            module_id, chat_uid, _ = utils.chat_id_str_to_id(slave_chat_id)
-            chat = self.chat_manager.get_chat(module_id, chat_uid)
+            slave_chat = chats[int(param.split(' ', 1)[1])]
+            slave_chat_id = utils.chat_id_to_str(chat=slave_chat)
             self.channel.master_messages.process_telegram_message(update, context, slave_chat_id)
-            if chat:
-                self.bot.edit_message_text(text=self._("Delivering the message to {0}.").format(chat.full_name),
-                                           chat_id=chat_id,
-                                           message_id=msg_id)
-            else:
-                self.bot.edit_message_text(text=self._("Delivering the message to {module_id} {chat_uid}.")
-                                           .format(module_id=module_id, chat_uid=chat_uid),
-                                           chat_id=chat_id,
-                                           message_id=msg_id)
+            self.bot.edit_message_text(text=self._("Delivering the message to {0}.").format(slave_chat.full_name),
+                                       chat_id=chat_id,
+                                       message_id=msg_id)
         elif param == Flags.CANCEL_PROCESS:
             self.bot.edit_message_text(text=self._("Error: No recipient specified.\n"
                                                    "Please reply to a previous message."),
