@@ -30,6 +30,7 @@ Fixed
 - Program breaks when older version of Pillow is encountered
 - Attempt to fix the issue where choosing destination for a an unaddressed
   message may lead to unintended behavior
+- Wizard should return int instead of float
 
 Known issue
 -----------
