@@ -317,8 +317,6 @@ class SlaveMessageProcessor(LocaleMixin):
         self.bot.send_chat_action(tg_dest, telegram.ChatAction.TYPING)
 
         text = self.html_substitutions(msg)
-        msg_template = html.escape(msg_template)
-        reactions = html.escape(reactions)
 
         if not old_msg_id:
             tg_msg = self.bot.send_message(tg_dest,
@@ -344,9 +342,6 @@ class SlaveMessageProcessor(LocaleMixin):
                            reply_markup: Optional[telegram.ReplyMarkup] = None,
                            silent: bool = False) -> telegram.Message:
         self.bot.send_chat_action(tg_dest, telegram.ChatAction.TYPING)
-
-        msg_template = html.escape(msg_template)
-        reactions = html.escape(reactions)
 
         assert isinstance(msg.attributes, LinkAttribute)
         attributes: LinkAttribute = msg.attributes
