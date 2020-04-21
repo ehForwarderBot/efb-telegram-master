@@ -95,7 +95,7 @@ class MockSlaveChannel(SlaveChannel):
 
     __group_member_templates = [
         ("A", ChatNotificationState.NONE, "A.png", "安"),
-        ("B", ChatNotificationState.MENTIONS, "B.png", "柏"),
+        ("B & S", ChatNotificationState.MENTIONS, "B.png", "柏"),
         ("C", ChatNotificationState.ALL, "C.png", "陈"),
         ("D", ChatNotificationState.NONE, "D.png", None),
         ("E", ChatNotificationState.MENTIONS, "E.png", None),

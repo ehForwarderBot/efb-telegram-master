@@ -31,6 +31,7 @@ Fixed
 - Attempt to fix the issue where choosing destination for a an unaddressed
   message may lead to unintended behavior
 - Wizard should return int instead of float
+- Some symbols are over escaped in chat names
 
 Known issue
 -----------
