@@ -56,9 +56,9 @@ setup(
         "bullet",
         "cjkwrap",
         "humanize",
-        "tgs",
+        "lottie",
         "typing-extensions>=3.7.4.1",
-        "cairosvg",  # required by ``tgs`` to export GIF
+        "cairosvg",  # required by ``lottie`` to export GIF
     ],
     extras_require={
         'tests': tests_require

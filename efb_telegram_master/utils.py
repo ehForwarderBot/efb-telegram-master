@@ -158,17 +158,17 @@ def chat_id_str_to_id(s: EFBChannelChatIDStr) -> Tuple[ModuleID, ChatID, Optiona
 
 
 def export_gif(animation, fp, dpi=96, skip_frames=5):
-    """ Fork of tgs.exporters.gif.export_gif
+    """ Fork of lottie.exporters.gif.export_gif
     Adapted from jqqqqqqqqqq/UnifiedMessageRelay
     https://github.com/jqqqqqqqqqq/UnifiedMessageRelay/blob/c920d005714a33fbd50594ef8013ce7ec2f3b240/src/Core/UMRFile.py#L141
     License:
         MIT (Unified Message Relay)
-        AGPL 3.0 (Telegram Animated Stickers Tools)
+        AGPL 3.0 (Python Lottie)
     """
     # Import only upon calling the method due to added binary dependencies
     # (libcairo)
-    from tgs.exporters.cairo import export_png
-    from tgs.exporters.gif import _png_gif_prepare
+    from lottie.exporters.cairo import export_png
+    from lottie.exporters.gif import _png_gif_prepare
 
     start = int(animation.in_point)
     end = int(animation.out_point)
@@ -195,7 +195,7 @@ def export_gif(animation, fp, dpi=96, skip_frames=5):
 def convert_tgs_to_gif(tgs_file: BinaryIO, gif_file: BinaryIO) -> bool:
     # Import only upon calling the method due to added binary dependencies
     # (libcairo)
-    from tgs.parsers.tgs import parse_tgs
+    from lottie.parsers.tgs import parse_tgs
 
     # noinspection PyBroadException
     try:
