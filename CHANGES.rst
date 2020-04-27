@@ -32,6 +32,8 @@ Fixed
   message may lead to unintended behavior
 - Wizard should return int instead of float
 - Some symbols are over escaped in chat names
+- Missing ``send_to_last_chat`` in wizard (`#99`_)
+- Migrate from ``tgs`` to ``lottie`` per upstream library
 
 Known issue
 -----------
@@ -102,3 +104,4 @@ First release.
 .. _2.0.2: https://etm.1a23.studio/compare/v2.0.1...v2.0.2
 .. _2.0.3: https://etm.1a23.studio/compare/v2.0.2...v2.0.3
 .. _#93: https://etm.1a23.studio/issues/93
+.. _#99: https://etm.1a23.studio/issues/99
