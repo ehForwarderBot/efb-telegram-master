@@ -625,7 +625,7 @@ class ChatBindingManager(LocaleMixin):
                 # TODO: Channel might be gone, add a check here.
                 chat = self.chat_manager.get_chat(slave_channel_id, slave_chat_id)
                 if chat:
-                    msg_text = self._('This group is linked to {0}'
+                    msg_text = self._('This group is linked to {0}. '
                                       'Send a message to this group to deliver it to the chat.\n'
                                       'Do NOT reply to this system message.').format(chat.full_name)
 
