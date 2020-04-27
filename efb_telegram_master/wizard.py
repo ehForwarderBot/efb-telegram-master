@@ -466,6 +466,15 @@ flags_settings = {
          _('Enable experimental support to animated stickers. Note: you might '
            'need to install binary dependency "libcairo" to enable this '
            'feature.')
+         ),
+    "send_to_last_chat":
+        ("warn", 'choices', ["enabled", "warn", "disabled"],
+         _('Enable quick reply in non-linked chats.\n'
+           '\n'
+           '- enabled: Enable this feature without warning.\n'
+           '- warn: Enable this feature and issue warnings every time when you '
+           'switch a recipient with quick reply.\n'
+           '- disabled: Disable this feature.')
          )
 }
 
