@@ -58,8 +58,6 @@ class MasterMessageProcessor(LocaleMixin):
         TGMsgType.Dice: MsgType.Text,
     }
 
-    DICE_CHAR = " \u2680\u2681\u2682\u2683\u2684\u2685"  # ⚀⚁⚂⚃⚄⚅
-
     def __init__(self, channel: 'TelegramChannel'):
         self.channel: 'TelegramChannel' = channel
         self.bot: 'TelegramBotManager' = channel.bot_manager
@@ -354,7 +352,7 @@ class MasterMessageProcessor(LocaleMixin):
             elif mtype is TGMsgType.Dice:
                 # Per docs, message.dice must be one of [1, 2, 3, 4, 5, 6],
                 # DICE_CHAR is of length 7, so should be safe.
-                m.text = f"{self.DICE_CHAR[message.dice.value]} ({message.dice.value})"
+                m.text = f"{message.dice.emoji} = {message.dice.value}"
             else:
                 raise EFBMessageTypeNotSupported(self._("Message type {0} is not supported.").format(mtype.name))
 
