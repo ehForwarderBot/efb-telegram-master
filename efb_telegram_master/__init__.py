@@ -8,17 +8,16 @@ from gettext import NullTranslations, translation
 from typing import Optional, List, Callable
 from xmlrpc.server import SimpleXMLRPCServer
 
-import telegram
+import telegram  # lgtm [py/import-and-import-from]
 import telegram.constants
 import telegram.error
-import telegram.ext
 from PIL import Image, WebPImagePlugin
 from pkg_resources import resource_filename
 from ruamel.yaml import YAML
 from telegram import Message, Update
 from telegram.ext import CommandHandler, CallbackQueryHandler, CallbackContext, Filters
 
-import ehforwarderbot
+import ehforwarderbot  # lgtm [py/import-and-import-from]
 from ehforwarderbot import Channel, coordinator
 from ehforwarderbot import utils as efb_utils
 from ehforwarderbot.channel import MasterChannel

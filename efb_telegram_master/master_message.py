@@ -7,15 +7,15 @@ from threading import Thread
 from typing import Optional, TYPE_CHECKING, Tuple
 
 import humanize
-import telegram
-from telegram import Update, Message, Chat
+from telegram import Update, Message, Chat, TelegramError, Contact, File
+from telegram.constants import MAX_FILESIZE_DOWNLOAD
 from telegram.ext import MessageHandler, Filters, CallbackContext, CommandHandler
 from telegram.utils.helpers import escape_markdown
 
 from ehforwarderbot import coordinator
 from ehforwarderbot.constants import MsgType
 from ehforwarderbot.exceptions import EFBMessageTypeNotSupported, EFBChatNotFound, \
-    EFBMessageError, EFBMessageNotFound, EFBOperationNotSupported, EFBException
+    EFBMessageError, EFBOperationNotSupported, EFBException
 from ehforwarderbot.message import LocationAttribute
 from ehforwarderbot.status import MessageRemoval
 from ehforwarderbot.types import ModuleID, MessageID
@@ -290,7 +290,7 @@ class MasterMessageProcessor(LocaleMixin):
                     if not self.channel.flag('prevent_message_removal'):
                         try:
                             message.delete()
-                        except telegram.TelegramError:
+                        except TelegramError:
                             message.reply_text(self._("Message is removed in remote chat."))
                     else:
                         message.reply_text(self._("Message is removed in remote chat."))
@@ -355,7 +355,7 @@ class MasterMessageProcessor(LocaleMixin):
                     message.venue.location.longitude
                 )
             elif mtype is TGMsgType.Contact:
-                contact: telegram.Contact = message.contact
+                contact: Contact = message.contact
                 m.text = self._("Shared a contact: {first_name} {last_name}\n{phone_number}").format(
                     first_name=contact.first_name, last_name=contact.last_name, phone_number=contact.phone_number
                 )
@@ -411,7 +411,7 @@ class MasterMessageProcessor(LocaleMixin):
                           tg_msg.message_id, target_msg.chat.uid, target_msg.uid)
         return etm_msg
 
-    def _send_cached_chat_warning(self, update: telegram.Update,
+    def _send_cached_chat_warning(self, update: Update,
                                   cache_key: TelegramChatID,
                                   cached_dest: EFBChannelChatIDStr):
         """Send warning about cached chat."""
@@ -439,7 +439,7 @@ class MasterMessageProcessor(LocaleMixin):
                 quote=True,
                 disable_web_page_preview=True)
 
-    def _check_file_download(self, file_obj: telegram.File):
+    def _check_file_download(self, file_obj: File):
         """
         Check if the file is available for download..
 
@@ -450,9 +450,9 @@ class MasterMessageProcessor(LocaleMixin):
             EFBMessageError: When file exceeds the maximum download size.
         """
         size = getattr(file_obj, "file_size", None)
-        if size and size > telegram.constants.MAX_FILESIZE_DOWNLOAD:
+        if size and size > MAX_FILESIZE_DOWNLOAD:
             size_str = humanize.naturalsize(size)
-            max_size_str = humanize.naturalsize(telegram.constants.MAX_FILESIZE_DOWNLOAD)
+            max_size_str = humanize.naturalsize(MAX_FILESIZE_DOWNLOAD)
             raise EFBMessageError(
                 self._(
                     "Attachment is too large ({size}). Maximum allowed by Telegram Bot API is {max_size}. (AT01)").format(
@@ -503,7 +503,7 @@ class MasterMessageProcessor(LocaleMixin):
         if not self.channel.flag('prevent_message_removal'):
             try:
                 reply.delete()
-            except telegram.TelegramError:
+            except TelegramError:
                 reply.reply_text(self._("Message is removed in remote chat."))
         else:
             reply.reply_text(self._("Message is removed in remote chat."))

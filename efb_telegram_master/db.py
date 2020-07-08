@@ -19,7 +19,7 @@ from typing_extensions import TypedDict
 from ehforwarderbot import Message as EFBMessage
 from ehforwarderbot import utils, Channel, coordinator, MsgType
 from ehforwarderbot.message import Substitutions, MessageCommands, MessageAttribute
-from ehforwarderbot.types import ModuleID, ChatID, MessageID, ReactionName, Reactions
+from ehforwarderbot.types import ModuleID, ChatID, MessageID, ReactionName
 from .chat_object_cache import ChatObjectCacheManager
 from .message import ETMMsg
 from .msg_type import TGMsgType
@@ -28,7 +28,7 @@ from .utils import TelegramChatID, EFBChannelChatIDStr, TgChatMsgIDStr, message_
 
 if TYPE_CHECKING:
     from . import TelegramChannel
-    from .chat import ETMChatMember, ETMChatType, ETMBaseChatType
+    from .chat import ETMChatMember, ETMChatType
 
 database = SqliteDatabase(None)
 

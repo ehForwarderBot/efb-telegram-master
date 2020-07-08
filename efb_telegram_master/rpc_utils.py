@@ -1,5 +1,5 @@
 import threading
-from typing import TYPE_CHECKING, KeysView, Optional, List
+from typing import TYPE_CHECKING, Optional, List
 from xmlrpc.server import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
 
 from ehforwarderbot import coordinator
