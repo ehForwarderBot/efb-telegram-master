@@ -36,6 +36,7 @@ Fixed
 - Some symbols are over escaped in chat names
 - Missing ``send_to_last_chat`` in wizard (`#99`_)
 - Migrate from ``tgs`` to ``lottie`` per upstream library
+- Editing messages sent with destination specified post-sending will not trigger error message again (`#102`_)
 
 Known issue
 -----------
@@ -108,4 +109,5 @@ First release.
 .. _#93: https://etm.1a23.studio/issues/93
 .. _#99: https://etm.1a23.studio/issues/99
 .. _#100: https://etm.1a23.studio/issues/100
+.. _#102: https://etm.1a23.studio/issues/102
 .. _#103: https://etm.1a23.studio/issues/103

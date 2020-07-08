@@ -29,7 +29,7 @@ from .utils import EFBChannelChatIDStr, TelegramChatID
 if TYPE_CHECKING:
     from . import TelegramChannel
     from .bot_manager import TelegramBotManager
-    from .db import DatabaseManager
+    from .db import DatabaseManager, MsgLog
     from .chat_object_cache import ChatObjectCacheManager
 
 
@@ -135,8 +135,22 @@ class MasterMessageProcessor(LocaleMixin):
 
         self.logger.debug("[%s] Received message from Telegram: %s", mid, message.to_dict())
 
-        # if the chat is singly-linked
-        destination = self.get_singly_linked_chat_id_str(update.effective_chat)
+        destination = None
+        edited = None
+
+        if update.edited_message or update.edited_channel_post:
+            self.logger.debug('[%s] Message is edited: %s', mid, message.edit_date)
+            msg_log = self.db.get_msg_log(master_msg_id=utils.message_id_to_str(update=update))
+            if not msg_log or msg_log.slave_message_id == self.db.FAIL_FLAG:
+                message.reply_text(self._("Error: This message cannot be edited, and thus is not sent. (ME01)"), quote=True)
+                return
+            destination = msg_log.slave_origin_uid
+            edited = msg_log
+
+        if destination is None:
+            # if the chat is singly-linked
+            destination = self.get_singly_linked_chat_id_str(update.effective_chat)
+
         if destination is None:  # not singly linked
             quote = False
             self.logger.debug("[%s] Chat %s is not singly-linked", mid, update.effective_chat)
@@ -178,7 +192,7 @@ class MasterMessageProcessor(LocaleMixin):
                 message.reply_text(self._("Error: No recipient specified.\n"
                                           "Please reply to a previous message. (MS02)"), quote=True)
         else:
-            return self.process_telegram_message(update, context, destination, quote=quote)
+            return self.process_telegram_message(update, context, destination, quote=quote, edited=edited)
 
     def get_singly_linked_chat_id_str(self, chat: Chat) -> Optional[EFBChannelChatIDStr]:
         """Return the singly-linked remote chat if available.
@@ -191,7 +205,8 @@ class MasterMessageProcessor(LocaleMixin):
         return None
 
     def process_telegram_message(self, update: Update, context: CallbackContext,
-                                 destination: EFBChannelChatIDStr, quote: bool = False):
+                                 destination: EFBChannelChatIDStr, quote: bool = False,
+                                 edited: Optional["MsgLog"] = None):
         """
         Process messages came from Telegram.
 
@@ -200,16 +215,13 @@ class MasterMessageProcessor(LocaleMixin):
             context: PTB update context
             destination: Destination of the message specified.
             quote: If the message shall quote another one
+            edited: old message log entry if the message can be edited.
         """
 
         # Message ID for logging
         message_id = utils.message_id_to_str(update=update)
 
         message: Message = update.effective_message
-
-        edited = bool(update.edited_message or update.edited_channel_post)
-        self.logger.debug('[%s] Message is edited: %s, %s',
-                          message_id, edited, message.edit_date)
 
         channel, uid, gid = utils.chat_id_str_to_id(destination)
         if channel not in coordinator.slaves:
@@ -267,10 +279,8 @@ class MasterMessageProcessor(LocaleMixin):
             if edited:
                 m.edit = True
                 text = msg_md_text or msg_md_caption
-                msg_log = self.db.get_msg_log(master_msg_id=utils.message_id_to_str(update=update))
-                if not msg_log or msg_log.slave_message_id == self.db.FAIL_FLAG:
-                    raise EFBMessageNotFound()
-                m.uid = msg_log.slave_message_id
+
+                m.uid = edited.slave_message_id
                 if text.startswith(self.DELETE_FLAG):
                     coordinator.send_status(MessageRemoval(
                         source_channel=self.channel,
@@ -287,8 +297,8 @@ class MasterMessageProcessor(LocaleMixin):
                     log_message = False
                     return
                 self.logger.debug('[%s] Message is edited (%s)', m.uid, m.edit)
-                if m.file_unique_id and m.file_unique_id != msg_log.file_unique_id:
-                    self.logger.debug("[%s] Message media is edited (%s -> %s)", m.uid, msg_log.file_unique_id, m.file_unique_id)
+                if m.file_unique_id and m.file_unique_id != edited.file_unique_id:
+                    self.logger.debug("[%s] Message media is edited (%s -> %s)", m.uid, edited.file_unique_id, m.file_unique_id)
                     m.edit_media = True
 
             # Enclose message as an Message object by message type.
@@ -350,8 +360,6 @@ class MasterMessageProcessor(LocaleMixin):
                     first_name=contact.first_name, last_name=contact.last_name, phone_number=contact.phone_number
                 )
             elif mtype is TGMsgType.Dice:
-                # Per docs, message.dice must be one of [1, 2, 3, 4, 5, 6],
-                # DICE_CHAR is of length 7, so should be safe.
                 m.text = f"{message.dice.emoji} = {message.dice.value}"
             else:
                 raise EFBMessageTypeNotSupported(self._("Message type {0} is not supported.").format(mtype.name))
