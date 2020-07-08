@@ -77,7 +77,7 @@ class TelegramChannel(MasterChannel):
     # Data
     _stop_polling = False
     timeout_count = 0
-    last_poll_confliction_time = 0
+    last_poll_confliction_time = 0.0
     CONFLICTION_TIMEOUT = 60  # seconds since last confliction warnings received
 
     # Constants
@@ -90,7 +90,7 @@ class TelegramChannel(MasterChannel):
     locale: Optional[str] = None
 
     # RPC server
-    rpc_server: SimpleXMLRPCServer = None
+    rpc_server: Optional[SimpleXMLRPCServer] = None
 
     def __init__(self, instance_id: InstanceID = None):
         """
