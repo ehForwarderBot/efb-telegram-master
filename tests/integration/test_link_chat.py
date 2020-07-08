@@ -46,6 +46,21 @@ async def test_link_chat_private_filter(helper, client, bot_id, slave):
     await message.click(text="Cancel")
 
 
+async def test_unlink_unavailable_chat(helper, client, bot_group, slave, channel):
+    with link_chats(channel, (slave.chat_with_alias, slave.unknown_chat), bot_group):
+        await client.send_message(bot_group, "/link")
+        message = await helper.wait_for_message(in_chats(bot_group) & has_button)
+
+        assert message.button_count == 3, f"{message.buttons} should be one known, one unknown, one cancel"
+        await message.click(i=1, j=0)  # click the unknown chat
+
+        message = await helper.wait_for_message(in_chats(bot_group) & has_button)
+        await message.click(text="Restore")
+        await helper.wait_for_message(in_chats(bot_group))
+
+        assert_is_linked(channel, (slave.chat_with_alias,), bot_group)
+
+
 async def test_link_chat_private_filter_invalid_regex(helper, client, bot_id, slave):
     # Invalid regular expression filter should fall back to simple string matching
     # This is done in integration test as the logic is a part of chat_binding.slave_chats_pagination
