@@ -18,6 +18,7 @@ Added
 -----
 - Add support to outgoing 🎲, 🎯, 🏀 messages from Telegram
 - Allow wizard to set commands list of the bot
+- Show invalid remote chats when sending ``/link`` to a group (`#100`_)
 
 Changed
 -------
@@ -105,3 +106,4 @@ First release.
 .. _2.0.3: https://etm.1a23.studio/compare/v2.0.2...v2.0.3
 .. _#93: https://etm.1a23.studio/issues/93
 .. _#99: https://etm.1a23.studio/issues/99
+.. _#100: https://etm.1a23.studio/issues/100

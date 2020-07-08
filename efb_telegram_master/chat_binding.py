@@ -220,21 +220,24 @@ class ChatBindingManager(LocaleMixin):
             links = self.db.get_chat_assoc(
                 master_uid=utils.chat_id_to_str(self.channel.channel_id, message.chat.id))
             if links:
-                return self.link_chat_gen_list(message.chat.id, pattern=" ".join(args), chats=links)
+                return self.link_chat_gen_list(message.chat.id, pattern=" ".join(args),
+                                               chats=links, filter_availability=False)
         elif message.forward_from_chat and \
                 message.forward_from_chat.type == telegram.Chat.CHANNEL:
             chat_id = message.forward_from_chat.id
             links = self.db.get_chat_assoc(
                 master_uid=utils.chat_id_to_str(self.channel.channel_id, chat_id))
             if links:
-                return self.link_chat_gen_list(message.chat.id, pattern=" ".join(args), chats=links)
+                return self.link_chat_gen_list(message.chat.id, pattern=" ".join(args),
+                                               chats=links, filter_availability=False)
 
         return self.link_chat_gen_list(message.from_user.id, pattern=" ".join(args))
 
     def slave_chats_pagination(self, storage_id: Tuple[TelegramChatID, TelegramMessageID],
                                offset: int = 0,
                                pattern: Optional[str] = "",
-                               source_chats: Optional[List[EFBChannelChatIDStr]] = None) \
+                               source_chats: Optional[List[EFBChannelChatIDStr]] = None,
+                               filter_availability: bool = True) \
             -> Tuple[List[str], List[List[telegram.InlineKeyboardButton]]]:
         """
         Generate a list of (list of) `InlineKeyboardButton`s of chats in slave channels,
@@ -247,6 +250,8 @@ class ChatBindingManager(LocaleMixin):
             offset (int): Offset for pagination
             source_chats (Optional[List[str]]): A list of chats used to generate the pagination list.
                 Each str is in the format of "{channel_id}.{chat_uid}".
+            filter_availability (bool): Whether to filter chats based on the availabilities.
+                Only works when ``source_chats`` is specified.
 
         Returns:
             Tuple[List[str], List[List[telegram.InlineKeyboardButton]]]:
@@ -285,7 +290,7 @@ class ChatBindingManager(LocaleMixin):
                     channel_id, chat_uid, _ = utils.chat_id_str_to_id(s_chat)
                     with suppress(NameError):
                         coordinator.get_module_by_id(channel_id)
-                    chat = self.chat_manager.get_chat(channel_id, chat_uid)
+                    chat = self.chat_manager.get_chat(channel_id, chat_uid, build_dummy=not filter_availability)
                     if not chat:
                         self.logger.debug("slave_chats_pagination with chat list: Chat %s not found.", s_chat)
                         continue
@@ -336,7 +341,8 @@ class ChatBindingManager(LocaleMixin):
 
     def link_chat_gen_list(self, chat_id: TelegramChatID,
                            message_id: TelegramMessageID = None, offset: int = 0,
-                           pattern: str = "", chats: List[EFBChannelChatIDStr] = None):
+                           pattern: str = "", chats: List[EFBChannelChatIDStr] = None,
+                           filter_availability: bool = True):
         """
         Generate the list for chat linking, and update it to a message.
 
@@ -346,6 +352,8 @@ class ChatBindingManager(LocaleMixin):
             offset: Offset for pagination.
             pattern (str): Regex expression to filter chats.
             chats (List[str]): Specified chats to link
+            filter_availability (bool): Whether to show only chats that are available.
+                Only works when ``chats`` are specified.
 
         Returns:
             int: The next state
@@ -363,7 +371,8 @@ class ChatBindingManager(LocaleMixin):
         legend, chat_btn_list = self.slave_chats_pagination((chat_id, message_id),
                                                             offset,
                                                             pattern=pattern,
-                                                            source_chats=chats)
+                                                            source_chats=chats,
+                                                            filter_availability=filter_availability)
         for i in legend:
             msg_text += "%s\n" % i
 
