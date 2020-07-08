@@ -56,5 +56,5 @@ class LocaleHandler(Handler):
                                                           fallback=True)
         return False
 
-    def handle_update(self, update, dispatcher):
+    def handle_update(self, update, dispatcher, check_result, context=None):
         pass

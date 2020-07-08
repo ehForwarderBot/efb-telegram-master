@@ -1,12 +1,10 @@
 import logging
 import mimetypes
 import os
-import subprocess
 import tempfile
 from pathlib import Path
 from typing import Optional, TYPE_CHECKING, Dict, Any, BinaryIO
 
-import ffmpeg
 import magic
 import telegram
 from PIL import Image
@@ -19,7 +17,7 @@ from ehforwarderbot.types import Reactions, MessageID
 from . import utils
 from .chat import ETMChatType, ETMChatMember
 from .chat_object_cache import ChatObjectCacheManager
-from .msg_type import TGMsgType, get_msg_type
+from .msg_type import TGMsgType
 
 if TYPE_CHECKING:
     pass

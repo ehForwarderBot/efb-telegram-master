@@ -24,7 +24,7 @@ __all__ = ['ETMChatMember', 'ETMSelfChatMember', 'ETMSystemChatMember',
            'ETMChatType', 'ETMBaseChatType']
 
 
-class ETMBaseChatMixin(BaseChat, ABC):
+class ETMBaseChatMixin(BaseChat, ABC):  # lgtm [py/missing-equals]
     # Allow mypy to recognize subclass output for `return self` methods.
     _Self = TypeVar('_Self', bound='ETMBaseChatMixin')
     chat_type_name = "BaseChat"

@@ -6,18 +6,19 @@ import logging
 import re
 import urllib.parse
 from contextlib import suppress
-from typing import Tuple, Dict, Optional, List, TYPE_CHECKING, IO, Sequence, Union, Pattern
+from typing import Tuple, Dict, Optional, List, TYPE_CHECKING, IO, Union, Pattern
 
-import telegram
+import telegram  # lgtm [py/import-and-import-from]
 from PIL import Image
-from telegram import Update, Message, Chat, TelegramError
+from telegram import Update, Message, Chat, TelegramError, InlineKeyboardButton, ChatAction, InlineKeyboardMarkup, \
+    ParseMode
 from telegram.error import BadRequest
 from telegram.ext import ConversationHandler, CommandHandler, CallbackQueryHandler, CallbackContext, Filters, \
     MessageHandler
 
 from ehforwarderbot import coordinator, Chat, Channel, MsgType
 from ehforwarderbot.channel import SlaveChannel
-from ehforwarderbot.chat import GroupChat, SystemChatMember
+from ehforwarderbot.chat import SystemChatMember
 from ehforwarderbot.exceptions import EFBChatNotFound, EFBOperationNotSupported
 from ehforwarderbot.types import ModuleID, ChatID, MessageID
 from . import utils
@@ -52,7 +53,7 @@ class ChatListStorage:
         self.channels: Dict[ModuleID, SlaveChannel] = dict()
         self.chats = chats.copy()  # initialize chats with setter.
         self.offset: int = offset
-        self.update: Optional[telegram.Update] = None
+        self.update: Optional[Update] = None
         self.candidates: Optional[List[EFBChannelChatIDStr]] = None
 
     @property
@@ -71,7 +72,7 @@ class ChatListStorage:
             if i.module_id not in self.channels and i.module_id in coordinator.slaves:
                 self.channels[i.module_id] = coordinator.slaves[i.module_id]
 
-    def set_chat_suggestion(self, update: telegram.Update):
+    def set_chat_suggestion(self, update: Update):
         """Set suggestion message without recipient indicated."""
         self.update = update
 
@@ -238,7 +239,7 @@ class ChatBindingManager(LocaleMixin):
                                pattern: Optional[str] = "",
                                source_chats: Optional[List[EFBChannelChatIDStr]] = None,
                                filter_availability: bool = True) \
-            -> Tuple[List[str], List[List[telegram.InlineKeyboardButton]]]:
+            -> Tuple[List[str], List[List[InlineKeyboardButton]]]:
         """
         Generate a list of (list of) `InlineKeyboardButton`s of chats in slave channels,
         based on the status of message located by `storage_id` and the paging from
@@ -310,7 +311,7 @@ class ChatBindingManager(LocaleMixin):
             legend.append(f"{ch.channel_emoji}: {ch.channel_name}")
 
         # Build inline button list
-        chat_btn_list: List[List[telegram.InlineKeyboardButton]] = []
+        chat_btn_list: List[List[InlineKeyboardButton]] = []
         chats_per_page = self.channel.flag("chats_per_page")
         for idx in range(offset, min(offset + chats_per_page, chat_list.length)):
             chat = chat_list.chats[idx]
@@ -322,19 +323,19 @@ class ChatBindingManager(LocaleMixin):
             chat_name = chat.long_name
             button_text = f"{chat.channel_emoji}{chat_type}{mode}: {chat_name}"
             button_callback = f"chat {idx}"
-            chat_btn_list.append([telegram.InlineKeyboardButton(button_text, callback_data=button_callback)])
+            chat_btn_list.append([InlineKeyboardButton(button_text, callback_data=button_callback)])
 
         # Pagination
-        page_number_row: List[telegram.InlineKeyboardButton] = []
+        page_number_row: List[InlineKeyboardButton] = []
 
         if offset - chats_per_page >= 0:
-            page_number_row.append(telegram.InlineKeyboardButton(self._("< Prev"),
-                                                                 callback_data=f"offset {offset - chats_per_page}"))
-        page_number_row.append(telegram.InlineKeyboardButton(self._("Cancel"),
-                                                             callback_data=Flags.CANCEL_PROCESS))
+            page_number_row.append(InlineKeyboardButton(self._("< Prev"),
+                                                        callback_data=f"offset {offset - chats_per_page}"))
+        page_number_row.append(InlineKeyboardButton(self._("Cancel"),
+                                                    callback_data=Flags.CANCEL_PROCESS))
         if offset + chats_per_page < chat_list.length:
-            page_number_row.append(telegram.InlineKeyboardButton(self._("Next >"),
-                                                                 callback_data=f"offset {offset + chats_per_page}"))
+            page_number_row.append(InlineKeyboardButton(self._("Next >"),
+                                                        callback_data=f"offset {offset + chats_per_page}"))
         chat_btn_list.append(page_number_row)
 
         return legend, chat_btn_list
@@ -361,7 +362,7 @@ class ChatBindingManager(LocaleMixin):
 
         if message_id is None:
             message_id = self.bot.send_message(chat_id, self._("Processing...")).message_id
-        self.bot.send_chat_action(chat_id, telegram.ChatAction.TYPING)
+        self.bot.send_chat_action(chat_id, ChatAction.TYPING)
         if chats:
             msg_text = self._("This Telegram group is currently linked with...")
         else:
@@ -377,7 +378,7 @@ class ChatBindingManager(LocaleMixin):
             msg_text += "%s\n" % i
 
         self.bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=msg_text,
-                                   reply_markup=telegram.InlineKeyboardMarkup(chat_btn_list))
+                                   reply_markup=InlineKeyboardMarkup(chat_btn_list))
 
         self.link_handler.conversations[(chat_id, message_id)] = Flags.LINK_CONFIRM
 
@@ -442,20 +443,20 @@ class ChatBindingManager(LocaleMixin):
                    f"startgroup={urllib.parse.quote(utils.b64en(utils.message_id_to_str(tg_chat_id, tg_msg_id)))}"
         self.logger.debug("Telegram start trigger for linking chat: %s", link_url)
         if chat.linked:
-            btn_list = [telegram.InlineKeyboardButton(self._("Relink"), url=link_url),
-                        telegram.InlineKeyboardButton(self._("Restore"), callback_data="unlink 0")]
+            btn_list = [InlineKeyboardButton(self._("Relink"), url=link_url),
+                        InlineKeyboardButton(self._("Restore"), callback_data="unlink 0")]
         else:
-            btn_list = [telegram.InlineKeyboardButton(self._("Link"), url=link_url)]
-        btn_list.append(telegram.InlineKeyboardButton(self._("Manual {link_or_relink}")
-                                                      .format(link_or_relink=btn_list[0].text),
-                                                      callback_data="manual_link 0"))
+            btn_list = [InlineKeyboardButton(self._("Link"), url=link_url)]
+        btn_list.append(InlineKeyboardButton(self._("Manual {link_or_relink}")
+                                             .format(link_or_relink=btn_list[0].text),
+                                             callback_data="manual_link 0"))
         buttons = [btn_list,
-                   [telegram.InlineKeyboardButton(self._("Cancel"), callback_data=Flags.CANCEL_PROCESS)]]
+                   [InlineKeyboardButton(self._("Cancel"), callback_data=Flags.CANCEL_PROCESS)]]
 
         self.bot.edit_message_text(text=txt,
                                    chat_id=tg_chat_id,
                                    message_id=tg_msg_id,
-                                   reply_markup=telegram.InlineKeyboardMarkup(buttons),
+                                   reply_markup=InlineKeyboardMarkup(buttons),
                                    parse_mode='HTML')
 
     def link_chat_exec(self, update: Update, context: CallbackContext) -> int:
@@ -494,9 +495,9 @@ class ChatBindingManager(LocaleMixin):
                 .format(chat_display_name=html.escape(chat_display_name),
                         code=html.escape(utils.b64en(utils.message_id_to_str(tg_chat_id, tg_msg_id))))
             self.bot.edit_message_text(text=txt, chat_id=tg_chat_id, message_id=tg_msg_id,
-                                       reply_markup=telegram.InlineKeyboardMarkup(
-                                           [[telegram.InlineKeyboardButton(self._("Cancel"),
-                                                                           callback_data=Flags.CANCEL_PROCESS)]]),
+                                       reply_markup=InlineKeyboardMarkup(
+                                           [[InlineKeyboardButton(self._("Cancel"),
+                                                                  callback_data=Flags.CANCEL_PROCESS)]]),
                                        parse_mode='HTML')
             return Flags.LINK_EXEC
         else:
@@ -590,7 +591,7 @@ class ChatBindingManager(LocaleMixin):
                 return self.bot.send_message(update.message.chat.id,
                                              self._("Send `/unlink_all` to a group to unlink all remote chats "
                                                     "from it."),
-                                             parse_mode=telegram.ParseMode.MARKDOWN,
+                                             parse_mode=ParseMode.MARKDOWN,
                                              reply_to_message_id=update.message.message_id)
 
     def start_chat_list(self, update: Update, context: CallbackContext):
@@ -626,7 +627,7 @@ class ChatBindingManager(LocaleMixin):
         """
         if message_id is None:
             message_id = self.bot.send_message(chat_id, text=self._("Processing...")).message_id
-        self.bot.send_chat_action(chat_id, telegram.ChatAction.TYPING)
+        self.bot.send_chat_action(chat_id, ChatAction.TYPING)
 
         if chats and len(chats):
             if len(chats) == 1:
@@ -676,7 +677,7 @@ class ChatBindingManager(LocaleMixin):
         self.bot.edit_message_text(text=msg_text,
                                    chat_id=chat_id,
                                    message_id=message_id,
-                                   reply_markup=telegram.InlineKeyboardMarkup(chat_btn_list))
+                                   reply_markup=InlineKeyboardMarkup(chat_btn_list))
 
         self.chat_head_handler.conversations[(chat_id, message_id)] = Flags.CHAT_HEAD_CONFIRM
 
@@ -732,7 +733,7 @@ class ChatBindingManager(LocaleMixin):
         update.callback_query.answer()
         return ConversationHandler.END
 
-    def register_suggestions(self, update: telegram.Update,
+    def register_suggestions(self, update: Update,
                              candidates: List[EFBChannelChatIDStr],
                              chat_id: TelegramChatID, message_id: TelegramMessageID):
         storage_id = (chat_id, message_id)
@@ -749,7 +750,7 @@ class ChatBindingManager(LocaleMixin):
                                                "Please reply to a previous message, "
                                                "or choose a recipient:\n\nLegend:\n") + "\n".join(legends),
                                    chat_id=chat_id, message_id=message_id,
-                                   reply_markup=telegram.InlineKeyboardMarkup(buttons))
+                                   reply_markup=InlineKeyboardMarkup(buttons))
         self.suggestion_handler.conversations[storage_id] = Flags.SUGGEST_RECIPIENTS
 
     def suggested_recipient(self, update: Update, context: CallbackContext):
@@ -884,7 +885,7 @@ class ChatBindingManager(LocaleMixin):
                                                        "({channel_name}, {channel_id}).")
                                         .format(channel_name=channel.channel_name, channel_id=channel_id,
                                                 chat_uid=chat_uid))
-        except telegram.TelegramError as e:
+        except TelegramError as e:
             self.logger.exception("Error occurred while update chat details.")
             return self.bot.reply_error(update, self._('Error occurred while update chat details.\n'
                                                        '{0}'.format(e.message)))

@@ -1,16 +1,14 @@
 import logging
 from contextlib import suppress
-from typing import TYPE_CHECKING, Optional, Dict, Tuple, Iterator, overload, cast, Union, MutableSequence, Sequence, \
-    Collection
+from typing import TYPE_CHECKING, Optional, Dict, Tuple, Iterator, overload, cast, MutableSequence, Collection
 
 from typing_extensions import Literal
 
 from ehforwarderbot import coordinator
-from ehforwarderbot.chat import Chat, ChatMember, BaseChat, SystemChat, SystemChatMember, SelfChatMember
+from ehforwarderbot.chat import Chat, ChatMember, BaseChat, SystemChatMember, SelfChatMember
 from ehforwarderbot.exceptions import EFBChatNotFound
 from ehforwarderbot.types import ModuleID, ChatID
-from .chat import convert_chat, ETMChatType, ETMBaseChatType, ETMChatMember, unpickle, ETMSystemChat, \
-    ETMGroupChat
+from .chat import convert_chat, ETMChatType, ETMChatMember, unpickle, ETMSystemChat
 
 if TYPE_CHECKING:
     from . import TelegramChannel

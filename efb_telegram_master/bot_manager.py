@@ -7,20 +7,17 @@ import os
 from functools import wraps
 from typing import List, TYPE_CHECKING, Callable
 
-import telegram
 import telegram.constants
 import telegram.error
-import telegram.ext
 from retrying import retry
-from telegram import Update, InputFile
-from telegram.ext import CallbackContext, Filters, MessageHandler
+from telegram import Update, InputFile, User, File
+from telegram.ext import CallbackContext, Filters, MessageHandler, Updater, Dispatcher
 
 from .locale_handler import LocaleHandler
 from .locale_mixin import LocaleMixin
 
 if TYPE_CHECKING:
     from . import TelegramChannel
-
 
 MAX_CALLBACK_QUERY_ANSWER_LENGTH = 200
 
@@ -77,6 +74,7 @@ class TelegramBotManager(LocaleMixin):
                         return fn(*args, **kwargs)
                     else:
                         raise e
+
             return caption_strip_class_on_failure_wrapper
 
         @classmethod
@@ -140,6 +138,7 @@ class TelegramBotManager(LocaleMixin):
                         self.channel.chat_binding.chat_migration_by_id(chat_id, e.new_chat_id)
                         args = (e.new_chat_id, *args[1:])
                         return fn(self, *args, **kwargs)
+
             return retry_on_chat_migration_wrap
 
     def __init__(self, channel: 'TelegramChannel'):
@@ -152,9 +151,9 @@ class TelegramBotManager(LocaleMixin):
             req_kwargs.update(conf_req_kwargs)
 
         self.logger.debug("Setting up Telegram bot updater...")
-        self.updater: telegram.ext.Updater = telegram.ext.Updater(config['token'],
-                                                                  request_kwargs=req_kwargs,
-                                                                  use_context=True)
+        self.updater: Updater = Updater(config['token'],
+                                        request_kwargs=req_kwargs,
+                                        use_context=True)
 
         if isinstance(config.get('webhook'), dict):
             self.logger.debug("Setting up webhook...")
@@ -170,10 +169,10 @@ class TelegramBotManager(LocaleMixin):
             self.logger.debug("Webhook is set...")
 
         self.logger.debug("Checking connection to Telegram bot API...")
-        self.me: telegram.User = self.updater.bot.get_me()
+        self.me: User = self.updater.bot.get_me()
         self.logger.debug("Connection to Telegram bot API is OK...")
         self.admins: List[int] = config['admins']
-        self.dispatcher: telegram.ext.Dispatcher = self.updater.dispatcher
+        self.dispatcher: Dispatcher = self.updater.dispatcher
         self.logger.debug("Adding base dispatchers...")
         # New whitelist handler
         whitelist_filter = ~Filters.user(user_id=self.admins)
@@ -504,7 +503,7 @@ class TelegramBotManager(LocaleMixin):
 
     @Decorators.retry_on_timeout
     @Decorators.retry_on_chat_migration
-    def get_file(self, file_id: str) -> telegram.File:
+    def get_file(self, file_id: str) -> File:
         return self.updater.bot.get_file(file_id)
 
     @Decorators.retry_on_timeout

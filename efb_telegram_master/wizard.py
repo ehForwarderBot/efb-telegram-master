@@ -7,7 +7,6 @@ from PIL import Image, WebPImagePlugin
 from bullet import YesNo, Numbers, Bullet
 from pkg_resources import resource_filename
 
-import bullet
 import cjkwrap
 from ruamel.yaml import YAML
 from telegram import Bot, TelegramError
@@ -250,8 +249,8 @@ def setup_telegram_bot(data):
         prompt_yes = _("Yes, please tell me how to make one.")
         prompt_no = _("No, I have already made one according to the docs.")
 
-        choices = bullet.Bullet(prompt=_("Do you need help creating a bot?"),
-                                choices=[prompt_no, prompt_yes])
+        choices = Bullet(prompt=_("Do you need help creating a bot?"),
+                         choices=[prompt_no, prompt_yes])
         answer = choices.launch()
 
         if answer == prompt_yes:
@@ -298,8 +297,8 @@ def setup_telegram_bot_commands_list(data):
     prompt_yes = _("Yes, please update.")
     prompt_no = _("No, I want to keep the old commands list.")
 
-    choices = bullet.Bullet(prompt=_("Do you want to update the list of commands of your bot?"),
-                            choices=[prompt_yes, prompt_no])
+    choices = Bullet(prompt=_("Do you want to update the list of commands of your bot?"),
+                     choices=[prompt_yes, prompt_no])
     answer = choices.launch()
 
     if answer == prompt_yes:
@@ -361,8 +360,8 @@ def setup_admins(data):
         prompt_yes = _("Yes, I want to know how to get my ID.")
         prompt_no = _("No, I already know my ID.")
 
-        choices = bullet.Bullet(prompt=_("Do you need help getting your ID?"),
-                                choices=[prompt_no, prompt_yes])
+        choices = Bullet(prompt=_("Do you need help getting your ID?"),
+                         choices=[prompt_no, prompt_yes])
         answer = choices.launch()
 
         if answer == prompt_yes:
