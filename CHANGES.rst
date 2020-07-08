@@ -19,6 +19,7 @@ Added
 - Add support to outgoing 🎲, 🎯, 🏀 messages from Telegram
 - Allow wizard to set commands list of the bot
 - Show invalid remote chats when sending ``/link`` to a group (`#100`_)
+- Suppress first poll conflict warning within 60 seconds as an isolated case (`#103`_)
 
 Changed
 -------
@@ -107,3 +108,4 @@ First release.
 .. _#93: https://etm.1a23.studio/issues/93
 .. _#99: https://etm.1a23.studio/issues/99
 .. _#100: https://etm.1a23.studio/issues/100
+.. _#103: https://etm.1a23.studio/issues/103
