@@ -1,5 +1,5 @@
 import threading
-from typing import TYPE_CHECKING, KeysView, Optional
+from typing import TYPE_CHECKING, KeysView, Optional, List
 from xmlrpc.server import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
 
 from ehforwarderbot import coordinator
@@ -22,7 +22,7 @@ class RPCUtilities:
 
         # Restrict to a particular path.
         class RequestHandler(SimpleXMLRPCRequestHandler):
-            rpc_paths = ('/RPC2',)
+            rpc_paths = ('/', '/RPC2')
 
         server_addr = rpc_config['server']
         port = rpc_config['port']
@@ -33,7 +33,8 @@ class RPCUtilities:
         self.server.register_introspection_functions()
         self.server.register_multicall_functions()
         self.server.register_instance(self.channel.db)
-        self.server.register_function(self.get_slave_channels_ids)
+        self.server.register_function(self.get_slave_channels_ids)  # type: ignore
+        # TODO: Wait for https://github.com/python/typeshed/pull/4165 to be pushed to pypi with mypy
 
         threading.Thread(target=self.server.serve_forever, name="ETM RPC server thread")
 
@@ -43,8 +44,8 @@ class RPCUtilities:
             self.server.shutdown()
 
     @staticmethod
-    def get_slave_channels_ids() -> KeysView[str]:
+    def get_slave_channels_ids() -> List[str]:
         """Get the collection of slave channel IDs in current instance"""
-        return coordinator.slaves.keys()
+        return list(coordinator.slaves.keys())
 
     # TODO: add more utilities that could be useful for RPC?
