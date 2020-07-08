@@ -121,12 +121,21 @@ async def test_master_master_destination_suggestion(helper, client, bot_id, slav
         await helper.wait_for_message_text(in_chats(bot_id) & regex(chat.display_name))
 
         content = "test_master_master_destination_suggestion this shall be replied with a list of candidates"
-        await client.send_message(bot_id, content)
+        sent_message: Message = await client.send_message(bot_id, content)
         message: Message = await helper.wait_for_message(in_chats(bot_id) & has_button)
         buttons: List[List[MessageButton]] = message.buttons
         first_button: MessageButton = buttons[0][0]
         assert chat.display_name in first_button.text  # The message from previous chat should come first in the list
-        await buttons[-1][0].click()  # Cancel the error message.
+        # await buttons[-1][0].click()  # Cancel the error message.
+
+        await first_button.click()  # deliver the message
+        slave.clear_messages()
+
+        content = "test_master_master_destination_suggestion edited message shall be delivered without a prompt"
+        await sent_message.edit(text=content)
+        slave_message = slave.messages.get(timeout=5)
+        assert slave_message.text == content
+
 
 
 async def cancel_destination_suggestion(helper, message: Message):
