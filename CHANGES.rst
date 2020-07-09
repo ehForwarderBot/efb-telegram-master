@@ -16,16 +16,29 @@ Unreleased
 
 Added
 -----
-- Add support to outgoing 🎲, 🎯, 🏀 messages from Telegram
-- Allow wizard to set commands list of the bot
-- Show invalid remote chats when sending ``/link`` to a group (`#100`_)
-- Suppress first poll conflict warning within 60 seconds as an isolated case (`#103`_)
 
 Changed
 -------
 
 Removed
 -------
+
+Fixed
+-----
+
+Known issue
+-----------
+
+2.0.4_ - 2020-07-09
+==========
+
+Added
+-----
+- Add support to outgoing 🎲, 🎯, 🏀 messages from Telegram
+- Allow wizard to set commands list of the bot
+- Show invalid remote chats when sending ``/link`` to a group (`#100`_)
+- Suppress first poll conflict warning within 60 seconds as an isolated case (`#103`_)
+
 
 Fixed
 -----
@@ -37,9 +50,6 @@ Fixed
 - Missing ``send_to_last_chat`` in wizard (`#99`_)
 - Migrate from ``tgs`` to ``lottie`` per upstream library
 - Editing messages sent with destination specified post-sending will not trigger error message again (`#102`_)
-
-Known issue
------------
 
 2.0.3_ - 2020-04-04
 ===================
@@ -106,6 +116,7 @@ First release.
 .. _2.0.1: https://etm.1a23.studio/compare/v2.0.0...v2.0.1
 .. _2.0.2: https://etm.1a23.studio/compare/v2.0.1...v2.0.2
 .. _2.0.3: https://etm.1a23.studio/compare/v2.0.2...v2.0.3
+.. _2.0.4: https://etm.1a23.studio/compare/v2.0.3...v2.0.4
 .. _#93: https://etm.1a23.studio/issues/93
 .. _#99: https://etm.1a23.studio/issues/99
 .. _#100: https://etm.1a23.studio/issues/100
