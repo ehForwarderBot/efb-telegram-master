@@ -43,7 +43,7 @@ setup(
     tests_require=tests_require,
     install_requires=[
         "ehforwarderbot>=2.0.0",
-        "python-telegram-bot>=12.6",
+        "python-telegram-bot>=12.8",
         "python-magic",
         "ffmpeg-python",
         "peewee",

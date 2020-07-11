@@ -29,8 +29,17 @@ Fixed
 Known issue
 -----------
 
+
+2.1.0_ - 2020-07-11
+===================
+
+Fixed
+-----
+- Update dependency requirement of ``python-telegram-bot`` for the latest API.
+- Bump minor version for the new features added in 2.0.4.
+
 2.0.4_ - 2020-07-09
-==========
+===================
 
 Added
 -----
@@ -117,6 +126,7 @@ First release.
 .. _2.0.2: https://etm.1a23.studio/compare/v2.0.1...v2.0.2
 .. _2.0.3: https://etm.1a23.studio/compare/v2.0.2...v2.0.3
 .. _2.0.4: https://etm.1a23.studio/compare/v2.0.3...v2.0.4
+.. _2.1.0: https://etm.1a23.studio/compare/v2.0.4...v2.1.0
 .. _#93: https://etm.1a23.studio/issues/93
 .. _#99: https://etm.1a23.studio/issues/99
 .. _#100: https://etm.1a23.studio/issues/100
