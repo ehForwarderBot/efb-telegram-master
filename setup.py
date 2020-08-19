@@ -56,12 +56,14 @@ setup(
         "bullet",
         "cjkwrap",
         "humanize",
-        "lottie",
         "typing-extensions>=3.7.4.1",
-        "cairosvg",  # required by ``lottie`` to export GIF
     ],
     extras_require={
-        'tests': tests_require
+        "tests": tests_require,
+        "tgs": [
+            "lottie",
+            "cairosvg",  # required by ``lottie`` to export GIF
+        ],
     },
     entry_points={
         "ehforwarderbot.master": "blueset.telegram = efb_telegram_master:TelegramChannel",
