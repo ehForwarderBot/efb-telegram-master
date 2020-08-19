@@ -16,10 +16,13 @@ Unreleased
 
 Added
 -----
+- Experimental flag ``default_media_prompt`` to modify placeholder text of
+  media messages with no caption.
 
 Changed
 -------
-- Moved ``lottie`` and ``cairosvg`` to optional dependencies to avoid unnecessary hurdle on new installations.
+- Moved ``lottie`` and ``cairosvg`` to optional dependencies to avoid
+  unnecessary hurdle on new installations.
 
 Removed
 -------

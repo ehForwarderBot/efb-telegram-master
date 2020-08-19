@@ -474,6 +474,14 @@ flags_settings = {
            '- warn: Enable this feature and issue warnings every time when you '
            'switch a recipient with quick reply.\n'
            '- disabled: Disable this feature.')
+         ),
+    "default_media_prompt":
+        ("emoji", 'choices', ["emoji", "text", "disabled"],
+         _('Placeholder text when the a picture/video/file message has no caption.\n'
+           '\n'
+           '- emoji: Use emoji like 🖼️, 🎥, and 📄.\n'
+           '- text: Use text like “Sent a picture/video/file”.\n'
+           '- disabled: Use empty placeholders.')
          )
 }
 

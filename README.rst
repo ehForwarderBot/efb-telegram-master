@@ -542,6 +542,14 @@ e.g.:
       switch a recipient with quick reply.
     - ``disabled``: Disable this feature.
 
+-   ``default_media_prompt`` *(str)* [Default: ``emoji``]
+
+    Placeholder text when the a picture/video/file message has no caption.
+
+    - ``emoji``: Use emoji like 🖼️, 🎥, and 📄.
+    - ``text``: Use text like “Sent a picture/video/file”.
+    - ``disabled``: Use empty placeholders.
+
 Network configuration: timeout tweaks
 -------------------------------------
 
