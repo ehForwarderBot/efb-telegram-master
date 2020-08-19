@@ -51,6 +51,7 @@ class ExperimentalFlagsManager(LocaleMixin):
         "your_message_on_slave": "silent",
         "animated_stickers": False,
         "send_to_last_chat": "warn",
+        "default_media_prompt": "emoji",
     }
 
     def __init__(self, channel: 'TelegramChannel'):
