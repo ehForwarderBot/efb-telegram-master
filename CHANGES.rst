@@ -19,6 +19,7 @@ Added
 
 Changed
 -------
+- Moved ``lottie`` and ``cairosvg`` to optional dependencies to avoid unnecessary hurdle on new installations.
 
 Removed
 -------
