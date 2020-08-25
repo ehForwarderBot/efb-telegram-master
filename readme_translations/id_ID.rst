@@ -585,9 +585,10 @@ e.g.:
 
 * ``animated_stickers`` *(bool)* [Default: ``false``]
 
-  Enable experimental support to animated stickers. Note: you might
-  need to install binary dependency ``libcairo`` to enable this
-  feature.
+  Enable experimental support to animated stickers. Note: you need to
+  install binary dependency ``libcairo`` on your own, and additional
+  Python dependencies via ``pip3 install "efb-telegram-master[tgs]"``
+  to enable this feature.
 
 * ``send_to_last_chat`` *(str)* [Default: ``warn``]
 
@@ -599,6 +600,17 @@ e.g.:
     you switch a recipient with quick reply.
 
   * ``disabled``: Disable this feature.
+
+* ``default_media_prompt`` *(str)* [Default: ``emoji``]
+
+  Placeholder text when the a picture/video/file message has no
+  caption.
+
+  * ``emoji``: Use emoji like 🖼️, 🎥, and 📄.
+
+  * ``text``: Use text like “Sent a picture/video/file”.
+
+  * ``disabled``: Use empty placeholders.
 
 
 Network configuration: timeout tweaks
