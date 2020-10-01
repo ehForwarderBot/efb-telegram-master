@@ -25,6 +25,7 @@ Removed
 
 Fixed
 -----
+- Delivery failure when captions of messages from slave channel are too long
 
 Known issue
 -----------
@@ -35,7 +36,7 @@ Known issue
 Added
 -----
 - Experimental flag ``default_media_prompt`` to modify placeholder text of
-  media messages with no caption.
+  media messages with no caption. (`#104`_)
 
 Changed
 -------
@@ -146,3 +147,4 @@ First release.
 .. _#100: https://etm.1a23.studio/issues/100
 .. _#102: https://etm.1a23.studio/issues/102
 .. _#103: https://etm.1a23.studio/issues/103
+.. _#104: https://etm.1a23.studio/issues/104

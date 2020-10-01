@@ -45,6 +45,33 @@ def test_message_truncation(channel, bot_admin):
         mock_send_document.assert_called()
         assert mock_send_document.call_args[1]['filename'].endswith('txt')
 
+        # Edit message text
+        msg_body = ''.join(random.choice(string.ascii_letters) for _ in range(100000))
+        edited = channel.bot_manager.edit_message_text(
+            text=msg_body, prefix='Prefix',
+            chat_id=message.chat_id, message_id=message.message_id
+        )
+        assert edited.text.startswith('Prefix\n' + msg_body[:50])
+        mock_send_document.assert_called()
+        assert mock_send_document.call_args[1]['filename'].endswith('txt')
+
+
+def test_caption_truncation(channel, bot_admin, image):
+    msg_body = ''.join(random.choice(string.ascii_letters) for _ in range(100000))
+    with patch('telegram.Bot.send_document') as mock_send_document:
+        message = channel.bot_manager.send_photo(bot_admin, image, caption=msg_body, prefix='Prefix')
+        assert message.caption.startswith('Prefix\n' + msg_body[:50])
+        mock_send_document.assert_called()
+        assert mock_send_document.call_args[1]['filename'].endswith('txt')
+
+        # Edit message text
+        msg_body = ''.join(random.choice(string.ascii_letters) for _ in range(100000))
+        edited = channel.bot_manager.edit_message_caption(
+            caption=msg_body, prefix='Prefix',
+            chat_id=message.chat_id, message_id=message.message_id
+        )
+        assert edited.caption.startswith('Prefix\n' + msg_body[:50])
+
 
 def test_malformed_markdown_text(channel, bot_admin):
     channel.bot_manager.send_message(
