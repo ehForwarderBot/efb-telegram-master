@@ -16,47 +16,47 @@ from efb_telegram_master import TelegramChannel
 pytestmark = [pytest.mark.xfail(raises=TimedOut), pytest.mark.xfail(raises=NetworkError)]
 
 
-@pytest.fixture('session')
+@pytest.fixture(scope='session')
 def bot_info():
     return get_bot()
 
 
-@pytest.fixture('session')
+@pytest.fixture(scope='session')
 def bot_token(bot_info) -> str:
     return bot_info['token']
 
 
-@pytest.fixture('session')
+@pytest.fixture(scope='session')
 def bot_id(bot_token) -> int:
     return int(bot_token.split(":")[0])
 
 
-@pytest.fixture('session')
+@pytest.fixture(scope='session')
 def bot_admins(bot_info) -> List[int]:
     return bot_info['admins']
 
 
-@pytest.fixture('session')
+@pytest.fixture(scope='session')
 def bot_admin(bot_admins) -> int:
     return bot_admins[0]
 
 
-@pytest.fixture('session')
+@pytest.fixture(scope='session')
 def bot_groups(bot_info) -> List[int]:
     return bot_info['groups']
 
 
-@pytest.fixture('session')
+@pytest.fixture(scope='session')
 def bot_group(bot_groups) -> int:
     return bot_groups[0]
 
 
-@pytest.fixture('session')
+@pytest.fixture(scope='session')
 def bot_channels(bot_info) -> List[int]:
     return bot_info['channels']
 
 
-@pytest.fixture('session')
+@pytest.fixture(scope='session')
 def bot_channel(bot_channels) -> int:
     return bot_channels[0]
 
