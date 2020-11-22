@@ -139,7 +139,6 @@ class CommandsManager(LocaleMixin):
             return None
         self.bot.answer_callback_query(
             prefix=prefix, text=msg,
-            chat_id=chat_id, message_id=message_id,
             callback_query_id=update.callback_query.id
         )
         return ConversationHandler.END
