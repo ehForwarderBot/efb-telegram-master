@@ -25,6 +25,12 @@ Removed
 
 Fixed
 -----
+
+2.2.1_ - 2020-11-23
+===================
+
+Fixed
+-----
 - Delivery failure when captions of messages from slave channel are too long
 - Exception thrown when executing a command in a command message
 
@@ -143,6 +149,7 @@ First release.
 .. _2.0.4: https://etm.1a23.studio/compare/v2.0.3...v2.0.4
 .. _2.1.0: https://etm.1a23.studio/compare/v2.0.4...v2.1.0
 .. _2.2.0: https://etm.1a23.studio/compare/v2.1.0...v2.2.0
+.. _2.2.1: https://etm.1a23.studio/compare/v2.2.0...v2.2.1
 .. _#93: https://etm.1a23.studio/issues/93
 .. _#99: https://etm.1a23.studio/issues/99
 .. _#100: https://etm.1a23.studio/issues/100
