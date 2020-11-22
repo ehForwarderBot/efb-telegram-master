@@ -33,8 +33,7 @@ class RPCUtilities:
         self.server.register_introspection_functions()
         self.server.register_multicall_functions()
         self.server.register_instance(self.channel.db)
-        self.server.register_function(self.get_slave_channels_ids)  # type: ignore
-        # TODO: Wait for https://github.com/python/typeshed/pull/4165 to be pushed to pypi with mypy
+        self.server.register_function(self.get_slave_channels_ids)
 
         threading.Thread(target=self.server.serve_forever, name="ETM RPC server thread")
 
