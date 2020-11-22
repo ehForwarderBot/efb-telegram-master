@@ -26,6 +26,7 @@ Removed
 Fixed
 -----
 - Delivery failure when captions of messages from slave channel are too long
+- Exception thrown when executing a command in a command message
 
 Known issue
 -----------
