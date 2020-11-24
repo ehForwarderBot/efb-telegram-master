@@ -57,7 +57,7 @@ setup(
         "pillow",
         "language-tags",
         "retrying",
-        "bullet",
+        "bullet>=2.2.0",
         "cjkwrap",
         "humanize",
         "typing-extensions>=3.7.4.1",
