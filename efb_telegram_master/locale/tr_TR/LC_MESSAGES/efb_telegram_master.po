@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ehforwarderbot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-11-22 15:47+0000\n"
-"PO-Revision-Date: 2020-11-22 16:31\n"
+"POT-Creation-Date: 2020-11-24 06:48+0000\n"
+"PO-Revision-Date: 2020-12-04 14:49\n"
 "Last-Translator: \n"
 "Language-Team: Turkish\n"
 "Language: tr_TR\n"
@@ -809,7 +809,7 @@ msgstr ""
 msgid "Proxy host (domain/IP): "
 msgstr ""
 
-#: efb_telegram_master/wizard.py:201 efb_telegram_master/wizard.py:581
+#: efb_telegram_master/wizard.py:201 efb_telegram_master/wizard.py:583
 msgid "Proxy port: "
 msgstr ""
 
@@ -925,9 +925,9 @@ msgid "Remove a message from its remote chat."
 msgstr ""
 
 #: efb_telegram_master/wizard.py:320 efb_telegram_master/wizard.py:387
-#: efb_telegram_master/wizard.py:400 efb_telegram_master/wizard.py:595
-#: efb_telegram_master/wizard.py:604 efb_telegram_master/wizard.py:612
-#: efb_telegram_master/wizard.py:641
+#: efb_telegram_master/wizard.py:400 efb_telegram_master/wizard.py:597
+#: efb_telegram_master/wizard.py:606 efb_telegram_master/wizard.py:614
+#: efb_telegram_master/wizard.py:643
 msgid "OK"
 msgstr ""
 
@@ -1043,79 +1043,79 @@ msgstr ""
 msgid "Do you want to config experimental features? "
 msgstr ""
 
-#: efb_telegram_master/wizard.py:534
+#: efb_telegram_master/wizard.py:535
 msgid "Do you want to adjust network configurations? (connection timeout) "
 msgstr ""
 
-#: efb_telegram_master/wizard.py:541
+#: efb_telegram_master/wizard.py:543
 msgid "For meanings and significances of the following values, please consult the module documentations."
 msgstr ""
 
-#: efb_telegram_master/wizard.py:548
+#: efb_telegram_master/wizard.py:550
 msgid "Do you want to change timeout settings? "
 msgstr ""
 
-#: efb_telegram_master/wizard.py:553
+#: efb_telegram_master/wizard.py:555
 msgid "read_timeout (in seconds): "
 msgstr ""
 
-#: efb_telegram_master/wizard.py:555
+#: efb_telegram_master/wizard.py:557
 msgid "connect_timeout (in seconds): "
 msgstr ""
 
-#: efb_telegram_master/wizard.py:561
+#: efb_telegram_master/wizard.py:563
 msgid "To learn about what RPC is and what it does, please visit the module documentations."
 msgstr ""
 
-#: efb_telegram_master/wizard.py:568
+#: efb_telegram_master/wizard.py:570
 msgid "Do you want to enable RPC interface? "
 msgstr ""
 
-#: efb_telegram_master/wizard.py:580
+#: efb_telegram_master/wizard.py:582
 msgid "RPC server: "
 msgstr ""
 
-#: efb_telegram_master/wizard.py:590
+#: efb_telegram_master/wizard.py:592
 msgid "Checking ffmpeg installation..."
 msgstr ""
 
-#: efb_telegram_master/wizard.py:592 efb_telegram_master/wizard.py:601
-#: efb_telegram_master/wizard.py:609
+#: efb_telegram_master/wizard.py:594 efb_telegram_master/wizard.py:603
+#: efb_telegram_master/wizard.py:611
 msgid "FAILED"
 msgstr ""
 
-#: efb_telegram_master/wizard.py:593
+#: efb_telegram_master/wizard.py:595
 msgid "ffmpeg is not found in current $PATH."
 msgstr ""
 
-#: efb_telegram_master/wizard.py:597
+#: efb_telegram_master/wizard.py:599
 msgid "Checking libmagic installation..."
 msgstr ""
 
-#: efb_telegram_master/wizard.py:602
+#: efb_telegram_master/wizard.py:604
 msgid "libmagic is not found in your system."
 msgstr ""
 
-#: efb_telegram_master/wizard.py:606
+#: efb_telegram_master/wizard.py:608
 msgid "Checking libwebp installation..."
 msgstr ""
 
-#: efb_telegram_master/wizard.py:610
+#: efb_telegram_master/wizard.py:612
 msgid "libwebp plugin is not detected by Pillow."
 msgstr ""
 
-#: efb_telegram_master/wizard.py:623
+#: efb_telegram_master/wizard.py:625
 msgid "================================\n"
 "EFB Telegram Master Setup Wizard\n"
 "================================\n\n"
 "This wizard will guide you to setup your EFB Telegram Master channel (ETM). This would be really fast and simple."
 msgstr ""
 
-#: efb_telegram_master/wizard.py:639
+#: efb_telegram_master/wizard.py:641
 msgid "Saving configurations..."
 msgstr ""
 
-#: efb_telegram_master/wizard.py:645
+#: efb_telegram_master/wizard.py:647
 msgid "Congratulations! You have finished the setup wizard for EFB Telegram Master Channel."
 msgstr ""
 
