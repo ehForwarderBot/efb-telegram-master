@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ehforwarderbot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-11-22 15:47+0000\n"
-"PO-Revision-Date: 2020-11-22 16:30\n"
+"POT-Creation-Date: 2020-11-24 06:48+0000\n"
+"PO-Revision-Date: 2020-12-04 14:49\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "Language: zh_CN\n"
@@ -871,7 +871,7 @@ msgstr "选择代理服务类型"
 msgid "Proxy host (domain/IP): "
 msgstr "代理主机（域名/IP）："
 
-#: efb_telegram_master/wizard.py:201 efb_telegram_master/wizard.py:581
+#: efb_telegram_master/wizard.py:201 efb_telegram_master/wizard.py:583
 msgid "Proxy port: "
 msgstr "代理服务器端口："
 
@@ -993,9 +993,9 @@ msgid "Remove a message from its remote chat."
 msgstr "从远端会话中删除消息。"
 
 #: efb_telegram_master/wizard.py:320 efb_telegram_master/wizard.py:387
-#: efb_telegram_master/wizard.py:400 efb_telegram_master/wizard.py:595
-#: efb_telegram_master/wizard.py:604 efb_telegram_master/wizard.py:612
-#: efb_telegram_master/wizard.py:641
+#: efb_telegram_master/wizard.py:400 efb_telegram_master/wizard.py:597
+#: efb_telegram_master/wizard.py:606 efb_telegram_master/wizard.py:614
+#: efb_telegram_master/wizard.py:643
 msgid "OK"
 msgstr "OK"
 
@@ -1125,68 +1125,68 @@ msgstr "当图片/视频/文件消息没有标题时使用的占位符文本。\
 msgid "Do you want to config experimental features? "
 msgstr "您想要配置实验性功能吗？ "
 
-#: efb_telegram_master/wizard.py:534
+#: efb_telegram_master/wizard.py:535
 msgid "Do you want to adjust network configurations? (connection timeout) "
 msgstr "您想调整网络配置吗？（连接超时设定）"
 
-#: efb_telegram_master/wizard.py:541
+#: efb_telegram_master/wizard.py:543
 msgid "For meanings and significances of the following values, please consult the module documentations."
 msgstr "关于以下数值的含义和作用，请查阅组件文档。"
 
-#: efb_telegram_master/wizard.py:548
+#: efb_telegram_master/wizard.py:550
 msgid "Do you want to change timeout settings? "
 msgstr "是否更改超时设置？ "
 
-#: efb_telegram_master/wizard.py:553
+#: efb_telegram_master/wizard.py:555
 msgid "read_timeout (in seconds): "
 msgstr "超时（秒）："
 
-#: efb_telegram_master/wizard.py:555
+#: efb_telegram_master/wizard.py:557
 msgid "connect_timeout (in seconds): "
 msgstr "连接超时（秒）："
 
-#: efb_telegram_master/wizard.py:561
+#: efb_telegram_master/wizard.py:563
 msgid "To learn about what RPC is and what it does, please visit the module documentations."
 msgstr "若要了解 RPC 是什么以及它能够做什么，请访问组件文档。"
 
-#: efb_telegram_master/wizard.py:568
+#: efb_telegram_master/wizard.py:570
 msgid "Do you want to enable RPC interface? "
 msgstr "是否启用 RPC 接口？"
 
-#: efb_telegram_master/wizard.py:580
+#: efb_telegram_master/wizard.py:582
 msgid "RPC server: "
 msgstr "RPC 服务器： "
 
-#: efb_telegram_master/wizard.py:590
+#: efb_telegram_master/wizard.py:592
 msgid "Checking ffmpeg installation..."
 msgstr "正在检查 ffmpeg 安装..."
 
-#: efb_telegram_master/wizard.py:592 efb_telegram_master/wizard.py:601
-#: efb_telegram_master/wizard.py:609
+#: efb_telegram_master/wizard.py:594 efb_telegram_master/wizard.py:603
+#: efb_telegram_master/wizard.py:611
 msgid "FAILED"
 msgstr "失败"
 
-#: efb_telegram_master/wizard.py:593
+#: efb_telegram_master/wizard.py:595
 msgid "ffmpeg is not found in current $PATH."
 msgstr "无法在当前 $PATH 找到 ffmpeg。"
 
-#: efb_telegram_master/wizard.py:597
+#: efb_telegram_master/wizard.py:599
 msgid "Checking libmagic installation..."
 msgstr "正在检查 libmagic 安装..."
 
-#: efb_telegram_master/wizard.py:602
+#: efb_telegram_master/wizard.py:604
 msgid "libmagic is not found in your system."
 msgstr "您的系统中没有找到 libmagic。"
 
-#: efb_telegram_master/wizard.py:606
+#: efb_telegram_master/wizard.py:608
 msgid "Checking libwebp installation..."
 msgstr "正在检查 libwebp 安装..."
 
-#: efb_telegram_master/wizard.py:610
+#: efb_telegram_master/wizard.py:612
 msgid "libwebp plugin is not detected by Pillow."
 msgstr "Pillow 未检测到 libwebp 插件。"
 
-#: efb_telegram_master/wizard.py:623
+#: efb_telegram_master/wizard.py:625
 msgid "================================\n"
 "EFB Telegram Master Setup Wizard\n"
 "================================\n\n"
@@ -1196,11 +1196,11 @@ msgstr "=========================\n"
 "=========================\n\n"
 "这个向导将会帮助你设置 EFB Telegram 主端 (ETM)。这个过程会很简单快速。"
 
-#: efb_telegram_master/wizard.py:639
+#: efb_telegram_master/wizard.py:641
 msgid "Saving configurations..."
 msgstr "正在保存配置..."
 
-#: efb_telegram_master/wizard.py:645
+#: efb_telegram_master/wizard.py:647
 msgid "Congratulations! You have finished the setup wizard for EFB Telegram Master Channel."
 msgstr "恭喜！您已完成了 EFB Telegram 主端的设置向导。"
 
