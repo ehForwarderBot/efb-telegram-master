@@ -56,7 +56,7 @@ def get_msg_type(msg: telegram.Message) -> TGMsgType:
     for i in types:
         if getattr(msg, i, False):
             tg_type = TGMsgType(i.capitalize())
-            if tg_type == TGMsgType.Sticker and msg.sticker.is_animated:
+            if tg_type == TGMsgType.Sticker and msg.sticker is not None and msg.sticker.is_animated:
                 tg_type = TGMsgType.AnimatedSticker
             return tg_type
     return TGMsgType.Text

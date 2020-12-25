@@ -12,6 +12,7 @@ import telegram.error
 from retrying import retry
 from telegram import Update, InputFile, User, File
 from telegram.ext import CallbackContext, Filters, MessageHandler, Updater, Dispatcher
+from telegram.utils.types import HandlerArg
 
 from .locale_handler import LocaleHandler
 from .locale_mixin import LocaleMixin
@@ -171,7 +172,9 @@ class TelegramBotManager(LocaleMixin):
             self.logger.debug("Webhook is set...")
 
         self.logger.debug("Checking connection to Telegram bot API...")
-        self.me: User = self.updater.bot.get_me()
+        me = self.updater.bot.get_me()
+        assert me, "Invalid bot credential provided."
+        self.me: User = me
         self.logger.debug("Connection to Telegram bot API is OK...")
         self.admins: List[int] = config['admins']
         self.dispatcher: Dispatcher = self.updater.dispatcher
@@ -476,7 +479,10 @@ class TelegramBotManager(LocaleMixin):
     def get_me(self, *args, **kwargs):
         return self.updater.bot.get_me(*args, **kwargs)
 
-    def session_expired(self, update: Update, context: CallbackContext):
+    def session_expired(self, update: HandlerArg, context: CallbackContext):
+        assert isinstance(update, Update)
+        assert update.effective_message
+        assert update.effective_chat
         if update.callback_query:
             update.callback_query.answer()
         self.edit_message_text(text=self._("Session expired. Please try again. (SE01)"),

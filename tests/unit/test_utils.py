@@ -25,8 +25,8 @@ def test_url_safe_base64():
 
 
 def test_message_id_str_conversion():
-    chat_id = "1"
-    message_id = "2"
+    chat_id = 1
+    message_id = 2
     assert (chat_id, message_id) == message_id_str_to_id(
         message_id_to_str(chat_id=chat_id, message_id=message_id))
 
