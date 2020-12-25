@@ -17,7 +17,7 @@ import telegram.error
 import telegram.ext
 from PIL import Image
 from telegram import InputFile, ChatAction, InputMediaPhoto, InputMediaDocument, InputMediaVideo, InputMediaAnimation, \
-    InlineKeyboardMarkup, InlineKeyboardButton, ReplyMarkup, TelegramError
+    InlineKeyboardMarkup, InlineKeyboardButton, ReplyMarkup, TelegramError, InputMedia
 
 from ehforwarderbot import Message, Status, coordinator
 from ehforwarderbot.chat import ChatNotificationState, SelfChatMember, GroupChat, PrivateChat, SystemChat, Chat
@@ -255,7 +255,7 @@ class SlaveMessageProcessor(LocaleMixin):
         tg_dest = self.channel.config['admins'][0]
 
         if tg_chat:  # if this chat is linked
-            tg_dest = TelegramChatID(utils.chat_id_str_to_id(tg_chat)[1])
+            tg_dest = TelegramChatID(int(utils.chat_id_str_to_id(tg_chat)[1]))
         else:
             singly_linked = False
 
@@ -450,6 +450,7 @@ class SlaveMessageProcessor(LocaleMixin):
             if old_msg_id:
                 try:
                     if edit_media:
+                        media: InputMedia
                         if send_as_file:
                             media = InputMediaDocument(msg.file)
                         else:
@@ -523,12 +524,14 @@ class SlaveMessageProcessor(LocaleMixin):
 
             if old_msg_id:
                 if edit_media:
+                    assert msg.file
                     self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=InputMediaAnimation(msg.file))
                 return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1],
                                                      prefix=msg_template, suffix=reactions,
                                                      reply_markup=reply_markup,
                                                      caption=text, parse_mode="HTML")
             else:
+                assert msg.file
                 return self.bot.send_animation(tg_dest, InputFile(msg.file, filename=msg.filename),
                                                prefix=msg_template, suffix=reactions,
                                                caption=text, parse_mode="HTML",
@@ -542,7 +545,7 @@ class SlaveMessageProcessor(LocaleMixin):
     def slave_message_sticker(self, msg: Message, tg_dest: TelegramChatID, msg_template: str, reactions: str,
                               old_msg_id: OldMsgID = None,
                               target_msg_id: Optional[TelegramMessageID] = None,
-                              reply_markup: Optional[ReplyMarkup] = None,
+                              reply_markup: Optional[InlineKeyboardMarkup] = None,
                               silent: bool = False) -> telegram.Message:
 
         self.bot.send_chat_action(tg_dest, ChatAction.UPLOAD_PHOTO)
@@ -743,7 +746,7 @@ class SlaveMessageProcessor(LocaleMixin):
     def slave_message_location(self, msg: Message, tg_dest: TelegramChatID, msg_template: str, reactions: str,
                                old_msg_id: OldMsgID = None,
                                target_msg_id: Optional[TelegramMessageID] = None,
-                               reply_markup: Optional[ReplyMarkup] = None,
+                               reply_markup: Optional[InlineKeyboardMarkup] = None,
                                silent: bool = False) -> telegram.Message:
         # TODO: Move msg_template to caption during MTProto migration (if we ever had a chance to do that).
         self.bot.send_chat_action(tg_dest, ChatAction.FIND_LOCATION)

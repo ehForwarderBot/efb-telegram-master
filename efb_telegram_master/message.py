@@ -191,16 +191,19 @@ class ETMMsg(Message):
 
         if not is_common_file:
             if self.type_telegram is TGMsgType.Audio:
+                assert message.audio
                 self.file_id = message.audio.file_id
                 self.file_unique_id = message.audio.file_unique_id
                 self.mime = message.audio.mime_type
-                extension = mimetypes.guess_extension(message.audio.mime_type)
+                extension = mimetypes.guess_extension(message.audio.mime_type or "audio/ogg")
                 self.filename = f"{message.audio.title} - {message.audio.performer}{extension}"
             elif self.type_telegram is TGMsgType.Sticker:
+                assert message.sticker
                 self.file_id = message.sticker.file_id
                 self.file_unique_id = message.sticker.file_unique_id
                 self.mime = 'image/webp'
             elif self.type_telegram is TGMsgType.AnimatedSticker:
+                assert message.sticker
                 self.file_id = message.sticker.file_id
                 self.file_unique_id = message.sticker.file_unique_id
                 self.mime = 'application/json+tgs'
@@ -211,6 +214,7 @@ class ETMMsg(Message):
                 self.file_unique_id = attachment.file_unique_id
                 self.mime = 'image/jpeg'
             elif self.type_telegram is TGMsgType.VideoNote:
+                assert message.video_note
                 self.file_id = message.video_note.file_id
                 self.file_unique_id = message.video_note.file_unique_id
                 self.mime = 'video/mpeg'

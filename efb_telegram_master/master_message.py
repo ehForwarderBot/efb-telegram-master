@@ -4,13 +4,14 @@ import logging
 from pickle import UnpicklingError
 from queue import Queue
 from threading import Thread
-from typing import Optional, TYPE_CHECKING, Tuple
+from typing import Optional, TYPE_CHECKING, Tuple, Any
 
 import humanize
 from telegram import Update, Message, Chat, TelegramError, Contact, File
 from telegram.constants import MAX_FILESIZE_DOWNLOAD
 from telegram.ext import MessageHandler, Filters, CallbackContext, CommandHandler
 from telegram.utils.helpers import escape_markdown
+from telegram.utils.types import HandlerArg
 
 from ehforwarderbot import coordinator
 from ehforwarderbot.constants import MsgType
@@ -18,13 +19,13 @@ from ehforwarderbot.exceptions import EFBMessageTypeNotSupported, EFBChatNotFoun
     EFBMessageError, EFBOperationNotSupported, EFBException
 from ehforwarderbot.message import LocationAttribute
 from ehforwarderbot.status import MessageRemoval
-from ehforwarderbot.types import ModuleID, MessageID
+from ehforwarderbot.types import ModuleID, MessageID, ChatID
 from . import utils
 from .chat_destination_cache import ChatDestinationCache
 from .locale_mixin import LocaleMixin
 from .message import ETMMsg
 from .msg_type import TGMsgType, get_msg_type
-from .utils import EFBChannelChatIDStr, TelegramChatID
+from .utils import EFBChannelChatIDStr, TelegramChatID, TelegramMessageID
 
 if TYPE_CHECKING:
     from . import TelegramChannel
@@ -117,7 +118,9 @@ class MasterMessageProcessor(LocaleMixin):
         self.message_queue.put(None)
         self.message_worker_thread.join()
 
-    def enqueue_message(self, update: Update, context: CallbackContext):
+    def enqueue_message(self, update: HandlerArg, context: CallbackContext):
+        assert isinstance(update, Update)
+
         self.message_queue.put((update, context))
         if not self.message_worker_thread.is_alive():
             if update.effective_message:
@@ -125,10 +128,13 @@ class MasterMessageProcessor(LocaleMixin):
                     self._(
                         "ETM message worker is not running due to unforeseen reason. This might be a bug. Please see log for details."))
 
-    def msg(self, update: Update, context: CallbackContext):
+    def msg(self, update: HandlerArg, context: CallbackContext):
         """
         Process, wrap and dispatch messages from user.
         """
+        assert isinstance(update, Update)
+        assert update.effective_message
+        assert update.effective_chat
 
         message: Message = update.effective_message
         mid = utils.message_id_to_str(update=update)
@@ -155,20 +161,23 @@ class MasterMessageProcessor(LocaleMixin):
             quote = False
             self.logger.debug("[%s] Chat %s is not singly-linked", mid, update.effective_chat)
             reply_to = message.reply_to_message
-            cached_dest = self.chat_dest_cache.get(message.chat.id)
+            cached_dest = self.chat_dest_cache.get(str(message.chat.id))
             if reply_to:
                 self.logger.debug("[%s] Message is quote-replying to %s", mid, reply_to)
                 dest_msg = self.db.get_msg_log(
-                    master_msg_id=utils.message_id_to_str(reply_to.chat.id, reply_to.message_id)
+                    master_msg_id=utils.message_id_to_str(
+                        TelegramChatID(reply_to.chat.id),
+                        TelegramMessageID(reply_to.message_id)
+                    )
                 )
                 if dest_msg:
                     destination = dest_msg.slave_origin_uid
-                    self.chat_dest_cache.set(message.chat.id, destination)
+                    self.chat_dest_cache.set(str(message.chat.id), destination)
                     self.logger.debug("[%s] Quoted message is found in database with destination: %s", mid, destination)
             elif cached_dest:
                 self.logger.debug("[%s] Cached destination found: %s", mid, cached_dest)
                 destination = cached_dest
-                self._send_cached_chat_warning(update, message.chat.id, cached_dest)
+                self._send_cached_chat_warning(update, TelegramChatID(message.chat.id), cached_dest)
         else:
             quote = message.reply_to_message is not None
             self.logger.debug("[%s] Chat %s is singly-linked to %s", mid, message.chat, destination)
@@ -178,15 +187,16 @@ class MasterMessageProcessor(LocaleMixin):
         if destination is None:
             self.logger.debug("[%s] Destination is not found for this message", mid)
             candidates = (
-                 self.db.get_recent_slave_chats(message.chat.id, limit=5) or
-                 self.db.get_chat_assoc(master_uid=utils.chat_id_to_str(self.channel_id, message.chat.id))[:5]
+                 self.db.get_recent_slave_chats(TelegramChatID(message.chat.id), limit=5) or
+                 self.db.get_chat_assoc(master_uid=utils.chat_id_to_str(self.channel_id, ChatID(str(message.chat.id))))[:5]
             )
             if candidates:
                 self.logger.debug("[%s] Candidate suggestions are found for this message: %s", mid, candidates)
                 tg_err_msg = message.reply_text(self._("Error: No recipient specified.\n"
                                                        "Please reply to a previous message. (MS01)"), quote=True)
                 self.channel.chat_binding.register_suggestions(update, candidates,
-                                                               update.effective_chat.id, tg_err_msg.message_id)
+                                                               TelegramChatID(update.effective_chat.id),
+                                                               TelegramMessageID(tg_err_msg.message_id))
             else:
                 self.logger.debug("[%s] Candidate suggestions not found, give up.", mid)
                 message.reply_text(self._("Error: No recipient specified.\n"
@@ -198,13 +208,13 @@ class MasterMessageProcessor(LocaleMixin):
         """Return the singly-linked remote chat if available.
         Otherwise return None.
         """
-        master_chat_uid = utils.chat_id_to_str(self.channel_id, chat.id)
+        master_chat_uid = utils.chat_id_to_str(self.channel_id, ChatID(str(chat.id)))
         chats = self.db.get_chat_assoc(master_uid=master_chat_uid)
         if len(chats) == 1:
             return chats[0]
         return None
 
-    def process_telegram_message(self, update: Update, context: CallbackContext,
+    def process_telegram_message(self, update: HandlerArg, context: CallbackContext,
                                  destination: EFBChannelChatIDStr, quote: bool = False,
                                  edited: Optional["MsgLog"] = None):
         """
@@ -217,6 +227,8 @@ class MasterMessageProcessor(LocaleMixin):
             quote: If the message shall quote another one
             edited: old message log entry if the message can be edited.
         """
+        assert isinstance(update, Update)
+        assert update.effective_message
 
         # Message ID for logging
         message_id = utils.message_id_to_str(update=update)
@@ -265,13 +277,13 @@ class MasterMessageProcessor(LocaleMixin):
                                 channel_name=coordinator.slaves[channel].channel_name))
 
             # Parse message text and caption to markdown
-            msg_md_text = message.text and message.text_markdown
-            if msg_md_text and msg_md_text == escape_markdown(message.text):
+            msg_md_text = message.text and message.text_markdown or ""
+            if message.text and msg_md_text == escape_markdown(message.text):
                 msg_md_text = message.text
             msg_md_text = msg_md_text or ""
 
-            msg_md_caption = message.caption and message.caption_markdown
-            if msg_md_caption and msg_md_caption == escape_markdown(message.caption):
+            msg_md_caption = message.caption and message.caption_markdown or ""
+            if message.caption and msg_md_caption == escape_markdown(message.caption):
                 msg_md_caption = message.caption
             msg_md_caption = msg_md_caption or ""
 
@@ -305,61 +317,73 @@ class MasterMessageProcessor(LocaleMixin):
             if mtype is TGMsgType.Text:
                 m.text = msg_md_text
             elif mtype is TGMsgType.Photo:
+                assert message.photo
                 m.text = msg_md_caption
                 m.mime = "image/jpeg"
                 self._check_file_download(message.photo[-1])
             elif mtype in (TGMsgType.Sticker, TGMsgType.AnimatedSticker):
+                assert message.sticker
                 # Convert WebP to the more common PNG
                 m.text = ""
                 self._check_file_download(message.sticker)
             elif mtype is TGMsgType.Animation:
+                assert message.animation
                 m.text = msg_md_caption
                 self.logger.debug("[%s] Telegram message is a \"Telegram GIF\".", message_id)
-                m.filename = getattr(message.document, "file_name", None) or None
+                m.filename = getattr(message.animation, "file_name", None) or None
                 if m.filename and not m.filename.lower().endswith(".gif"):
                     m.filename += ".gif"
-                m.mime = message.document.mime_type or m.mime
+                m.mime = message.animation.mime_type or m.mime
             elif mtype is TGMsgType.Document:
+                assert message.document
                 m.text = msg_md_caption
                 self.logger.debug("[%s] Telegram message type is document.", message_id)
                 m.filename = getattr(message.document, "file_name", None) or None
                 m.mime = message.document.mime_type
                 self._check_file_download(message.document)
             elif mtype is TGMsgType.Video:
+                assert message.video
                 m.text = msg_md_caption
                 m.mime = message.video.mime_type
                 self._check_file_download(message.video)
             elif mtype is TGMsgType.VideoNote:
+                assert message.video_note
                 m.text = msg_md_caption
-                self._check_file_download(message.video)
+                self._check_file_download(message.video_note)
             elif mtype is TGMsgType.Audio:
+                assert message.audio
                 m.text = "%s - %s\n%s" % (
                     message.audio.title, message.audio.performer, msg_md_caption)
                 m.mime = message.audio.mime_type
                 self._check_file_download(message.audio)
             elif mtype is TGMsgType.Voice:
+                assert message.voice
                 m.text = msg_md_caption
                 m.mime = message.voice.mime_type
                 self._check_file_download(message.voice)
             elif mtype is TGMsgType.Location:
                 # TRANSLATORS: Message body text for location messages.
+                assert message.location
                 m.text = self._("Location")
                 m.attributes = LocationAttribute(
                     message.location.latitude,
                     message.location.longitude
                 )
             elif mtype is TGMsgType.Venue:
-                m.text = f"📍 {message.location.title}\n{message.location.adderss}"
+                assert message.venue
+                m.text = f"📍 {message.venue.title}\n{message.venue.address}"
                 m.attributes = LocationAttribute(
                     message.venue.location.latitude,
                     message.venue.location.longitude
                 )
             elif mtype is TGMsgType.Contact:
+                assert message.contact
                 contact: Contact = message.contact
                 m.text = self._("Shared a contact: {first_name} {last_name}\n{phone_number}").format(
                     first_name=contact.first_name, last_name=contact.last_name, phone_number=contact.phone_number
                 )
             elif mtype is TGMsgType.Dice:
+                assert message.dice
                 m.text = f"{message.dice.emoji} = {message.dice.value}"
             else:
                 raise EFBMessageTypeNotSupported(self._("Message type {0} is not supported.").format(mtype.name))
@@ -391,8 +415,11 @@ class MasterMessageProcessor(LocaleMixin):
     def attach_target_message(self, tg_msg: Message, etm_msg: ETMMsg, channel: ModuleID) -> ETMMsg:
         """Attach target message to an ETM message if possible"""
         reply_to = tg_msg.reply_to_message
+        assert reply_to
+
         target_log = self.db.get_msg_log(
-            master_msg_id=utils.message_id_to_str(reply_to.chat.id, reply_to.message_id))
+            master_msg_id=utils.message_id_to_str(
+                TelegramChatID(reply_to.chat.id), TelegramMessageID(reply_to.message_id)))
         if not target_log or not target_log.slave_origin_uid:
             self.logger.error("[%s] Quoted message not found in database, give up quoting.",
                               tg_msg.message_id)
@@ -411,16 +438,19 @@ class MasterMessageProcessor(LocaleMixin):
                           tg_msg.message_id, target_msg.chat.uid, target_msg.uid)
         return etm_msg
 
-    def _send_cached_chat_warning(self, update: Update,
+    def _send_cached_chat_warning(self, update: HandlerArg,
                                   cache_key: TelegramChatID,
                                   cached_dest: EFBChannelChatIDStr):
         """Send warning about cached chat."""
+        assert isinstance(update, Update)
+        assert update.effective_message
+
         if self.channel.flag("send_to_last_chat") != "warn":
             return
 
         # Warn the user once every timeout threshold per Telegram group
-        if not self.chat_dest_cache.is_warned(cache_key):
-            self.chat_dest_cache.set_warned(cache_key)
+        if not self.chat_dest_cache.is_warned(str(cache_key)):
+            self.chat_dest_cache.set_warned(str(cache_key))
 
             dest_module, dest_chat_id, _ = utils.chat_id_str_to_id(cached_dest)
             dest_chat = self.chat_manager.get_chat(dest_module, dest_chat_id)
@@ -439,7 +469,7 @@ class MasterMessageProcessor(LocaleMixin):
                 quote=True,
                 disable_web_page_preview=True)
 
-    def _check_file_download(self, file_obj: File):
+    def _check_file_download(self, file_obj: Any):
         """
         Check if the file is available for download..
 
@@ -458,10 +488,13 @@ class MasterMessageProcessor(LocaleMixin):
                     "Attachment is too large ({size}). Maximum allowed by Telegram Bot API is {max_size}. (AT01)").format(
                     size=size_str, max_size=max_size_str))
 
-    def delete_message(self, update: Update, context: CallbackContext):
+    def delete_message(self, update: HandlerArg, context: CallbackContext):
         """Remove an arbitrary message from its remote chat.
         Triggered by command ``/rm``.
         """
+        assert isinstance(update, Update)
+        assert update.message
+
         message: Message = update.message
         if message.reply_to_message is None:
             return self.bot.reply_error(update, self._(
@@ -469,7 +502,9 @@ class MasterMessageProcessor(LocaleMixin):
             ))
         reply: Message = message.reply_to_message
         msg_log = self.db.get_msg_log(
-            master_msg_id=utils.message_id_to_str(chat_id=reply.chat_id, message_id=reply.message_id))
+            master_msg_id=utils.message_id_to_str(
+                chat_id=TelegramChatID(reply.chat_id),
+                message_id=TelegramMessageID(reply.message_id)))
         if not msg_log or msg_log.slave_member_uid == self.db.FAIL_FLAG:
             return self.bot.reply_error(update, self._(
                 "This message is not found in ETM database. You cannot remove it from its remote chat."
@@ -508,7 +543,10 @@ class MasterMessageProcessor(LocaleMixin):
         else:
             reply.reply_text(self._("Message is removed in remote chat."))
 
-    def unsupported_message(self, update: Update, context: CallbackContext):
+    def unsupported_message(self, update: HandlerArg, context: CallbackContext):
+        assert isinstance(update, Update)
+        assert update.effective_message
+
         message_type = get_msg_type(update.effective_message)
         self.bot.reply_error(
             update,

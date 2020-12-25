@@ -6,6 +6,7 @@ from typing import Tuple, Dict, TYPE_CHECKING, List, Any, Union, Optional
 from telegram import Message, Update
 from telegram.ext import CommandHandler, ConversationHandler, CallbackQueryHandler, MessageHandler, CallbackContext
 from telegram.ext.filters import Filters
+from telegram.utils.types import HandlerArg
 
 from ehforwarderbot import coordinator, Channel, Middleware
 from ehforwarderbot.channel import SlaveChannel
@@ -74,7 +75,7 @@ class CommandsManager(LocaleMixin):
         self.command_conv.conversations[message_identifier] = Flags.COMMAND_PENDING
         self.msg_storage[message_identifier] = commands
 
-    def command_exec(self, update: Update, context: CallbackContext) -> Optional[int]:
+    def command_exec(self, update: HandlerArg, context: CallbackContext) -> Optional[int]:
         """
         Run a command from a command message.
         Triggered by callback message with status `Flags.COMMAND_PENDING`.
@@ -84,10 +85,16 @@ class CommandsManager(LocaleMixin):
         Returns:
             The next state
         """
+        assert isinstance(update, Update)
+        assert update.effective_chat
+        assert update.effective_message
+        assert update.callback_query
 
         chat_id = update.effective_chat.id
         message_id = update.effective_message.message_id
         callback = update.callback_query.data
+
+        assert callback
 
         index = (chat_id, message_id)
 
@@ -104,10 +111,10 @@ class CommandsManager(LocaleMixin):
             update.callback_query.answer()
             return ConversationHandler.END
 
-        callback = int(callback)
+        callback_idx = int(callback)
         command_storage = self.msg_storage[index]
         module = command_storage.module
-        command = command_storage.commands[callback]
+        command = command_storage.commands[callback_idx]
         prefix = command_storage.prefix
 
         self.logger.debug("[%s.%s] Command execution callback is valid. Command storage item: %s", chat_id, message_id, command_storage)
@@ -143,11 +150,14 @@ class CommandsManager(LocaleMixin):
         )
         return ConversationHandler.END
 
-    def extra_listing(self, update: Update, context: CallbackContext):
+    def extra_listing(self, update: HandlerArg, context: CallbackContext):
         """
         Show list of additional features and their usage.
         Triggered by `/extra`.
         """
+        assert isinstance(update, Update)
+        assert update.effective_chat
+
         msg = self._("<i>Click the link next to the name for usage.</i>\n")
         for idx, i in enumerate(self.modules_list):
             if isinstance(i, Channel):
@@ -180,7 +190,11 @@ class CommandsManager(LocaleMixin):
                 msg += "\n" + self._("No command found.")
         self.bot.send_message(update.effective_chat.id, msg, parse_mode="HTML")
 
-    def extra_usage(self, update: Update, context: CallbackContext):
+    def extra_usage(self, update: HandlerArg, context: CallbackContext):
+        assert context.match
+        assert isinstance(update, Update)
+        assert update.effective_chat
+
         groupdict = context.match.groupdict()
         if int(groupdict['id']) >= len(self.modules_list):
             return self.bot.reply_error(update, self._("Invalid module ID. (XC03)"))
@@ -207,10 +221,14 @@ class CommandsManager(LocaleMixin):
             html.escape(command.desc.format(function_name=fn_name)))
         self.bot.send_message(update.effective_chat.id, msg, parse_mode="HTML")
 
-    def extra_call(self, update: Update, context: CallbackContext):
+    def extra_call(self, update: HandlerArg, context: CallbackContext):
         """
         Invoke an additional feature from slave channel.
         """
+        assert context.match
+        assert isinstance(update, Update)
+        assert update.message
+
         groupdict = context.match.groupdict()
         if int(groupdict['id']) >= len(coordinator.slaves):
             return self.bot.reply_error(update, self._("Invalid module ID. (XC01)"))
@@ -231,6 +249,7 @@ class CommandsManager(LocaleMixin):
         msg = self.bot.send_message(update.message.chat.id,
                                     prefix=header, text=self._("Please wait..."))
 
+        assert update.message.text
         result = functions[ExtraCommandName(groupdict['command'])](
             " ".join(update.message.text.split(' ', 1)[1:]))
 

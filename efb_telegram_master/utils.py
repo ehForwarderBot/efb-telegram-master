@@ -26,8 +26,8 @@ if TYPE_CHECKING:
     from . import TelegramChannel
 
 
-TelegramChatID = NewType('TelegramChatID', str)
-TelegramMessageID = NewType('TelegramMessageID', str)
+TelegramChatID = NewType('TelegramChatID', int)
+TelegramMessageID = NewType('TelegramMessageID', int)
 TgChatMsgIDStr = NewType('TgChatMsgIDStr', str)
 EFBChannelChatIDStr = NewType('EFBChannelChatIDStr', str)
 OldMsgID = Tuple[TelegramChatID, TelegramMessageID]
@@ -94,9 +94,9 @@ def message_id_to_str(chat_id: Optional[TelegramChatID] = None,
         raise ValueError("update and (chat_id, message_id) is mutual exclusive.")
     if not update and not (chat_id and message_id):
         raise ValueError("Either update or (chat_id, message_id) is to be provided.")
-    if update:
-        chat_id = update.effective_chat.id
-        message_id = update.effective_message.message_id
+    if update and update.effective_message and update.effective_chat:
+        chat_id = TelegramChatID(update.effective_chat.id)
+        message_id = TelegramMessageID(update.effective_message.message_id)
     return TgChatMsgIDStr(f"{chat_id}.{message_id}")
 
 
@@ -107,7 +107,7 @@ def message_id_str_to_id(s: TgChatMsgIDStr) -> Tuple[TelegramChatID, TelegramMes
         chat_id, message_id
     """
     msg_ids = s.split(".", 1)
-    return TelegramChatID(msg_ids[0]), TelegramMessageID(msg_ids[1])
+    return TelegramChatID(int(msg_ids[0])), TelegramMessageID(int(msg_ids[1]))
 
 
 def chat_id_to_str(channel_id: Optional[ModuleID] = None, chat_uid: Optional[ChatID] = None,

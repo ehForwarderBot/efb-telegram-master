@@ -24,7 +24,7 @@ from .chat_object_cache import ChatObjectCacheManager
 from .message import ETMMsg
 from .msg_type import TGMsgType
 from .utils import TelegramChatID, EFBChannelChatIDStr, TgChatMsgIDStr, message_id_to_str, \
-    chat_id_to_str, OldMsgID, chat_id_str_to_id
+    chat_id_to_str, OldMsgID, chat_id_str_to_id, TelegramMessageID
 
 if TYPE_CHECKING:
     from . import TelegramChannel
@@ -408,7 +408,7 @@ class DatabaseManager:
                                   master_message: Message,
                                   old_message_id: Optional[OldMsgID] = None):
         """Add or update a message into the database."""
-        master_msg_id = message_id_to_str(master_message.chat_id, master_message.message_id)
+        master_msg_id = message_id_to_str(TelegramChatID(master_message.chat_id), TelegramMessageID(master_message.message_id))
         master_msg_id_alt = None
         self.logger.debug("[%s] Received message logging request of %s", master_msg_id, msg.uid)
 
