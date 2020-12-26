@@ -4,9 +4,9 @@ EFB Telegram Master Channel (ETM)
 .. image:: https://img.shields.io/pypi/v/efb-telegram-master.svg
    :alt: PyPI release
    :target: https://pypi.org/project/efb-telegram-master/
-.. image:: https://github.com/blueset/efb-telegram-master/workflows/Tests/badge.svg
+.. image:: https://github.com/ehForwarderBot/efb-telegram-master/workflows/Tests/badge.svg
    :alt: Tests status
-   :target: https://github.com/blueset/efb-telegram-master/actions
+   :target: https://github.com/ehForwarderBot/efb-telegram-master/actions
 .. image:: https://pepy.tech/badge/efb-telegram-master/month
    :alt: Downloads per month
    :target: https://pepy.tech/project/efb-telegram-master
@@ -14,7 +14,7 @@ EFB Telegram Master Channel (ETM)
    :alt: Translate this project
    :target: https://crowdin.com/project/ehforwarderbot/
 
-.. image:: https://github.com/blueset/efb-telegram-master/raw/master/banner.png
+.. image:: https://github.com/ehForwarderBot/efb-telegram-master/raw/master/banner.png
    :alt: Banner
 
 `README in other languages`_.

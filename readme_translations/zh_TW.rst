@@ -6,8 +6,8 @@ EFB Telegram 主端（ETM）
    :target: https://pypi.org/project/efb-telegram-master/
    :alt: PyPI release
 
-.. image:: https://github.com/blueset/efb-telegram-master/workflows/Tests/badge.svg
-   :target: https://github.com/blueset/efb-telegram-master/actions
+.. image:: https://github.com/ehForwarderBot/efb-telegram-master/workflows/Tests/badge.svg
+   :target: https://github.com/ehForwarderBot/efb-telegram-master/actions
    :alt: Tests status
 
 .. image:: https://pepy.tech/badge/efb-telegram-master/month
@@ -18,7 +18,7 @@ EFB Telegram 主端（ETM）
    :target: https://crowdin.com/project/ehforwarderbot/
    :alt: Translate this project
 
-.. image:: https://github.com/blueset/efb-telegram-master/raw/master/banner.png
+.. image:: https://github.com/ehForwarderBot/efb-telegram-master/raw/master/banner.png
    :alt: Banner
 
 `其他语言的 README <./readme_translations>`_。

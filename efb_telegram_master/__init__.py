@@ -466,7 +466,7 @@ class TelegramChannel(MasterChannel):
             now = time.time()
             # Warn the user only from the second time within ``CONFLICTION_TIMEOUT``
             # seconds to suppress isolated warnings.
-            # https://github.com/blueset/efb-telegram-master/issues/103
+            # https://github.com/ehForwarderBot/efb-telegram-master/issues/103
             if now - self.last_poll_confliction_time < self.CONFLICTION_TIMEOUT:
                 msg = self._('Conflicted polling detected. If this error persists, '
                              'please ensure you are running only one instance of this Telegram bot.')
