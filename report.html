@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>Test Report</title>
+    <style>body {
+	font-family: Helvetica, Arial, sans-serif;
+	font-size: 12px;
+	/* do not increase min-width as some may use split screens */
+	min-width: 800px;
+	color: #999;
+}
+
+h1 {
+	font-size: 24px;
+	color: black;
+}
+
+h2 {
+	font-size: 16px;
+	color: black;
+}
+
+p {
+    color: black;
+}
+
+a {
+	color: #999;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+/******************************
+ * SUMMARY INFORMATION
+ ******************************/
+
+#environment td {
+	padding: 5px;
+	border: 1px solid #E6E6E6;
+}
+
+#environment tr:nth-child(odd) {
+	background-color: #f6f6f6;
+}
+
+/******************************
+ * TEST RESULT COLORS
+ ******************************/
+span.passed, .passed .col-result {
+	color: green;
+}
+span.skipped, span.xfailed, span.rerun, .skipped .col-result, .xfailed .col-result, .rerun .col-result {
+	color: orange;
+}
+span.error, span.failed, span.xpassed, .error .col-result, .failed .col-result, .xpassed .col-result  {
+	color: red;
+}
+
+
+/******************************
+ * RESULTS TABLE
+ *
+ * 1. Table Layout
+ * 2. Extra
+ * 3. Sorting items
+ *
+ ******************************/
+
+/*------------------
+ * 1. Table Layout
+ *------------------*/
+
+#results-table {
+	border: 1px solid #e6e6e6;
+	color: #999;
+	font-size: 12px;
+	width: 100%
+}
+
+#results-table th, #results-table td {
+	padding: 5px;
+	border: 1px solid #E6E6E6;
+	text-align: left
+}
+#results-table th {
+	font-weight: bold
+}
+
+/*------------------
+ * 2. Extra
+ *------------------*/
+
+.log:only-child {
+	height: inherit
+}
+.log {
+	background-color: #e6e6e6;
+	border: 1px solid #e6e6e6;
+	color: black;
+	display: block;
+	font-family: "Courier New", Courier, monospace;
+	height: 230px;
+	overflow-y: scroll;
+	padding: 5px;
+	white-space: pre-wrap
+}
+div.image {
+	border: 1px solid #e6e6e6;
+	float: right;
+	height: 240px;
+	margin-left: 5px;
+	overflow: hidden;
+	width: 320px
+}
+div.image img {
+	width: 320px
+}
+div.video {
+	border: 1px solid #e6e6e6;
+	float: right;
+	height: 240px;
+	margin-left: 5px;
+	overflow: hidden;
+	width: 320px
+}
+div.video video {
+	overflow: hidden;
+	width: 320px;
+    height: 240px;
+}
+.collapsed {
+	display: none;
+}
+.expander::after {
+	content: " (show details)";
+	color: #BBB;
+	font-style: italic;
+	cursor: pointer;
+}
+.collapser::after {
+	content: " (hide details)";
+	color: #BBB;
+	font-style: italic;
+	cursor: pointer;
+}
+
+/*------------------
+ * 3. Sorting items
+ *------------------*/
+.sortable {
+	cursor: pointer;
+}
+
+.sort-icon {
+	font-size: 0px;
+	float: left;
+	margin-right: 5px;
+	margin-top: 5px;
+	/*triangle*/
+	width: 0;
+	height: 0;
+	border-left: 8px solid transparent;
+	border-right: 8px solid transparent;
+}
+
+.inactive .sort-icon {
+	/*finish triangle*/
+	border-top: 8px solid #E6E6E6;
+}
+
+.asc.active .sort-icon {
+	/*finish triangle*/
+	border-bottom: 8px solid #999;
+}
+
+.desc.active .sort-icon {
+	/*finish triangle*/
+	border-top: 8px solid #999;
+}
+</style></head>
+  <body onLoad="init()">
+    <script>/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
+function toArray(iter) {
+    if (iter === null) {
+        return null;
+    }
+    return Array.prototype.slice.call(iter);
+}
+
+function find(selector, elem) { // eslint-disable-line no-redeclare
+    if (!elem) {
+        elem = document;
+    }
+    return elem.querySelector(selector);
+}
+
+function find_all(selector, elem) {
+    if (!elem) {
+        elem = document;
+    }
+    return toArray(elem.querySelectorAll(selector));
+}
+
+function sort_column(elem) {
+    toggle_sort_states(elem);
+    const colIndex = toArray(elem.parentNode.childNodes).indexOf(elem);
+    let key;
+    if (elem.classList.contains('numeric')) {
+        key = key_num;
+    } else if (elem.classList.contains('result')) {
+        key = key_result;
+    } else if (elem.classList.contains('links')) {
+        key = key_link;
+    } else {
+        key = key_alpha;
+    }
+    sort_table(elem, key(colIndex));
+}
+
+function show_all_extras() { // eslint-disable-line no-unused-vars
+    find_all('.col-result').forEach(show_extras);
+}
+
+function hide_all_extras() { // eslint-disable-line no-unused-vars
+    find_all('.col-result').forEach(hide_extras);
+}
+
+function show_extras(colresult_elem) {
+    const extras = colresult_elem.parentNode.nextElementSibling;
+    const expandcollapse = colresult_elem.firstElementChild;
+    extras.classList.remove('collapsed');
+    expandcollapse.classList.remove('expander');
+    expandcollapse.classList.add('collapser');
+}
+
+function hide_extras(colresult_elem) {
+    const extras = colresult_elem.parentNode.nextElementSibling;
+    const expandcollapse = colresult_elem.firstElementChild;
+    extras.classList.add('collapsed');
+    expandcollapse.classList.remove('collapser');
+    expandcollapse.classList.add('expander');
+}
+
+function show_filters() {
+    const filter_items = document.getElementsByClassName('filter');
+    for (let i = 0; i < filter_items.length; i++)
+        filter_items[i].hidden = false;
+}
+
+function add_collapse() {
+    // Add links for show/hide all
+    const resulttable = find('table#results-table');
+    const showhideall = document.createElement('p');
+    showhideall.innerHTML = '<a href="javascript:show_all_extras()">Show all details</a> / ' +
+                            '<a href="javascript:hide_all_extras()">Hide all details</a>';
+    resulttable.parentElement.insertBefore(showhideall, resulttable);
+
+    // Add show/hide link to each result
+    find_all('.col-result').forEach(function(elem) {
+        const collapsed = get_query_parameter('collapsed') || 'Passed';
+        const extras = elem.parentNode.nextElementSibling;
+        const expandcollapse = document.createElement('span');
+        if (extras.classList.contains('collapsed')) {
+            expandcollapse.classList.add('expander');
+        } else if (collapsed.includes(elem.innerHTML)) {
+            extras.classList.add('collapsed');
+            expandcollapse.classList.add('expander');
+        } else {
+            expandcollapse.classList.add('collapser');
+        }
+        elem.appendChild(expandcollapse);
+
+        elem.addEventListener('click', function(event) {
+            if (event.currentTarget.parentNode.nextElementSibling.classList.contains('collapsed')) {
+                show_extras(event.currentTarget);
+            } else {
+                hide_extras(event.currentTarget);
+            }
+        });
+    });
+}
+
+function get_query_parameter(name) {
+    const match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+}
+
+function init () { // eslint-disable-line no-unused-vars
+    reset_sort_headers();
+
+    add_collapse();
+
+    show_filters();
+
+    sort_column(find('.initial-sort'));
+
+    find_all('.sortable').forEach(function(elem) {
+        elem.addEventListener('click',
+            function() {
+                sort_column(elem);
+            }, false);
+    });
+}
+
+function sort_table(clicked, key_func) {
+    const rows = find_all('.results-table-row');
+    const reversed = !clicked.classList.contains('asc');
+    const sorted_rows = sort(rows, key_func, reversed);
+    /* Whole table is removed here because browsers acts much slower
+     * when appending existing elements.
+     */
+    const thead = document.getElementById('results-table-head');
+    document.getElementById('results-table').remove();
+    const parent = document.createElement('table');
+    parent.id = 'results-table';
+    parent.appendChild(thead);
+    sorted_rows.forEach(function(elem) {
+        parent.appendChild(elem);
+    });
+    document.getElementsByTagName('BODY')[0].appendChild(parent);
+}
+
+function sort(items, key_func, reversed) {
+    const sort_array = items.map(function(item, i) {
+        return [key_func(item), i];
+    });
+
+    sort_array.sort(function(a, b) {
+        const key_a = a[0];
+        const key_b = b[0];
+
+        if (key_a == key_b) return 0;
+
+        if (reversed) {
+            return key_a < key_b ? 1 : -1;
+        } else {
+            return key_a > key_b ? 1 : -1;
+        }
+    });
+
+    return sort_array.map(function(item) {
+        const index = item[1];
+        return items[index];
+    });
+}
+
+function key_alpha(col_index) {
+    return function(elem) {
+        return elem.childNodes[1].childNodes[col_index].firstChild.data.toLowerCase();
+    };
+}
+
+function key_num(col_index) {
+    return function(elem) {
+        return parseFloat(elem.childNodes[1].childNodes[col_index].firstChild.data);
+    };
+}
+
+function key_link(col_index) {
+    return function(elem) {
+        const dataCell = elem.childNodes[1].childNodes[col_index].firstChild;
+        return dataCell == null ? '' : dataCell.innerText.toLowerCase();
+    };
+}
+
+function key_result(col_index) {
+    return function(elem) {
+        const strings = ['Error', 'Failed', 'Rerun', 'XFailed', 'XPassed',
+            'Skipped', 'Passed'];
+        return strings.indexOf(elem.childNodes[1].childNodes[col_index].firstChild.data);
+    };
+}
+
+function reset_sort_headers() {
+    find_all('.sort-icon').forEach(function(elem) {
+        elem.parentNode.removeChild(elem);
+    });
+    find_all('.sortable').forEach(function(elem) {
+        const icon = document.createElement('div');
+        icon.className = 'sort-icon';
+        icon.textContent = 'vvv';
+        elem.insertBefore(icon, elem.firstChild);
+        elem.classList.remove('desc', 'active');
+        elem.classList.add('asc', 'inactive');
+    });
+}
+
+function toggle_sort_states(elem) {
+    //if active, toggle between asc and desc
+    if (elem.classList.contains('active')) {
+        elem.classList.toggle('asc');
+        elem.classList.toggle('desc');
+    }
+
+    //if inactive, reset all other functions and add ascending active
+    if (elem.classList.contains('inactive')) {
+        reset_sort_headers();
+        elem.classList.remove('inactive');
+        elem.classList.add('active');
+    }
+}
+
+function is_all_rows_hidden(value) {
+    return value.hidden == false;
+}
+
+function filter_table(elem) { // eslint-disable-line no-unused-vars
+    const outcome_att = 'data-test-result';
+    const outcome = elem.getAttribute(outcome_att);
+    const class_outcome = outcome + ' results-table-row';
+    const outcome_rows = document.getElementsByClassName(class_outcome);
+
+    for(let i = 0; i < outcome_rows.length; i++){
+        outcome_rows[i].hidden = !elem.checked;
+    }
+
+    const rows = find_all('.results-table-row').filter(is_all_rows_hidden);
+    const all_rows_hidden = rows.length == 0 ? true : false;
+    const not_found_message = document.getElementById('not-found-message');
+    not_found_message.hidden = !all_rows_hidden;
+}
+</script>
+    <h1>report.html</h1>
+    <p>Report generated on 22-Nov-2020 at 23:45:06 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a> v3.0.0</p>
+    <h2>Environment</h2>
+    <table id="environment">
+      <tr>
+        <td>Packages</td>
+        <td>{"pluggy": "0.13.1", "py": "1.9.0", "pytest": "6.1.2"}</td></tr>
+      <tr>
+        <td>Platform</td>
+        <td>macOS-10.15.7-x86_64-i386-64bit</td></tr>
+      <tr>
+        <td>Plugins</td>
+        <td>{"asyncio": "0.14.0", "dotenv": "0.5.2", "flaky": "3.7.0", "html": "3.0.0", "metadata": "1.10.0"}</td></tr>
+      <tr>
+        <td>Python</td>
+        <td>3.9.0</td></tr></table>
+    <h2>Summary</h2>
+    <p>1 tests ran in 23.13 seconds. </p>
+    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="passed">1 passed</span>, <input checked="true" class="filter" data-test-result="skipped" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="skipped">0 skipped</span>, <input checked="true" class="filter" data-test-result="failed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="failed">0 failed</span>, <input checked="true" class="filter" data-test-result="error" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="error">0 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>
+    <h2>Results</h2>
+    <table id="results-table">
+      <thead id="results-table-head">
+        <tr>
+          <th class="sortable result initial-sort" col="result">Result</th>
+          <th class="sortable" col="name">Test</th>
+          <th class="sortable numeric" col="duration">Duration</th>
+          <th class="sortable links" col="links">Links</th></tr>
+        <tr hidden="true" id="not-found-message">
+          <th colspan="4">No results found. Try to check the filters</th></tr></thead>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">tests/integration/test_slave_message_commands.py::test_slave_message_command</td>
+          <td class="col-duration">22.67</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> -------------------------------Captured log setup------------------------------- <br/>INFO     apscheduler.scheduler:base.py:166 Scheduler started
+DEBUG    apscheduler.scheduler:base.py:940 Looking for jobs to run
+DEBUG    apscheduler.scheduler:base.py:1016 No jobs; waiting until a job is added
+DEBUG    telegram.ext.updater:updater.py:223 Bot:121040558:dispatcher - started
+DEBUG    telegram.ext.updater:updater.py:223 Bot:121040558:updater - started
+DEBUG    telegram.ext.updater:updater.py:366 Updater thread started (polling)
+DEBUG    telegram.ext.updater:updater.py:415 Start network loop retry bootstrap del webhook
+DEBUG    telegram.ext.updater:updater.py:277 Waiting for Dispatcher and polling to start
+DEBUG    telegram.ext.dispatcher:dispatcher.py:347 Dispatcher started
+DEBUG    telegram.ext.updater:updater.py:415 Start network loop retry bootstrap clean updates
+DEBUG    telegram.ext.updater:updater.py:512 Cleaning updates from Telegram server
+DEBUG    telegram.ext.updater:updater.py:370 Bootstrap done
+DEBUG    telegram.ext.updater:updater.py:415 Start network loop retry getting Updates<br/> -------------------------------Captured log call-------------------------------- <br/>DEBUG    peewee:peewee.py:3117 (&#x27;SELECT &quot;t1&quot;.&quot;slave_uid&quot;, &quot;t1&quot;.&quot;master_uid&quot; FROM &quot;chatassoc&quot; AS &quot;t1&quot; WHERE (&quot;t1&quot;.&quot;master_uid&quot; = ?)&#x27;, [&#x27;blueset.telegram -1001293754134&#x27;])
+DEBUG    peewee:peewee.py:3117 (&#x27;BEGIN&#x27;, None)
+DEBUG    peewee:peewee.py:3117 (&#x27;DELETE FROM &quot;chatassoc&quot; WHERE (&quot;chatassoc&quot;.&quot;master_uid&quot; = ?)&#x27;, [&#x27;blueset.telegram -1001293754134&#x27;])
+DEBUG    peewee:peewee.py:3117 (&#x27;BEGIN&#x27;, None)
+DEBUG    peewee:peewee.py:3117 (&#x27;SAVEPOINT &quot;sdd97544fc55c48b6954ba0885d73fcf8&quot;;&#x27;, None)
+DEBUG    peewee:peewee.py:3117 (&#x27;DELETE FROM &quot;chatassoc&quot; WHERE (&quot;chatassoc&quot;.&quot;slave_uid&quot; = ?)&#x27;, [&#x27;tests.mocks.slave __chat_-4874371240980658916__&#x27;])
+DEBUG    peewee:peewee.py:3117 (&#x27;RELEASE SAVEPOINT &quot;sdd97544fc55c48b6954ba0885d73fcf8&quot;;&#x27;, None)
+DEBUG    peewee:peewee.py:3117 (&#x27;INSERT INTO &quot;chatassoc&quot; (&quot;master_uid&quot;, &quot;slave_uid&quot;) VALUES (?, ?)&#x27;, [&#x27;blueset.telegram -1001293754134&#x27;, &#x27;tests.mocks.slave __chat_-4874371240980658916__&#x27;])
+DEBUG    efb_telegram_master.slave_message:slave_message.py:90 [__msg_id_7258e3a3-8cc1-46c3-80e2-ba55a27ea92c__] Slave message delivered to ETM.
+&lt;Message, &lt;ChatMember: Alice (A) (__chat_-4874371240980658916__) @ &lt;PrivateChat: Alice (A) (__chat_-4874371240980658916__) @ ➖Mock Slave (tests.mocks.slave)&gt;&gt;@&lt;PrivateChat: Alice (A) (__chat_-4874371240980658916__) @ ➖Mock Slave (tests.mocks.slave)&gt; [Text]: Content of Text message with ID __msg_id_7258e3a3-8cc1-46c3-80e2-ba55a27ea92c__; __msg_id_7258e3a3-8cc1-46c3-80e2-ba55a27ea92c__&gt;
+DEBUG    efb_telegram_master.chat_object_cache:chat_object_cache.py:146 Trying to update key (&#x27;tests.mocks.slave&#x27;, &#x27;__chat_-4874371240980658916__&#x27;) with object &lt;PrivateChat: Alice (A) (__chat_-4874371240980658916__) @ ➖Mock Slave (tests.mocks.slave)&gt;. Full update: False
+DEBUG    efb_telegram_master.chat_object_cache:chat_object_cache.py:152 Cached object found with key (&#x27;tests.mocks.slave&#x27;, &#x27;__chat_-4874371240980658916__&#x27;).
+DEBUG    peewee:peewee.py:3117 (&#x27;SELECT &quot;t1&quot;.&quot;slave_uid&quot;, &quot;t1&quot;.&quot;master_uid&quot; FROM &quot;chatassoc&quot; AS &quot;t1&quot; WHERE (&quot;t1&quot;.&quot;slave_uid&quot; = ?)&#x27;, [&#x27;tests.mocks.slave __chat_-4874371240980658916__&#x27;])
+DEBUG    efb_telegram_master.slave_message:slave_message.py:244 [__msg_id_7258e3a3-8cc1-46c3-80e2-ba55a27ea92c__] The message should deliver to blueset.telegram -1001293754134
+DEBUG    peewee:peewee.py:3117 (&#x27;SELECT &quot;t1&quot;.&quot;slave_uid&quot;, &quot;t1&quot;.&quot;master_uid&quot; FROM &quot;chatassoc&quot; AS &quot;t1&quot; WHERE (&quot;t1&quot;.&quot;master_uid&quot; = ?)&#x27;, [&#x27;blueset.telegram -1001293754134&#x27;])
+DEBUG    efb_telegram_master.slave_message:slave_message.py:252 [__msg_id_7258e3a3-8cc1-46c3-80e2-ba55a27ea92c__] Message is in chat &lt;ETMPrivateChat: Alice (A) (__chat_-4874371240980658916__) @ ➖Mock Slave (tests.mocks.slave)&gt;
+DEBUG    efb_telegram_master.slave_message:slave_message.py:263 [__msg_id_7258e3a3-8cc1-46c3-80e2-ba55a27ea92c__] Message is sent to Telegram chat -1001293754134, with header &quot;&quot;.
+DEBUG    efb_telegram_master.slave_message:slave_message.py:317 [__msg_id_7258e3a3-8cc1-46c3-80e2-ba55a27ea92c__] Sending as a text message.
+DEBUG    efb_telegram_master.slave_message:slave_message.py:337 [__msg_id_7258e3a3-8cc1-46c3-80e2-ba55a27ea92c__] Processed and sent as text message
+DEBUG    efb_telegram_master.slave_message:slave_message.py:218 [__msg_id_7258e3a3-8cc1-46c3-80e2-ba55a27ea92c__] Message is sent to the user with telegram message id -1001293754134.2707.
+DEBUG    peewee:peewee.py:3117 (&#x27;BEGIN&#x27;, None)
+DEBUG    efb_telegram_master.db:db.py:413 [-1001293754134.2707] Received message logging request of __msg_id_7258e3a3-8cc1-46c3-80e2-ba55a27ea92c__
+DEBUG    peewee:peewee.py:3117 (&#x27;SELECT &quot;t1&quot;.&quot;master_msg_id&quot;, &quot;t1&quot;.&quot;master_msg_id_alt&quot;, &quot;t1&quot;.&quot;slave_message_id&quot;, &quot;t1&quot;.&quot;text&quot;, &quot;t1&quot;.&quot;slave_origin_uid&quot;, &quot;t1&quot;.&quot;slave_origin_display_name&quot;, &quot;t1&quot;.&quot;slave_member_uid&quot;, &quot;t1&quot;.&quot;slave_member_display_name&quot;, &quot;t1&quot;.&quot;media_type&quot;, &quot;t1&quot;.&quot;mime&quot;, &quot;t1&quot;.&quot;file_id&quot;, &quot;t1&quot;.&quot;file_unique_id&quot;, &quot;t1&quot;.&quot;msg_type&quot;, &quot;t1&quot;.&quot;pickle&quot;, &quot;t1&quot;.&quot;sent_to&quot;, &quot;t1&quot;.&quot;time&quot; FROM &quot;msglog&quot; AS &quot;t1&quot; WHERE (&quot;t1&quot;.&quot;master_msg_id&quot; = ?) LIMIT ? OFFSET ?&#x27;, [&#x27;-1001293754134.2707&#x27;, 1, 0])
+DEBUG    efb_telegram_master.db:db.py:430 [-1001293754134.2707] Message record is not found in database, insert it
+DEBUG    peewee:peewee.py:3117 (&#x27;INSERT INTO &quot;msglog&quot; (&quot;master_msg_id&quot;, &quot;master_msg_id_alt&quot;, &quot;slave_message_id&quot;, &quot;text&quot;, &quot;slave_origin_uid&quot;, &quot;slave_member_uid&quot;, &quot;media_type&quot;, &quot;mime&quot;, &quot;file_id&quot;, &quot;file_unique_id&quot;, &quot;msg_type&quot;, &quot;pickle&quot;, &quot;sent_to&quot;, &quot;time&quot;) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)&#x27;, [&#x27;-1001293754134.2707&#x27;, None, &#x27;__msg_id_7258e3a3-8cc1-46c3-80e2-ba55a27ea92c__&#x27;, &#x27;Content of Text message with ID __msg_id_7258e3a3-8cc1-46c3-80e2-ba55a27ea92c__&#x27;, &#x27;tests.mocks.slave __chat_-4874371240980658916__&#x27;, &#x27;tests.mocks.slave __chat_-4874371240980658916__ __chat_-4874371240980658916__&#x27;, &#x27;Text&#x27;, None, None, None, &#x27;Text&#x27;, &lt;memory at 0x106b83e80&gt;, &#x27;blueset.telegram&#x27;, datetime.datetime(2020, 11, 22, 23, 44, 52, 628847)])
+DEBUG    efb_telegram_master.db:db.py:449 [-1001293754134.2707] Database insert/update outcome: 1
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:619 Handling gzipped data
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:631 Handling update Updates
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:483 Receiving items from the network...
+DEBUG    tests.integration.helper.helper:helper.py:89 Got new message event, 1606059892.632302, {&#x27;original_update&#x27;: &lt;telethon.tl.types.UpdateNewChannelMessage object at 0x106a2b430&gt;, &#x27;pattern_match&#x27;: None, &#x27;message&#x27;: &lt;telethon.tl.patched.Message object at 0x106bffbb0&gt;, &#x27;_&#x27;: &#x27;NewMessage.Event&#x27;}
+DEBUG    telethon.extensions.messagepacker:messagepacker.py:66 Assigned msg_id = 6897974714088160560 to GetBotCallbackAnswerRequest (106bffe20)
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:447 Encrypting 1 message(s) in 48 bytes for sending
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:473 Encrypted messages put in a queue to be sent
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:438 Waiting for messages to send...
+DEBUG    telethon.extensions.messagepacker:messagepacker.py:66 Assigned msg_id = 6897974714089331672 to MsgsAck (106c2e9d0)
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:447 Encrypting 1 message(s) in 44 bytes for sending
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:473 Encrypted messages put in a queue to be sent
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:438 Waiting for messages to send...
+DEBUG    telegram.ext.dispatcher:dispatcher.py:365 Processing Update: {&#x27;update_id&#x27;: 80140988, &#x27;callback_query&#x27;: {&#x27;id&#x27;: &#x27;2958622363398206148&#x27;, &#x27;chat_instance&#x27;: &#x27;-8109090198497106793&#x27;, &#x27;message&#x27;: {&#x27;message_id&#x27;: 2707, &#x27;date&#x27;: 1606059892, &#x27;chat&#x27;: {&#x27;id&#x27;: -1001293754134, &#x27;type&#x27;: &#x27;supergroup&#x27;, &#x27;title&#x27;: &#x27;➖👥 Uranus&#x27;}, &#x27;text&#x27;: &#x27;Content of Text message with ID __msg_id_7258e3a3-8cc1-46c3-80e2-ba55a27ea92c__&#x27;, &#x27;entities&#x27;: [], &#x27;caption_entities&#x27;: [], &#x27;photo&#x27;: [], &#x27;new_chat_members&#x27;: [], &#x27;new_chat_photo&#x27;: [], &#x27;delete_chat_photo&#x27;: False, &#x27;group_chat_created&#x27;: False, &#x27;supergroup_chat_created&#x27;: False, &#x27;channel_chat_created&#x27;: False, &#x27;reply_markup&#x27;: {&#x27;inline_keyboard&#x27;: [[{&#x27;text&#x27;: &#x27;Ping!&#x27;, &#x27;callback_data&#x27;: &#x27;0&#x27;}], [{&#x27;text&#x27;: &#x27;Bam&#x27;, &#x27;callback_data&#x27;: &#x27;1&#x27;}]]}, &#x27;from&#x27;: {&#x27;id&#x27;: 121040558, &#x27;first_name&#x27;: &#x27;EFB Debug&#x27;, &#x27;is_bot&#x27;: True, &#x27;username&#x27;: &#x27;ehForawrderBot&#x27;}}, &#x27;data&#x27;: &#x27;0&#x27;, &#x27;from&#x27;: {&#x27;id&#x27;: 688857949, &#x27;first_name&#x27;: &#x27;Machina ex&#x27;, &#x27;is_bot&#x27;: False, &#x27;last_name&#x27;: &#x27;Deus&#x27;, &#x27;language_code&#x27;: &#x27;en&#x27;}}}
+DEBUG    efb_telegram_master.locale_handler:locale_handler.py:42 [80140988] Update has language en.
+INFO     efb_telegram_master.locale_handler:locale_handler.py:52 Updating locale to en
+DEBUG    telegram.ext.conversationhandler:conversationhandler.py:421 selecting conversation (-1001293754134, 2707) with state 49
+DEBUG    efb_telegram_master.commands:commands.py:113 [-1001293754134.2707] Command execution callback is valid. Command storage item: ETMCommandMsgStorage([&lt;ehforwarderbot.message.MessageCommand object at 0x106bff9d0&gt;, &lt;ehforwarderbot.message.MessageCommand object at 0x106bff8e0&gt;], &lt;tests.mocks.slave.MockSlaveChannel object at 0x1047470a0&gt;, &#x27;&#x27;, &#x27;Content of Text message with ID __msg_id_7258e3a3-8cc1-46c3-80e2-ba55a27ea92c__&#x27;)
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:609 Handling container
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:619 Handling gzipped data
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:631 Handling update Updates
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:751 Handling acknowledge for [6897974714088160560]
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:483 Receiving items from the network...
+DEBUG    tests.integration.helper.helper:helper.py:75 Got event, 1606059893.7534878, {&#x27;original_update&#x27;: &lt;telethon.tl.types.UpdateEditChannelMessage object at 0x106c522e0&gt;, &#x27;pattern_match&#x27;: None, &#x27;message&#x27;: &lt;telethon.tl.patched.Message object at 0x106c525e0&gt;, &#x27;_&#x27;: &#x27;MessageEdited.Event&#x27;}
+DEBUG    efb_telegram_master.commands:commands.py:117 [-1001293754134.2707] Inline buttons cleared
+DEBUG    efb_telegram_master.commands:commands.py:132 [-1001293754134.2707] Command execution outcome: Pong!
+DEBUG    efb_telegram_master.bot_manager:bot_manager.py:542 answer_callback_query((), {&#x27;callback_query_id&#x27;: &#x27;2958622363398206148&#x27;})
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:573 Handling RPC result for message 6897974714088160560
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:483 Receiving items from the network...
+DEBUG    efb_telegram_master.slave_message:slave_message.py:90 [__msg_id_0be5f4fa-0b3a-4c70-86f4-ac8ad7ba48a5__] Slave message delivered to ETM.
+&lt;Message, &lt;SelfChatMember: You (__self__) @ &lt;PrivateChat: Alice (A) (__chat_-4874371240980658916__) @ ➖Mock Slave (tests.mocks.slave)&gt;&gt;@&lt;PrivateChat: Alice (A) (__chat_-4874371240980658916__) @ ➖Mock Slave (tests.mocks.slave)&gt; [Text]: Content of Text message with ID __msg_id_0be5f4fa-0b3a-4c70-86f4-ac8ad7ba48a5__; __msg_id_0be5f4fa-0b3a-4c70-86f4-ac8ad7ba48a5__&gt;
+DEBUG    efb_telegram_master.chat_object_cache:chat_object_cache.py:146 Trying to update key (&#x27;tests.mocks.slave&#x27;, &#x27;__chat_-4874371240980658916__&#x27;) with object &lt;PrivateChat: Alice (A) (__chat_-4874371240980658916__) @ ➖Mock Slave (tests.mocks.slave)&gt;. Full update: False
+DEBUG    efb_telegram_master.chat_object_cache:chat_object_cache.py:152 Cached object found with key (&#x27;tests.mocks.slave&#x27;, &#x27;__chat_-4874371240980658916__&#x27;).
+DEBUG    peewee:peewee.py:3117 (&#x27;SELECT &quot;t1&quot;.&quot;slave_uid&quot;, &quot;t1&quot;.&quot;master_uid&quot; FROM &quot;chatassoc&quot; AS &quot;t1&quot; WHERE (&quot;t1&quot;.&quot;slave_uid&quot; = ?)&#x27;, [&#x27;tests.mocks.slave __chat_-4874371240980658916__&#x27;])
+DEBUG    efb_telegram_master.slave_message:slave_message.py:244 [__msg_id_0be5f4fa-0b3a-4c70-86f4-ac8ad7ba48a5__] The message should deliver to blueset.telegram -1001293754134
+DEBUG    peewee:peewee.py:3117 (&#x27;SELECT &quot;t1&quot;.&quot;slave_uid&quot;, &quot;t1&quot;.&quot;master_uid&quot; FROM &quot;chatassoc&quot; AS &quot;t1&quot; WHERE (&quot;t1&quot;.&quot;master_uid&quot; = ?)&#x27;, [&#x27;blueset.telegram -1001293754134&#x27;])
+DEBUG    efb_telegram_master.slave_message:slave_message.py:252 [__msg_id_0be5f4fa-0b3a-4c70-86f4-ac8ad7ba48a5__] Message is in chat &lt;ETMPrivateChat: Alice (A) (__chat_-4874371240980658916__) @ ➖Mock Slave (tests.mocks.slave)&gt;
+DEBUG    efb_telegram_master.slave_message:slave_message.py:263 [__msg_id_0be5f4fa-0b3a-4c70-86f4-ac8ad7ba48a5__] Message is sent to Telegram chat -1001293754134, with header &quot;You:&quot;.
+DEBUG    efb_telegram_master.slave_message:slave_message.py:317 [__msg_id_0be5f4fa-0b3a-4c70-86f4-ac8ad7ba48a5__] Sending as a text message.
+DEBUG    efb_telegram_master.slave_message:slave_message.py:337 [__msg_id_0be5f4fa-0b3a-4c70-86f4-ac8ad7ba48a5__] Processed and sent as text message
+DEBUG    efb_telegram_master.slave_message:slave_message.py:218 [__msg_id_0be5f4fa-0b3a-4c70-86f4-ac8ad7ba48a5__] Message is sent to the user with telegram message id -1001293754134.2708.
+DEBUG    peewee:peewee.py:3117 (&#x27;BEGIN&#x27;, None)
+DEBUG    efb_telegram_master.db:db.py:413 [-1001293754134.2708] Received message logging request of __msg_id_0be5f4fa-0b3a-4c70-86f4-ac8ad7ba48a5__
+DEBUG    peewee:peewee.py:3117 (&#x27;SELECT &quot;t1&quot;.&quot;master_msg_id&quot;, &quot;t1&quot;.&quot;master_msg_id_alt&quot;, &quot;t1&quot;.&quot;slave_message_id&quot;, &quot;t1&quot;.&quot;text&quot;, &quot;t1&quot;.&quot;slave_origin_uid&quot;, &quot;t1&quot;.&quot;slave_origin_display_name&quot;, &quot;t1&quot;.&quot;slave_member_uid&quot;, &quot;t1&quot;.&quot;slave_member_display_name&quot;, &quot;t1&quot;.&quot;media_type&quot;, &quot;t1&quot;.&quot;mime&quot;, &quot;t1&quot;.&quot;file_id&quot;, &quot;t1&quot;.&quot;file_unique_id&quot;, &quot;t1&quot;.&quot;msg_type&quot;, &quot;t1&quot;.&quot;pickle&quot;, &quot;t1&quot;.&quot;sent_to&quot;, &quot;t1&quot;.&quot;time&quot; FROM &quot;msglog&quot; AS &quot;t1&quot; WHERE (&quot;t1&quot;.&quot;master_msg_id&quot; = ?) LIMIT ? OFFSET ?&#x27;, [&#x27;-1001293754134.2708&#x27;, 1, 0])
+DEBUG    efb_telegram_master.db:db.py:430 [-1001293754134.2708] Message record is not found in database, insert it
+DEBUG    peewee:peewee.py:3117 (&#x27;INSERT INTO &quot;msglog&quot; (&quot;master_msg_id&quot;, &quot;master_msg_id_alt&quot;, &quot;slave_message_id&quot;, &quot;text&quot;, &quot;slave_origin_uid&quot;, &quot;slave_member_uid&quot;, &quot;media_type&quot;, &quot;mime&quot;, &quot;file_id&quot;, &quot;file_unique_id&quot;, &quot;msg_type&quot;, &quot;pickle&quot;, &quot;sent_to&quot;, &quot;time&quot;) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)&#x27;, [&#x27;-1001293754134.2708&#x27;, None, &#x27;__msg_id_0be5f4fa-0b3a-4c70-86f4-ac8ad7ba48a5__&#x27;, &#x27;Content of Text message with ID __msg_id_0be5f4fa-0b3a-4c70-86f4-ac8ad7ba48a5__&#x27;, &#x27;tests.mocks.slave __chat_-4874371240980658916__&#x27;, &#x27;tests.mocks.slave __self__ __chat_-4874371240980658916__&#x27;, &#x27;Text&#x27;, None, None, None, &#x27;Text&#x27;, &lt;memory at 0x106c4c280&gt;, &#x27;blueset.telegram&#x27;, datetime.datetime(2020, 11, 22, 23, 44, 55, 814022)])
+DEBUG    efb_telegram_master.db:db.py:449 [-1001293754134.2708] Database insert/update outcome: 1
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:619 Handling gzipped data
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:631 Handling update Updates
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:483 Receiving items from the network...
+DEBUG    tests.integration.helper.helper:helper.py:89 Got new message event, 1606059895.8177779, {&#x27;original_update&#x27;: &lt;telethon.tl.types.UpdateNewChannelMessage object at 0x106c521f0&gt;, &#x27;pattern_match&#x27;: None, &#x27;message&#x27;: &lt;telethon.tl.patched.Message object at 0x106c52f70&gt;, &#x27;_&#x27;: &#x27;NewMessage.Event&#x27;}
+DEBUG    telethon.extensions.messagepacker:messagepacker.py:66 Assigned msg_id = 6897974727715494088 to GetBotCallbackAnswerRequest (106c52a00)
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:447 Encrypting 1 message(s) in 48 bytes for sending
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:473 Encrypted messages put in a queue to be sent
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:438 Waiting for messages to send...
+DEBUG    telethon.extensions.messagepacker:messagepacker.py:66 Assigned msg_id = 6897974727717493944 to MsgsAck (106c65490)
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:447 Encrypting 1 message(s) in 68 bytes for sending
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:473 Encrypted messages put in a queue to be sent
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:438 Waiting for messages to send...
+DEBUG    telegram.ext.dispatcher:dispatcher.py:365 Processing Update: {&#x27;update_id&#x27;: 80140989, &#x27;callback_query&#x27;: {&#x27;id&#x27;: &#x27;2958622366699072105&#x27;, &#x27;chat_instance&#x27;: &#x27;-8109090198497106793&#x27;, &#x27;message&#x27;: {&#x27;message_id&#x27;: 2708, &#x27;date&#x27;: 1606059895, &#x27;chat&#x27;: {&#x27;id&#x27;: -1001293754134, &#x27;type&#x27;: &#x27;supergroup&#x27;, &#x27;title&#x27;: &#x27;➖👥 Uranus&#x27;}, &#x27;text&#x27;: &#x27;You:\nContent of Text message with ID __msg_id_0be5f4fa-0b3a-4c70-86f4-ac8ad7ba48a5__&#x27;, &#x27;entities&#x27;: [], &#x27;caption_entities&#x27;: [], &#x27;photo&#x27;: [], &#x27;new_chat_members&#x27;: [], &#x27;new_chat_photo&#x27;: [], &#x27;delete_chat_photo&#x27;: False, &#x27;group_chat_created&#x27;: False, &#x27;supergroup_chat_created&#x27;: False, &#x27;channel_chat_created&#x27;: False, &#x27;reply_markup&#x27;: {&#x27;inline_keyboard&#x27;: [[{&#x27;text&#x27;: &#x27;Ping!&#x27;, &#x27;callback_data&#x27;: &#x27;0&#x27;}], [{&#x27;text&#x27;: &#x27;Bam&#x27;, &#x27;callback_data&#x27;: &#x27;1&#x27;}]]}, &#x27;from&#x27;: {&#x27;id&#x27;: 121040558, &#x27;first_name&#x27;: &#x27;EFB Debug&#x27;, &#x27;is_bot&#x27;: True, &#x27;username&#x27;: &#x27;ehForawrderBot&#x27;}}, &#x27;data&#x27;: &#x27;1&#x27;, &#x27;from&#x27;: {&#x27;id&#x27;: 688857949, &#x27;first_name&#x27;: &#x27;Machina ex&#x27;, &#x27;is_bot&#x27;: False, &#x27;last_name&#x27;: &#x27;Deus&#x27;, &#x27;language_code&#x27;: &#x27;en&#x27;}}}
+DEBUG    efb_telegram_master.locale_handler:locale_handler.py:42 [80140989] Update has language en.
+DEBUG    telegram.ext.conversationhandler:conversationhandler.py:421 selecting conversation (-1001293754134, 2708) with state 49
+DEBUG    efb_telegram_master.commands:commands.py:113 [-1001293754134.2708] Command execution callback is valid. Command storage item: ETMCommandMsgStorage([&lt;ehforwarderbot.message.MessageCommand object at 0x106bfff70&gt;, &lt;ehforwarderbot.message.MessageCommand object at 0x106bfff40&gt;], &lt;tests.mocks.slave.MockSlaveChannel object at 0x1047470a0&gt;, &#x27;You:&#x27;, &#x27;Content of Text message with ID __msg_id_0be5f4fa-0b3a-4c70-86f4-ac8ad7ba48a5__&#x27;)
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:609 Handling container
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:619 Handling gzipped data
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:631 Handling update Updates
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:751 Handling acknowledge for [6897974727715494088]
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:483 Receiving items from the network...
+DEBUG    tests.integration.helper.helper:helper.py:75 Got event, 1606059897.019812, {&#x27;original_update&#x27;: &lt;telethon.tl.types.UpdateEditChannelMessage object at 0x106c65b20&gt;, &#x27;pattern_match&#x27;: None, &#x27;message&#x27;: &lt;telethon.tl.patched.Message object at 0x106c65d00&gt;, &#x27;_&#x27;: &#x27;MessageEdited.Event&#x27;}
+DEBUG    efb_telegram_master.commands:commands.py:117 [-1001293754134.2708] Inline buttons cleared
+DEBUG    efb_telegram_master.commands:commands.py:132 [-1001293754134.2708] Command execution outcome: None
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:573 Handling RPC result for message 6897974727715494088
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:483 Receiving items from the network...
+DEBUG    peewee:peewee.py:3117 (&#x27;BEGIN&#x27;, None)
+DEBUG    peewee:peewee.py:3117 (&#x27;DELETE FROM &quot;chatassoc&quot; WHERE (&quot;chatassoc&quot;.&quot;master_uid&quot; = ?)&#x27;, [&#x27;blueset.telegram -1001293754134&#x27;])<br/> -----------------------------Captured log teardown------------------------------ <br/>INFO     apscheduler.scheduler:base.py:198 Scheduler has been shut down
+DEBUG    apscheduler.scheduler:base.py:940 Looking for jobs to run
+DEBUG    apscheduler.scheduler:base.py:1016 No jobs; waiting until a job is added
+DEBUG    telegram.ext.updater:updater.py:561 Stopping Updater and Dispatcher...
+DEBUG    telegram.ext.updater:updater.py:584 Requesting Dispatcher to stop...
+DEBUG    telegram.ext.dispatcher:dispatcher.py:358 orderly stopping
+DEBUG    telegram.ext.dispatcher:dispatcher.py:370 Dispatcher thread stopped
+DEBUG    telegram.ext.updater:updater.py:230 Bot:121040558:dispatcher - ended
+DEBUG    telegram.ext.dispatcher:dispatcher.py:390 Waiting for async thread 1/4 to end
+DEBUG    telegram.ext.dispatcher:dispatcher.py:248 Closing run_async thread Bot:121040558:worker:8e869c15-d34a-4b09-b8d3-ec5eedbb19c3_2/4
+DEBUG    telegram.ext.dispatcher:dispatcher.py:248 Closing run_async thread Bot:121040558:worker:8e869c15-d34a-4b09-b8d3-ec5eedbb19c3_3/4
+DEBUG    telegram.ext.dispatcher:dispatcher.py:393 async thread 1/4 has ended
+DEBUG    telegram.ext.dispatcher:dispatcher.py:390 Waiting for async thread 2/4 to end
+DEBUG    telegram.ext.dispatcher:dispatcher.py:248 Closing run_async thread Bot:121040558:worker:8e869c15-d34a-4b09-b8d3-ec5eedbb19c3_0/3
+DEBUG    telegram.ext.dispatcher:dispatcher.py:393 async thread 2/4 has ended
+DEBUG    telegram.ext.dispatcher:dispatcher.py:390 Waiting for async thread 3/4 to end
+DEBUG    telegram.ext.dispatcher:dispatcher.py:393 async thread 3/4 has ended
+DEBUG    telegram.ext.dispatcher:dispatcher.py:390 Waiting for async thread 4/4 to end
+DEBUG    telegram.ext.dispatcher:dispatcher.py:248 Closing run_async thread Bot:121040558:worker:8e869c15-d34a-4b09-b8d3-ec5eedbb19c3_1/1
+DEBUG    telegram.ext.dispatcher:dispatcher.py:393 async thread 4/4 has ended
+DEBUG    telegram.ext.updater:updater.py:590 Waiting for Bot:121040558:dispatcher thread to end
+DEBUG    telegram.ext.updater:updater.py:592 Bot:121040558:dispatcher thread has ended
+DEBUG    telegram.ext.updater:updater.py:590 Waiting for Bot:121040558:updater thread to end
+DEBUG    telegram.ext.updater:updater.py:230 Bot:121040558:updater - ended
+DEBUG    telegram.ext.updater:updater.py:592 Bot:121040558:updater thread has ended
+DEBUG    efb_telegram_master:__init__.py:566 Gracefully stopping Telegram Master (blueset.telegram).
+DEBUG    efb_telegram_master:__init__.py:571 Telegram Master (blueset.telegram) gracefully stopped.
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:631 Handling update UpdateShort
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:483 Receiving items from the network...
+INFO     telethon.network.mtprotosender:mtprotosender.py:308 Disconnecting from 149.154.167.91:443/TcpFull...
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:311 Closing current connection...
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:631 Handling update Updates
+DEBUG    telethon.network.mtprotosender:mtprotosender.py:314 Cancelling 0 pending message(s)...
+INFO     telethon.network.mtprotosender:mtprotosender.py:328 Disconnection from 149.154.167.91:443/TcpFull complete!<br/></div></td></tr></tbody></table></body></html>
