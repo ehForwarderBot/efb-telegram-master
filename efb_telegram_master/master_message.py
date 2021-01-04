@@ -276,13 +276,13 @@ class MasterMessageProcessor(LocaleMixin):
                         .format(type_name=m.type.name,
                                 channel_name=coordinator.slaves[channel].channel_name))
 
-            # Parse message text and caption to markdown
-            msg_md_text = message.text and message.text_markdown or ""
+            # Convert message text and caption to markdown
+            msg_md_text = message.text and message.text_markdown_v2 or ""
             if message.text and msg_md_text == escape_markdown(message.text):
                 msg_md_text = message.text
             msg_md_text = msg_md_text or ""
 
-            msg_md_caption = message.caption and message.caption_markdown or ""
+            msg_md_caption = message.caption and message.caption_markdown_v2 or ""
             if message.caption and msg_md_caption == escape_markdown(message.caption):
                 msg_md_caption = message.caption
             msg_md_caption = msg_md_caption or ""
