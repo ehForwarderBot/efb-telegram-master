@@ -277,13 +277,14 @@ class MasterMessageProcessor(LocaleMixin):
                                 channel_name=coordinator.slaves[channel].channel_name))
 
             # Convert message text and caption to markdown
+            # Keep original text if what *_markdown_2 did is just escaping the text.
             msg_md_text = message.text and message.text_markdown_v2 or ""
-            if message.text and msg_md_text == escape_markdown(message.text):
+            if message.text and msg_md_text == escape_markdown(message.text, version=2):
                 msg_md_text = message.text
             msg_md_text = msg_md_text or ""
 
             msg_md_caption = message.caption and message.caption_markdown_v2 or ""
-            if message.caption and msg_md_caption == escape_markdown(message.caption):
+            if message.caption and msg_md_caption == escape_markdown(message.caption, version=2):
                 msg_md_caption = message.caption
             msg_md_caption = msg_md_caption or ""
 
