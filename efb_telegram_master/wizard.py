@@ -526,7 +526,7 @@ def setup_experimental_flags(data):
             print(key)
             print_wrapped(desc)
             ans = Bullet(prompt=f"{key}?", choices=params) \
-                .launch(default=params.index(default))
+                .launch(default=default)
             data.data['flags'][key] = ans
 
 

@@ -27,6 +27,7 @@ Fixed
 -----
 - Update message and caption format serialization from ``markdown`` to
   ``markdown_v2``.
+- Fixed yet another typo causing wizard to crash
 
 2.2.2_ - 2020-12-04
 ===================
