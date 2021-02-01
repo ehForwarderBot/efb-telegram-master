@@ -320,8 +320,8 @@ class TelegramChannel(MasterChannel):
         Process bot command `/start`.
         """
         assert isinstance(update, Update)
-        assert isinstance(update.effective_message, Message)
-        assert isinstance(update.effective_chat, Chat)
+        assert isinstance(update.effective_message, telegram.Message)
+        assert isinstance(update.effective_chat, telegram.Chat)
         if context.args:  # Group binding command
             if update.effective_message.chat.type != telegram.Chat.PRIVATE or \
                     (update.effective_message.forward_from_chat and
