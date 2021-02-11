@@ -15,7 +15,6 @@ from telegram import Update, Message, TelegramError, InlineKeyboardButton, ChatA
 from telegram.error import BadRequest
 from telegram.ext import ConversationHandler, CommandHandler, CallbackQueryHandler, CallbackContext, Filters, \
     MessageHandler
-from telegram.utils.types import HandlerArg
 
 from ehforwarderbot import coordinator, Channel, MsgType
 from ehforwarderbot.channel import SlaveChannel
@@ -73,7 +72,7 @@ class ChatListStorage:
             if i.module_id not in self.channels and i.module_id in coordinator.slaves:
                 self.channels[i.module_id] = coordinator.slaves[i.module_id]
 
-    def set_chat_suggestion(self, update: HandlerArg):
+    def set_chat_suggestion(self, update: Update):
         """Set suggestion message without recipient indicated."""
         assert isinstance(update, Update)
         self.update = update
@@ -186,7 +185,7 @@ class ChatBindingManager(LocaleMixin):
         if err_msg:
             message.reply_text("\n".join(err_msg))
 
-    def link_chat_show_list(self, update: HandlerArg, context: CallbackContext):
+    def link_chat_show_list(self, update: Update, context: CallbackContext):
         """
         Show the list of available chats for linking.
         Triggered by `/link`.
@@ -393,7 +392,7 @@ class ChatBindingManager(LocaleMixin):
 
         return Flags.LINK_CONFIRM
 
-    def link_chat_confirm(self, update: HandlerArg, context: CallbackContext) -> int:
+    def link_chat_confirm(self, update: Update, context: CallbackContext) -> int:
         """
         Confirmation of chat linking. Triggered by callback message on status `Flags.CONFIRM_LINK`.
 
@@ -474,7 +473,7 @@ class ChatBindingManager(LocaleMixin):
                                    reply_markup=InlineKeyboardMarkup(buttons),
                                    parse_mode='HTML')
 
-    def link_chat_exec(self, update: HandlerArg, context: CallbackContext) -> int:
+    def link_chat_exec(self, update: Update, context: CallbackContext) -> int:
         """
         Action to link a chat. Triggered by callback message with status `Flags.EXEC_LINK`.
         """
@@ -528,7 +527,7 @@ class ChatBindingManager(LocaleMixin):
         self.msg_storage.pop((tg_chat_id, tg_msg_id), None)
         return ConversationHandler.END
 
-    def link_chat(self, update: HandlerArg, args: Optional[List[str]]):
+    def link_chat(self, update: Update, args: Optional[List[str]]):
         """Actual code of linking a chat by manipulating database.
         Triggered by ``/start BASE64(msg_id_to_str(chat_id, msg_id))``.
         """
@@ -576,7 +575,7 @@ class ChatBindingManager(LocaleMixin):
                                    text=txt)
         self.msg_storage.pop(storage_key, None)
 
-    def unlink_all(self, update: HandlerArg, context: CallbackContext):
+    def unlink_all(self, update: Update, context: CallbackContext):
         """
         Unlink all chats linked to the telegram group.
         Triggered by `/unlink_all`.
@@ -623,7 +622,7 @@ class ChatBindingManager(LocaleMixin):
                                              parse_mode=ParseMode.MARKDOWN,
                                              reply_to_message_id=update.message.message_id)
 
-    def start_chat_list(self, update: HandlerArg, context: CallbackContext):
+    def start_chat_list(self, update: Update, context: CallbackContext):
         """
         Send a list to for chat list generation.
         Triggered by `/chat`.
@@ -716,7 +715,7 @@ class ChatBindingManager(LocaleMixin):
 
         self.chat_head_handler.conversations[(chat_id, message_id)] = Flags.CHAT_HEAD_CONFIRM
 
-    def make_chat_head(self, update: HandlerArg, context: CallbackContext) -> int:
+    def make_chat_head(self, update: Update, context: CallbackContext) -> int:
         """
         Create a chat head. Triggered by callback message with status `Flags.CHAT_HEAD_CONFIRM`.
 
@@ -774,7 +773,7 @@ class ChatBindingManager(LocaleMixin):
         update.callback_query.answer()
         return ConversationHandler.END
 
-    def register_suggestions(self, update: HandlerArg,
+    def register_suggestions(self, update: Update,
                              candidates: List[EFBChannelChatIDStr],
                              chat_id: TelegramChatID, message_id: TelegramMessageID):
         storage_id = (chat_id, message_id)
@@ -794,7 +793,7 @@ class ChatBindingManager(LocaleMixin):
                                    reply_markup=InlineKeyboardMarkup(buttons))
         self.suggestion_handler.conversations[storage_id] = Flags.SUGGEST_RECIPIENTS
 
-    def suggested_recipient(self, update: HandlerArg, context: CallbackContext):
+    def suggested_recipient(self, update: Update, context: CallbackContext):
         """Send the message to selected recipient among all suggested when a
         message is sent with unspecified recipient.
 
@@ -853,7 +852,7 @@ class ChatBindingManager(LocaleMixin):
             update.callback_query.answer()
         return ConversationHandler.END
 
-    def update_group_info(self, update: HandlerArg, context: CallbackContext):
+    def update_group_info(self, update: Update, context: CallbackContext):
         """
         Update the title and profile picture of singly-linked Telegram group
         according to the linked remote chat.
@@ -956,7 +955,7 @@ class ChatBindingManager(LocaleMixin):
             if pic_resized and getattr(pic_resized, 'close', None):
                 pic_resized.close()
 
-    def chat_migration(self, update: HandlerArg, context: CallbackContext):
+    def chat_migration(self, update: Update, context: CallbackContext):
         """Triggered by any message update with either
         ``migrate_from_chat_id`` or ``migrate_to_chat_id``
         or both (which shouldn’t happen).
