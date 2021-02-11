@@ -6,7 +6,6 @@ from typing import Tuple, Dict, TYPE_CHECKING, List, Any, Union, Optional
 from telegram import Message, Update
 from telegram.ext import CommandHandler, ConversationHandler, CallbackQueryHandler, MessageHandler, CallbackContext
 from telegram.ext.filters import Filters
-from telegram.utils.types import HandlerArg
 
 from ehforwarderbot import coordinator, Channel, Middleware
 from ehforwarderbot.channel import SlaveChannel
@@ -75,7 +74,7 @@ class CommandsManager(LocaleMixin):
         self.command_conv.conversations[message_identifier] = Flags.COMMAND_PENDING
         self.msg_storage[message_identifier] = commands
 
-    def command_exec(self, update: HandlerArg, context: CallbackContext) -> Optional[int]:
+    def command_exec(self, update: Update, context: CallbackContext) -> Optional[int]:
         """
         Run a command from a command message.
         Triggered by callback message with status `Flags.COMMAND_PENDING`.
@@ -150,7 +149,7 @@ class CommandsManager(LocaleMixin):
         )
         return ConversationHandler.END
 
-    def extra_listing(self, update: HandlerArg, context: CallbackContext):
+    def extra_listing(self, update: Update, context: CallbackContext):
         """
         Show list of additional features and their usage.
         Triggered by `/extra`.
@@ -190,7 +189,7 @@ class CommandsManager(LocaleMixin):
                 msg += "\n" + self._("No command found.")
         self.bot.send_message(update.effective_chat.id, msg, parse_mode="HTML")
 
-    def extra_usage(self, update: HandlerArg, context: CallbackContext):
+    def extra_usage(self, update: Update, context: CallbackContext):
         assert context.match
         assert isinstance(update, Update)
         assert update.effective_chat
@@ -221,7 +220,7 @@ class CommandsManager(LocaleMixin):
             html.escape(command.desc.format(function_name=fn_name)))
         self.bot.send_message(update.effective_chat.id, msg, parse_mode="HTML")
 
-    def extra_call(self, update: HandlerArg, context: CallbackContext):
+    def extra_call(self, update: Update, context: CallbackContext):
         """
         Invoke an additional feature from slave channel.
         """

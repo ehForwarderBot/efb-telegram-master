@@ -12,7 +12,6 @@ import telegram.error
 from retrying import retry
 from telegram import Update, InputFile, User, File
 from telegram.ext import CallbackContext, Filters, MessageHandler, Updater, Dispatcher
-from telegram.utils.types import HandlerArg
 
 from .locale_handler import LocaleHandler
 from .locale_mixin import LocaleMixin
@@ -479,7 +478,7 @@ class TelegramBotManager(LocaleMixin):
     def get_me(self, *args, **kwargs):
         return self.updater.bot.get_me(*args, **kwargs)
 
-    def session_expired(self, update: HandlerArg, context: CallbackContext):
+    def session_expired(self, update: Update, context: CallbackContext):
         assert isinstance(update, Update)
         assert update.effective_message
         assert update.effective_chat

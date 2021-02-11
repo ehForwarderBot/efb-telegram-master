@@ -11,7 +11,6 @@ from telegram import Update, Message, Chat, TelegramError, Contact, File
 from telegram.constants import MAX_FILESIZE_DOWNLOAD
 from telegram.ext import MessageHandler, Filters, CallbackContext, CommandHandler
 from telegram.utils.helpers import escape_markdown
-from telegram.utils.types import HandlerArg
 
 from ehforwarderbot import coordinator
 from ehforwarderbot.constants import MsgType
@@ -118,7 +117,7 @@ class MasterMessageProcessor(LocaleMixin):
         self.message_queue.put(None)
         self.message_worker_thread.join()
 
-    def enqueue_message(self, update: HandlerArg, context: CallbackContext):
+    def enqueue_message(self, update: Update, context: CallbackContext):
         assert isinstance(update, Update)
 
         self.message_queue.put((update, context))
@@ -128,7 +127,7 @@ class MasterMessageProcessor(LocaleMixin):
                     self._(
                         "ETM message worker is not running due to unforeseen reason. This might be a bug. Please see log for details."))
 
-    def msg(self, update: HandlerArg, context: CallbackContext):
+    def msg(self, update: Update, context: CallbackContext):
         """
         Process, wrap and dispatch messages from user.
         """
@@ -214,7 +213,7 @@ class MasterMessageProcessor(LocaleMixin):
             return chats[0]
         return None
 
-    def process_telegram_message(self, update: HandlerArg, context: CallbackContext,
+    def process_telegram_message(self, update: Update, context: CallbackContext,
                                  destination: EFBChannelChatIDStr, quote: bool = False,
                                  edited: Optional["MsgLog"] = None):
         """
@@ -439,7 +438,7 @@ class MasterMessageProcessor(LocaleMixin):
                           tg_msg.message_id, target_msg.chat.uid, target_msg.uid)
         return etm_msg
 
-    def _send_cached_chat_warning(self, update: HandlerArg,
+    def _send_cached_chat_warning(self, update: Update,
                                   cache_key: TelegramChatID,
                                   cached_dest: EFBChannelChatIDStr):
         """Send warning about cached chat."""
@@ -489,7 +488,7 @@ class MasterMessageProcessor(LocaleMixin):
                     "Attachment is too large ({size}). Maximum allowed by Telegram Bot API is {max_size}. (AT01)").format(
                     size=size_str, max_size=max_size_str))
 
-    def delete_message(self, update: HandlerArg, context: CallbackContext):
+    def delete_message(self, update: Update, context: CallbackContext):
         """Remove an arbitrary message from its remote chat.
         Triggered by command ``/rm``.
         """
@@ -544,7 +543,7 @@ class MasterMessageProcessor(LocaleMixin):
         else:
             reply.reply_text(self._("Message is removed in remote chat."))
 
-    def unsupported_message(self, update: HandlerArg, context: CallbackContext):
+    def unsupported_message(self, update: Update, context: CallbackContext):
         assert isinstance(update, Update)
         assert update.effective_message
 

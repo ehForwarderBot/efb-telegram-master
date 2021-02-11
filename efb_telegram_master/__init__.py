@@ -16,7 +16,6 @@ from pkg_resources import resource_filename
 from ruamel.yaml import YAML
 from telegram import Update, Message
 from telegram.ext import CommandHandler, CallbackQueryHandler, CallbackContext, Filters
-from telegram.utils.types import HandlerArg
 
 import ehforwarderbot  # lgtm [py/import-and-import-from]
 from ehforwarderbot import Channel, coordinator
@@ -197,7 +196,7 @@ class TelegramChannel(MasterChannel):
 
             self.config = data.copy()
 
-    def info(self, update: HandlerArg, context: CallbackContext):
+    def info(self, update: Update, context: CallbackContext):
         """
         Show info of the current telegram conversation.
         Triggered by `/info`.
@@ -315,7 +314,7 @@ class TelegramChannel(MasterChannel):
                     )
         return msg
 
-    def start(self, update: HandlerArg, context: CallbackContext):
+    def start(self, update: Update, context: CallbackContext):
         """
         Process bot command `/start`.
         """
@@ -335,7 +334,7 @@ class TelegramChannel(MasterChannel):
                          "To learn more, please visit https://etm.1a23.studio .")
             self.bot_manager.send_message(update.effective_chat.id, txt)
 
-    def react(self, update: HandlerArg, context: CallbackContext):
+    def react(self, update: Update, context: CallbackContext):
         """React to a message."""
         assert isinstance(update, Update)
         assert isinstance(update.effective_message, Message)
@@ -421,7 +420,7 @@ class TelegramChannel(MasterChannel):
             message.reply_text(prompt)
             return
 
-    def help(self, update: HandlerArg, context: CallbackContext):
+    def help(self, update: Update, context: CallbackContext):
         assert isinstance(update, Update)
         assert isinstance(update.message, Message)
         txt = self._("EFB Telegram Master Channel\n"
@@ -454,12 +453,11 @@ class TelegramChannel(MasterChannel):
         """
         self.bot_manager.polling()
 
-    def error(self, update: HandlerArg, context: CallbackContext):
+    def error(self, update: object, context: CallbackContext):
         """
         Print error to console, and send error message to first admin.
         Triggered by python-telegram-bot error callback.
         """
-        assert isinstance(update, Update)
         assert context.error
         error: Exception = context.error
         if "make sure that only one bot instance is running" in str(error):
@@ -483,6 +481,7 @@ class TelegramChannel(MasterChannel):
         except telegram.error.Unauthorized:
             self.logger.error("The bot is not authorised to send update:\n%s\n%s", str(update), str(error))
         except telegram.error.BadRequest as e:
+            assert isinstance(update, Update)
             if e.message == "Message is not modified" and update.callback_query:
                 self.logger.error("Chill bro, don't click that fast.")
             else:
@@ -497,7 +496,7 @@ class TelegramChannel(MasterChannel):
             self.logger.error("Poor internet connection detected.\n"
                               "Number of network error occurred since last startup: %s\n%s\nUpdate: %s",
                               self.timeout_count, str(error), str(update))
-            if isinstance(update.message, Message):
+            if isinstance(update, Update) and isinstance(update.message, Message):
                 update.message.reply_text(self._("This message is not processed due to poor internet environment "
                                                  "of the server.\n"
                                                  "<code>{code}</code>").format(code=html.escape(str(error))),
@@ -519,6 +518,7 @@ class TelegramChannel(MasterChannel):
                                                   count=self.timeout_count),
                                               parse_mode="HTML")
         except telegram.error.ChatMigrated as e:
+            assert isinstance(update, Update)
             new_id = e.new_chat_id
             assert isinstance(update.message, Message)
             old_id = ChatID(str(update.message.chat_id))
@@ -569,7 +569,7 @@ class TelegramChannel(MasterChannel):
             # Message is not found.
             return None
 
-    def void_callback_handler(self, update: HandlerArg, context: CallbackContext):
+    def void_callback_handler(self, update: Update, context: CallbackContext):
         assert isinstance(update, Update)
         assert update.effective_message
         assert update.callback_query
