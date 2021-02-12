@@ -142,7 +142,7 @@ class SlaveMessageProcessor(LocaleMixin):
             else:
                 self.logger.debug("[%s] Target message has database entry: %s.", msg.uid, log)
                 target_msg = utils.message_id_str_to_id(log.master_msg_id)
-                if not target_msg or target_msg[0] != str(tg_dest):
+                if not target_msg or target_msg[0] != int(tg_dest):
                     self.logger.error('[%s] Trying to reply to a message not from this chat. '
                                       'Message destination: %s. Target message: %s.',
                                       msg.uid, tg_dest, target_msg)
@@ -252,7 +252,7 @@ class SlaveMessageProcessor(LocaleMixin):
         self.logger.debug("[%s] Message is in chat %s", xid, msg.chat)
 
         # Generate chat text template & Decide type target
-        tg_dest = self.channel.config['admins'][0]
+        tg_dest = TelegramChatID(self.channel.config['admins'][0])
 
         if tg_chat:  # if this chat is linked
             tg_dest = TelegramChatID(int(utils.chat_id_str_to_id(tg_chat)[1]))
@@ -263,8 +263,8 @@ class SlaveMessageProcessor(LocaleMixin):
         self.logger.debug("[%s] Message is sent to Telegram chat %s, with header \"%s\".",
                           xid, tg_dest, msg_template)
 
-        if self.chat_dest_cache.get(tg_dest) != chat_uid:
-            self.chat_dest_cache.remove(tg_dest)
+        if self.chat_dest_cache.get(str(tg_dest)) != chat_uid:
+            self.chat_dest_cache.remove(str(tg_dest))
 
         return msg_template, tg_dest
 
