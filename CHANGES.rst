@@ -25,6 +25,17 @@ Removed
 
 Fixed
 -----
+
+2.2.3_ - 2021-02-12
+===================
+
+Changed
+-------
+- Updated type hints to follow new ``python-telegram-bot`` (PTB) changes.
+- Locked PTB version to 13.x for their upcoming migration to async.
+
+Fixed
+-----
 - Update message and caption format serialization from ``markdown`` to
   ``markdown_v2``.
 - Fixed yet another typo causing wizard to crash
