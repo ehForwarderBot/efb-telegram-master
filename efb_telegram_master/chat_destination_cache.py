@@ -74,10 +74,11 @@ class ChatDestinationCache:
         # Just update timeout if destination is same
         if key in self.weak and self.weak[key].destination == value:
             self.weak[key].update_timeout(timeout)
-        # strong_ref prevent object from being collected by gc.
-        self.weak[key] = strong_ref = ChatDestination(value, timeout)
-        # Enqueue the element and waiting to be collected by gc once popped.
-        self.strong.append(strong_ref)
+        else:
+            # strong_ref prevent object from being collected by gc.
+            self.weak[key] = strong_ref = ChatDestination(value, timeout)
+            # Enqueue the element and waiting to be collected by gc once popped.
+            self.strong.append(strong_ref)
 
     def remove(self, key: str):
         if not self.enabled:
