@@ -53,12 +53,24 @@ async def test_chat_head_private(helper, client, bot_id, slave):
     # Wait for the chad head
     content = "test_chat_head_private this should be sent to slave channel"
     await helper.wait_for_message(in_chats(bot_id) & edited(message.id) & ~has_button)
-    await client.send_message(bot_id, content, reply_to=message)
+    tg_msg = await client.send_message(bot_id, content, reply_to=message)
 
     efb_msg = slave.messages.get(timeout=5)  # raises queue.Empty upon timeout
     slave.messages.task_done()
 
     assert efb_msg.text == content
+    assert efb_msg.target is None
+
+    # Edit the message sent out from Telegram,
+    # and check that the EFB Message should not carry a `target`.
+    content = "test_chat_head_private this edited msg should not carry a target"
+    await tg_msg.edit(text=content)
+
+    efb_msg = slave.messages.get(timeout=5)  # raises queue.Empty upon timeout
+    slave.messages.task_done()
+
+    assert efb_msg.text == content
+    assert efb_msg.target is None
 
 
 async def test_chat_head_singly_linked(helper, client, bot_group, slave, channel):
