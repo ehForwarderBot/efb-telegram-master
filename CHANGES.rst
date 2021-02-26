@@ -25,6 +25,8 @@ Removed
 
 Fixed
 -----
+- Fix issue where edited messages in non-singly-linked channels are
+  mistakenly attached with quoted messages.
 
 2.2.3_ - 2021-02-12
 ===================
@@ -173,6 +175,7 @@ First release.
 .. _2.2.0: https://etm.1a23.studio/compare/v2.1.0...v2.2.0
 .. _2.2.1: https://etm.1a23.studio/compare/v2.2.0...v2.2.1
 .. _2.2.2: https://etm.1a23.studio/compare/v2.2.1...v2.2.2
+.. _2.2.3: https://etm.1a23.studio/compare/v2.2.2...v2.2.3
 .. _#93: https://etm.1a23.studio/issues/93
 .. _#99: https://etm.1a23.studio/issues/99
 .. _#100: https://etm.1a23.studio/issues/100

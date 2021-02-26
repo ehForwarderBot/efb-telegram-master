@@ -142,6 +142,7 @@ class MasterMessageProcessor(LocaleMixin):
 
         destination = None
         edited = None
+        quote = False
 
         if update.edited_message or update.edited_channel_post:
             self.logger.debug('[%s] Message is edited: %s', mid, message.edit_date)
@@ -150,11 +151,14 @@ class MasterMessageProcessor(LocaleMixin):
                 message.reply_text(self._("Error: This message cannot be edited, and thus is not sent. (ME01)"), quote=True)
                 return
             destination = msg_log.slave_origin_uid
-            edited = msg_log
+            edited = msg_log.build_etm_msg(self.chat_manager).target is not None
 
         if destination is None:
-            # if the chat is singly-linked
             destination = self.get_singly_linked_chat_id_str(update.effective_chat)
+            if destination:
+                # if the chat is singly-linked
+                quote = message.reply_to_message is not None
+                self.logger.debug("[%s] Chat %s is singly-linked to %s", mid, message.chat, destination)
 
         if destination is None:  # not singly linked
             quote = False
@@ -177,9 +181,6 @@ class MasterMessageProcessor(LocaleMixin):
                 self.logger.debug("[%s] Cached destination found: %s", mid, cached_dest)
                 destination = cached_dest
                 self._send_cached_chat_warning(update, TelegramChatID(message.chat.id), cached_dest)
-        else:
-            quote = message.reply_to_message is not None
-            self.logger.debug("[%s] Chat %s is singly-linked to %s", mid, message.chat, destination)
 
         self.logger.debug("[%s] Destination chat = %s", mid, destination)
 
