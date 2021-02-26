@@ -151,7 +151,7 @@ class MasterMessageProcessor(LocaleMixin):
                 message.reply_text(self._("Error: This message cannot be edited, and thus is not sent. (ME01)"), quote=True)
                 return
             destination = msg_log.slave_origin_uid
-            edited = msg_log.build_etm_msg(self.chat_manager).target is not None
+            quote = msg_log.build_etm_msg(self.chat_manager).target is not None
 
         if destination is None:
             destination = self.get_singly_linked_chat_id_str(update.effective_chat)
