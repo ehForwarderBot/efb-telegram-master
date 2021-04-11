@@ -28,6 +28,7 @@ Fixed
 -----
 - Fix issue where edited messages in non-singly-linked channels are
   mistakenly attached with quoted messages.
+- Allow cases when ``flags`` in config file is set to null
 
 2.2.3_ - 2021-02-12
 ===================
