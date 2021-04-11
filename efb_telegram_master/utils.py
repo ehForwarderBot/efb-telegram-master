@@ -57,7 +57,7 @@ class ExperimentalFlagsManager(LocaleMixin):
     def __init__(self, channel: 'TelegramChannel'):
         self.channel = channel
         self.config: Dict[str, Any] = ExperimentalFlagsManager.DEFAULT_VALUES.copy()
-        self.config.update(channel.config.get('flags', dict()))
+        self.config.update(channel.config.get('flags', dict()) or dict())
 
     def __call__(self, flag_key: str) -> Any:
         if flag_key not in self.config:
