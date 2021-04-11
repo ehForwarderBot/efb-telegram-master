@@ -76,7 +76,7 @@ async def helper(helper_wrap, slave) -> TelegramIntegrationTestHelper:
 def poll_bot(channel):
     logging.root.setLevel(logging.DEBUG)
     # peewee.logger.setLevel(logging.DEBUG)
-    channel.bot_manager.polling(clean=True)
+    channel.bot_manager.polling(drop_pending_updates=True)
     time.sleep(1)
     yield channel.bot_manager
     channel.bot_manager.graceful_stop()

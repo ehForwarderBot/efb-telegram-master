@@ -19,6 +19,7 @@ Added
 
 Changed
 -------
+- Updated to follow ``python-telegram-bot`` 13.4 API changes
 
 Removed
 -------

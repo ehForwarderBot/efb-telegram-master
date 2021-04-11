@@ -564,20 +564,21 @@ class TelegramBotManager(LocaleMixin):
     def set_chat_description(self, *args, **kwargs):
         return self.updater.bot.set_chat_description(*args, **kwargs)
 
-    def polling(self, clean: bool = False):
+    def polling(self, drop_pending_updates: bool = False):
         """
         Poll message from Telegram Bot API. Can be used to extend for web hook.
         This method must NOT be blocking.
 
         Args:
-            clean: Whether to clean any pending updates on Telegram servers
-                before actually starting to poll. Default is False.
+            drop_pending_updates: Whether to clean any pending updates on
+                Telegram servers before actually starting to poll.
+                Default is False.
         """
         if self.webhook:
             start_webhook = self.channel.config['webhook']['start_webhook']
             self.updater.start_webhook(**start_webhook)
         else:
-            self.updater.start_polling(timeout=10, clean=clean)
+            self.updater.start_polling(timeout=10, drop_pending_updates=drop_pending_updates)
 
     def graceful_stop(self):
         """Gracefully stop the bot"""
