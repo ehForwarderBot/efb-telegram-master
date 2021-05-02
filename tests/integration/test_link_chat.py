@@ -1,11 +1,17 @@
+import asyncio
 import re
 from itertools import chain
 from typing import List, Optional
+from uuid import uuid4
 
 from pytest import mark
 from telethon.errors import MessageIdInvalidError
 from telethon.tl.custom import Message, MessageButton
-from telethon.tl.types import MessageEntityCode
+from telethon.tl.functions.channels import DeleteChannelRequest
+from telethon.tl.functions.messages import CreateChatRequest, MigrateChatRequest, \
+    DeleteChatUserRequest
+from telethon.tl.types import MessageEntityCode, Updates, Chat as TelethonChat
+from telethon.utils import get_peer_id
 
 from ehforwarderbot import Chat
 from .helper.filters import in_chats, has_button, edited, regex, text
@@ -254,3 +260,22 @@ async def simulate_link_chat(client, helper, chat: Chat, command_chat: int, dest
     else:
         await client.send_message(dest_chat, command)
     await helper.wait_for_message(in_chats(command_chat) & text)
+
+
+async def test_group_chat_migration(client, helper, channel, slave, bot_id):
+    slave_chats = slave.chats_by_chat_type["PrivateChat"]
+    response = await client(CreateChatRequest(users=[bot_id], title=f"Chat upgrade test {uuid4()}"))
+    chat: TelethonChat = response.chats[0]
+    with link_chats(channel, slave_chats, get_peer_id(chat)):
+        mega_chat_response = await client(MigrateChatRequest(chat_id=chat.id))
+        mega_chat: TelethonChat = mega_chat_response.chats[1]
+
+        await asyncio.sleep(10)
+
+        assert_is_linked(channel, slave_chats, get_peer_id(mega_chat))
+        assert_is_linked(channel, tuple(), get_peer_id(chat))
+
+    # Clean up
+    unlink_all_chats(channel, get_peer_id(mega_chat))
+    unlink_all_chats(channel, get_peer_id(chat))
+    await client(DeleteChannelRequest(mega_chat.id))
