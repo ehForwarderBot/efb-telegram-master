@@ -19,10 +19,19 @@ Added
 
 Changed
 -------
-- Updated to follow ``python-telegram-bot`` 13.4 API changes
 
 Removed
 -------
+
+Fixed
+-----
+
+2.2.4_ - 2021-05-22
+===================
+
+Changed
+-------
+- Updated to follow ``python-telegram-bot`` 13.4 API changes
 
 Fixed
 -----
@@ -179,6 +188,7 @@ First release.
 .. _2.2.1: https://etm.1a23.studio/compare/v2.2.0...v2.2.1
 .. _2.2.2: https://etm.1a23.studio/compare/v2.2.1...v2.2.2
 .. _2.2.3: https://etm.1a23.studio/compare/v2.2.2...v2.2.3
+.. _2.2.4: https://etm.1a23.studio/compare/v2.2.3...v2.2.4
 .. _#93: https://etm.1a23.studio/issues/93
 .. _#99: https://etm.1a23.studio/issues/99
 .. _#100: https://etm.1a23.studio/issues/100
