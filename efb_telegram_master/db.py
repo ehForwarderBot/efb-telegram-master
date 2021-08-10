@@ -6,12 +6,10 @@ import pickle
 import time
 from contextlib import suppress
 from functools import partial
-from queue import Queue
-from threading import Thread
-from typing import List, Optional, Tuple, Callable, Sequence, Any, Dict, Collection, TYPE_CHECKING
+from typing import List, Optional, Tuple, Dict, Collection, TYPE_CHECKING
 
-from peewee import Model, TextField, DateTimeField, CharField, SqliteDatabase, DoesNotExist, fn, BlobField, \
-    OperationalError
+from peewee import Model, TextField, DateTimeField, CharField, DoesNotExist, fn, BlobField
+from playhouse.sqliteq import SqliteQueueDatabase
 from playhouse.migrate import SqliteMigrator, migrate
 from telegram import Message
 from typing_extensions import TypedDict
@@ -30,7 +28,7 @@ if TYPE_CHECKING:
     from . import TelegramChannel
     from .chat import ETMChatMember, ETMChatType
 
-database = SqliteDatabase(None)
+database = SqliteQueueDatabase(None, autostart=False)
 
 PickledDict = TypedDict('PickledDict', {
     "target": EFBChannelChatIDStr,
@@ -181,12 +179,9 @@ class DatabaseManager:
 
         self.logger.debug("Loading database...")
         database.init(str(base_path / 'tgdata.db'))
+        database.start()
         database.connect()
         self.logger.debug("Database loaded.")
-
-        self.task_queue: 'Queue[Optional[Tuple[Callable, Sequence[Any], Dict[str, Any]]]]' = Queue()
-        self.worker_thread = Thread(target=self.task_worker, name="ETM database worker thread")
-        self.worker_thread.start()
 
         self.logger.debug("Checking database migration...")
         if not ChatAssoc.table_exists():
@@ -204,29 +199,10 @@ class DatabaseManager:
                 self._migrate(3)
         self.logger.debug("Database migration finished...")
 
-    def task_worker(self):
-        while True:
-            task = self.task_queue.get()
-            if task is None:
-                self.task_queue.task_done()
-                break
-            method, args, kwargs = task
-            try:
-                method(*args, **kwargs)
-            except OperationalError as e:
-                self.logger.exception("Operational error occurred when running %s(%s, %s): %r", method.__name__, args,
-                                      kwargs, e)
-            self.task_queue.task_done()
-
     def stop_worker(self):
-        self.task_queue.put(None)
-        self.worker_thread.join()
-
-    def add_task(self, method: Callable, args: Sequence[Any], kwargs: Dict[str, Any]):
-        self.task_queue.put((method, args, kwargs))
+        database.stop()
 
     @staticmethod
-    @database.atomic()
     def _create():
         """
         Initializing tables.
@@ -235,7 +211,6 @@ class DatabaseManager:
         database.create_tables([ChatAssoc, MsgLog, SlaveChatInfo])
 
     @staticmethod
-    @database.atomic()
     def _migrate(i: int):
         """
         Run migrations.
@@ -274,7 +249,6 @@ class DatabaseManager:
                 migrator.add_column("msglog", "file_unique_id", MsgLog.file_unique_id)
             )
 
-    @database.atomic()
     def add_chat_assoc(self, master_uid: EFBChannelChatIDStr,
                        slave_uid: EFBChannelChatIDStr,
                        multiple_slave: bool = False):
@@ -293,7 +267,6 @@ class DatabaseManager:
         return ChatAssoc.create(master_uid=master_uid, slave_uid=slave_uid)
 
     @staticmethod
-    @database.atomic()
     def remove_chat_assoc(master_uid: Optional[EFBChannelChatIDStr] = None,
                           slave_uid: Optional[EFBChannelChatIDStr] = None):
         """
@@ -402,7 +375,6 @@ class DatabaseManager:
         except DoesNotExist:
             return []
 
-    @database.atomic()
     def add_or_update_message_log(self,
                                   msg: ETMMsg,
                                   master_message: Message,
@@ -479,7 +451,6 @@ class DatabaseManager:
             return None
 
     @staticmethod
-    @database.atomic()
     def delete_msg_log(master_msg_id: Optional[TgChatMsgIDStr] = None,
                        slave_msg_id: Optional[EFBChannelChatIDStr] = None,
                        slave_origin_uid: Optional[EFBChannelChatIDStr] = None):
@@ -526,7 +497,6 @@ class DatabaseManager:
         except DoesNotExist:
             return None
 
-    @database.atomic()
     def set_slave_chat_info(self, chat_object: 'ETMChatType') -> SlaveChatInfo:
         """
         Insert or update slave chat info entry
@@ -575,7 +545,6 @@ class DatabaseManager:
                                         pickle=chat_object.pickle)
 
     @staticmethod
-    @database.atomic()
     def delete_slave_chat_info(slave_channel_id: ModuleID, slave_chat_uid: ChatID, slave_chat_group_id: ChatID = None):
         return SlaveChatInfo.delete() \
             .where((SlaveChatInfo.slave_channel_id == slave_channel_id) &
