@@ -207,7 +207,6 @@ class DatabaseManager:
         """
         Initializing tables.
         """
-        database.execute_sql("PRAGMA journal_mode = OFF")
         database.create_tables([ChatAssoc, MsgLog, SlaveChatInfo])
 
     @staticmethod
