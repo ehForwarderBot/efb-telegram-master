@@ -332,9 +332,10 @@ class MasterMessageProcessor(LocaleMixin):
                 assert message.animation
                 m.text = msg_md_caption
                 self.logger.debug("[%s] Telegram message is a \"Telegram GIF\".", message_id)
-                m.filename = getattr(message.animation, "file_name", None) or None
-                if m.filename and not m.filename.lower().endswith(".gif"):
-                    m.filename += ".gif"
+                m_filename = getattr(message.animation, "file_name", None) or None
+                if m_filename and not m_filename.lower().endswith(".gif"):
+                    m_filename += ".gif"
+                m.filename = m_filename
                 m.mime = message.animation.mime_type or m.mime
             elif mtype is TGMsgType.Document:
                 assert message.document
