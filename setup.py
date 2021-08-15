@@ -15,8 +15,8 @@ exec(open(version_path).read())
 long_description = open('README.rst').read()
 
 tests_require = ["pytest", "telethon", "cryptg", "pytest-dotenv", "flaky",
-                 "pytest-asyncio", "mypy>=0.910", "pytest-html", "doit", "PySocks",
-                 "coverage", "sphinx", "types-setuptools"]
+                 "pytest-asyncio", "mypy>=0.910", "pytest-html", "doit",
+                 "PySocks", "coverage", "sphinx"]
 
 setup(
     name='efb-telegram-master',

@@ -25,6 +25,8 @@ Removed
 
 Fixed
 -----
+- Attempt to fix “Database is Locked” issue. (`#110`_ by whtsky)
+- Telegram GIF image processing may trigger an early download
 
 2.2.4_ - 2021-05-22
 ===================
@@ -195,3 +197,4 @@ First release.
 .. _#102: https://etm.1a23.studio/issues/102
 .. _#103: https://etm.1a23.studio/issues/103
 .. _#104: https://etm.1a23.studio/issues/104
+.. _#110: https://etm.1a23.studio/pull/110
