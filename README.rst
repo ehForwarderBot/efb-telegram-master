@@ -663,6 +663,13 @@ __ https://docs.python.org/3/library/xmlrpc.html
 .. _the db (database manager) class: https://etm.1a23.studio/blob/master/efb_telegram_master/db.py
 .. _the RPCUtilities class: https://etm.1a23.studio/blob/master/efb_telegram_master/rpc_utilities.py
 
+Setup Webhook
+-------------
+
+For details on how to setup a webhook, please visit this `wiki article`_.
+
+.. _wiki article: https://github.com/ehForwarderBot/efb-telegram-master/wiki/Setup-Webhook
+
 License
 -------
 
