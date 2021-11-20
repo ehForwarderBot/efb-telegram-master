@@ -160,14 +160,6 @@ class TelegramBotManager(LocaleMixin):
         if isinstance(config.get('webhook'), dict):
             self.logger.debug("Setting up webhook...")
             self.webhook = True
-            webhook_conf = config['webhook']
-            if webhook_conf.get('set_webhook'):
-                set_webhook = webhook_conf['set_webhook']
-                if set_webhook.get('certificate'):
-                    set_webhook['certificate'] = open(set_webhook['certificate'], 'rb')
-                self.logger.debug("Setting webhook URL...")
-                self.updater.bot.set_webhook(**set_webhook)
-                self.logger.debug("Webhook URL is set...")
             self.logger.debug("Webhook is set...")
 
         self.logger.debug("Checking connection to Telegram bot API...")
