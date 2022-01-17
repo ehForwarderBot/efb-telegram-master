@@ -7,7 +7,8 @@ import os
 import tempfile
 import traceback
 import urllib.parse
-from typing import Tuple, Optional, TYPE_CHECKING, List, IO
+from pathlib import Path
+from typing import Tuple, Optional, TYPE_CHECKING, List, IO, Union
 
 import humanize
 import pydub
@@ -451,10 +452,11 @@ class SlaveMessageProcessor(LocaleMixin):
                 try:
                     if edit_media:
                         media: InputMedia
+                        file = self.process_file_obj(msg.file, msg.path)
                         if send_as_file:
-                            media = InputMediaDocument(msg.file)
+                            media = InputMediaDocument(file)
                         else:
-                            media = InputMediaPhoto(msg.file)
+                            media = InputMediaPhoto(file)
                         self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=media)
                     return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1],
                                                          reply_markup=reply_markup,
@@ -466,14 +468,16 @@ class SlaveMessageProcessor(LocaleMixin):
                     msg.file.seek(0)
 
             if send_as_file:
-                return self.bot.send_document(tg_dest, msg.file, prefix=msg_template, suffix=reactions,
+                file = self.process_file_obj(msg.file, msg.path)
+                return self.bot.send_document(tg_dest, file, prefix=msg_template, suffix=reactions,
                                               caption=text, parse_mode="HTML", filename=msg.filename,
                                               reply_to_message_id=target_msg_id,
                                               reply_markup=reply_markup,
                                               disable_notification=silent)
             else:
                 try:
-                    return self.bot.send_photo(tg_dest, msg.file, prefix=msg_template, suffix=reactions,
+                    file = self.process_file_obj(msg.file, msg.path)
+                    return self.bot.send_photo(tg_dest, file, prefix=msg_template, suffix=reactions,
                                                caption=text, parse_mode="HTML",
                                                reply_to_message_id=target_msg_id,
                                                reply_markup=reply_markup,
@@ -481,7 +485,8 @@ class SlaveMessageProcessor(LocaleMixin):
                 except telegram.error.BadRequest as e:
                     self.logger.error('[%s] Failed to send it as image, sending as document. Reason: %s',
                                       msg.uid, e)
-                    return self.bot.send_document(tg_dest, msg.file, prefix=msg_template, suffix=reactions,
+                    file = self.process_file_obj(msg.file, msg.path)
+                    return self.bot.send_document(tg_dest, file, prefix=msg_template, suffix=reactions,
                                                   caption=text, parse_mode="HTML", filename=msg.filename,
                                                   reply_to_message_id=target_msg_id,
                                                   reply_markup=reply_markup,
@@ -525,14 +530,16 @@ class SlaveMessageProcessor(LocaleMixin):
             if old_msg_id:
                 if edit_media:
                     assert msg.file
-                    self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=InputMediaAnimation(msg.file))
+                    file = self.process_file_obj(msg.file, msg.path)
+                    self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=InputMediaAnimation(file))
                 return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1],
                                                      prefix=msg_template, suffix=reactions,
                                                      reply_markup=reply_markup,
                                                      caption=text, parse_mode="HTML")
             else:
                 assert msg.file
-                return self.bot.send_animation(tg_dest, InputFile(msg.file, filename=msg.filename),
+                file = self.process_file_obj(msg.file, msg.path)
+                return self.bot.send_animation(tg_dest, InputFile(file, filename=msg.filename),
                                                prefix=msg_template, suffix=reactions,
                                                caption=text, parse_mode="HTML",
                                                reply_to_message_id=target_msg_id,
@@ -592,11 +599,13 @@ class SlaveMessageProcessor(LocaleMixin):
                     webp_img = tempfile.NamedTemporaryFile(suffix='.webp')
                     pic_img.convert("RGBA").save(webp_img, 'webp')
                     webp_img.seek(0)
-                    return self.bot.send_sticker(tg_dest, webp_img, reply_markup=sticker_reply_markup,
+                    file = self.process_file_obj(webp_img, webp_img.name)
+                    return self.bot.send_sticker(tg_dest, file, reply_markup=sticker_reply_markup,
                                                  reply_to_message_id=target_msg_id,
                                                  disable_notification=silent)
                 except IOError:
-                    return self.bot.send_document(tg_dest, msg.file, prefix=msg_template, suffix=reactions,
+                    file = self.process_file_obj(msg.file, msg.path)
+                    return self.bot.send_document(tg_dest, file, prefix=msg_template, suffix=reactions,
                                                   caption=msg.text, filename=msg.filename,
                                                   reply_to_message_id=target_msg_id,
                                                   reply_markup=reply_markup,
@@ -677,13 +686,15 @@ class SlaveMessageProcessor(LocaleMixin):
             if old_msg_id:
                 if edit_media:
                     assert msg.file is not None
-                    self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=InputMediaDocument(msg.file))
+                    file = self.process_file_obj(msg.file, msg.path)
+                    self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=InputMediaDocument(file))
                 return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1], reply_markup=reply_markup,
                                                      prefix=msg_template, suffix=reactions, caption=text, parse_mode="HTML")
             assert msg.file is not None
             self.logger.debug("[%s] Uploading file %s (%s) as %s", msg.uid,
                               msg.file.name, msg.mime, file_name)
-            return self.bot.send_document(tg_dest, msg.file,
+            file = self.process_file_obj(msg.file, msg.path)
+            return self.bot.send_document(tg_dest, file,
                                           prefix=msg_template, suffix=reactions,
                                           caption=text, parse_mode="HTML", filename=file_name,
                                           reply_to_message_id=target_msg_id,
@@ -734,7 +745,8 @@ class SlaveMessageProcessor(LocaleMixin):
             with tempfile.NamedTemporaryFile() as f:
                 pydub.AudioSegment.from_file(msg.file).export(f, format="ogg", codec="libopus",
                                                               parameters=['-vbr', 'on'])
-                tg_msg = self.bot.send_voice(tg_dest, f, prefix=msg_template, suffix=reactions,
+                file = self.process_file_obj(f, f.name)
+                tg_msg = self.bot.send_voice(tg_dest, file, prefix=msg_template, suffix=reactions,
                                              caption=text, parse_mode="HTML",
                                              reply_to_message_id=target_msg_id, reply_markup=reply_markup,
                                              disable_notification=silent)
@@ -809,11 +821,13 @@ class SlaveMessageProcessor(LocaleMixin):
             if old_msg_id:
                 if edit_media:
                     assert msg.file is not None
-                    self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=InputMediaVideo(msg.file))
+                    file = self.process_file_obj(msg.file, msg.path)
+                    self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=InputMediaVideo(file))
                 return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1], reply_markup=reply_markup,
                                                      prefix=msg_template, suffix=reactions, caption=text, parse_mode="HTML")
             assert msg.file is not None
-            return self.bot.send_video(tg_dest, msg.file, prefix=msg_template, suffix=reactions,
+            file = self.process_file_obj(msg.file, msg.path)
+            return self.bot.send_video(tg_dest, file, prefix=msg_template, suffix=reactions,
                                        caption=text, parse_mode="HTML",
                                        reply_to_message_id=target_msg_id,
                                        reply_markup=reply_markup,
@@ -986,10 +1000,15 @@ class SlaveMessageProcessor(LocaleMixin):
         file.seek(0, 2)
         file_size = file.tell()
         file.seek(0)
-        if file_size > telegram.constants.MAX_FILESIZE_UPLOAD:
+        if not self.channel.flag("local_tdlib_api") and file_size > telegram.constants.MAX_FILESIZE_UPLOAD:
             size_str = humanize.naturalsize(file_size)
             max_size_str = humanize.naturalsize(telegram.constants.MAX_FILESIZE_UPLOAD)
             return self._(
                 "Attachment is too large ({size}). Maximum allowed by Telegram Bot API is {max_size}. (AT02)").format(
                 size=size_str, max_size=max_size_str)
         return None
+
+    def process_file_obj(self, file: IO[bytes], path: Union[str, Path]) -> Union[IO[bytes], str]:
+        if self.channel.flag("local_tdlib_api"):
+            return Path(path).absolute().as_uri()
+        return file

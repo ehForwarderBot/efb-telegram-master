@@ -474,7 +474,7 @@ class MasterMessageProcessor(LocaleMixin):
 
     def _check_file_download(self, file_obj: Any):
         """
-        Check if the file is available for download..
+        Check if the file is available for download.
 
         Args:
             file_obj (telegram.File): PTB file object
@@ -483,7 +483,8 @@ class MasterMessageProcessor(LocaleMixin):
             EFBMessageError: When file exceeds the maximum download size.
         """
         size = getattr(file_obj, "file_size", None)
-        if size and size > MAX_FILESIZE_DOWNLOAD:
+        if size and not self.channel.flag("local_tdlib_api")\
+                and size > MAX_FILESIZE_DOWNLOAD:
             size_str = humanize.naturalsize(size)
             max_size_str = humanize.naturalsize(MAX_FILESIZE_DOWNLOAD)
             raise EFBMessageError(
