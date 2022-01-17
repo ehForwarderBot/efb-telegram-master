@@ -16,6 +16,8 @@ Unreleased
 
 Added
 -----
+- Support for custom Telegram API endpoints and local Tglib Bot API client mode.
+  (`#116`_)
 
 Changed
 -------
@@ -198,3 +200,4 @@ First release.
 .. _#103: https://etm.1a23.studio/issues/103
 .. _#104: https://etm.1a23.studio/issues/104
 .. _#110: https://etm.1a23.studio/pull/110
+.. _#116: https://etm.1a23.studio/issues/116

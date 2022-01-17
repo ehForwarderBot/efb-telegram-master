@@ -105,10 +105,10 @@ class TelegramChannel(MasterChannel):
                                       "https://pillow.readthedocs.io/"))
 
         # Suppress debug logs from dependencies
-        logging.getLogger('requests').setLevel(logging.CRITICAL)
-        logging.getLogger('urllib3').setLevel(logging.CRITICAL)
-        logging.getLogger('telegram.bot').setLevel(logging.CRITICAL)
-        logging.getLogger('telegram.vendor.ptb_urllib3.urllib3.connectionpool').setLevel(logging.CRITICAL)
+        # logging.getLogger('requests').setLevel(logging.CRITICAL)
+        # logging.getLogger('urllib3').setLevel(logging.CRITICAL)
+        # logging.getLogger('telegram.bot').setLevel(logging.CRITICAL)
+        # logging.getLogger('telegram.vendor.ptb_urllib3.urllib3.connectionpool').setLevel(logging.CRITICAL)
 
         # Set up logger
         self.logger: logging.Logger = logging.getLogger(__name__)
