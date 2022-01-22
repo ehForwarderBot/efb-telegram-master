@@ -154,8 +154,8 @@ class TelegramBotManager(LocaleMixin):
 
         self.logger.debug("Setting up Telegram bot updater...")
         self.updater: Updater = Updater(config['token'],
-                                        base_url=channel.flag('base_url'),
-                                        base_file_url=channel.flag('base_file_url'),
+                                        base_url=channel.flag('api_base_url'),
+                                        base_file_url=channel.flag('api_base_file_url'),
                                         request_kwargs=req_kwargs,
                                         use_context=True)
 
