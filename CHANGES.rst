@@ -29,6 +29,7 @@ Fixed
 -----
 - Attempt to fix “Database is Locked” issue. (`#110`_ by whtsky)
 - Telegram GIF image processing may trigger an early download
+- Preserve filenames from Telegram for music files (`#117`_)
 
 2.2.4_ - 2021-05-22
 ===================
@@ -201,3 +202,4 @@ First release.
 .. _#104: https://etm.1a23.studio/issues/104
 .. _#110: https://etm.1a23.studio/pull/110
 .. _#116: https://etm.1a23.studio/issues/116
+.. _#117: https://etm.1a23.studio/issues/117

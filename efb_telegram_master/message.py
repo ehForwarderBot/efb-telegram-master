@@ -195,8 +195,7 @@ class ETMMsg(Message):
                 self.file_id = message.audio.file_id
                 self.file_unique_id = message.audio.file_unique_id
                 self.mime = message.audio.mime_type
-                extension = mimetypes.guess_extension(message.audio.mime_type or "audio/ogg")
-                self.filename = f"{message.audio.title} - {message.audio.performer}{extension}"
+                self.filename = message.audio.file_name
             elif self.type_telegram is TGMsgType.Sticker:
                 assert message.sticker
                 self.file_id = message.sticker.file_id
