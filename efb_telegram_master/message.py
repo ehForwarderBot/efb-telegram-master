@@ -206,12 +206,6 @@ class ETMMsg(Message):
                 self.file_unique_id = message.sticker.file_unique_id
                 self.mime = 'application/json+tgs'
                 self.type = MsgType.Animation
-            elif self.type_telegram is TGMsgType.VideoSticker:
-                assert message.sticker
-                self.file_id = message.sticker.file_id
-                self.file_unique_id = message.sticker.file_unique_id
-                self.mime = 'video/webm'
-                self.type = MsgType.Animation
             elif getattr(message, 'photo', None):
                 attachment = message.photo[-1]
                 self.file_id = attachment.file_id
