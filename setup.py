@@ -65,7 +65,8 @@ setup(
     extras_require={
         "tests": tests_require,
         "tgs": [
-            "pyrlottie",
+            "lottie",
+            "cairosvg",  # required by ``lottie`` to export GIF
         ],
     },
     entry_points={
