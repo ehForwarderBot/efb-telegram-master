@@ -1,5 +1,6 @@
 # coding=utf-8
 
+import asyncio
 import base64
 import json
 import logging
@@ -196,21 +197,40 @@ def export_gif(animation, fp, dpi=96, skip_frames=5):
     )
 
 
+def initialize_event_loop():
+    """Create an event loop for the current thread if missing."""
+    try:
+        asyncio.get_event_loop()
+    except RuntimeError:
+        asyncio.set_event_loop(asyncio.new_event_loop())
+
+
 def convert_tgs_to_gif(tgs_file: BinaryIO, gif_file: BinaryIO) -> bool:
-    # Import only upon calling the method due to added binary dependencies
-    # (libcairo)
-    from lottie.parsers.tgs import parse_tgs
+    """Convert TGS file to GIF file.
+    This method ezxpects ``gif_file`` to be a NamedTemporaryFile,
+    where ``gif_file.name`` is a file name on disk.
+    """
+    # Setup event loop before importing pyrlottie due to module-level event loop
+    # dependency
+    initialize_event_loop()
+    # Import only upon calling the method due to added dependencies
+    from pyrlottie import run, convSingleLottie, LottieFile
 
     # noinspection PyBroadException
     try:
-        animation = parse_tgs(tgs_file)
-        # heavy_strip(animation)
-        # heavy_strip(animation)
-        # animation.tgs_sanitize()
-        export_gif(animation, gif_file, skip_frames=5, dpi=48)
+        with NamedTemporaryFile(suffix=".tgs") as tgs_temp_file:
+            copyfileobj(tgs_file, tgs_temp_file)
+            tgs_temp_file.seek(0)
+            run(convSingleLottie(
+                LottieFile(tgs_temp_file.name),
+                {gif_file.name},
+                backgroundColour="ffffff",
+                frameSkip=5
+            ))
+            gif_file.seek(0)
         return True
-    except Exception:
-        logging.exception("Error occurred while converting TGS to GIF.")
+    except Exception as e:
+        logging.exception("Error occurred while converting TGS to GIF.", e)
         return False
 
 
@@ -258,10 +278,6 @@ if os.name == "nt":
 
         # Set input/output of ffmpeg to stream
         stream = ffmpeg.input("pipe:")
-        if channel_id.startswith("blueset.wechat") and metadata.get('width', 0) > 600:
-            # Workaround: Compress GIF for slave channel `blueset.wechat`
-            # TODO: Move this logic to `blueset.wechat` in the future
-            stream = stream.filter("scale", 600, -2)
         # Need to specify file format here as no extension hint presents.
         args = stream.output("pipe:", format="gif").compile()
         file.seek(0)
@@ -294,10 +310,6 @@ else:
         file.seek(0)
         metadata = ffmpeg.probe(file.name)
         stream = ffmpeg.input(file.name)
-        if channel_id.startswith("blueset.wechat") and metadata.get('width', 0) > 600:
-            # Workaround: Compress GIF for slave channel `blueset.wechat`
-            # TODO: Move this logic to `blueset.wechat` in the future
-            stream = stream.filter("scale", 600, -2)
         stream.output(gif_file.name).overwrite_output().run()
         file.close()
         gif_file.seek(0)

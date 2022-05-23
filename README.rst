@@ -529,9 +529,8 @@ e.g.:
 -   ``animated_stickers`` *(bool)* [Default: ``false``]
 
     Enable experimental support to animated stickers. Note: you need to
-    install binary dependency ``libcairo`` on your own, and additional
-    Python dependencies via ``pip3 install "efb-telegram-master[tgs]"``
-    to enable this feature.
+    install additional Python dependencies via
+    ``pip3 install "efb-telegram-master[tgs]"`` to enable this feature.
 
 -   ``send_to_last_chat`` *(str)* [Default: ``warn``]
 

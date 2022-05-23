@@ -22,6 +22,7 @@ Added
 
 Changed
 -------
+- Switched animated sticker support library to ``pyrlottie``.
 
 Removed
 -------
