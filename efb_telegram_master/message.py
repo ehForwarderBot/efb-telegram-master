@@ -90,8 +90,7 @@ class ETMMsg(Message):
             self.__path = Path(file.name)
             self.__filename = self.__filename or os.path.basename(file.name)
 
-            if self.type_telegram == TGMsgType.Animation:
-
+            if self.type_telegram in (TGMsgType.Animation, TGMsgType.VideoSticker):
                 gif_file = utils.gif_conversion(file, self.deliver_to.channel_id)
 
                 self.__file = gif_file

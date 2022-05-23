@@ -48,6 +48,7 @@ class MasterMessageProcessor(LocaleMixin):
         TGMsgType.Photo: MsgType.Image,
         TGMsgType.Sticker: MsgType.Sticker,
         # TGMsgType.AnimatedSticker: MsgType.Animation,
+        TGMsgType.VideoSticker: MsgType.Animation,
         TGMsgType.Video: MsgType.Video,
         TGMsgType.VideoNote: MsgType.Video,
         TGMsgType.Voice: MsgType.Voice,
