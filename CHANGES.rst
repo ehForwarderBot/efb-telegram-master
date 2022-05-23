@@ -32,6 +32,7 @@ Fixed
 - Attempt to fix “Database is Locked” issue. (`#110`_ by whtsky)
 - Telegram GIF image processing may trigger an early download
 - Preserve filenames from Telegram for music files (`#117`_)
+- Redundant error message when trying to send unsupported media.
 
 2.2.4_ - 2021-05-22
 ===================
