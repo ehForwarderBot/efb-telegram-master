@@ -1,5 +1,6 @@
 import re
 from io import BytesIO
+from tempfile import NamedTemporaryFile
 
 from pytest import raises
 
@@ -46,7 +47,7 @@ def test_chat_id_str_conversion():
 
 
 def test_convert_tgs_to_gif():
-    out = BytesIO()
-    with open('tests/mocks/AnimatedSticker.tgs', 'rb') as f:
-        assert convert_tgs_to_gif(f, out), "conversion outcome"
-    assert out.seek(0, 2), "converted TGS file should not be empty"
+    with NamedTemporaryFile(suffix=".gif") as out:
+        with open('tests/mocks/AnimatedSticker.tgs', 'rb') as f:
+            assert convert_tgs_to_gif(f, out), "conversion outcome"
+        assert out.seek(0, 2), "converted TGS file should not be empty"

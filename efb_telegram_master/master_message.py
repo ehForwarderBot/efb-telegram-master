@@ -316,7 +316,7 @@ class MasterMessageProcessor(LocaleMixin):
                     self.logger.debug("[%s] Message media is edited (%s -> %s)", m.uid, edited.file_unique_id, m.file_unique_id)
                     m.edit_media = True
 
-            # Enclose message as an Message object by message type.
+            # Enclose message as a Message object by message type.
             if mtype is TGMsgType.Text:
                 m.text = msg_md_text
             elif mtype is TGMsgType.Photo:
@@ -338,6 +338,15 @@ class MasterMessageProcessor(LocaleMixin):
                     m_filename += ".gif"
                 m.filename = m_filename
                 m.mime = message.animation.mime_type or m.mime
+            elif mtype is TGMsgType.VideoSticker:
+                assert message.sticker and message.sticker.is_video
+                m.text = msg_md_caption
+                self.logger.debug("[%s] Telegram message is a WebM sticker.", message_id)
+                m_filename = getattr(message.sticker, "file_name", None) or "sticker"
+                if m_filename and not m_filename.lower().endswith(".gif"):
+                    m_filename += ".gif"
+                m.filename = m_filename
+                m.mime = "image/gif"
             elif mtype is TGMsgType.Document:
                 assert message.document
                 m.text = msg_md_caption
