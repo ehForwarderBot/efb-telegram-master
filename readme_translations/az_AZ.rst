@@ -611,6 +611,21 @@ e.g.:
 
   * ``disabled``: Use empty placeholders.
 
+* ``api_base_url`` *(str)* [Default: ``null``]
+
+  Base URL of the Telegram Bot API. Defaulted to
+  ``https://api.telegram.org/bot``.
+
+* ``api_base_file_url`` *(str)* [Default: ``null``]
+
+  Base file URL of the Telegram Bot API. Defaulted to
+  ``https://api.telegram.org/file/bot``.
+
+* ``local_tdlib_api`` *(bool)* [Default: ``false``]
+
+  Enable this option if the bot API is running in ``--local`` mode and
+  is using the same file system with ETM.
+
 
 Network configuration: timeout tweaks
 =====================================
@@ -723,6 +738,13 @@ Set up a ``SimpleXMLRPCClient`` in any Python script and call any of
 the exposed functions directly. For details, please consult `Python
 documentation on xmlrpc
 <https://docs.python.org/3/library/xmlrpc.html>`_.
+
+
+Setup Webhook
+=============
+
+For details on how to setup a webhook, please visit this `wiki article
+<https://github.com/ehForwarderBot/efb-telegram-master/wiki/Setup-Webhook>`_.
 
 
 License

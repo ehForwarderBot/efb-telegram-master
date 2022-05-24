@@ -488,8 +488,10 @@ ETM 不能：
 
 * ``animated_stickers`` *(bool)* [默认值: ``false``]
 
-  启用对动画贴纸的实验性支持。注意：您需要自行安装二进制依赖 ``libcairo``，并通过 ``pip3 install
-  "efb-telegram-master[tgs]"`` 安装额外的 Python 软件包依赖，才能启用此功能。
+  Enable experimental support to animated stickers. Note: you need to
+  install binary dependency ``libcairo`` on your own, and additional
+  Python dependencies via ``pip3 install "efb-telegram-master[tgs]"``
+  to enable this feature.
 
 * ``send_to_last_chat`` *(str)* [默认值: ``warn``]
 
@@ -510,6 +512,21 @@ ETM 不能：
   * ``text``：使用文本，如「发送了图片/视频/文件」。
 
   * ``disabled``：使用空占位符。
+
+* ``api_base_url`` *(str)* [Default: ``null``]
+
+  Base URL of the Telegram Bot API. Defaulted to
+  ``https://api.telegram.org/bot``.
+
+* ``api_base_file_url`` *(str)* [Default: ``null``]
+
+  Base file URL of the Telegram Bot API. Defaulted to
+  ``https://api.telegram.org/file/bot``.
+
+* ``local_tdlib_api`` *(bool)* [Default: ``false``]
+
+  Enable this option if the bot API is running in ``--local`` mode and
+  is using the same file system with ETM.
 
 
 网络配置：超时调整
@@ -597,9 +614,9 @@ ETM 2 中实现了一个标准的 `Python XML RPC 服务器
 ----------
 
 我们提供了 `db（数据库管理器）类
+<https://etm.1a23.studio/blob/master/efb_telegram_master/db.py>`_\ 和
+`RPCUtilities 类
 <https://etm.1a23.studio/blob/master/efb_telegram_master/rpc_utilities.py>`_\
-和 `RPCUtilities 类
-<https://etm.1a23.studio/blob/master/efb_telegram_master/db.py>`_\
 中的函数。详细文档请参考源代码。
 
 
@@ -609,6 +626,13 @@ ETM 2 中实现了一个标准的 `Python XML RPC 服务器
 您可以在任意 Python 脚本中设置一个 ``SimpleXMLRPCClient``，并可以直接调用任何被暴露的函数。详情请查阅
 `Python 文档的 xmlrpc 章节
 <https://docs.python.org/3/library/xmlrpc.html>`_。
+
+
+Setup Webhook
+=============
+
+For details on how to setup a webhook, please visit this `wiki article
+<https://github.com/ehForwarderBot/efb-telegram-master/wiki/Setup-Webhook>`_.
 
 
 许可协议
