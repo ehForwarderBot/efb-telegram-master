@@ -451,6 +451,7 @@ class SlaveMessageProcessor(LocaleMixin):
             if old_msg_id:
                 try:
                     if edit_media:
+                        assert msg.path
                         media: InputMedia
                         file = self.process_file_obj(msg.file, msg.path)
                         if send_as_file:
@@ -468,6 +469,7 @@ class SlaveMessageProcessor(LocaleMixin):
                     msg.file.seek(0)
 
             if send_as_file:
+                assert msg.path
                 file = self.process_file_obj(msg.file, msg.path)
                 return self.bot.send_document(tg_dest, file, prefix=msg_template, suffix=reactions,
                                               caption=text, parse_mode="HTML", filename=msg.filename,
@@ -476,6 +478,7 @@ class SlaveMessageProcessor(LocaleMixin):
                                               disable_notification=silent)
             else:
                 try:
+                    assert msg.path
                     file = self.process_file_obj(msg.file, msg.path)
                     return self.bot.send_photo(tg_dest, file, prefix=msg_template, suffix=reactions,
                                                caption=text, parse_mode="HTML",
@@ -485,6 +488,7 @@ class SlaveMessageProcessor(LocaleMixin):
                 except telegram.error.BadRequest as e:
                     self.logger.error('[%s] Failed to send it as image, sending as document. Reason: %s',
                                       msg.uid, e)
+                    assert msg.path
                     file = self.process_file_obj(msg.file, msg.path)
                     return self.bot.send_document(tg_dest, file, prefix=msg_template, suffix=reactions,
                                                   caption=text, parse_mode="HTML", filename=msg.filename,
@@ -529,7 +533,7 @@ class SlaveMessageProcessor(LocaleMixin):
 
             if old_msg_id:
                 if edit_media:
-                    assert msg.file
+                    assert msg.file and msg.path
                     file = self.process_file_obj(msg.file, msg.path)
                     self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=InputMediaAnimation(file))
                 return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1],
@@ -537,9 +541,10 @@ class SlaveMessageProcessor(LocaleMixin):
                                                      reply_markup=reply_markup,
                                                      caption=text, parse_mode="HTML")
             else:
-                assert msg.file
+                assert msg.file and msg.path
                 file = self.process_file_obj(msg.file, msg.path)
-                return self.bot.send_animation(tg_dest, InputFile(file, filename=msg.filename),
+                file_: Union[IO[bytes], bytes] = open(file, 'rb') if isinstance(file, str) else file
+                return self.bot.send_animation(tg_dest, InputFile(file_, filename=msg.filename),
                                                prefix=msg_template, suffix=reactions,
                                                caption=text, parse_mode="HTML",
                                                reply_to_message_id=target_msg_id,
@@ -604,6 +609,7 @@ class SlaveMessageProcessor(LocaleMixin):
                                                  reply_to_message_id=target_msg_id,
                                                  disable_notification=silent)
                 except IOError:
+                    assert msg.file and msg.path
                     file = self.process_file_obj(msg.file, msg.path)
                     return self.bot.send_document(tg_dest, file, prefix=msg_template, suffix=reactions,
                                                   caption=msg.text, filename=msg.filename,
@@ -685,12 +691,12 @@ class SlaveMessageProcessor(LocaleMixin):
 
             if old_msg_id:
                 if edit_media:
-                    assert msg.file is not None
+                    assert msg.file is not None and msg.path is not None
                     file = self.process_file_obj(msg.file, msg.path)
                     self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=InputMediaDocument(file))
                 return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1], reply_markup=reply_markup,
                                                      prefix=msg_template, suffix=reactions, caption=text, parse_mode="HTML")
-            assert msg.file is not None
+            assert msg.file is not None and msg.path is not None
             self.logger.debug("[%s] Uploading file %s (%s) as %s", msg.uid,
                               msg.file.name, msg.mime, file_name)
             file = self.process_file_obj(msg.file, msg.path)
@@ -820,12 +826,12 @@ class SlaveMessageProcessor(LocaleMixin):
 
             if old_msg_id:
                 if edit_media:
-                    assert msg.file is not None
+                    assert msg.file is not None and msg.path is not None
                     file = self.process_file_obj(msg.file, msg.path)
                     self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=InputMediaVideo(file))
                 return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1], reply_markup=reply_markup,
                                                      prefix=msg_template, suffix=reactions, caption=text, parse_mode="HTML")
-            assert msg.file is not None
+            assert msg.file is not None and msg.path is not None
             file = self.process_file_obj(msg.file, msg.path)
             return self.bot.send_video(tg_dest, file, prefix=msg_template, suffix=reactions,
                                        caption=text, parse_mode="HTML",

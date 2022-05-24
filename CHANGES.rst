@@ -16,15 +16,24 @@ Unreleased
 
 Added
 -----
-- Support for custom Telegram API endpoints and local Tglib Bot API client mode.
-  (`#116`_)
-- Add support to video stickers. (`#120`_)
 
 Changed
 -------
 
 Removed
 -------
+
+Fixed
+-----
+
+2.3.0_ - 2022-05-24
+===================
+
+Added
+-----
+- Support for custom Telegram API endpoints and local Tglib Bot API client mode.
+  (`#116`_)
+- Add support to video stickers. (`#120`_)
 
 Fixed
 -----
@@ -196,6 +205,7 @@ First release.
 .. _2.2.2: https://etm.1a23.studio/compare/v2.2.1...v2.2.2
 .. _2.2.3: https://etm.1a23.studio/compare/v2.2.2...v2.2.3
 .. _2.2.4: https://etm.1a23.studio/compare/v2.2.3...v2.2.4
+.. _2.3.0: https://etm.1a23.studio/compare/v2.2.4...v2.3.0
 .. _#93: https://etm.1a23.studio/issues/93
 .. _#99: https://etm.1a23.studio/issues/99
 .. _#100: https://etm.1a23.studio/issues/100
