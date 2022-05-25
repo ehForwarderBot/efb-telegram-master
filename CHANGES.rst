@@ -26,6 +26,12 @@ Removed
 Fixed
 -----
 
+2.3.1_ - 2022-05-24
+===================
+Fixed
+-----
+- Add missing support to video stickers.
+
 2.3.0_ - 2022-05-24
 ===================
 
