@@ -204,8 +204,7 @@ class CommandsManager(LocaleMixin):
         if groupdict['command'] not in functions:
             return self.bot.reply_error(update, self._("Command not found in selected module. (XC04)"))
 
-        command = getattr(channel, groupdict['command'])
-
+        command = channel.get_extra_functions()[groupdict['command']]
         msg = "<b>{0} {1}".format(
             html.escape(channel.channel_emoji),
             html.escape(channel.channel_name))
