@@ -963,6 +963,8 @@ class SlaveMessageProcessor(LocaleMixin):
         self.dispatch_message(old_msg, msg_template, old_msg_id=(chat_id, msg_id), tg_dest=chat_id)
 
     def generate_message_template(self, msg: Message, singly_linked: bool) -> str:
+        if msg.vendor_specific.get('disable_header'):
+            return ''
         msg_prefix = ""  # For group member name
         if isinstance(msg.chat, GroupChat):
             self.logger.debug("[%s] Message is from a group. Sender: %s", msg.uid, msg.author)
