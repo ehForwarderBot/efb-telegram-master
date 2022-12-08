@@ -995,7 +995,7 @@ class SlaveMessageProcessor(LocaleMixin):
                 name_prefix += f", {msg.author.long_name}"
             msg_template = f"{emoji_prefix} {name_prefix}:"
         else:
-            msg_template = f"{Emoji.UNKNOWN} {msg.author.long_name} {'(' + msg.chat.display_name + ')' if msg.chat.display_name else ''}:"
+            msg_template = f"{Emoji.UNKNOWN} {msg.author.long_name}:"
         return msg_template
 
     def check_file_size(self, file: Optional[IO[bytes]]) -> Optional[str]:
