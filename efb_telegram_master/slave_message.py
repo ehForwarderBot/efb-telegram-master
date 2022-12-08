@@ -691,12 +691,12 @@ class SlaveMessageProcessor(LocaleMixin):
 
             if old_msg_id:
                 if edit_media:
-                    assert msg.file is not None and msg.path is not None
+                    assert msg.file is not None or msg.path is not None
                     file = self.process_file_obj(msg.file, msg.path)
                     self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=InputMediaDocument(file))
                 return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1], reply_markup=reply_markup,
                                                      prefix=msg_template, suffix=reactions, caption=text, parse_mode="HTML")
-            assert msg.file is not None and msg.path is not None
+            assert msg.file is not None or msg.path is not None
             self.logger.debug("[%s] Uploading file %s (%s) as %s", msg.uid,
                               msg.file.name, msg.mime, file_name)
             file = self.process_file_obj(msg.file, msg.path)
@@ -826,12 +826,12 @@ class SlaveMessageProcessor(LocaleMixin):
 
             if old_msg_id:
                 if edit_media:
-                    assert msg.file is not None and msg.path is not None
+                    assert msg.file is not None or msg.path is not None
                     file = self.process_file_obj(msg.file, msg.path)
                     self.bot.edit_message_media(chat_id=old_msg_id[0], message_id=old_msg_id[1], media=InputMediaVideo(file))
                 return self.bot.edit_message_caption(chat_id=old_msg_id[0], message_id=old_msg_id[1], reply_markup=reply_markup,
                                                      prefix=msg_template, suffix=reactions, caption=text, parse_mode="HTML")
-            assert msg.file is not None and msg.path is not None
+            assert msg.file is not None or msg.path is not None
             file = self.process_file_obj(msg.file, msg.path)
             return self.bot.send_video(tg_dest, file, prefix=msg_template, suffix=reactions,
                                        caption=text, parse_mode="HTML",
@@ -963,6 +963,8 @@ class SlaveMessageProcessor(LocaleMixin):
         self.dispatch_message(old_msg, msg_template, old_msg_id=(chat_id, msg_id), tg_dest=chat_id)
 
     def generate_message_template(self, msg: Message, singly_linked: bool) -> str:
+        if msg.vendor_specific.get('disable_header'):
+            return ''
         msg_prefix = ""  # For group member name
         if isinstance(msg.chat, GroupChat):
             self.logger.debug("[%s] Message is from a group. Sender: %s", msg.uid, msg.author)
@@ -993,7 +995,7 @@ class SlaveMessageProcessor(LocaleMixin):
                 name_prefix += f", {msg.author.long_name}"
             msg_template = f"{emoji_prefix} {name_prefix}:"
         else:
-            msg_template = f"{Emoji.UNKNOWN} {msg.author.long_name} ({msg.chat.display_name}):"
+            msg_template = f"{Emoji.UNKNOWN} {msg.author.long_name}:"
         return msg_template
 
     def check_file_size(self, file: Optional[IO[bytes]]) -> Optional[str]:

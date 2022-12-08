@@ -199,7 +199,7 @@ class TelegramBotManager(LocaleMixin):
         prefix = (prefix and (prefix + "\n")) or prefix
         suffix = (suffix and ("\n" + suffix)) or suffix
         if str(kwargs.get('parse_mode', '')).lower() == "html":
-            prefix = html.escape(prefix)
+            prefix = '<u>' + html.escape(prefix) + '</u>'
             suffix = html.escape(suffix)
         text: str
         if args[1:]:
