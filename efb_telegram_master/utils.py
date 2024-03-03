@@ -294,6 +294,9 @@ else:
         file.seek(0)
         metadata = ffmpeg.probe(file.name)
         stream = ffmpeg.input(file.name)
+        # 检查视频编码类型是否为VP9
+        if metadata['streams'][0]['codec_name'] == 'vp9':
+            stream = ffmpeg.input(file.name, vcodec='libvpx')
         if channel_id.startswith("blueset.wechat"):
             # Workaround: Compress GIF for slave channel `blueset.wechat`
             # TODO: Move this logic to `blueset.wechat` in the future
