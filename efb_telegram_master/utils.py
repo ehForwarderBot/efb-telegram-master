@@ -326,7 +326,7 @@ else:
         # get the gif file size
         new_file_size = os.path.getsize(gif_file.name)
         if new_file_size > 1024 * 1024:
-            scales = [600, 512, 480, 400, 360, 300, 256, 200, 150, 100]
+            scales = [600, 512, 480, 400, 360, 300, 256, 250, 200, 150, 100]
             scales = [scale for scale in scales if scale < metadata['streams'][0]['width']]
             if channel_id.startswith("blueset.wechat"):
                 for scale in scales:
