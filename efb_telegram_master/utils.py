@@ -294,11 +294,26 @@ else:
         file.seek(0)
         metadata = ffmpeg.probe(file.name)
         stream = ffmpeg.input(file.name)
-        if channel_id.startswith("blueset.wechat") and metadata.get('width', 0) > 600:
+        if channel_id.startswith("blueset.wechat"):
             # Workaround: Compress GIF for slave channel `blueset.wechat`
             # TODO: Move this logic to `blueset.wechat` in the future
-            stream = stream.filter("scale", 600, -2)
-        stream.output(gif_file.name).overwrite_output().run()
+            stream = stream.filter("scale", 600, -2, flags="lanczos")
+            if metadata.get('fps', 0) > 12:
+                stream = stream.filter("fps", 12, round='up')
+
+            stream.output(gif_file.name).overwrite_output().run()
+            # get the gif file size
+            new_file_size = os.path.getsize(gif_file.name)
+            scales = [600, 512, 480, 400, 360, 300, 256, 200, 150, 100]
+            if new_file_size > 1024 * 1024:
+                for scale in scales:
+                    stream = ffmpeg.input(file.name).filter("scale", scale, -2, flags="lanczos").filter("fps", 12, round='up')
+                    stream.output(gif_file.name).overwrite_output().run() 
+                    new_file_size = os.path.getsize(gif_file.name)
+                    if new_file_size < 1024 * 1024:
+                        break
+        else:
+            stream.output(gif_file.name).overwrite_output().run()
         file.close()
         gif_file.seek(0)
         return gif_file
