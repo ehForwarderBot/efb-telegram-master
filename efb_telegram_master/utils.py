@@ -297,41 +297,62 @@ else:
         # 检查视频编码类型是否为VP9
         if metadata['streams'][0]['codec_name'] == 'vp9':
             stream = ffmpeg.input(file.name, vcodec='libvpx-vp9')
-        # generate a palettegen
-        palettegen_file = NamedTemporaryFile(suffix='.png')
-        (
-            stream
-            .output(palettegen_file.name, vf='palettegen=reserve_transparent=on')
-            .overwrite_output()
-            .run()
-        )
-        # generate a gif
-        palettegen = ffmpeg.input(palettegen_file.name)
-
-        stream = (
-            ffmpeg
-            .filter([stream, palettegen], 'paletteuse')
-        )
         if channel_id.startswith("blueset.wechat"):
             # Workaround: Compress GIF for slave channel `blueset.wechat`
             # TODO: Move this logic to `blueset.wechat` in the future
             if metadata.get('fps', 0) > 12:
                 stream = stream.filter("fps", 12, round='up')
-            stream_scale = stream.filter("scale", 600, -2, flags="lanczos")
-
-            stream_scale.output(gif_file.name).overwrite_output().run()
-            # get the gif file size
-            new_file_size = os.path.getsize(gif_file.name)
+            if metadata.get('width', 0) > 600:
+                stream = stream.filter("scale", 600, -2, flags="lanczos")
+        split = (
+            stream
+            .split()
+        )
+        stream_paletteuse = (
+            ffmpeg
+            .filter(
+                [
+                    split[0],
+                    split[1]
+                    .filter(
+                        filter_name='palettegen', 
+                        reserve_transparent='on',
+                    )
+                ],
+                filter_name='paletteuse',
+            )
+        )
+        stream_paletteuse.output(gif_file.name, fs=1400000).overwrite_output().run()
+        # get the gif file size
+        new_file_size = os.path.getsize(gif_file.name)
+        if new_file_size > 1024 * 1024:
             scales = [600, 512, 480, 400, 360, 300, 256, 200, 150, 100]
-            if new_file_size > 1024 * 1024:
+            scales = [scale for scale in scales if scale < metadata['streams'][0]['width']]
+            if channel_id.startswith("blueset.wechat"):
                 for scale in scales:
                     stream_scale = stream.filter("scale", scale, -2, flags="lanczos")
-                    stream_scale.output(gif_file.name).overwrite_output().run() 
+                    split = (
+                        stream_scale
+                        .split()
+                    )
+                    stream_paletteuse = (
+                        ffmpeg
+                        .filter(
+                            [
+                                split[0],
+                                split[1]
+                                .filter(
+                                    filter_name='palettegen', 
+                                    reserve_transparent='on',
+                                )
+                            ],
+                            filter_name='paletteuse',
+                        )
+                    )
+                    stream_paletteuse.output(gif_file.name, fs=1400000).overwrite_output().run() 
                     new_file_size = os.path.getsize(gif_file.name)
                     if new_file_size < 1024 * 1024:
                         break
-        else:
-            stream.output(gif_file.name).overwrite_output().run()
         file.close()
         gif_file.seek(0)
         return gif_file
