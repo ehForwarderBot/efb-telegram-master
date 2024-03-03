@@ -322,7 +322,7 @@ else:
                 filter_name='paletteuse',
             )
         )
-        stream_paletteuse.output(gif_file.name, fs=1400000).overwrite_output().run()
+        stream_paletteuse.output(gif_file.name).overwrite_output().run()
         # get the gif file size
         new_file_size = os.path.getsize(gif_file.name)
         if new_file_size > 1024 * 1024:
