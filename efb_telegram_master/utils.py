@@ -296,22 +296,37 @@ else:
         stream = ffmpeg.input(file.name)
         # 检查视频编码类型是否为VP9
         if metadata['streams'][0]['codec_name'] == 'vp9':
-            stream = ffmpeg.input(file.name, vcodec='libvpx')
+            stream = ffmpeg.input(file.name, vcodec='libvpx-vp9')
+        # generate a palettegen
+        palettegen_file = NamedTemporaryFile(suffix='.png')
+        (
+            stream
+            .output(palettegen_file.name, vf='palettegen=reserve_transparent=on')
+            .overwrite_output()
+            .run()
+        )
+        # generate a gif
+        palettegen = ffmpeg.input(palettegen_file.name)
+
+        stream = (
+            ffmpeg
+            .filter([stream, palettegen], 'paletteuse')
+        )
         if channel_id.startswith("blueset.wechat"):
             # Workaround: Compress GIF for slave channel `blueset.wechat`
             # TODO: Move this logic to `blueset.wechat` in the future
-            stream = stream.filter("scale", 600, -2, flags="lanczos")
             if metadata.get('fps', 0) > 12:
                 stream = stream.filter("fps", 12, round='up')
+            stream_scale = stream.filter("scale", 600, -2, flags="lanczos")
 
-            stream.output(gif_file.name).overwrite_output().run()
+            stream_scale.output(gif_file.name).overwrite_output().run()
             # get the gif file size
             new_file_size = os.path.getsize(gif_file.name)
             scales = [600, 512, 480, 400, 360, 300, 256, 200, 150, 100]
             if new_file_size > 1024 * 1024:
                 for scale in scales:
-                    stream = ffmpeg.input(file.name).filter("scale", scale, -2, flags="lanczos").filter("fps", 12, round='up')
-                    stream.output(gif_file.name).overwrite_output().run() 
+                    stream_scale = stream.filter("scale", scale, -2, flags="lanczos")
+                    stream_scale.output(gif_file.name).overwrite_output().run() 
                     new_file_size = os.path.getsize(gif_file.name)
                     if new_file_size < 1024 * 1024:
                         break
