@@ -274,12 +274,35 @@ if os.name == "nt":
 
         # Set input/output of ffmpeg to stream
         stream = ffmpeg.input("pipe:")
-        if channel_id.startswith("blueset.wechat") and metadata.get('width', 0) > 600:
+        if metadata['streams'][0]['codec_name'] == 'vp9':
+            stream = ffmpeg.input(file.name, vcodec='libvpx-vp9')
+        if channel_id.startswith("blueset.wechat"):
             # Workaround: Compress GIF for slave channel `blueset.wechat`
             # TODO: Move this logic to `blueset.wechat` in the future
-            stream = stream.filter("scale", 600, -2)
+            if metadata.get('width', 0) > 600:
+                stream = stream.filter("scale", 600, -2)
+            if metadata.get('fps', 0) > 12:
+                stream = stream.filter("fps", 12, round='up')
+        split = (
+            stream
+            .split()
+        )
+        stream_paletteuse = (
+            ffmpeg
+            .filter(
+                [
+                    split[0],
+                    split[1]
+                    .filter(
+                        filter_name='palettegen', 
+                        reserve_transparent='on',
+                    )
+                ],
+                filter_name='paletteuse',
+            )
+        )
         # Need to specify file format here as no extension hint presents.
-        args = stream.output("pipe:", format="gif").compile()
+        args = stream_paletteuse.output("pipe:", format="gif").compile()
         file.seek(0)
 
         # subprocess.Popen would still try to access the file handle instead of
