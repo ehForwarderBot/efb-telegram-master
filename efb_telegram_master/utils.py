@@ -160,6 +160,22 @@ def chat_id_str_to_id(s: EFBChannelChatIDStr) -> Tuple[ModuleID, ChatID, Optiona
         group_id = ChatID(ids[2])
     return channel_id, chat_uid, group_id
 
+def _png_gif_prepare(image):
+    """ Fork of lottie.exporters.gif.export_gif
+    Adapted from eltiempoes/python-lottie
+    https://github.com/eltiempoes/python-lottie/blob/a9f8be4858adb7eb0bc0e406a870b19c309c8a36/lib/lottie/exporters/gif.py#L10
+    License:
+        AGPL 3.0 (Python Lottie)
+    """
+    if image.mode not in ["RGBA", "RGBa"]:
+        image = image.convert("RGBA")
+    alpha = image.getchannel("A")
+    image = image.convert(image.mode[:-1]) \
+            .convert('P', palette=Image.ADAPTIVE, colors=255) # changed
+    mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
+    image.paste(255, mask=mask)
+    image.info['transparency'] = 255 # added
+    return image
 
 def export_gif(animation, fp, dpi=96, skip_frames=5):
     """ Fork of lottie.exporters.gif.export_gif
@@ -172,7 +188,7 @@ def export_gif(animation, fp, dpi=96, skip_frames=5):
     # Import only upon calling the method due to added binary dependencies
     # (libcairo)
     from lottie.exporters.cairo import export_png
-    from lottie.exporters.gif import _png_gif_prepare
+    # from lottie.exporters.gif import _png_gif_prepare # The code here have some problem, so I copy the function abo ve
 
     start = int(animation.in_point)
     end = int(animation.out_point)
