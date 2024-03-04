@@ -303,34 +303,45 @@ else:
             if metadata.get('fps', 0) > 12:
                 stream = stream.filter("fps", 12, round='up') # 限制帧率
             if metadata.get('width', 0) > 600:
-                metadata['streams'][0]['width'] = 600 # 限制宽度,更宽的不会再出现
-        scales = [metadata['streams'][0]['width'], 600, 512, 480, 400, 360, 300, 256, 250, 200, 150, 100]
-        scales = [scale for scale in scales if scale <= metadata['streams'][0]['width']]
-        scales = sorted(scales, reverse=True)
-        for scale in scales:
-            stream_scale = stream.filter("scale", scale, -2, flags="lanczos") # scale要放在split和palettegen之前，否则透明会变成黑色或绿色
-            split = (
-                stream_scale
-                .split()
+                stream = stream.filter("scale", 600, -2) # 限制宽度
+        split = (
+            stream
+            .split()
+        )
+        stream_paletteuse = (
+            ffmpeg
+            .filter(
+                [
+                    split[0],
+                    split[1]
+                    .filter(
+                        filter_name='palettegen', 
+                        reserve_transparent='on',
+                    )
+                ],
+                filter_name='paletteuse',
             )
-            stream_paletteuse = (
-                ffmpeg
-                .filter(
-                    [
-                        split[0],
-                        split[1]
-                        .filter(
-                            filter_name='palettegen', 
-                            reserve_transparent='on',
-                        )
-                    ],
-                    filter_name='paletteuse',
-                )
-            )
-            stream_paletteuse.output(gif_file.name, fs=1400000).overwrite_output().run() 
-            new_file_size = os.path.getsize(gif_file.name)
-            if new_file_size < 1024 * 1024 or not channel_id.startswith("blueset.wechat"):
-                break
+        )
+        stream_paletteuse.output(gif_file.name).overwrite_output().run() 
+        new_file_size = os.path.getsize(gif_file.name)
+        print(f"file_size: {new_file_size/1024}KB")
+        if new_file_size > 1024 * 1024 and channel_id.startswith("blueset.wechat"):
+            # try to use gifsicle lossy compression
+            compress_file = NamedTemporaryFile(suffix='.gif')
+            subprocess.run(["gifsicle", "--resize-method=catrom", "--lossy=100", "-O2", "-o", compress_file.name, gif_file.name], check=True)
+            new_file_size = os.path.getsize(compress_file.name)
+            if new_file_size > 1024 * 1024:
+                scales = [600, 512, 480, 400, 360, 300, 256, 250, 200, 150, 100]
+                scales = [scale for scale in scales if scale < metadata['streams'][0]['width']]
+                scales = sorted(scales, reverse=True)
+                for scale in scales:
+                    subprocess.run(["gifsicle", "--resize-method=catrom",  "--resize-fit", f"{scale}x{scale}", "--lossy=100", "-O2", "-o", compress_file.name, gif_file.name], check=True)
+                    new_file_size = os.path.getsize(compress_file.name)
+                    print(f"new_file_size: {new_file_size/1024}KB after resize to {scale}x{scale}")
+                    if new_file_size < 1024 * 1024:
+                        break
+            gif_file.close()
+            gif_file = compress_file
         file.close()
         gif_file.seek(0)
         return gif_file
