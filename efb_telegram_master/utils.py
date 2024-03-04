@@ -276,13 +276,6 @@ if os.name == "nt":
         stream = ffmpeg.input("pipe:")
         if metadata['streams'][0]['codec_name'] == 'vp9':
             stream = ffmpeg.input(file.name, vcodec='libvpx-vp9')
-        if channel_id.startswith("blueset.wechat"):
-            # Workaround: Compress GIF for slave channel `blueset.wechat`
-            # TODO: Move this logic to `blueset.wechat` in the future
-            if metadata.get('width', 0) > 600:
-                stream = stream.filter("scale", 600, -2)
-            if metadata.get('fps', 0) > 12:
-                stream = stream.filter("fps", 12, round='up')
         split = (
             stream
             .split()
@@ -336,13 +329,6 @@ else:
         # 检查视频编码类型是否为VP9
         if metadata['streams'][0]['codec_name'] == 'vp9':
             stream = ffmpeg.input(file.name, vcodec='libvpx-vp9') # 只有这个能保持透明背景
-        if channel_id.startswith("blueset.wechat"):
-            # Workaround: Compress GIF for slave channel `blueset.wechat`
-            # TODO: Move this logic to `blueset.wechat` in the future
-            if metadata.get('fps', 0) > 12:
-                stream = stream.filter("fps", 12, round='up') # 限制帧率
-            if metadata.get('width', 0) > 600:
-                stream = stream.filter("scale", 600, -2) # 限制宽度
         split = (
             stream
             .split()
@@ -364,23 +350,6 @@ else:
         stream_paletteuse.output(gif_file.name).overwrite_output().run() 
         new_file_size = os.path.getsize(gif_file.name)
         print(f"file_size: {new_file_size/1024}KB")
-        if new_file_size > 1024 * 1024 and channel_id.startswith("blueset.wechat"):
-            # try to use gifsicle lossy compression
-            compress_file = NamedTemporaryFile(suffix='.gif')
-            subprocess.run(["gifsicle", "--resize-method=catrom", "--lossy=100", "-O2", "-o", compress_file.name, gif_file.name], check=True)
-            new_file_size = os.path.getsize(compress_file.name)
-            if new_file_size > 1024 * 1024:
-                scales = [600, 512, 480, 400, 360, 300, 256, 250, 200, 150, 100]
-                scales = [scale for scale in scales if scale < metadata['streams'][0]['width']]
-                scales = sorted(scales, reverse=True)
-                for scale in scales:
-                    subprocess.run(["gifsicle", "--resize-method=catrom",  "--resize-fit", f"{scale}x{scale}", "--lossy=100", "-O2", "-o", compress_file.name, gif_file.name], check=True)
-                    new_file_size = os.path.getsize(compress_file.name)
-                    print(f"new_file_size: {new_file_size/1024}KB after resize to {scale}x{scale}")
-                    if new_file_size < 1024 * 1024:
-                        break
-            gif_file.close()
-            gif_file = compress_file
         file.close()
         gif_file.seek(0)
         return gif_file
