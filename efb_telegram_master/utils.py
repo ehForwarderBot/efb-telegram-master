@@ -160,6 +160,22 @@ def chat_id_str_to_id(s: EFBChannelChatIDStr) -> Tuple[ModuleID, ChatID, Optiona
         group_id = ChatID(ids[2])
     return channel_id, chat_uid, group_id
 
+def _png_gif_prepare(image):
+    """ Fork of lottie.exporters.gif.export_gif
+    Adapted from eltiempoes/python-lottie
+    https://github.com/eltiempoes/python-lottie/blob/a9f8be4858adb7eb0bc0e406a870b19c309c8a36/lib/lottie/exporters/gif.py#L10
+    License:
+        AGPL 3.0 (Python Lottie)
+    """
+    if image.mode not in ["RGBA", "RGBa"]:
+        image = image.convert("RGBA")
+    alpha = image.getchannel("A")
+    image = image.convert(image.mode[:-1]) \
+            .convert('P', palette=Image.ADAPTIVE, colors=255) # changed
+    mask = Image.eval(alpha, lambda a: 255 if a <= 128 else 0)
+    image.paste(255, mask=mask)
+    image.info['transparency'] = 255 # added
+    return image
 
 def export_gif(animation, fp, dpi=96, skip_frames=5):
     """ Fork of lottie.exporters.gif.export_gif
@@ -172,7 +188,7 @@ def export_gif(animation, fp, dpi=96, skip_frames=5):
     # Import only upon calling the method due to added binary dependencies
     # (libcairo)
     from lottie.exporters.cairo import export_png
-    from lottie.exporters.gif import _png_gif_prepare
+    # from lottie.exporters.gif import _png_gif_prepare # The code here have some problem, so I copy the function abo ve
 
     start = int(animation.in_point)
     end = int(animation.out_point)
@@ -183,7 +199,7 @@ def export_gif(animation, fp, dpi=96, skip_frames=5):
         file.seek(0)
         frames.append(_png_gif_prepare(Image.open(file)))
 
-    duration = 1000 / animation.frame_rate * (1 + skip_frames) / 2
+    duration = 1000 / animation.frame_rate * (1 + skip_frames)  # why /2 before?
     frames[0].save(
         fp,
         format='GIF',
@@ -207,7 +223,7 @@ def convert_tgs_to_gif(tgs_file: BinaryIO, gif_file: BinaryIO) -> bool:
         # heavy_strip(animation)
         # heavy_strip(animation)
         # animation.tgs_sanitize()
-        export_gif(animation, gif_file, skip_frames=5, dpi=48)
+        export_gif(animation, gif_file, skip_frames=5, dpi=48) # skip_frames = 5 means select one frame in every 5 frames
         return True
     except Exception:
         logging.exception("Error occurred while converting TGS to GIF.")
@@ -258,12 +274,28 @@ if os.name == "nt":
 
         # Set input/output of ffmpeg to stream
         stream = ffmpeg.input("pipe:")
-        if channel_id.startswith("blueset.wechat") and metadata.get('width', 0) > 600:
-            # Workaround: Compress GIF for slave channel `blueset.wechat`
-            # TODO: Move this logic to `blueset.wechat` in the future
-            stream = stream.filter("scale", 600, -2)
+        if metadata['streams'][0]['codec_name'] == 'vp9':
+            stream = ffmpeg.input(file.name, vcodec='libvpx-vp9')
+        split = (
+            stream
+            .split()
+        )
+        stream_paletteuse = (
+            ffmpeg
+            .filter(
+                [
+                    split[0],
+                    split[1]
+                    .filter(
+                        filter_name='palettegen', 
+                        reserve_transparent='on',
+                    )
+                ],
+                filter_name='paletteuse',
+            )
+        )
         # Need to specify file format here as no extension hint presents.
-        args = stream.output("pipe:", format="gif").compile()
+        args = stream_paletteuse.output("pipe:", format="gif").compile()
         file.seek(0)
 
         # subprocess.Popen would still try to access the file handle instead of
@@ -294,11 +326,30 @@ else:
         file.seek(0)
         metadata = ffmpeg.probe(file.name)
         stream = ffmpeg.input(file.name)
-        if channel_id.startswith("blueset.wechat") and metadata.get('width', 0) > 600:
-            # Workaround: Compress GIF for slave channel `blueset.wechat`
-            # TODO: Move this logic to `blueset.wechat` in the future
-            stream = stream.filter("scale", 600, -2)
-        stream.output(gif_file.name).overwrite_output().run()
+        # 检查视频编码类型是否为VP9
+        if metadata['streams'][0]['codec_name'] == 'vp9':
+            stream = ffmpeg.input(file.name, vcodec='libvpx-vp9') # 只有这个能保持透明背景
+        split = (
+            stream
+            .split()
+        )
+        stream_paletteuse = (
+            ffmpeg
+            .filter(
+                [
+                    split[0],
+                    split[1]
+                    .filter(
+                        filter_name='palettegen', 
+                        reserve_transparent='on',
+                    )
+                ],
+                filter_name='paletteuse',
+            )
+        )
+        stream_paletteuse.output(gif_file.name).overwrite_output().run() 
+        new_file_size = os.path.getsize(gif_file.name)
+        print(f"file_size: {new_file_size/1024}KB")
         file.close()
         gif_file.seek(0)
         return gif_file
