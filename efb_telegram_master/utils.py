@@ -199,7 +199,7 @@ def export_gif(animation, fp, dpi=96, skip_frames=5):
         file.seek(0)
         frames.append(_png_gif_prepare(Image.open(file)))
 
-    duration = 1000 / animation.frame_rate * (1 + skip_frames) / 2
+    duration = 1000 / animation.frame_rate * (1 + skip_frames)  # why /2 before?
     frames[0].save(
         fp,
         format='GIF',
