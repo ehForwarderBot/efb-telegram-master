@@ -223,7 +223,7 @@ def convert_tgs_to_gif(tgs_file: BinaryIO, gif_file: BinaryIO) -> bool:
         # heavy_strip(animation)
         # heavy_strip(animation)
         # animation.tgs_sanitize()
-        export_gif(animation, gif_file, skip_frames=5, dpi=48)
+        export_gif(animation, gif_file, skip_frames=5, dpi=48) # skip_frames = 5 means select one frame in every 5 frames
         return True
     except Exception:
         logging.exception("Error occurred while converting TGS to GIF.")
